@@ -10,14 +10,14 @@
 
 request(options, callback);
 
-<pre><code>
+<pre>
   var request = require('request');
   request({uri:'http://www.google.com'}, function (error, response, body) {
     if (!error && response.statusCode == 200) {
       sys.puts(body) // Print the google web page.
     }
   })
-</code></pre>
+</pre>
 
 ### Options
 
