@@ -27,3 +27,7 @@ request({uri:'http://mikeal.couchone.com/testjs', method:'POST', body:'{"_id":"'
             throw new Error("Wrong status code "+response.statusCode);
           }
         });
+
+request({uri:'http://gmail.com'}, function (error, response, body) {
+  sys.puts(error)
+})
