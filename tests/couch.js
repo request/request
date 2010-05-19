@@ -15,6 +15,18 @@ testports();
 testports(80)
 testports(5984)
 
+function testportsStream (port) {
+  var uri = port ? 'http://mikeal.couchone.com' + ":" + port : 'http://mikeal.couchone.com';
+  sys.puts(uri)
+  var body = ''
+  var bs = {write:function (chunk) {body += chunk}}
+  request({uri:uri}, function (error, response) {
+    if (error) {throw new Error(error)};
+    assert.equal(response.statusCode, 200);
+    assert.equal(body.slice(0, '{"couchdb":"Welcome",'.length), '{"couchdb":"Welcome",');
+  })
+}
+testports();
 var randomnumber=Math.floor(Math.random()*100000000).toString();
 request({uri:'http://mikeal.couchone.com/testjs', method:'POST', body:'{"_id":"'+randomnumber+'"}'}, 
         function (error, response, body) {
