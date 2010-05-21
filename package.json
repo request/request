@@ -1,7 +1,7 @@
 { "name" : "request"
 , "description" : "Simplified HTTP request method."
 , "tags" : ["http", "simple", "util", "utility"]
-, "version" : "0.8.0"
+, "version" : "0.8.1"
 , "author" : "Mikeal Rogers <mikeal.rogers@gmail.com>"
 , "directories" :
   { "lib" : "lib" }
