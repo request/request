@@ -20,7 +20,8 @@ The first argument is an options object. The only required option is uri, all ot
 * `'body'` - entity body for POST and PUT requests
 * `'client'` - existing http client object (when undefined a new one will be created and assigned to this property so you can keep around a reference to it if you would like use keep-alive on later request)
 * '`followRedirect` - follow HTTP 3xx responses as redirects. defaults to true.
-* '`bodyStream` - Stream to write body chunks to. When set this option will be passed as the last argument to the callback instead of the entire body.
+* '`requestBodyStream` - Stream to read request body chunks from. 
+* '`responseBodyStream` - Stream to write body chunks to. When set this option will be passed as the last argument to the callback instead of the entire body.
 
 The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body buffer.
 
