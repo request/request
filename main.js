@@ -16,7 +16,10 @@ function request (options, callback) {
     }
   }
   
-  options.followRedirect = options.followRedirect ? options.followRedirect : true;
+  options._redirectsFollowed = options._redirectsFollowed ? options._redirectsFollowed : 0;
+  options.maxRedirects = options.maxRedirects ? options.maxRedirects : 10;
+    
+  options.followRedirect = (options.followRedirect !== undefined) ? options.followRedirect : true;
   options.method = options.method ? options.method : 'GET';
   
   options.headers = options.headers ? options.headers :  {};
@@ -79,7 +82,8 @@ function request (options, callback) {
     response.addListener("end", function () {
       options.client.removeListener("error", clientErrorHandler);
       
-      if (response.statusCode > 299 && response.statusCode < 400 && options.followRedirect && response.headers.location) {
+      if (response.statusCode > 299 && response.statusCode < 400 && options.followRedirect && response.headers.location && (options._redirectsFollowed < options.maxRedirects) ) {
+        options._redirectsFollowed += 1
         options.uri = response.headers.location;
         delete options.client; 
         if (options.headers) {
@@ -87,7 +91,7 @@ function request (options, callback) {
         }
         request(options, callback);
         return;
-      }
+      } else {options._redirectsFollowed = 0}
       
       if (setHost) delete options.headers.host;
       if (callback) callback(null, response, buffer);
