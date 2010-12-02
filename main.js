@@ -11,9 +11,10 @@ function request (options, callback) {
   if (!options.uri) {
     throw new Error("options.uri is a required argument")
   } else {
-    if (typeof options.uri == "string") {
-      options.uri = url.parse(options.uri);
-    }
+    if (typeof options.uri == "string") options.uri = url.parse(options.uri);
+  }
+  if (options.proxy) {
+    if (typeof options.proxy == 'string') options.proxy = url.parse(options.proxy);
   }
   
   options._redirectsFollowed = options._redirectsFollowed ? options._redirectsFollowed : 0;
@@ -41,18 +42,17 @@ function request (options, callback) {
     else if (options.uri.protocol == 'https:') {options.uri.port = 443}
   }
   
-  if (options.uri.protocol == 'https:') {
-    var secure = true; 
-  } else {
-    var secure = false;
-  }
-  
   if (options.bodyStream) {
     sys.error('options.bodyStream is deprecated. use options.reponseBodyStream instead.');
     options.responseBodyStream = options.bodyStream;
   }
-  
-  options.client = options.client ? options.client : http.createClient(options.uri.port, options.uri.hostname, secure);
+  if (options.proxy) {
+    var secure = (options.proxy.protocol == 'https:') ? true : false 
+    options.client = options.client ? options.client : http.createClient(options.proxy.port, options.proxy.hostname, secure);
+  } else {
+    var secure = (options.uri.protocol == 'https:') ? true : false
+    options.client = options.client ? options.client : http.createClient(options.uri.port, options.uri.hostname, secure);
+  }
   
   var clientErrorHandler = function (error) {
     if (setHost) delete options.headers.host;
@@ -65,9 +65,11 @@ function request (options, callback) {
   }
   options.fullpath = options.uri.href.replace(options.uri.protocol + '//' + options.uri.host, '');
   if (options.fullpath.length === 0) options.fullpath = '/' 
+  
+  if (options.proxy) options.fullpath = (options.uri.protocol + '//' + options.uri.host + options.fullpath)
+  
   if (options.body) {options.headers['content-length'] = options.body.length}
   options.request = options.client.request(options.method, options.fullpath, options.headers);
-  
   options.request.addListener("response", function (response) {
     var buffer;
     if (options.responseBodyStream) {
