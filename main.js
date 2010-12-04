@@ -63,7 +63,7 @@ function request (options, callback) {
   if (options.uri.auth && !options.headers.authorization) {
     options.headers.authorization = "Basic " + toBase64(options.uri.auth);
   }
-  if (options.proxy.auth && !options.headers['proxy-authorization']) {
+  if (options.proxy && options.proxy.auth && !options.headers['proxy-authorization']) {
     options.headers['proxy-authorization'] = "Basic " + toBase64(options.proxy.auth);
   }
   

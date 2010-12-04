@@ -38,6 +38,7 @@ request({uri:'http://mikeal.couchone.com/testjs', method:'POST', headers: h, bod
 
 var options = {uri:'http://gmail.com'};
 request(options, function (error, response, body) {
+  if (error) throw error;
   assert.equal(response.statusCode, 200);
   assert.equal(options.uri.host, 'www.google.com');
   assert.equal(response.socket.port, 443);
