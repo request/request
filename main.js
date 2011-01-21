@@ -8,7 +8,6 @@ var toBase64 = function(str) {
 };
 
 function request (options, callback) {
-  console.log(options.uri)
   if (!options.uri) {
     throw new Error("options.uri is a required argument")
   } else {
