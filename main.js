@@ -8,6 +8,12 @@ var toBase64 = function(str) {
 };
 
 function request (options, callback) {
+  if (options.url) {
+    // People use this property instead all the time so why not just support it.
+    options.uri = options.url;
+    delete options.url;
+  }
+  
   if (!options.uri) {
     throw new Error("options.uri is a required argument")
   } else {
