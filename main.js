@@ -77,6 +77,7 @@ function request (options, callback) {
   options.request = options.client.request(options.method, options.fullpath, options.headers);
   options.request.addListener("response", function (response) {
     var buffer;
+    if (options.encoding) response.setEncoding(options.encoding);
     if (options.responseBodyStream) {
       buffer = options.responseBodyStream;
       sys.pump(response, options.responseBodyStream);
