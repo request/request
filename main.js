@@ -8,6 +8,7 @@ var toBase64 = function(str) {
 };
 
 function request (options, callback) {
+  console.log(options.uri)
   if (!options.uri) {
     throw new Error("options.uri is a required argument")
   } else {
@@ -20,7 +21,7 @@ function request (options, callback) {
   options._redirectsFollowed = options._redirectsFollowed ? options._redirectsFollowed : 0;
   options.maxRedirects = options.maxRedirects ? options.maxRedirects : 10;
     
-  options.followRedirect = (options.followRedirect !== undefined) ? options.followRedirect : true;
+  options.followRedirect = (options.followRedirect === undefined) ? true : options.followRedirect;
   options.method = options.method ? options.method : 'GET';
   
   options.headers = options.headers ? options.headers :  {};
@@ -90,6 +91,11 @@ function request (options, callback) {
       
       if (response.statusCode > 299 && response.statusCode < 400 && options.followRedirect && response.headers.location && (options._redirectsFollowed < options.maxRedirects) ) {
         options._redirectsFollowed += 1
+        if (response.headers.location.slice(0, 'http:'.length) !== 'http:' &&
+            response.headers.location.slice(0, 'https:'.length) !== 'https:'
+            ) {
+          response.headers.location = url.resolve(options.uri.href, response.headers.location);
+        }
         options.uri = response.headers.location;
         delete options.client; 
         if (options.headers) {
