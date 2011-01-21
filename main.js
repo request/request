@@ -89,7 +89,8 @@ function request (options, callback) {
     response.addListener("end", function () {
       options.client.removeListener("error", clientErrorHandler);
       
-      if (response.statusCode > 299 && response.statusCode < 400 && options.followRedirect && response.headers.location && (options._redirectsFollowed < options.maxRedirects) ) {
+      if (response.statusCode > 299 && response.statusCode < 400 && options.followRedirect && response.headers.location) {
+        if (options._redirectsFollowed >= options.maxRedirects) client.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."))
         options._redirectsFollowed += 1
         if (response.headers.location.slice(0, 'http:'.length) !== 'http:' &&
             response.headers.location.slice(0, 'https:'.length) !== 'https:'
