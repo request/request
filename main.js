@@ -103,9 +103,7 @@ function request (options, callback) {
       if (response.statusCode > 299 && response.statusCode < 400 && options.followRedirect && response.headers.location) {
         if (options._redirectsFollowed >= options.maxRedirects) client.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."));
         options._redirectsFollowed += 1;
-        if (response.headers.location.slice(0, 'http:'.length) !== 'http:' &&
-            response.headers.location.slice(0, 'https:'.length) !== 'https:'
-            ) {
+        if (!/^https?:/.test(response.headers.location)) {
           response.headers.location = url.resolve(options.uri.href, response.headers.location);
         }
         options.uri = response.headers.location;
