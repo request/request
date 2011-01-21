@@ -23,13 +23,15 @@ function request (options, callback) {
     if (typeof options.proxy == 'string') options.proxy = url.parse(options.proxy);
   }
 
-  options._redirectsFollowed = options._redirectsFollowed ? options._redirectsFollowed : 0;
-  options.maxRedirects = options.maxRedirects ? options.maxRedirects : 10;
+  options._redirectsFollowed = options._redirectsFollowed || 0;
+  options.maxRedirects = options.maxRedirects || 10;
 
-  options.followRedirect = (options.followRedirect === undefined) ? true : options.followRedirect;
-  options.method = options.method ? options.method : 'GET';
+  if (!('followRedirect' in options)) {
+      options.followRedirect = true;
+  }
+  options.method = options.method || 'GET';
 
-  options.headers = options.headers ? options.headers :  {};
+  options.headers = options.headers || {};
   if (!options.headers.host) {
     options.headers.host = options.uri.hostname;
     if (options.uri.port) {
@@ -52,12 +54,12 @@ function request (options, callback) {
     sys.error('options.bodyStream is deprecated. use options.reponseBodyStream instead.');
     options.responseBodyStream = options.bodyStream;
   }
-  if (options.proxy) {
-    var secure = (options.proxy.protocol == 'https:') ? true : false;
-    options.client = options.client ? options.client : http.createClient(options.proxy.port, options.proxy.hostname, secure);
-  } else {
-    var secure = (options.uri.protocol == 'https:') ? true : false;
-    options.client = options.client ? options.client : http.createClient(options.uri.port, options.uri.hostname, secure);
+  if (!options.client) {
+    if (options.proxy) {
+      options.client = http.createClient(options.proxy.port, options.proxy.hostname, options.proxy.protocol === 'https:');
+    } else {
+      options.client = http.createClient(options.uri.port, options.uri.hostname, options.uri.protocol === 'https:');
+    }
   }
 
   var clientErrorHandler = function (error) {
