@@ -30,8 +30,9 @@ function request (options, callback) {
       options.followRedirect = true;
   }
   options.method = options.method || 'GET';
-
   options.headers = options.headers || {};
+
+  var setHost = false;
   if (!options.headers.host) {
     options.headers.host = options.uri.hostname;
     if (options.uri.port) {
@@ -39,9 +40,7 @@ function request (options, callback) {
            !(options.uri.port === 443 && options.uri.protocol === 'https:') )
       options.headers.host += (':'+options.uri.port);
     }
-    var setHost = true;
-  } else {
-    var setHost = false;
+    setHost = true;
   }
 
   if (!options.uri.pathname) {options.uri.pathname = '/';}
