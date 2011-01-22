@@ -4,10 +4,12 @@ var http = require('http')
   ;
 
 var toBase64 = function(str) {
-  return  (new Buffer(str || "", "ascii")).toString("base64");
+  return (new Buffer(str || "", "ascii")).toString("base64");
 };
 
 function request (options, callback) {
+  callback = callback || function () {};
+
   if (options.url) {
     // People use this property instead all the time so why not just support it.
     options.uri = options.url;
@@ -63,7 +65,7 @@ function request (options, callback) {
 
   var clientErrorHandler = function (error) {
     if (setHost) delete options.headers.host;
-    if (callback) callback(error);
+    callback(error);
   };
   options.client.addListener('error', clientErrorHandler);
 
@@ -85,38 +87,39 @@ function request (options, callback) {
   }
   options.request = options.client.request(options.method, options.fullpath, options.headers);
   options.request.addListener("response", function (response) {
-    var buffer;
-    if (options.encoding) response.setEncoding(options.encoding);
-    if (options.responseBodyStream) {
-      buffer = options.responseBodyStream;
-      sys.pump(response, options.responseBodyStream);
-    }
-    else {
-      buffer = '';
-      response.addListener("data", function (chunk) { buffer += chunk; } );
-    }
-
-    response.addListener("end", function () {
+    if (setHost) delete options.headers.host;
+    response.on("end", function () {
       options.client.removeListener("error", clientErrorHandler);
-
-      if (response.statusCode > 299 && response.statusCode < 400 && options.followRedirect && response.headers.location) {
-        if (options._redirectsFollowed >= options.maxRedirects) client.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."));
-        options._redirectsFollowed += 1;
-        if (!/^https?:/.test(response.headers.location)) {
-          response.headers.location = url.resolve(options.uri.href, response.headers.location);
-        }
-        options.uri = response.headers.location;
-        delete options.client;
-        if (options.headers) {
-          delete options.headers.host;
-        }
-        request(options, callback);
-        return;
-      } else {options._redirectsFollowed = 0;}
-
-      if (setHost) delete options.headers.host;
-      if (callback) callback(null, response, buffer);
     });
+
+    if (response.statusCode >= 300 && response.statusCode < 400 && options.followRedirect && response.headers.location) {
+      if (options._redirectsFollowed >= options.maxRedirects) client.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."));
+      options._redirectsFollowed += 1;
+      if (!/^https?:/.test(response.headers.location)) {
+        response.headers.location = url.resolve(options.uri.href, response.headers.location);
+      }
+      options.uri = response.headers.location;
+      delete options.client;
+      if (options.headers) {
+        delete options.headers.host;
+      }
+      request(options, callback);
+      return; // Ignore the rest of the response
+    } else {
+      options._redirectsFollowed = 0;
+      if (options.encoding) response.setEncoding(options.encoding);
+      if (options.responseBodyStream) {
+        sys.pump(response, options.responseBodyStream);
+        callback(null, response, options.responseBodyStream);
+      } else {
+        var buffer = '';
+        response.on("data", function (chunk) {
+          buffer += chunk;
+        }).on("end", function () {
+          callback(null, response, buffer);
+        });
+      }
+    }
   });
 
   if (options.body) {
