@@ -79,7 +79,7 @@ function request (options, callback) {
 
   if (options.proxy) options.fullpath = (options.uri.protocol + '//' + options.uri.host + options.fullpath);
 
-  if (options.body) {
+  if ('body' in options) {
     options.body = Buffer.isBuffer(options.body) ? options.body : new Buffer(options.body);
     options.headers['content-length'] = options.body.length;
   }
