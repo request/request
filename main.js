@@ -111,6 +111,8 @@ function request (options, callback) {
       if (options.responseBodyStream) {
         sys.pump(response, options.responseBodyStream);
         callback(null, response, options.responseBodyStream);
+      } else if (options.noBuffer) {
+        callback(null, response);
       } else {
         var buffer = '';
         response.on("data", function (chunk) {
