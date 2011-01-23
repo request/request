@@ -14,14 +14,17 @@ Request is designed to be the simplest way possible to make http calls. It suppo
 
 The first argument is an options object. The only required option is uri, all others are optional.
 
-* `'uri'` - fully qualified uri or a parsed url object from url.parse()
-* `'method'` - http method, defaults to GET
-* `'headers'` - http headers, defaults to {}
-* `'body'` - entity body for POST and PUT requests
-* `'client'` - existing http client object (when undefined a new one will be created and assigned to this property so you can keep around a reference to it if you would like use keep-alive on later request)
-* '`followRedirect` - follow HTTP 3xx responses as redirects. defaults to true.
-* '`requestBodyStream` - Stream to read request body chunks from. 
-* '`responseBodyStream` - Stream to write body chunks to. When set this option will be passed as the last argument to the callback instead of the entire body.
+* `uri` || `url` - fully qualified uri or a parsed url object from url.parse()
+* `method` - http method, defaults to GET
+* `headers` - http headers, defaults to {}
+* `body` - entity body for POST and PUT requests
+* `client` - existing http client object (when undefined a new one will be created and assigned to this property so you can keep around a reference to it if you would like use keep-alive on later request)
+* `followRedirect` - follow HTTP 3xx responses as redirects. defaults to true.
+* `maxRedirects` - the maximum number of redirects to follow, defaults to 10.
+* `onResponse` - If true the callback will be fired on the "response" event instead of "end". If a function it will be called on "response" and not effect the regular semantics of the main callback on "end".
+* `encoding` - Encoding to be used on response.setEncoding when buffering the response data.
+* `requestBodyStream` - Stream to read request body chunks from. 
+* `responseBodyStream` - Stream to write body chunks to. When set this option will be passed as the last argument to the callback instead of the entire body.
 
 The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body buffer.
 
