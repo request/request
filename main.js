@@ -122,13 +122,17 @@ function request (options, callback) {
         sys.pump(response, options.responseBodyStream);
         if (options.onResponse) options.onResponse(null, response);
         if (options.callback) options.callback(null, response, options.responseBodyStream);
-      } else if (options.onResponse) {
-        options.onResponse(null, response);
-      } else if (options.callback) {
-        var buffer = '';
-        response
-        .on("data", function (chunk) { buffer += chunk; })
-        .on("end", function () { options.callback(null, response, buffer); });
+      } else {
+        if (options.onResponse) {
+          options.onResponse(null, response);
+        }
+        if (options.callback) {
+          var buffer = '';
+          response
+          .on("data", function (chunk) { buffer += chunk; })
+          .on("end", function () { options.callback(null, response, buffer); })
+          ;
+        }
       }
     }
   });

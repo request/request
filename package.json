@@ -1,16 +1,14 @@
 { "name" : "request"
-, "description" : "Simplified HTTP request method."
+, "description" : "Simplified HTTP request client."
 , "tags" : ["http", "simple", "util", "utility"]
-, "version" : "1.0.0"
+, "version" : "1.1.1"
 , "author" : "Mikeal Rogers <mikeal.rogers@gmail.com>"
-, "directories" :
-  { "lib" : "lib" }
 , "repository" :
   { "type" : "git"
-  , "url" : "http://github.com/mikeal/node-utils.git"
+  , "url" : "http://github.com/mikeal/request.git"
   }
 , "bugs" :
-  { "web" : "http://github.com/mikeal/node-utils/issues" }
-, "engines" : ["node >=0.1.90"]
+  { "web" : "http://github.com/mikeal/request/issues" }
+, "engines" : ["node < 0.3.6"]
 , "main" : "./main"
 }
