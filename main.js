@@ -15,6 +15,7 @@
 var http = require('http')
   , url = require('url')
   , sys = require('sys')
+  , qs = require('querystring')
   ;
 
 var toBase64 = function(str) {
