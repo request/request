@@ -36,6 +36,13 @@ request({uri:'http://mikeal.couchone.com/testjs', method:'POST', headers: h, bod
           assert.equal(response.statusCode, 201, body);
         });
 
+var randomnumber=Math.floor(Math.random()*100000000).toString();
+request({uri:'http://mikeal.couchone.com/testjs', method:'POST', body:{"_id": 'randomnumber'}}, 
+        function (error, response, body) {
+          if (error) {throw new Error(error)};
+          assert.equal(response.statusCode, 201, body);
+        });
+
 var options = {uri:'http://gmail.com'};
 request(options, function (error, response, body) {
   if (error) throw error;

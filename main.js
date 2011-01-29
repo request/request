@@ -101,7 +101,13 @@ function request (options, callback) {
   if (options.proxy) options.fullpath = (options.uri.protocol + '//' + options.uri.host + options.fullpath);
 
   if (options.body !== undefined) {
-    options.body = Buffer.isBuffer(options.body) ? options.body : new Buffer(options.body);
+    if(!Buffer.isBuffer(options.body)){
+      if(typeof options.body == 'object'){
+        options.body = JSON.stringify(options.body);
+        options.headers['content-type'] = 'application/json';
+      }
+      options.body = new Buffer(options.body);
+    }
     options.headers['content-length'] = options.body.length;
   }
   options.request = options.client.request(options.method, options.fullpath, options.headers);

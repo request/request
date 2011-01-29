@@ -17,7 +17,7 @@ The first argument is an options object. The only required option is uri, all ot
 * `uri` || `url` - fully qualified uri or a parsed url object from url.parse()
 * `method` - http method, defaults to GET
 * `headers` - http headers, defaults to {}
-* `body` - entity body for POST and PUT requests
+* `body` - entity body for POST and PUT requests. Must be buffer, string or object.
 * `client` - existing http client object (when undefined a new one will be created and assigned to this property so you can keep around a reference to it if you would like use keep-alive on later request)
 * `followRedirect` - follow HTTP 3xx responses as redirects. defaults to true.
 * `maxRedirects` - the maximum number of redirects to follow, defaults to 10.
