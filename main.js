@@ -101,16 +101,37 @@ function request (options, callback) {
 
   if (options.proxy) options.fullpath = (options.uri.protocol + '//' + options.uri.host + options.fullpath);
 
-  if (options.body !== undefined) {
-    if(!Buffer.isBuffer(options.body)){
-      if(typeof options.body == 'object'){
-        options.body = JSON.stringify(options.body);
-        options.headers['content-type'] = 'application/json';
-      }
+  if(options.json){
+    options.headers['content-type'] = 'application/json';
+    options.body = JSON.stringify(options.json);
+  } else if(options.multipart){
+    options.body = '';
+    options.headers['content-type'] = 'multipart/related;boundary="frontier"';
+
+    if(!options.multipart.forEach) throw new Error('Argument error');
+    options.multipart.forEach(function(part){
+      var body = part.body;
+      if(!body) throw Error('Body attribute missing')
+      delete part.body;
+      options.body += '--frontier\r\n'; 
+      Object.keys(part).forEach(function(key){
+        options.body += key + ': ' + part[key] + '\r\n'
+      })
+      options.body += '\r\n' + body + '\r\n';
+    })
+    options.body += '--frontier--'
+  }
+
+  if (options.body) {
+    if (!Buffer.isBuffer(options.body)) {
       options.body = new Buffer(options.body);
     }
-    options.headers['content-length'] = options.body.length;
+    if(options.body.length)
+      options.headers['content-length'] = options.body.length;
+    else
+      throw new Error('Argument error')
   }
+
   options.request = options.client.request(options.method, options.fullpath, options.headers);
   options.request.addListener("response", function (response) {
     if (setHost) delete options.headers.host;
