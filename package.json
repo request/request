@@ -1,7 +1,7 @@
 { "name" : "request"
 , "description" : "Simplified HTTP request client."
 , "tags" : ["http", "simple", "util", "utility"]
-, "version" : "1.1.1"
+, "version" : "1.2.0"
 , "author" : "Mikeal Rogers <mikeal.rogers@gmail.com>"
 , "repository" :
   { "type" : "git"
