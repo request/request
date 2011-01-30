@@ -6,6 +6,20 @@
   npm install request
 </pre>
 
+Or from source:
+
+<pre>
+  git clone git://github.com/mikeal/request.git 
+  cd request
+  npm link .
+</pre>
+
+Running specs:
+<pre>
+  node specs.js
+</pre>
+Note: `jasmine-node` package is required to run tests.
+
 ## Super simple to use
 
 Request is designed to be the simplest way possible to make http calls. It support HTTPS and follows redirects by default.
