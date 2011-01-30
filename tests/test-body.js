@@ -87,6 +87,7 @@ for (i in tests) {
     s.on('/'+i, test.resp);
     test.uri = s.url + '/' + i;
     request(test, function (err, resp, body) {
+      if (err) throw err;
       if (test.expectBody) {
         if (test.expectBody !== body) console.log(test.expectBody, body);
         assert.ok(test.expectBody === body)
