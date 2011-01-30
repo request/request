@@ -88,6 +88,7 @@ for (i in tests) {
     test.uri = s.url + '/' + i;
     request(test, function (err, resp, body) {
       if (test.expectBody) {
+        if (test.expectBody !== body) console.log(test.expectBody, body);
         assert.ok(test.expectBody === body)
       }
       counter = counter - 1;
