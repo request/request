@@ -26,7 +26,7 @@ The first argument is an options object. The only required option is uri, all ot
 * `method` - http method, defaults to GET
 * `headers` - http headers, defaults to {}
 * `body` - entity body for POST and PUT requests. Must be buffer or string.
-* `json` - similar to `body` but converts value to string and adds `Content-type: application/json` header.
+* `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.
 * `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
 * `client` - existing http client object (when undefined a new one will be created and assigned to this property so you can keep around a reference to it if you would like use keep-alive on later request)
 * `followRedirect` - follow HTTP 3xx responses as redirects. defaults to true.
