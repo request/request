@@ -6,6 +6,20 @@
   npm install request
 </pre>
 
+Or from source:
+
+<pre>
+  git clone git://github.com/mikeal/request.git 
+  cd request
+  npm link .
+</pre>
+
+Running specs:
+<pre>
+  node specs.js
+</pre>
+Note: `jasmine-node` package is required to run tests.
+
 ## Super simple to use
 
 Request is designed to be the simplest way possible to make http calls. It support HTTPS and follows redirects by default.
@@ -17,7 +31,9 @@ The first argument is an options object. The only required option is uri, all ot
 * `uri` || `url` - fully qualified uri or a parsed url object from url.parse()
 * `method` - http method, defaults to GET
 * `headers` - http headers, defaults to {}
-* `body` - entity body for POST and PUT requests
+* `body` - entity body for POST and PUT requests. Must be buffer or string.
+* `json` - similar to `body` but converts value to string and adds `Content-type: application/json` header.
+* `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
 * `client` - existing http client object (when undefined a new one will be created and assigned to this property so you can keep around a reference to it if you would like use keep-alive on later request)
 * `followRedirect` - follow HTTP 3xx responses as redirects. defaults to true.
 * `maxRedirects` - the maximum number of redirects to follow, defaults to 10.
@@ -28,12 +44,33 @@ The first argument is an options object. The only required option is uri, all ot
 
 The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body buffer.
 
-Example:
+Examples:
 <pre>
   var request = require('request');
   request({uri:'http://www.google.com'}, function (error, response, body) {
     if (!error && response.statusCode == 200) {
       sys.puts(body) // Print the google web page.
+    }
+  })
+</pre>
+
+<pre>
+  var request = require('request');
+  var rand = Math.floor(Math.random()*100000000).toString();
+  request({
+    method: 'PUT',
+    uri: 'http://mikeal.couchone.com/testjs/'+ rand,
+    multipart: [
+      { 'content-type': 'application/json',
+        body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})},
+      { body: 'I am an attachment' }
+    ] 
+  }, function (error, response, body) {
+    if(response.statusCode == 201){
+      console.log('document saved as: http://mikeal.couchone.com/testjs/'+ rand);
+    } else {
+      console.log('error: '+ response.statusCode);
+      console.log(body)
     }
   })
 </pre>
