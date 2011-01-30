@@ -26,3 +26,5 @@ try {
 } catch(e) {
   assert.equal(e.message, 'Body attribute missing in multipart.')
 }
+
+console.log("All tests passed.")

@@ -92,6 +92,7 @@ for (i in tests) {
       }
       counter = counter - 1;
       if (counter === 0) {
+        console.log(Object.keys(tests).length+" tests passed.")
         s.close();
       }
     })
