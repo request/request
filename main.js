@@ -101,17 +101,17 @@ function request (options, callback) {
 
   if (options.proxy) options.fullpath = (options.uri.protocol + '//' + options.uri.host + options.fullpath);
 
-  if(options.json){
+  if (options.json) {
     options.headers['content-type'] = 'application/json';
     options.body = JSON.stringify(options.json);
-  } else if(options.multipart){
+  } else if (options.multipart) {
     options.body = '';
     options.headers['content-type'] = 'multipart/related;boundary="frontier"';
 
-    if(!options.multipart.forEach) throw new Error('Argument error');
-    options.multipart.forEach(function(part){
+    if (!options.multipart.forEach) throw new Error('Argument error, options.multipart.');
+    options.multipart.forEach(function (part) {
       var body = part.body;
-      if(!body) throw Error('Body attribute missing')
+      if(!body) throw Error('Body attribute missing in multipart.');
       delete part.body;
       options.body += '--frontier\r\n'; 
       Object.keys(part).forEach(function(key){
@@ -126,10 +126,11 @@ function request (options, callback) {
     if (!Buffer.isBuffer(options.body)) {
       options.body = new Buffer(options.body);
     }
-    if(options.body.length)
+    if (options.body.length) {
       options.headers['content-length'] = options.body.length;
-    else
-      throw new Error('Argument error')
+    } else {
+      throw new Error('Argument error, options.body.');
+    }
   }
 
   options.request = options.client.request(options.method, options.fullpath, options.headers);
@@ -194,21 +195,21 @@ module.exports = request;
 request.get = request;
 request.post = function (options, callback) {
   options.method = 'POST'; 
-  if (!options.body && !options.requestBodyStream) {
+  if (!options.body && !options.requestBodyStream && !options.json && !options.multipart) {
     sys.error("HTTP POST requests need a body or requestBodyStream");
   }
   request(options, callback);
 };
 request.put = function (options, callback) {
   options.method = 'PUT'; 
-  if (!options.body && !options.requestBodyStream) {
+  if (!options.body && !options.requestBodyStream && !options.json && !options.multipart) {
     sys.error("HTTP PUT requests need a body or requestBodyStream");
   }
   request(options, callback);
 };
 request.head = function (options, callback) {
   options.method = 'HEAD'; 
-  if (options.body || options.requestBodyStream) {
+  if (options.body || options.requestBodyStream || options.json || options.multipart) {
     throw new Error("HTTP HEAD requests MUST NOT include a request body.");
   }
   request(options, callback);

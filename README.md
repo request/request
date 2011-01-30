@@ -14,12 +14,6 @@ Or from source:
   npm link .
 </pre>
 
-Running specs:
-<pre>
-  node specs.js
-</pre>
-Note: `jasmine-node` package is required to run tests.
-
 ## Super simple to use
 
 Request is designed to be the simplest way possible to make http calls. It support HTTPS and follows redirects by default.
@@ -57,22 +51,25 @@ Examples:
 <pre>
   var request = require('request');
   var rand = Math.floor(Math.random()*100000000).toString();
-  request({
-    method: 'PUT',
-    uri: 'http://mikeal.couchone.com/testjs/'+ rand,
-    multipart: [
-      { 'content-type': 'application/json',
-        body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})},
-      { body: 'I am an attachment' }
-    ] 
-  }, function (error, response, body) {
-    if(response.statusCode == 201){
-      console.log('document saved as: http://mikeal.couchone.com/testjs/'+ rand);
-    } else {
-      console.log('error: '+ response.statusCode);
-      console.log(body)
+  request(
+    { method: 'PUT'
+    , uri: 'http://mikeal.couchone.com/testjs/' + rand
+    , multipart: 
+      [ { 'content-type': 'application/json'
+        ,  body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})
+        }
+      , { body: 'I am an attachment' }
+      ] 
     }
-  })
+  , function (error, response, body) {
+      if(response.statusCode == 201){
+        console.log('document saved as: http://mikeal.couchone.com/testjs/'+ rand);
+      } else {
+        console.log('error: '+ response.statusCode);
+        console.log(body);
+      }
+    }
+  )
 </pre>
 
-It's also worth noting that the options argument will mutate. When following a redirect the uri values will change. After setting up a client options it will set the client property.
+It's also worth noting that the options argument will mutate. When following a redirect the uri values will change. After setting up client options it will set options.client.

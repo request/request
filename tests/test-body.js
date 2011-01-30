@@ -56,6 +56,27 @@ var tests =
     , method : "PUT"
     , requestBodyStream : createPostStream("PUTTINGDATA")
     }
+  , testPutJSON : 
+    { resp : createPostValidator(JSON.stringify({foo: 'bar'}))
+    , method: "PUT"
+    , json: {foo: 'bar'}  
+    }
+  , testPutMultipart : 
+    { resp: createPostValidator(
+        '--frontier\r\n' +
+        'content-type: text/html\r\n' +
+        '\r\n' +
+        '<html><body>Oh hi.</body></html>' +
+        '\r\n--frontier\r\n\r\n' +
+        'Oh hi.' +
+        '\r\n--frontier--'
+        )
+    , method: "PUT"
+    , multipart: 
+      [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
+      , {'body': 'Oh hi.'}
+      ]
+    }  
   }
 
 var counter = 0;
