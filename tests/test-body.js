@@ -1,5 +1,6 @@
 var server = require('./server')
   , events = require('events')
+  , stream = require('stream')
   , assert = require('assert')
   , request = require('../main.js')
   ;
@@ -7,7 +8,7 @@ var server = require('./server')
 var s = server.createServer();
 
 var createPostStream = function (text) {
-  var postStream = new events.EventEmitter();
+  var postStream = new stream.Stream();
   postStream.writeable = true;
   postStream.readable = true;
   setTimeout(function () {postStream.emit('data', new Buffer(text)); postStream.emit('end')}, 0);
