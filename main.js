@@ -27,7 +27,7 @@ var isUrl = /^https?:/;
 
 var agents = {};
 var getAgent = function (host, port) {
-  return agents[host+':'+port] || new Agent();
+  return agents[host+':'+port] || new http.Agent();
 }
 
 var Request = function (options) {
@@ -155,8 +155,8 @@ Request.prototype.request = function () {
     }
   }
   
+  options.agent = getAgent(options.host, options.port);
   if (options.maxSockets) {
-    options.agent = getAgent(options.host, options.port);
     options.agent.maxSockets = options.maxSockets;
   }
 
