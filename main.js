@@ -25,6 +25,8 @@ var toBase64 = function(str) {
 
 var isUrl = /^https?:/;
 
+var globalPool = {};
+
 var Request = function (options) {
   stream.Stream.call(this);
   this.readable = true;
@@ -33,7 +35,7 @@ var Request = function (options) {
   for (i in options) {
     this[i] = options[i];
   }
-  if (!this.pool) this.pool = {};
+  if (!this.pool) this.pool = globalPool;
 }
 util.inherits(Request, stream.Stream);
 Request.prototype.getAgent = function (host, port) {
