@@ -25,6 +25,11 @@ var toBase64 = function(str) {
 
 var isUrl = /^https?:/;
 
+var agents = {};
+var getAgent = function (host, port) {
+  return agents[host+':'+port] || new Agent();
+}
+
 var Request = function (options) {
   stream.Stream.call(this);
   this.readable = true;
@@ -148,6 +153,11 @@ Request.prototype.request = function () {
     } else {
       throw new Error('Argument error, options.body.');
     }
+  }
+  
+  if (options.maxSockets) {
+    options.agent = getAgent(options.host, options.port);
+    options.agent.maxSockets = options.maxSockets;
   }
 
   options.req = http.request(options, function (response) {
