@@ -234,7 +234,26 @@ function request (options, callback) {
   return r;
 }
 
+
 module.exports = request;
+
+request.defaults = function (options) {
+  var def = function (method) {
+    var d = function (opts, callback) {
+      for (i in options) {
+        if (!opts[i]) opts[i] = options[i];
+        return method(opts, callback);
+      }
+    }
+    return d;
+  }
+  de = def(request);
+  de.get = def(request.get);
+  de.post = def(request.post);
+  de.put = def(request.put);
+  de.head = def(request.head);
+  return d;
+}
 
 request.get = request;
 request.post = function (options, callback) {
