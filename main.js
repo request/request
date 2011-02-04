@@ -25,11 +25,6 @@ var toBase64 = function(str) {
 
 var isUrl = /^https?:/;
 
-var agents = {};
-var getAgent = function (host, port) {
-  return agents[host+':'+port] || new http.Agent();
-}
-
 var Request = function (options) {
   stream.Stream.call(this);
   this.readable = true;
@@ -38,8 +33,15 @@ var Request = function (options) {
   for (i in options) {
     this[i] = options[i];
   }
+  if (!this.pool) this.pool = {};
 }
 util.inherits(Request, stream.Stream);
+Request.prototype.getAgent = function (host, port) {
+  if (!this.pool[host+':'+port]) {
+    this.pool[host+':'+port] = new http.Agent(host, port);
+  }
+  return this.pool[host+':'+port];
+}
 
 Request.prototype.pipe = function (dest) {
   this.dest = dest;
@@ -155,9 +157,12 @@ Request.prototype.request = function () {
     }
   }
   
-  options.agent = getAgent(options.host, options.port);
+  options.agent = options.getAgent(options.host, options.port);
   if (options.maxSockets) {
     options.agent.maxSockets = options.maxSockets;
+  }
+  if (options.pool.maxSockets) {
+    options.agent.maxSockets = options.pool.maxSockets;
   }
 
   options.req = http.request(options, function (response) {
