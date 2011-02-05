@@ -13,6 +13,7 @@
 //    limitations under the License.
 
 var http = require('http')
+  , https = require('https')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
@@ -159,7 +160,8 @@ Request.prototype.request = function () {
     }
   }
   
-  options.httpModule = {http:http, https:https}[options.proxy ? options.proxy.prototocl : options.uri.protocol]
+  options.httpModule = 
+    {"http:":http, "https:":https}[options.proxy ? options.proxy.protocol : options.uri.protocol]
   if (!options.httpModule) throw new Error("Invalid protocol");
   
   options.agent = options.getAgent(options.host, options.port);
