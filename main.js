@@ -164,11 +164,12 @@ Request.prototype.request = function () {
     {"http:":http, "https:":https}[options.proxy ? options.proxy.protocol : options.uri.protocol]
   if (!options.httpModule) throw new Error("Invalid protocol");
   
-  options.agent = options.getAgent(options.host, options.port);
   if (options.maxSockets) {
+    options.agent = options.getAgent(options.host, options.port);
     options.agent.maxSockets = options.maxSockets;
   }
   if (options.pool.maxSockets) {
+    options.agent = options.getAgent(options.host, options.port);
     options.agent.maxSockets = options.pool.maxSockets;
   }
 
