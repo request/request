@@ -40,7 +40,7 @@ var Request = function (options) {
 util.inherits(Request, stream.Stream);
 Request.prototype.getAgent = function (host, port) {
   if (!this.pool[host+':'+port]) {
-    this.pool[host+':'+port] = new http.Agent(host, port);
+    this.pool[host+':'+port] = new this.httpModule.Agent({host:host, port:port});
   }
   return this.pool[host+':'+port];
 }
@@ -159,6 +159,9 @@ Request.prototype.request = function () {
     }
   }
   
+  options.httpModule = {http:http, https:https}[options.proxy ? options.proxy.prototocl : options.uri.protocol]
+  if (!options.httpModule) throw new Error("Invalid protocol");
+  
   options.agent = options.getAgent(options.host, options.port);
   if (options.maxSockets) {
     options.agent.maxSockets = options.maxSockets;
@@ -167,7 +170,7 @@ Request.prototype.request = function () {
     options.agent.maxSockets = options.pool.maxSockets;
   }
 
-  options.req = http.request(options, function (response) {
+  options.req = options.httpModule.request(options, function (response) {
     if (setHost) delete options.headers.host;
     response.on("end", function () {
       options.req.removeListener("error", clientErrorHandler);
