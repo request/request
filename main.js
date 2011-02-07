@@ -175,9 +175,6 @@ Request.prototype.request = function () {
 
   options.req = options.httpModule.request(options, function (response) {
     if (setHost) delete options.headers.host;
-    response.on("end", function () {
-      options.req.removeListener("error", clientErrorHandler);
-    });
 
     if (response.statusCode >= 300 && 
         response.statusCode < 400  && 
