@@ -200,7 +200,7 @@ Request.prototype.request = function () {
       options._redirectsFollowed = 0;
       if (options.encoding) response.setEncoding(options.encoding);
       if (options.dest) {
-        response.pipe(dest);
+        response.pipe(options.dest);
         if (options.onResponse) options.onResponse(null, response);
         if (options.callback) options.callback(null, response, options.responseBodyStream);
       } else {
