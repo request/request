@@ -95,11 +95,9 @@ Request.prototype.request = function () {
   if (options.proxy) {
     options.port = options.proxy.port;
     options.host = options.proxy.hostname;
-    // options.client = http.createClient(options.proxy.port, options.proxy.hostname, options.proxy.protocol === 'https:');
   } else {
     options.port = options.uri.port;
     options.host = options.uri.hostname;
-    // options.client = http.createClient(options.uri.port, options.uri.hostname, options.uri.protocol === 'https:');
   }
   
   if (options.onResponse === true) {
@@ -302,21 +300,15 @@ request.defaults = function (options) {
 
 request.get = request;
 request.post = function (options, callback) {
-  options.method = 'POST'; 
-  // if (!options.body && !options.requestBodyStream && !options.json && !options.multipart) {
-  //   console.error("HTTP POST requests need a body or requestBodyStream");
-  // }
+  options.method = 'POST';
   return request(options, callback);
 };
 request.put = function (options, callback) {
-  options.method = 'PUT'; 
-  // if (!options.body && !options.requestBodyStream && !options.json && !options.multipart) {
-  //   console.error("HTTP PUT requests need a body or requestBodyStream");
-  // }
+  options.method = 'PUT';
   return request(options, callback);
 };
 request.head = function (options, callback) {
-  options.method = 'HEAD'; 
+  options.method = 'HEAD';
   if (options.body || options.requestBodyStream || options.json || options.multipart) {
     throw new Error("HTTP HEAD requests MUST NOT include a request body.");
   }
