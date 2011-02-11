@@ -198,7 +198,14 @@ Request.prototype.request = function () {
       return; // Ignore the rest of the response
     } else {
       options._redirectsFollowed = 0;
-      if (options.encoding) response.setEncoding(options.encoding);
+      
+      if (options.encoding) {
+        if (options.dest) {
+          console.error("Ingoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.");
+        } else {
+          response.setEncoding(options.encoding);
+        }
+      }
       if (options.dest) {
         response.pipe(options.dest);
         if (options.onResponse) options.onResponse(null, response);
@@ -255,6 +262,7 @@ Request.prototype.resume = function () {
   if (!this.req) throw new Error("This request has been piped before http.request() was called.");
   this.req.resume();
 }
+
 
 
 
