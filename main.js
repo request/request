@@ -164,13 +164,17 @@ Request.prototype.request = function () {
     {"http:":http, "https:":https}[options.proxy ? options.proxy.protocol : options.uri.protocol]
   if (!options.httpModule) throw new Error("Invalid protocol");
   
-  if (options.maxSockets) {
-    options.agent = options.getAgent(options.host, options.port);
-    options.agent.maxSockets = options.maxSockets;
-  }
-  if (options.pool.maxSockets) {
-    options.agent = options.getAgent(options.host, options.port);
-    options.agent.maxSockets = options.pool.maxSockets;
+  if (options.pool === false) {
+    options.agent = false;
+  } else {
+    if (options.maxSockets) {
+      options.agent = options.getAgent(options.host, options.port);
+      options.agent.maxSockets = options.maxSockets;
+    }
+    if (options.pool.maxSockets) {
+      options.agent = options.getAgent(options.host, options.port);
+      options.agent.maxSockets = options.pool.maxSockets;
+    }
   }
 
   options.req = options.httpModule.request(options, function (response) {
