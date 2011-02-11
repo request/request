@@ -7,63 +7,33 @@ var server = require('./server')
 
 var s = server.createServer();
 
-var createPostStream = function (text) {
-  var postStream = new stream.Stream();
-  postStream.writeable = true;
-  postStream.readable = true;
-  setTimeout(function () {postStream.emit('data', new Buffer(text)); postStream.emit('end')}, 0);
-  return postStream;
-}
-var createPostValidator = function (text) {
-  var l = function (req, resp) {
-    var r = '';
-    req.on('data', function (chunk) {r += chunk})
-    req.on('end', function () {
-    if (r !== text) console.log(r, text);
-    assert.ok(r === text)
-    resp.writeHead(200, {'content-type':'text/plain'})
-    resp.write('OK')
-    resp.end()
-    })
-  }
-  return l;
-}
-var createGetResponse = function (text) {
-  var l = function (req, resp) {
-    resp.writeHead(200, {'content-type':'text/plain'})
-    resp.write(text)
-    resp.end()
-  }
-  return l;
-}
-
 var tests = 
   { testGet : 
-    { resp : createGetResponse("TESTING!") 
+    { resp : server.createGetResponse("TESTING!") 
     , expectBody: "TESTING!"
     }
   , testPutString : 
-    { resp : createPostValidator("PUTTINGDATA")
+    { resp : server.createPostValidator("PUTTINGDATA")
     , method : "PUT"
     , body : "PUTTINGDATA"
     }
   , testPutBuffer :
-    { resp : createPostValidator("PUTTINGDATA")
+    { resp : server.createPostValidator("PUTTINGDATA")
     , method : "PUT"
     , body : new Buffer("PUTTINGDATA")
     }
   , testPutStream :
-    { resp : createPostValidator("PUTTINGDATA")
+    { resp : server.createPostValidator("PUTTINGDATA")
     , method : "PUT"
-    , requestBodyStream : createPostStream("PUTTINGDATA")
+    , requestBodyStream : server.createPostStream("PUTTINGDATA")
     }
   , testPutJSON : 
-    { resp : createPostValidator(JSON.stringify({foo: 'bar'}))
+    { resp : server.createPostValidator(JSON.stringify({foo: 'bar'}))
     , method: "PUT"
     , json: {foo: 'bar'}  
     }
   , testPutMultipart : 
-    { resp: createPostValidator(
+    { resp: server.createPostValidator(
         '--frontier\r\n' +
         'content-type: text/html\r\n' +
         '\r\n' +
