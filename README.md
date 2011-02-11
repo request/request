@@ -100,22 +100,22 @@ As a writable stream it accepts the body of an HTTP request. As a readable strea
   
 # Convenience methods
 
-## request.defaults(options)  
+### request.defaults(options)  
   
 This method returns a wrapper around the normal request API that defaults to whatever options you pass in to it.
 
-## request.put
+### request.put
 
 Same as request() but defaults to `method: "PUT"`.
 
-## request.post
+### request.post
 
 Same as request() but defaults to `method: "POST"`.
 
-## request.head
+### request.head
 
 Same as request() but defaults to `method: "HEAD"`.
 
-## request.get
+### request.get
 
 Alias to normal request method for uniformity.
