@@ -106,15 +106,15 @@ This method returns a wrapper around the normal request API that defaults to wha
 
 ## request.put
 
-Same as request() but defaults to <pre>method: "PUT"</pre>.
+Same as request() but defaults to `method: "PUT"`.
 
 ## request.post
 
-Same as request() but defaults to <pre>method: "POST"</pre>.
+Same as request() but defaults to `method: "POST"`.
 
 ## request.head
 
-Same as request() but defaults to <pre>method: "HEAD"</pre>.
+Same as request() but defaults to `method: "HEAD"`.
 
 ## request.get
 
