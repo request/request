@@ -250,21 +250,21 @@ Request.prototype.request = function () {
   })
 }
 
-Request.prototype.write = function (chunk) {
+Request.prototype.write = function () {
   if (!this.req) throw new Error("This request has been piped before http.request() was called.");
-  this.req.write(chunk);
+  this.req.write.apply(this.req, arguments);
 }
 Request.prototype.end = function () {
   if (!this.req) throw new Error("This request has been piped before http.request() was called.");
-  this.req.end();
+  this.req.end.apply(this.req, arguments);
 }
 Request.prototype.pause = function () {
   if (!this.req) throw new Error("This request has been piped before http.request() was called.");
-  this.req.pause();
+  this.req.pause.apply(this.req, arguments);
 }
 Request.prototype.resume = function () {
   if (!this.req) throw new Error("This request has been piped before http.request() was called.");
-  this.req.resume();
+  this.req.resume.apply(this.req, arguments);
 }
 
 
