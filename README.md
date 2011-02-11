@@ -18,6 +18,15 @@ Or from source:
 
 Request is designed to be the simplest way possible to make http calls. It support HTTPS and follows redirects by default.
 
+<pre>
+  var request = require('request');
+  request({uri:'http://www.google.com'}, function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      sys.puts(body) // Print the google web page.
+    }
+  })
+</pre>
+
 #### request(options, callback)
 
 The first argument is an options object. The only required option is uri, all others are optional.
@@ -38,14 +47,6 @@ The first argument is an options object. The only required option is uri, all ot
 The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body buffer.
 
 Examples:
-<pre>
-  var request = require('request');
-  request({uri:'http://www.google.com'}, function (error, response, body) {
-    if (!error && response.statusCode == 200) {
-      sys.puts(body) // Print the google web page.
-    }
-  })
-</pre>
 
 <pre>
   var request = require('request');
