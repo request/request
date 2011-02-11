@@ -28,13 +28,12 @@ The first argument is an options object. The only required option is uri, all ot
 * `body` - entity body for POST and PUT requests. Must be buffer or string.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.
 * `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
-* `client` - existing http client object (when undefined a new one will be created and assigned to this property so you can keep around a reference to it if you would like use keep-alive on later request)
 * `followRedirect` - follow HTTP 3xx responses as redirects. defaults to true.
 * `maxRedirects` - the maximum number of redirects to follow, defaults to 10.
 * `onResponse` - If true the callback will be fired on the "response" event instead of "end". If a function it will be called on "response" and not effect the regular semantics of the main callback on "end".
 * `encoding` - Encoding to be used on response.setEncoding when buffering the response data.
-* `requestBodyStream` - Stream to read request body chunks from. 
-* `responseBodyStream` - Stream to write body chunks to. When set this option will be passed as the last argument to the callback instead of the entire body.
+* `pool` - A hash object containing the agents for these requests. If omitted this request will use the global pool which is set to node's default maxSockets.
+* `pool.maxSockets` - Integer containing the maximum amount of sockets in the pool.
 
 The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body buffer.
 
@@ -72,4 +71,51 @@ Examples:
   )
 </pre>
 
-It's also worth noting that the options argument will mutate. When following a redirect the uri values will change. After setting up client options it will set options.client.
+**Notice for 2.0**
+
+You should no longer recycle mutations in the options object. Because node 0.4.0 has an internal pooling mechanism the preferred way of sharing a connection is using agents which request simplifies with it's new pool API. Therefor options.client and some other mutations have been deprecated.
+
+requestBodyStream and responseBodyStream are also deprecated in favor of a more standard pipe interface documented below.
+
+### stream.pipe(request(options)) and request(options).pipe(stream)
+
+Previous versions of request had no return value and only accepted callbacks and streams for pumping in the options object.
+
+Node has solidified it's Stream interface and request 2.0 is now compliant with that interface.
+
+The return value of request() is now a Request object, which is a valid stream.
+
+As a writable stream it accepts the body of an HTTP request. As a readable stream it emits the data events for the response.
+
+<pre>
+  var r = request(
+    { url: "http://mysite.com/image.png"
+    , method: 'PUT'
+    , headers: {'content-type': 'image/png'}
+    }
+  )
+  fs.createReadStream('image.png').pipe(r)
+  r.pipe(fs.createWriteStream('pushlog.txt'))
+</pre>  
+  
+# Convenience methods
+
+## request.defaults(options)  
+  
+This method returns a wrapper around the normal request API that defaults to whatever options you pass in to it.
+
+## request.put
+
+Same as request() but defaults to <pre>method: "PUT"</pre>.
+
+## request.post
+
+Same as request() but defaults to <pre>method: "POST"</pre>.
+
+## request.head
+
+Same as request() but defaults to <pre>method: "HEAD"</pre>.
+
+## request.get
+
+Alias to normal request method for uniformity.

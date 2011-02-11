@@ -221,6 +221,7 @@ Request.prototype.request = function () {
   options.req.on('error', clientErrorHandler);
     
   this.once('pipe', function (src) {
+    if (options.ntick) throw new Error("You cannot pipe to this stream after the first nextTick() after creation of the request stream.")
     options.src = src;
   })
   
@@ -234,6 +235,7 @@ Request.prototype.request = function () {
     } else if (!options.src) {
       options.req.end();
     }
+    options.ntick = true;
   })
 }
 
@@ -242,7 +244,16 @@ Request.prototype.write = function (chunk) {
   this.req.write(chunk);
 }
 Request.prototype.end = function () {
+  if (!this.req) throw new Error("This request has been piped before http.request() was called.");
   this.req.end();
+}
+Request.prototype.pause = function () {
+  if (!this.req) throw new Error("This request has been piped before http.request() was called.");
+  this.req.pause();
+}
+Request.prototype.resume = function () {
+  if (!this.req) throw new Error("This request has been piped before http.request() was called.");
+  this.req.resume();
 }
 
 
@@ -278,22 +289,22 @@ request.defaults = function (options) {
 request.get = request;
 request.post = function (options, callback) {
   options.method = 'POST'; 
-  if (!options.body && !options.requestBodyStream && !options.json && !options.multipart) {
-    console.error("HTTP POST requests need a body or requestBodyStream");
-  }
-  request(options, callback);
+  // if (!options.body && !options.requestBodyStream && !options.json && !options.multipart) {
+  //   console.error("HTTP POST requests need a body or requestBodyStream");
+  // }
+  return request(options, callback);
 };
 request.put = function (options, callback) {
   options.method = 'PUT'; 
-  if (!options.body && !options.requestBodyStream && !options.json && !options.multipart) {
-    console.error("HTTP PUT requests need a body or requestBodyStream");
-  }
-  request(options, callback);
+  // if (!options.body && !options.requestBodyStream && !options.json && !options.multipart) {
+  //   console.error("HTTP PUT requests need a body or requestBodyStream");
+  // }
+  return request(options, callback);
 };
 request.head = function (options, callback) {
   options.method = 'HEAD'; 
   if (options.body || options.requestBodyStream || options.json || options.multipart) {
     throw new Error("HTTP HEAD requests MUST NOT include a request body.");
   }
-  request(options, callback);
+  return request(options, callback);
 };
