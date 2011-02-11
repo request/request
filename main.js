@@ -37,6 +37,7 @@ var Request = function (options) {
     this[i] = options[i];
   }
   if (!this.pool) this.pool = globalPool;
+  this.dests = [];
 }
 util.inherits(Request, stream.Stream);
 Request.prototype.getAgent = function (host, port) {
@@ -44,10 +45,6 @@ Request.prototype.getAgent = function (host, port) {
     this.pool[host+':'+port] = new this.httpModule.Agent({host:host, port:port});
   }
   return this.pool[host+':'+port];
-}
-
-Request.prototype.pipe = function (dest) {
-  this.dest = dest;
 }
 Request.prototype.request = function () {  
   var options = this;
@@ -178,6 +175,7 @@ Request.prototype.request = function () {
   }
 
   options.req = options.httpModule.request(options, function (response) {
+    options.response = response;
     if (setHost) delete options.headers.host;
 
     if (response.statusCode >= 300 && 
@@ -204,14 +202,16 @@ Request.prototype.request = function () {
       options._redirectsFollowed = 0;
       
       if (options.encoding) {
-        if (options.dest) {
+        if (options.dests.length !== 0) {
           console.error("Ingoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.");
         } else {
           response.setEncoding(options.encoding);
         }
       }
-      if (options.dest) {
-        response.pipe(options.dest);
+      if (options.dests.length !== 0) {
+        options.dests.forEach(function (dest) {
+          response.pipe(dest);
+        })
         if (options.onResponse) options.onResponse(null, response);
         if (options.callback) options.callback(null, response, options.responseBodyStream);
       } else {
@@ -231,9 +231,12 @@ Request.prototype.request = function () {
   
   options.req.on('error', clientErrorHandler);
     
-  this.once('pipe', function (src) {
+  options.once('pipe', function (src) {
     if (options.ntick) throw new Error("You cannot pipe to this stream after the first nextTick() after creation of the request stream.")
     options.src = src;
+    options.on('pipe', function () {
+      console.error("You have already piped to this stream. Pipeing twice is likely to break the request.")
+    })
   })
   
   process.nextTick(function () {
@@ -249,7 +252,10 @@ Request.prototype.request = function () {
     options.ntick = true;
   })
 }
-
+Request.prototype.pipe = function (dest) {
+  if (this.response) throw new Error("You cannot pipe after the response event.")
+  this.dests.push(dest);
+}
 Request.prototype.write = function () {
   if (!this.req) throw new Error("This request has been piped before http.request() was called.");
   this.req.write.apply(this.req, arguments);
@@ -267,16 +273,12 @@ Request.prototype.resume = function () {
   this.req.resume.apply(this.req, arguments);
 }
 
-
-
-
 function request (options, callback) {
   if (callback) options.callback = callback;
   var r = new Request(options);
   r.request();
   return r;
 }
-
 
 module.exports = request;
 
