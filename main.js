@@ -157,6 +157,7 @@ Request.prototype.request = function () {
   
   options.httpModule = 
     {"http:":http, "https:":https}[options.proxy ? options.proxy.protocol : options.uri.protocol]
+
   if (!options.httpModule) throw new Error("Invalid protocol");
   
   if (options.pool === false) {
@@ -175,7 +176,7 @@ Request.prototype.request = function () {
   options.req = options.httpModule.request(options, function (response) {
     options.response = response;
     if (setHost) delete options.headers.host;
-
+    
     if (response.statusCode >= 300 && 
         response.statusCode < 400  && 
         options.followRedirect     && 
@@ -191,6 +192,7 @@ Request.prototype.request = function () {
       }
       options.uri = response.headers.location;
       delete options.req;
+      delete options.agent;
       if (options.headers) {
         delete options.headers.host;
       }
@@ -218,9 +220,12 @@ Request.prototype.request = function () {
         }
         if (options.callback) {
           var buffer = '';
-          response
-          .on("data", function (chunk) { buffer += chunk; })
-          .on("end", function () { options.callback(null, response, buffer); })
+          response.on("data", function (chunk) { 
+            buffer += chunk; 
+          })
+          response.on("end", function () { 
+            options.callback(null, response, buffer); 
+          })
           ;
         }
       }
