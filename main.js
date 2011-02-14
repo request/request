@@ -296,7 +296,7 @@ request.defaults = function (options) {
   de.put = def(request.put);
   de.head = def(request.head);
   de.del = def(request.del);
-  de.delete = def(request.del);
+  de.delete = def(request.delete);
   return d;
 }
 
@@ -320,3 +320,4 @@ request.del = function (options, callback) {
   options.method = 'DELETE';
   return request(options, callback);
 }
+request.delete = request.del
