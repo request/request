@@ -42,7 +42,7 @@ var Request = function (options) {
 util.inherits(Request, stream.Stream);
 Request.prototype.getAgent = function (host, port) {
   if (!this.pool[host+':'+port]) {
-    this.pool[host+':'+port] = new this.httpModule.Agent({host:host, port:port});
+    this.pool[host+':'+port] = new this.httpModule.getAgent({host:host, port:port});
   }
   return this.pool[host+':'+port];
 }
