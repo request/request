@@ -13,12 +13,16 @@
 //    limitations under the License.
 
 var http = require('http')
-  , https = require('https')
+  , https = false
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
   , qs = require('querystring')
   ;
+
+try {
+    https = require('https');
+} catch (e) {}
 
 var toBase64 = function(str) {
   return (new Buffer(str || "", "ascii")).toString("base64");
