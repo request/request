@@ -28,6 +28,23 @@ var toBase64 = function(str) {
   return (new Buffer(str || "", "ascii")).toString("base64");
 };
 
+// Hacky fix for pre-0.4.4 https
+if (https && !https.Agent) {
+  https.Agent = function (options) {
+    http.Agent.call(this, options);
+  }
+  util.inherits(https.Agent, http.Agent);
+
+  https.Agent.prototype._getConnection = function(host, port, cb) {
+    var s = tls.connect(port, host, this.options, function() {
+      // do other checks here?
+      if (cb) cb();
+    });
+
+    return s;
+  };
+}
+
 var isUrl = /^https?:/;
 
 var globalPool = {};
