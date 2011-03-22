@@ -14,6 +14,7 @@
 
 var http = require('http')
   , https = false
+  , tls = false
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
@@ -22,6 +23,10 @@ var http = require('http')
 
 try {
     https = require('https');
+} catch (e) {}
+
+try {
+    tls = require('tls');
 } catch (e) {}
 
 var toBase64 = function(str) {
