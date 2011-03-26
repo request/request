@@ -43,3 +43,17 @@ exports.createGetResponse = function (text) {
   }
   return l;
 }
+
+
+exports.createEtagResponse = function (etag, text) {
+    var l = function(req, resp) {
+        if (req.headers['if-none-match'] == etag) {
+            resp.writeHead(304)
+        } else {
+            resp.writeHead(200, {'ETag': etag});
+            resp.write(text);
+        }
+        resp.end();
+    }
+    return l;
+}

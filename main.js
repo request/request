@@ -199,6 +199,18 @@ Request.prototype.request = function () {
     }
   }
 
+  options.responseCacheable = ((options.method == 'GET' || options.method == 'HEAD') && options.cache);
+  options.cacheKey = options.uri.host + options.path;
+  if (options.responseCacheable) {
+    var cachedResource;
+    if (cachedResource = options.cache.get(options.cacheKey)) {
+        var etag;
+        if (etag = cachedResource.headers['etag']) {
+            options.headers['if-none-match'] = etag;
+        }
+    }
+  }
+
   options.req = options.httpModule.request(options, function (response) {
     options.response = response;
     if (setHost) delete options.headers.host;
@@ -250,6 +262,17 @@ Request.prototype.request = function () {
             buffer += chunk; 
           })
           response.on("end", function () { 
+            if (options.responseCacheable) {
+              var cachedResource;
+              if (cachedResource = options.cache.get(options.cacheKey)) {
+                buffer = cachedResource.body;
+              } else {
+                options.cache.set(options.cacheKey, {
+                  headers: response.headers,
+                  body: buffer
+                });
+              }
+            }
             options.callback(null, response, buffer); 
           })
           ;
