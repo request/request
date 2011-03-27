@@ -288,9 +288,12 @@ Request.prototype.request = function () {
   if (options.requestCacheable) {
     options.cache.get(options.cacheKey, function(cacheResult) {
       if (cacheResult) {
-        var etag;
+        var etag, last_modified;
         if (etag = cacheResult.headers['etag']) {
           options.headers['if-none-match'] = etag;
+        }
+        if (last_modified = cacheResult.headers['last-modified']) {
+          options.headers['if-modified-since'] = last_modified;
         }
       }
       options.req = options.httpModule.request(options, doRequest);

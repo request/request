@@ -59,3 +59,17 @@ exports.createEtagResponse = function (etag, code) {
     }
     return l;
 }
+
+exports.createExpiresResponse = function (modified) {
+    var l = function(req, resp) {
+        var ims = req.headers['if-modified-since'];
+
+        if (req.method == 'GET' && (ims && ims == modified)) {
+          resp.writeHead(304)
+        } else {
+          resp.writeHead(200, {'last-modified': modified});
+        }
+        resp.end();
+    }
+    return l;
+}
