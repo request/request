@@ -133,9 +133,11 @@ Request.prototype.request = function () {
   
   var clientErrorHandler = function (error) {
     if (setHost) delete options.headers.host;
-    if (options.onResponse) options.onResponse(error); 
-    if (options.callback) options.callback(error);
+    options.emit('error', error);
   };
+  if (options.onResponse) options.on('error', function (e) {options.onResponse(e)}); 
+  if (options.callback) options.on('error', function (e) {options.callback(e)});
+  
 
   if (options.uri.auth && !options.headers.authorization) {
     options.headers.authorization = "Basic " + toBase64(options.uri.auth.split(':').map(qs.unescape).join(':'));
@@ -226,6 +228,9 @@ Request.prototype.request = function () {
       return; // Ignore the rest of the response
     } else {
       options._redirectsFollowed = 0;
+      // Be a good stream and emit end when the response is finished.
+      // Hack to emit end on close becuase of a core bug that never fires end
+      response.on('close', function () {options.emit('end')})
       
       if (options.encoding) {
         if (options.dests.length !== 0) {
@@ -234,12 +239,14 @@ Request.prototype.request = function () {
           response.setEncoding(options.encoding);
         }
       }
+      
       if (options.dests.length !== 0) {
         options.dests.forEach(function (dest) {
           response.pipe(dest);
         })
         if (options.onResponse) options.onResponse(null, response);
         if (options.callback) options.callback(null, response, options.responseBodyStream);
+        
       } else {
         if (options.onResponse) {
           options.onResponse(null, response);
