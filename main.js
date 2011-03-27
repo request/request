@@ -258,8 +258,15 @@ Request.prototype.request = function () {
                   buffer = cacheResult.body
                   response.fromCache = true
                 } else if (response.statusCode == 200) {
+                  var cacheableResponse = {};
+                  for (i in response) {
+                    if (i != 'client' && i != 'connection' && i != 'socket' && i != '_events'
+                      && typeof(response[i]) !== 'function') {
+                      cacheableResponse[i] = response[i];
+                    }
+                  }
                   options.cache.set(options.cacheKey, {
-                    headers: response.headers,
+                    response: cacheableResponse,
                     body: buffer
                   });
                 } else {
@@ -292,9 +299,9 @@ Request.prototype.request = function () {
         // taken from
         // http://code.google.com/p/httplib2/source/browse/python3/httplib2/__init__.py?r=0.6.0#241
         var cc = _parseCacheControl(options.headers);
-        var ccResponse = _parseCacheControl(cacheResult.headers);
+        var ccResponse = _parseCacheControl(cacheResult.response.headers);
 
-        if ((cacheResult.headers['pragma'] || '').match('no-cache')) {
+        if ((cacheResult.response.headers['pragma'] || '').match('no-cache')) {
           cacheDisposition = 'TRANSPARENT';
           if (!options.haders['cache-control']) {
             options.headers['cache-control'] = 'no-cache';
@@ -305,15 +312,15 @@ Request.prototype.request = function () {
           cacheDisposition = "STALE";
         } else if (cc['only-if-cached']) {
           cacheDisposition = "FRESH";
-        } else if (cacheResult.headers['date']) {
+        } else if (cacheResult.response.headers['date']) {
           var freshnessLifetime = 0;
-          var dt = Date.parse(cacheResult.headers['date']);
+          var dt = Date.parse(cacheResult.response.headers['date']);
           var now = Date.now();
           var currentAge = Math.max(0, now - dt);
           if (ccResponse['max-age']) {
             freshnessLifetime = parseInt(ccResponse['max-age']) || 0;
-          } else if (cacheResult.headers['expires']) {
-            var expires = Date.parse(cacheResult.headers['expires']) || 0;
+          } else if (cacheResult.response.headers['expires']) {
+            var expires = Date.parse(cacheResult.response.headers['expires']) || 0;
             freshnessLifetime = Math.max(0, expires - dt);
           } else {
             freshnessLifetime = 0;
@@ -334,15 +341,15 @@ Request.prototype.request = function () {
 
       if (cacheResult && cacheDisposition == 'STALE') {
         var etag, lastModified;
-        if (etag = cacheResult.headers['etag']) {
+        if (etag = cacheResult.response.headers['etag']) {
           options.headers['if-none-match'] = etag;
         }
-        if (lastModified = cacheResult.headers['last-modified']) {
+        if (lastModified = cacheResult.response.headers['last-modified']) {
           options.headers['if-modified-since'] = lastModified;
         }
       }
       if (cacheDisposition == 'FRESH') {
-        options.callback(null, null, cacheResult.body); 
+        options.callback(null, cacheResult.response, cacheResult.body);
       } else {
         options.req = options.httpModule.request(options, doRequest);
       }
