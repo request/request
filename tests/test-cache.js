@@ -10,12 +10,8 @@ var s = server.createServer();
 var Cache = function () {
     this.cache = {};
 
-    this.get = function(key, cb, read_cb) {
+    this.get = function(key, cb) {
         var r = this.cache[key] || null;
-        if (r === null && read_cb) {
-          r = read_cb();
-          this.set(key, r));
-        }
         return cb(r);
     };
 
@@ -46,32 +42,79 @@ var Cache = function () {
     });
 })();
 
+var  tests =
+    { testEtag: {
+         resp : server.createEtagResponse('e', 200),
+         cache: new Cache(),
+         expectCacheable: true
+      },
+    testPut: {
+         resp : server.createEtagResponse('e', 200),
+         cache: new Cache(),
+         method: 'PUT',
+         expectCacheable: false
+      }
+    };
+
 var counter = 0;
+for (i in tests) {
+    (function () {
+      var test = tests[i];
+      s.on('/'+i, test.resp);
+      test.uri = s.url + '/' + i;
+      request(test, function (err, resp, body) {
+        if (err) throw err;
+        assert.ok(resp.statusCode == 200);
+
+        request(test, function (err, resp, body) {
+          if (err) throw err;
+          assert.ok(resp.statusCode == 200);
+          assert.ok(resp.fromCache == test.expectCacheable);
+
+          counter = counter - 1;
+          if (counter === 0) {
+            console.log(Object.keys(tests).length+" tests passed.")
+          }
+        });
+      });
+      counter ++;
+    })();
+}
+
+// special case tests
 (function () {
- etag = 'someetag';
- expectedBody = 'testbody';
- test = { 
-    resp : server.createEtagResponse(etag, expectedBody),
-    cache: new Cache()
-  };
-  s.on('/', test.resp);
-  test.uri = s.url + '/';
+ 
+  var test = {
+    cache: new Cache(),
+  }
+  var errorPath = '/testError/error';
+  var okPath = '/testError';
+  s.on(okPath, server.createEtagResponse('e', 200));
+  s.on(errorPath, server.createEtagResponse('e', 400));
+  test.uri = s.url + okPath;
   request(test, function (err, resp, body) {
     if (err) throw err;
     assert.ok(resp.statusCode == 200);
-    assert.ok(expectedBody == body);
 
+    test.uri = s.url + errorPath;
     request(test, function (err, resp, body) {
       if (err) throw err;
-      assert.ok(resp.statusCode == 304);
-      assert.ok(expectedBody == body);
+      assert.ok(resp.statusCode == 400);
+      assert.ok(resp.fromCache == false);
 
-      counter = counter - 1;
-      if (counter === 0) {
-        s.close();
-      }
+      test.uri = s.url + okPath;
+      request(test, function (err, resp, body) {
+        if (err) throw err;
+        assert.ok(resp.statusCode == 200);
+        assert.ok(resp.fromCache == false);
+
+        counter = counter - 1;
+        if (counter === 0) {
+          console.log(Object.keys(tests).length+" tests passed.")
+          s.close();
+        }
+      });
     });
   });
-  counter ++;
+  counter++;
 })();
-

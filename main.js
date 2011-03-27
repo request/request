@@ -201,6 +201,7 @@ Request.prototype.request = function () {
 
   var doRequest = function (response) {
     options.response = response;
+    response.fromCache = false
     if (setHost) delete options.headers.host;
     
     if (response.statusCode >= 300 && 
@@ -250,15 +251,19 @@ Request.prototype.request = function () {
             buffer += chunk; 
           })
           response.on("end", function () { 
-            if (options.responseCacheable) {
+            if (options.requestCacheable) {
               options.cache.get(options.cacheKey, function(result) {
-                options.callback(null, response, result.body);
-              },
-              function () { 
-                return {
+                if (response.statusCode == 304) {
+                  response.statusCode = 200;
+                  buffer = result.body
+                  response.fromCache = true
+                } else if (response.statusCode == 200 || result === null) {
+                  options.cache.set(options.cacheKey, {
                     headers: response.headers,
                     body: buffer
-                };
+                  });
+                }
+                options.callback(null, response, buffer);
               });
             } else {
               options.callback(null, response, buffer); 
@@ -270,10 +275,15 @@ Request.prototype.request = function () {
     }
   }
 
-  options.responseCacheable = ((options.method == 'GET' || options.method == 'HEAD') && options.cache);
-  options.cacheKey = options.uri.host + options.uri.pathname + options.uri.search;
+  options.requestCacheable = ((options.method == 'GET' || options.method == 'HEAD') && options.cache);
+  if (options.cache) {
+    options.cacheKey = options.uri.host + options.uri.pathname + (options.uri.search || '');
+    if (!options.requestCacheable) {
+      options.cache.del(options.cacheKey);
+    }
+  }
 
-  if (options.responseCacheable) {
+  if (options.requestCacheable) {
     options.cache.get(options.cacheKey, function(cacheResult) {
       if (cacheResult) {
         var etag;
