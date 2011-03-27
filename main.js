@@ -287,16 +287,65 @@ Request.prototype.request = function () {
 
   if (options.requestCacheable) {
     options.cache.get(options.cacheKey, function(cacheResult) {
+      var cacheDisposition = 'STALE';
       if (cacheResult) {
-        var etag, last_modified;
+        // taken from
+        // http://code.google.com/p/httplib2/source/browse/python3/httplib2/__init__.py?r=0.6.0#241
+        var cc = _parseCacheControl(options.headers);
+        var ccResponse = _parseCacheControl(cacheResult.headers);
+
+        if ((cacheResult.headers['pragma'] || '').match('no-cache')) {
+          cacheDisposition = 'TRANSPARENT';
+          if (!options.haders['cache-control']) {
+            options.headers['cache-control'] = 'no-cache';
+          }
+        } else if (cc['no-cache']) {
+          cacheDisposition = "TRANSPARENT"
+        } else if (ccResponse['no-cache']) {
+          cacheDisposition = "STALE";
+        } else if (cc['only-if-cached']) {
+          cacheDisposition = "FRESH";
+        } else if (cacheResult.headers['date']) {
+          var freshnessLifetime = 0;
+          var dt = Date.parse(cacheResult.headers['date']);
+          var now = Date.now();
+          var currentAge = Math.max(0, now - dt);
+          if (ccResponse['max-age']) {
+            freshnessLifetime = parseInt(ccResponse['max-age']) || 0;
+          } else if (cacheResult.headers['expires']) {
+            var expires = Date.parse(cacheResult.headers['expires']) || 0;
+            freshnessLifetime = Math.max(0, expires - dt);
+          } else {
+            freshnessLifetime = 0;
+          }
+          if (cc['max-age']) {
+            freshnessLifetime = parseInt(cc['max-age']) || 0;
+          }
+          if (cc['min-fresh']) {
+            var minFresh = parseInt(cc['min-fresh']) || 0;
+            currentAge += minFresh;
+          }
+          if (freshnessLifetime > currentAge) {
+            cacheDisposition = 'FRESH';
+          }
+        }
+      }
+
+
+      if (cacheResult && cacheDisposition == 'STALE') {
+        var etag, lastModified;
         if (etag = cacheResult.headers['etag']) {
           options.headers['if-none-match'] = etag;
         }
-        if (last_modified = cacheResult.headers['last-modified']) {
-          options.headers['if-modified-since'] = last_modified;
+        if (lastModified = cacheResult.headers['last-modified']) {
+          options.headers['if-modified-since'] = lastModified;
         }
       }
-      options.req = options.httpModule.request(options, doRequest);
+      if (cacheDisposition == 'FRESH') {
+        options.callback(null, null, cacheResult.body); 
+      } else {
+        options.req = options.httpModule.request(options, doRequest);
+      }
     });
   } else {
     options.req = options.httpModule.request(options, doRequest);
@@ -393,4 +442,20 @@ request.head = function (options, callback) {
 request.del = function (options, callback) {
   options.method = 'DELETE';
   return request(options, callback);
+}
+
+var _parseCacheControl = function(headers) {
+  var retval = {};
+  if (headers['cache-control']) {
+    var parts = headers['cache-control'].split(',');
+    for (i in parts) {
+      if (i.match('=')) {
+        var sub = i.split('=');
+        retval[sub[0].trim()] = sub[1].trim();
+      } else {
+        retval[i.trim()] = true;
+      }
+    }
+  }
+  return retval;
 }

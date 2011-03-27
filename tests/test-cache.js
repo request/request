@@ -7,6 +7,7 @@ var server = require('./server')
 
 var s = server.createServer();
 
+// TODO: use streams
 var Cache = function () {
     this.cache = {};
 
@@ -42,6 +43,7 @@ var Cache = function () {
     });
 })();
 
+//TODO: test fresh and transparent caches
 var  tests = {
   testEtag: {
     resp : server.createEtagResponse('e', 200),
@@ -58,7 +60,7 @@ var  tests = {
     resp: server.createExpiresResponse('Tue, 15 Nov 1994 12:45:26 GMT', 200),
     cache: new Cache(),
     expectCacheable: true
-  }
+  },
 };
 
 var counter = 0;
