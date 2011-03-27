@@ -252,16 +252,18 @@ Request.prototype.request = function () {
           })
           response.on("end", function () { 
             if (options.requestCacheable) {
-              options.cache.get(options.cacheKey, function(result) {
+              options.cache.get(options.cacheKey, function(cacheResult) {
                 if (response.statusCode == 304) {
                   response.statusCode = 200;
-                  buffer = result.body
+                  buffer = cacheResult.body
                   response.fromCache = true
-                } else if (response.statusCode == 200 || result === null) {
+                } else if (response.statusCode == 200) {
                   options.cache.set(options.cacheKey, {
                     headers: response.headers,
                     body: buffer
                   });
+                } else {
+                  options.cache.del(options.cacheKey);
                 }
                 options.callback(null, response, buffer);
               });

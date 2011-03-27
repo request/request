@@ -46,9 +46,6 @@ exports.createGetResponse = function (text) {
 
 exports.createEtagResponse = function (etag, code) {
     var l = function(req, resp) {
-        console.log(code);
-        console.log(req.url);
-        console.log(req.headers);
         if (code == 200 && req.method == 'GET' && req.headers['if-none-match'] == etag) {
             resp.writeHead(304)
         } else {

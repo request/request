@@ -72,9 +72,6 @@ for (i in tests) {
           assert.ok(resp.fromCache == test.expectCacheable);
 
           counter = counter - 1;
-          if (counter === 0) {
-            console.log(Object.keys(tests).length+" tests passed.")
-          }
         });
       });
       counter ++;
@@ -87,22 +84,21 @@ for (i in tests) {
   var test = {
     cache: new Cache(),
   }
-  var errorPath = '/testError/error';
-  var okPath = '/testError';
-  s.on(okPath, server.createEtagResponse('e', 200));
-  s.on(errorPath, server.createEtagResponse('e', 400));
-  test.uri = s.url + okPath;
+  var path = '/testError';
+  s.on(path, server.createEtagResponse('e', 200));
+  s.on(path + '#fail', server.createEtagResponse('e', 400));
+  test.uri = s.url + path;
   request(test, function (err, resp, body) {
     if (err) throw err;
     assert.ok(resp.statusCode == 200);
 
-    test.uri = s.url + errorPath;
+    test.uri = s.url + path + '#fail';
     request(test, function (err, resp, body) {
       if (err) throw err;
       assert.ok(resp.statusCode == 400);
       assert.ok(resp.fromCache == false);
 
-      test.uri = s.url + okPath;
+      test.uri = s.url + path;
       request(test, function (err, resp, body) {
         if (err) throw err;
         assert.ok(resp.statusCode == 200);
@@ -110,7 +106,7 @@ for (i in tests) {
 
         counter = counter - 1;
         if (counter === 0) {
-          console.log(Object.keys(tests).length+" tests passed.")
+          console.log("All tests passed.")
           s.close();
         }
       });
