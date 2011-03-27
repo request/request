@@ -10,13 +10,13 @@ var s = server.createServer();
 var Cache = function () {
     this.cache = {};
 
-    this.get = function(key) {
-        var r = this.cache[key];
-        if (r === undefined) {
-            return null;
-        } else {
-            return r;
+    this.get = function(key, cb, read_cb) {
+        var r = this.cache[key] || null;
+        if (r === null && read_cb) {
+          r = read_cb();
+          this.set(key, r));
         }
+        return cb(r);
     };
 
     this.set = function(key, value) {
@@ -31,13 +31,19 @@ var Cache = function () {
 (function () {
     var c = new Cache();
 
-    assert.ok(c.get('test') === null);
-    
+    c.get('test', function(result) {
+      assert.ok(result === null);
+    });
+
     c.set('test', 'x');
-    assert.ok(c.get('test') == 'x');
+    c.get('test', function(result) {
+      assert.ok(result == 'x');
+    });
 
     c.del('test');
-    assert.ok(c.get('test') === null);
+    c.get('test', function(result) {
+      assert.ok(result === null);
+    });
 })();
 
 var counter = 0;

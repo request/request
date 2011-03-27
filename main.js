@@ -199,19 +199,7 @@ Request.prototype.request = function () {
     }
   }
 
-  options.responseCacheable = ((options.method == 'GET' || options.method == 'HEAD') && options.cache);
-  options.cacheKey = options.uri.host + options.path;
-  if (options.responseCacheable) {
-    var cachedResource;
-    if (cachedResource = options.cache.get(options.cacheKey)) {
-        var etag;
-        if (etag = cachedResource.headers['etag']) {
-            options.headers['if-none-match'] = etag;
-        }
-    }
-  }
-
-  options.req = options.httpModule.request(options, function (response) {
+  var doRequest = function (response) {
     options.response = response;
     if (setHost) delete options.headers.host;
     
@@ -263,23 +251,41 @@ Request.prototype.request = function () {
           })
           response.on("end", function () { 
             if (options.responseCacheable) {
-              var cachedResource;
-              if (cachedResource = options.cache.get(options.cacheKey)) {
-                buffer = cachedResource.body;
-              } else {
-                options.cache.set(options.cacheKey, {
-                  headers: response.headers,
-                  body: buffer
-                });
-              }
+              options.cache.get(options.cacheKey, function(result) {
+                options.callback(null, response, result.body);
+              },
+              function () { 
+                return {
+                    headers: response.headers,
+                    body: buffer
+                };
+              });
+            } else {
+              options.callback(null, response, buffer); 
             }
-            options.callback(null, response, buffer); 
           })
           ;
         }
       }
     }
-  })
+  }
+
+  options.responseCacheable = ((options.method == 'GET' || options.method == 'HEAD') && options.cache);
+  options.cacheKey = options.uri.host + options.uri.pathname + options.uri.search;
+
+  if (options.responseCacheable) {
+    options.cache.get(options.cacheKey, function(cacheResult) {
+      if (cacheResult) {
+        var etag;
+        if (etag = cacheResult.headers['etag']) {
+          options.headers['if-none-match'] = etag;
+        }
+      }
+      options.req = options.httpModule.request(options, doRequest);
+    });
+  } else {
+    options.req = options.httpModule.request(options, doRequest);
+  }
   
   options.req.on('error', clientErrorHandler);
     
