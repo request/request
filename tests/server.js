@@ -61,15 +61,31 @@ exports.createEtagResponse = function (etag, code) {
 }
 
 exports.createExpiresResponse = function (modified) {
+    //modified is a list of dates. one will be popped off the right
+    //and used as the resources modified time
     var l = function(req, resp) {
         var ims = req.headers['if-modified-since'];
+        var lastModified = modified.pop()
 
-        if (req.method == 'GET' && (ims && ims == modified)) {
+        if (req.method == 'GET' && (ims && ims == lastModified)) {
           resp.writeHead(304)
         } else {
-          resp.writeHead(200, {'last-modified': modified});
+          resp.writeHead(200, {'last-modified': lastModified});
         }
         resp.end();
     }
     return l;
+}
+
+exports.createCalledOnceResponse = function (dt, expires) {
+  var called = 0;
+  var l = function (req, resp) {
+    assert.ok(called <= 1);
+    resp.writeHead(200, {
+      'date': dt,
+      expires: expires
+    });
+    resp.end();
+  }
+  return l;
 }

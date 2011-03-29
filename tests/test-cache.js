@@ -56,8 +56,26 @@ var  tests = {
     method: 'PUT',
     expectCacheable: false
   },
+  testNotModified: {
+    resp: server.createExpiresResponse([
+      'Tue, 15 Nov 1994 12:45:26 GMT',
+      'Mon, 14 Nov 1994 12:45:26 GMT'
+    ]),
+    cache: new Cache(),
+    expectCacheable: false
+  },
   testModified: {
-    resp: server.createExpiresResponse('Tue, 15 Nov 1994 12:45:26 GMT', 200),
+    resp: server.createExpiresResponse([
+      'Tue, 15 Nov 1994 12:45:26 GMT',
+      'Tue, 15 Nov 1994 12:45:26 GMT'
+    ]),
+    cache: new Cache(),
+    expectCacheable: true
+  },
+  testModified: {
+    resp: server.createCalledOnceResponse(
+      Date(), new Date(Date.now() + (60 * 60 * 24 * 1000))
+    ),
     cache: new Cache(),
     expectCacheable: true
   },
