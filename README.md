@@ -43,6 +43,7 @@ The first argument is an options object. The only required option is uri, all ot
 * `encoding` - Encoding to be used on response.setEncoding when buffering the response data.
 * `pool` - A hash object containing the agents for these requests. If omitted this request will use the global pool which is set to node's default maxSockets.
 * `pool.maxSockets` - Integer containing the maximum amount of sockets in the pool.
+* `cache` - an object which implements the caching interface as described below.
 
 The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body buffer.
 
@@ -120,3 +121,27 @@ Same as request() but defaults to `method: "HEAD"`.
 ### request.get
 
 Alias to normal request method for uniformity.
+
+
+## Caching
+
+Request understands HTTP caching semantics, and through the options.cache object, may cache valid resources.
+
+To enable caching, pass an object to options.cache which implements this interface.
+
+<pre>
+var Cache = function () {
+
+    // lookup opaque object stored at key, and pass result to callback
+    // if key doesn't reference any object, callback receives a null argument
+    this.get = function(key, callback) {};
+
+    // store the opaque object "value" with key
+    this.set = function(key, value) {};
+
+    // delete the object referenced by key
+    this.del = function(key) {};
+};
+</pre>
+
+For an example, see tests/test-cache.js
