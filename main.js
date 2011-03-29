@@ -349,6 +349,7 @@ Request.prototype.request = function () {
         }
       }
       if (cacheDisposition == 'FRESH') {
+        cacheResult.response.fromCache = true;
         options.callback(null, cacheResult.response, cacheResult.body);
       } else {
         options.req = options.httpModule.request(options, doRequest);
@@ -358,28 +359,30 @@ Request.prototype.request = function () {
     options.req = options.httpModule.request(options, doRequest);
   }
   
-  options.req.on('error', clientErrorHandler);
+  if (options.req) {
+    options.req.on('error', clientErrorHandler);
     
-  options.once('pipe', function (src) {
-    if (options.ntick) throw new Error("You cannot pipe to this stream after the first nextTick() after creation of the request stream.")
-    options.src = src;
-    options.on('pipe', function () {
-      console.error("You have already piped to this stream. Pipeing twice is likely to break the request.")
+    options.once('pipe', function (src) {
+      if (options.ntick) throw new Error("You cannot pipe to this stream after the first nextTick() after creation of the request stream.")
+      options.src = src;
+      options.on('pipe', function () {
+        console.error("You have already piped to this stream. Pipeing twice is likely to break the request.")
+      })
     })
-  })
-  
-  process.nextTick(function () {
-    if (options.body) {
-      options.req.write(options.body);
-      options.req.end();
-    } else if (options.requestBodyStream) {
-      console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
-      options.requestBodyStream.pipe(options);
-    } else if (!options.src) {
-      options.req.end();
-    }
-    options.ntick = true;
-  })
+    
+    process.nextTick(function () {
+      if (options.body) {
+        options.req.write(options.body);
+        options.req.end();
+      } else if (options.requestBodyStream) {
+        console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
+        options.requestBodyStream.pipe(options);
+      } else if (!options.src) {
+        options.req.end();
+      }
+      options.ntick = true;
+    })
+  }
 }
 Request.prototype.pipe = function (dest) {
   if (this.response) throw new Error("You cannot pipe after the response event.")
