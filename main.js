@@ -455,14 +455,26 @@ var _parseCacheControl = function(headers) {
   var retval = {};
   if (headers['cache-control']) {
     var parts = headers['cache-control'].split(',');
-    for (i in parts) {
-      if (i.match('=')) {
-        var sub = i.split('=');
+    for (var i in parts) {
+      if (parts[i].match('=')) {
+        var sub = parts[i].split('=');
         retval[sub[0].trim()] = sub[1].trim();
       } else {
-        retval[i.trim()] = true;
+        retval[parts[i].trim()] = true;
       }
     }
   }
   return retval;
+}
+
+if (require.main == module) {
+  var assert = require('assert');
+  var headers = {};
+  headers['cache-control'] = 'public, max-age=15, must-revalidate';
+
+  assert.deepEqual(_parseCacheControl(headers), {
+    'max-age': 15,
+    'must-revalidate': true,
+    'public': true
+  });
 }
