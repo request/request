@@ -1,11 +1,11 @@
 // Copyright 2010-2011 Mikeal Rogers
-// 
+//
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
 //    You may obtain a copy of the License at
-// 
+//
 //        http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 //    Unless required by applicable law or agreed to in writing, software
 //    distributed under the License is distributed on an "AS IS" BASIS,
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -58,7 +58,7 @@ var Request = function (options) {
   stream.Stream.call(this);
   this.readable = true;
   this.writable = true;
-  
+
   for (i in options) {
     this[i] = options[i];
   }
@@ -72,7 +72,7 @@ Request.prototype.getAgent = function (host, port) {
   }
   return this.pool[host+':'+port];
 }
-Request.prototype.request = function () {  
+Request.prototype.request = function () {
   var options = this;
   if (options.url) {
     // People use this property instead all the time so why not just support it.
@@ -117,7 +117,7 @@ Request.prototype.request = function () {
     console.error('options.bodyStream and options.responseBodyStream is deprecated. You should now send the request object to stream.pipe()');
     this.pipe(options.responseBodyStream || options.bodyStream)
   }
-  
+
   if (options.proxy) {
     options.port = options.proxy.port;
     options.host = options.proxy.hostname;
@@ -125,15 +125,15 @@ Request.prototype.request = function () {
     options.port = options.uri.port;
     options.host = options.uri.hostname;
   }
-  
+
   if (options.onResponse === true) {
     options.onResponse = options.callback;
     delete options.callback;
   }
-  
+
   var clientErrorHandler = function (error) {
     if (setHost) delete options.headers.host;
-    if (options.onResponse) options.onResponse(error); 
+    if (options.onResponse) options.onResponse(error);
     if (options.callback) options.callback(error);
   };
 
@@ -161,7 +161,7 @@ Request.prototype.request = function () {
       var body = part.body;
       if(!body) throw Error('Body attribute missing in multipart.');
       delete part.body;
-      options.body += '--frontier\r\n'; 
+      options.body += '--frontier\r\n';
       Object.keys(part).forEach(function(key){
         options.body += key + ': ' + part[key] + '\r\n'
       })
@@ -180,12 +180,12 @@ Request.prototype.request = function () {
       throw new Error('Argument error, options.body.');
     }
   }
-  
-  options.httpModule = 
+
+  options.httpModule =
     {"http:":http, "https:":https}[options.proxy ? options.proxy.protocol : options.uri.protocol]
 
   if (!options.httpModule) throw new Error("Invalid protocol");
-  
+
   if (options.pool === false) {
     options.agent = false;
   } else {
@@ -204,11 +204,11 @@ Request.prototype.request = function () {
       options.response = response;
       response.fromCache = false
       if (setHost) delete options.headers.host;
-      
-      if (response.statusCode >= 300 && 
-          response.statusCode < 400  && 
-          options.followRedirect     && 
-          options.method !== 'PUT' && 
+
+      if (response.statusCode >= 300 &&
+          response.statusCode < 400  &&
+          options.followRedirect     &&
+          options.method !== 'PUT' &&
           options.method !== 'POST' &&
           response.headers.location) {
         if (options._redirectsFollowed >= options.maxRedirects) {
@@ -228,7 +228,7 @@ Request.prototype.request = function () {
         return; // Ignore the rest of the response
       } else {
         options._redirectsFollowed = 0;
-        
+
         if (options.encoding) {
           if (options.dests.length !== 0) {
             console.error("Ingoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.");
@@ -248,10 +248,10 @@ Request.prototype.request = function () {
           }
           if (options.callback) {
             var buffer = '';
-            response.on("data", function (chunk) { 
-              buffer += chunk; 
+            response.on("data", function (chunk) {
+              buffer += chunk;
             })
-            response.on("end", function () { 
+            response.on("end", function () {
               if (options.requestCacheable) {
                 options.cache.get(options.cacheKey, function(cacheResult) {
                   if (response.statusCode == 304) {
@@ -276,7 +276,7 @@ Request.prototype.request = function () {
                   options.callback(null, response, buffer);
                 });
               } else {
-                options.callback(null, response, buffer); 
+                options.callback(null, response, buffer);
               }
             })
             ;
@@ -286,7 +286,7 @@ Request.prototype.request = function () {
     });
 
     options.req.on('error', clientErrorHandler);
-    
+
     options.once('pipe', function (src) {
       if (options.ntick) throw new Error("You cannot pipe to this stream after the first nextTick() after creation of the request stream.")
       options.src = src;
@@ -294,7 +294,7 @@ Request.prototype.request = function () {
         console.error("You have already piped to this stream. Pipeing twice is likely to break the request.")
       })
     })
-    
+
     process.nextTick(function () {
       if (options.body) {
         options.req.write(options.body);
@@ -363,7 +363,6 @@ Request.prototype.request = function () {
         }
       }
 
-
       if (cacheResult && cacheDisposition == 'STALE') {
         var etag, lastModified;
         if (etag = cacheResult.response.headers['etag']) {
@@ -383,8 +382,8 @@ Request.prototype.request = function () {
   } else {
     doRequest();
   }
-
 }
+
 Request.prototype.pipe = function (dest) {
   if (this.response) throw new Error("You cannot pipe after the response event.")
   this.dests.push(dest);
