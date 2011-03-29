@@ -199,89 +199,114 @@ Request.prototype.request = function () {
     }
   }
 
-  var doRequest = function (response) {
-    options.response = response;
-    response.fromCache = false
-    if (setHost) delete options.headers.host;
-    
-    if (response.statusCode >= 300 && 
-        response.statusCode < 400  && 
-        options.followRedirect     && 
-        options.method !== 'PUT' && 
-        options.method !== 'POST' &&
-        response.headers.location) {
-      if (options._redirectsFollowed >= options.maxRedirects) {
-        options.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."));
-      }
-      options._redirectsFollowed += 1;
-      if (!isUrl.test(response.headers.location)) {
-        response.headers.location = url.resolve(options.uri.href, response.headers.location);
-      }
-      options.uri = response.headers.location;
-      delete options.req;
-      delete options.agent;
-      if (options.headers) {
-        delete options.headers.host;
-      }
-      request(options, options.callback);
-      return; // Ignore the rest of the response
-    } else {
-      options._redirectsFollowed = 0;
+  var doRequest = function() {
+    options.req = options.httpModule.request(options, function (response) {
+      options.response = response;
+      response.fromCache = false
+      if (setHost) delete options.headers.host;
       
-      if (options.encoding) {
-        if (options.dests.length !== 0) {
-          console.error("Ingoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.");
-        } else {
-          response.setEncoding(options.encoding);
+      if (response.statusCode >= 300 && 
+          response.statusCode < 400  && 
+          options.followRedirect     && 
+          options.method !== 'PUT' && 
+          options.method !== 'POST' &&
+          response.headers.location) {
+        if (options._redirectsFollowed >= options.maxRedirects) {
+          options.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."));
         }
-      }
-      if (options.dests.length !== 0) {
-        options.dests.forEach(function (dest) {
-          response.pipe(dest);
-        })
-        if (options.onResponse) options.onResponse(null, response);
-        if (options.callback) options.callback(null, response, options.responseBodyStream);
+        options._redirectsFollowed += 1;
+        if (!isUrl.test(response.headers.location)) {
+          response.headers.location = url.resolve(options.uri.href, response.headers.location);
+        }
+        options.uri = response.headers.location;
+        delete options.req;
+        delete options.agent;
+        if (options.headers) {
+          delete options.headers.host;
+        }
+        request(options, options.callback);
+        return; // Ignore the rest of the response
       } else {
-        if (options.onResponse) {
-          options.onResponse(null, response);
+        options._redirectsFollowed = 0;
+        
+        if (options.encoding) {
+          if (options.dests.length !== 0) {
+            console.error("Ingoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.");
+          } else {
+            response.setEncoding(options.encoding);
+          }
         }
-        if (options.callback) {
-          var buffer = '';
-          response.on("data", function (chunk) { 
-            buffer += chunk; 
+        if (options.dests.length !== 0) {
+          options.dests.forEach(function (dest) {
+            response.pipe(dest);
           })
-          response.on("end", function () { 
-            if (options.requestCacheable) {
-              options.cache.get(options.cacheKey, function(cacheResult) {
-                if (response.statusCode == 304) {
-                  response.statusCode = 200;
-                  buffer = cacheResult.body
-                  response.fromCache = true
-                } else if (response.statusCode == 200) {
-                  var cacheableResponse = {};
-                  for (i in response) {
-                    if (i != 'client' && i != 'connection' && i != 'socket' && i != '_events'
-                      && typeof(response[i]) !== 'function') {
-                      cacheableResponse[i] = response[i];
+          if (options.onResponse) options.onResponse(null, response);
+          if (options.callback) options.callback(null, response, options.responseBodyStream);
+        } else {
+          if (options.onResponse) {
+            options.onResponse(null, response);
+          }
+          if (options.callback) {
+            var buffer = '';
+            response.on("data", function (chunk) { 
+              buffer += chunk; 
+            })
+            response.on("end", function () { 
+              if (options.requestCacheable) {
+                options.cache.get(options.cacheKey, function(cacheResult) {
+                  if (response.statusCode == 304) {
+                    response.statusCode = 200;
+                    buffer = cacheResult.body
+                    response.fromCache = true
+                  } else if (response.statusCode == 200) {
+                    var cacheableResponse = {};
+                    for (i in response) {
+                      if (i != 'client' && i != 'connection' && i != 'socket' && i != '_events'
+                        && typeof(response[i]) !== 'function') {
+                        cacheableResponse[i] = response[i];
+                      }
                     }
+                    options.cache.set(options.cacheKey, {
+                      response: cacheableResponse,
+                      body: buffer
+                    });
+                  } else {
+                    options.cache.del(options.cacheKey);
                   }
-                  options.cache.set(options.cacheKey, {
-                    response: cacheableResponse,
-                    body: buffer
-                  });
-                } else {
-                  options.cache.del(options.cacheKey);
-                }
-                options.callback(null, response, buffer);
-              });
-            } else {
-              options.callback(null, response, buffer); 
-            }
-          })
-          ;
+                  options.callback(null, response, buffer);
+                });
+              } else {
+                options.callback(null, response, buffer); 
+              }
+            })
+            ;
+          }
         }
       }
-    }
+    });
+
+    options.req.on('error', clientErrorHandler);
+    
+    options.once('pipe', function (src) {
+      if (options.ntick) throw new Error("You cannot pipe to this stream after the first nextTick() after creation of the request stream.")
+      options.src = src;
+      options.on('pipe', function () {
+        console.error("You have already piped to this stream. Pipeing twice is likely to break the request.")
+      })
+    })
+    
+    process.nextTick(function () {
+      if (options.body) {
+        options.req.write(options.body);
+        options.req.end();
+      } else if (options.requestBodyStream) {
+        console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
+        options.requestBodyStream.pipe(options);
+      } else if (!options.src) {
+        options.req.end();
+      }
+      options.ntick = true;
+    });
   }
 
   options.requestCacheable = ((options.method == 'GET' || options.method == 'HEAD') && options.cache);
@@ -352,37 +377,13 @@ Request.prototype.request = function () {
         cacheResult.response.fromCache = true;
         options.callback(null, cacheResult.response, cacheResult.body);
       } else {
-        options.req = options.httpModule.request(options, doRequest);
+        doRequest();
       }
     });
   } else {
-    options.req = options.httpModule.request(options, doRequest);
+    doRequest();
   }
-  
-  if (options.req) {
-    options.req.on('error', clientErrorHandler);
-    
-    options.once('pipe', function (src) {
-      if (options.ntick) throw new Error("You cannot pipe to this stream after the first nextTick() after creation of the request stream.")
-      options.src = src;
-      options.on('pipe', function () {
-        console.error("You have already piped to this stream. Pipeing twice is likely to break the request.")
-      })
-    })
-    
-    process.nextTick(function () {
-      if (options.body) {
-        options.req.write(options.body);
-        options.req.end();
-      } else if (options.requestBodyStream) {
-        console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
-        options.requestBodyStream.pipe(options);
-      } else if (!options.src) {
-        options.req.end();
-      }
-      options.ntick = true;
-    })
-  }
+
 }
 Request.prototype.pipe = function (dest) {
   if (this.response) throw new Error("You cannot pipe after the response event.")
