@@ -230,7 +230,8 @@ Request.prototype.request = function () {
       options._redirectsFollowed = 0;
       // Be a good stream and emit end when the response is finished.
       // Hack to emit end on close becuase of a core bug that never fires end
-      response.on('close', function () {options.emit('end')})
+      response.on('close', function () { options.emit('end');
+                                         response.emit('end')})
       
       if (options.encoding) {
         if (options.dests.length !== 0) {
