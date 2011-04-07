@@ -334,7 +334,7 @@ request.defaults = function (options) {
   de.put = def(request.put);
   de.head = def(request.head);
   de.del = def(request.del);
-  return d;
+  return de;
 }
 
 request.get = request;
