@@ -322,9 +322,9 @@ request.defaults = function (options) {
   var def = function (method) {
     var d = function (opts, callback) {
       for (i in options) {
-        if (!opts[i]) opts[i] = options[i];
-        return method(opts, callback);
+        if (opts[i] === undefined) opts[i] = options[i];
       }
+      return method(opts, callback);
     }
     return d;
   }
