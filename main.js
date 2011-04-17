@@ -144,10 +144,10 @@ Request.prototype.request = function () {
   
 
   if (options.uri.auth && !options.headers.authorization) {
-    options.headers.authorization = "Basic " + toBase64(options.uri.auth.split(':').map(qs.unescape).join(':'));
+    options.headers.authorization = "Basic " + toBase64(options.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'));
   }
   if (options.proxy && options.proxy.auth && !options.headers['proxy-authorization']) {
-    options.headers['proxy-authorization'] = "Basic " + toBase64(options.proxy.auth.split(':').map(qs.unescape).join(':'));
+    options.headers.authorization = "Basic " + toBase64(options.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'));
   }
 
   options.path = options.uri.href.replace(options.uri.protocol + '//' + options.uri.host, '');
