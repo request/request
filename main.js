@@ -59,6 +59,10 @@ var Request = function (options) {
   this.readable = true;
   this.writable = true;
   
+  if (typeof options === 'string') {
+    options = {uri:options};
+  }
+  
   for (i in options) {
     this[i] = options[i];
   }
@@ -310,6 +314,7 @@ Request.prototype.resume = function () {
 }
 
 function request (options, callback) {
+  if (typeof options === 'string') options = {uri:options};
   if (callback) options.callback = callback;
   var r = new Request(options);
   r.request();
