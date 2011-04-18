@@ -244,27 +244,22 @@ Request.prototype.request = function () {
         }
       }
       
-      if (options.dests.length !== 0) {
-        options.dests.forEach(function (dest) {
-          response.pipe(dest);
+      response.on("data", function (chunk) {options.emit("data", chunk)});
+      response.on("end", function (chunk) {options.emit("end", chunk)});
+      response.on("close", function () {options.emit("close")});
+      
+      if (options.onResponse) {
+        options.onResponse(null, response);
+      }
+      if (options.callback) {
+        var buffer = '';
+        options.on("data", function (chunk) { 
+          buffer += chunk; 
         })
-        if (options.onResponse) options.onResponse(null, response);
-        if (options.callback) options.callback(null, response, options.responseBodyStream);
-        
-      } else {
-        if (options.onResponse) {
-          options.onResponse(null, response);
-        }
-        if (options.callback) {
-          var buffer = '';
-          response.on("data", function (chunk) { 
-            buffer += chunk; 
-          })
-          response.on("end", function () { 
-            options.callback(null, response, buffer); 
-          })
-          ;
-        }
+        options.on("end", function () { 
+          options.callback(null, response, buffer); 
+        })
+        ;
       }
     }
   })
@@ -295,6 +290,7 @@ Request.prototype.request = function () {
 Request.prototype.pipe = function (dest) {
   if (this.response) throw new Error("You cannot pipe after the response event.")
   this.dests.push(dest);
+  stream.Stream.prototype.pipe.call(this, dest)
 }
 Request.prototype.write = function () {
   if (!this.req) throw new Error("This request has been piped before http.request() was called.");
