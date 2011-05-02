@@ -18,7 +18,8 @@ var http = require('http')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
-  , qs = require('querystring')
+  , qs = require('querystring'),
+  , compress=require("compress");  
   ;
 
 try {
@@ -253,8 +254,17 @@ Request.prototype.request = function () {
       }
       if (options.callback) {
         var buffer = '';
-        options.on("data", function (chunk) { 
-          buffer += chunk; 
+        var encoding = response.headers['content-encoding'] || '';
+        if (encoding.search('gzip') != -1) {
+            var gunzip = new compress.Gunzip;
+            gunzip.init();
+        }
+        
+        options.on("data", function (chunk) {
+            if (gunzip) {
+                buffer += gunzip.inflate(chunk.toString('binary'), 'binary'); 
+            }
+            else buffer += chunk; 
         })
         options.on("end", function () { 
           options.callback(null, response, buffer); 
