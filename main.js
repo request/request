@@ -18,7 +18,7 @@ var http = require('http')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
-  , qs = require('querystring'),
+  , qs = require('querystring')
   , compress=require("compress");  
   ;
 
