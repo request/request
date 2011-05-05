@@ -94,8 +94,10 @@ Request.prototype.request = function () {
   }
 
   options._redirectsFollowed = options._redirectsFollowed || 0;
+  options._http302ashttp303 = true;
   options.maxRedirects = (options.maxRedirects !== undefined) ? options.maxRedirects : 10;
   options.followRedirect = (options.followRedirect !== undefined) ? options.followRedirect : true;
+  options.approveRedirect = (options.approveRedirect !== undefined) ? options.approveRedirect : true;
 
   options.method = options.method || 'GET';
   options.headers = options.headers || {};
@@ -209,27 +211,44 @@ Request.prototype.request = function () {
     options.response = response;
     if (setHost) delete options.headers.host;
     
-    if (response.statusCode >= 300 && 
-        response.statusCode < 400  && 
-        options.followRedirect     && 
-        options.method !== 'PUT' && 
-        options.method !== 'POST' &&
-        response.headers.location) {
-      if (options._redirectsFollowed >= options.maxRedirects) {
+    if (
+      options.followRedirect     &&
+      response.headers.location  && 
+      ( response.statusCode >= 300 && response.statusCode < 400 ) &&
+      ( options.approveRedirect || options.method === 'GET' || options.method === 'HEAD' )
+    ) {
+      
+      options._redirectsFollowed += 1;
+      if (options._redirectsFollowed > options.maxRedirects) {
         options.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."));
       }
-      options._redirectsFollowed += 1;
+
       if (!isUrl.test(response.headers.location)) {
         response.headers.location = url.resolve(options.uri.href, response.headers.location);
       }
+
+      if (
+        options.method == 'POST' &&
+        (
+          response.statusCode === 303 ||
+          ( response.statusCode === 302 && options._http302ashttp303 )
+        )
+      ) {
+        options.method = 'GET';
+      }
+
       options.uri = response.headers.location;
+
       delete options.req;
       delete options.agent;
+
       if (options.headers) {
         delete options.headers.host;
       }
+
       request(options, options.callback);
       return; // Ignore the rest of the response
+
     } else {
       options._redirectsFollowed = 0;
       // Be a good stream and emit end when the response is finished.
