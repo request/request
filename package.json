@@ -11,7 +11,7 @@
   { "web" : "http://github.com/mikeal/request/issues" }
 , "engines" : ["node >= 0.3.6"]
 , "dependencies": {
-   "compress"       : ">=0.1.9"
+   "compress"       : ">= 0.1.9"
 }
 , "main" : "./main"
 }
