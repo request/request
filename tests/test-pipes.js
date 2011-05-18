@@ -10,7 +10,7 @@ var s = server.createServer(3453);
 passes = 0;
 
 function check () {
-  if (passes === 2) {
+  if (passes === 3) {
     console.log('All tests passed.')
     process.exit();
   }
@@ -50,4 +50,27 @@ mypulldata.end = function () {
   passes += 1
   check();
 };
+
+
+s.on('/cat', function (req, resp) {
+  if (req.method === "GET") {
+    resp.writeHead(200, {'content-type':'text/plain', 'content-length':4});
+    resp.write('asdf');
+    resp.end()
+  } else if (req.method === "PUT") {
+    assert.ok(req.headers['content-type'] === 'text/plain');
+    assert.ok(req.headers['content-length'] == 4)
+    var validate = '';
+    req.on('data', function (chunk) {validate += chunk})
+    req.on('end', function () {
+      resp.writeHead(201);
+      resp.end();
+      assert.ok(validate === 'asdf');
+      passes += 1;
+      check();
+    })
+  }
+})
+
+request.get('http://localhost:3453/cat').pipe(request.put('http://localhost:3453/cat'))
 
