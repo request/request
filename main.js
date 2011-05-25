@@ -316,12 +316,12 @@ Request.prototype.end = function () {
   this.req.end.apply(this.req, arguments);
 }
 Request.prototype.pause = function () {
-  if (!this.req) throw new Error("This request has been piped before http.request() was called.");
-  this.req.pause.apply(this.req, arguments);
+  if (!this.response) throw new Error("This request has been piped before http.request() was called.");
+  this.response.pause.apply(this.response, arguments);
 }
 Request.prototype.resume = function () {
-  if (!this.req) throw new Error("This request has been piped before http.request() was called.");
-  this.req.resume.apply(this.req, arguments);
+  if (!this.response) throw new Error("This request has been piped before http.request() was called.");
+  this.response.resume.apply(this.response, arguments);
 }
 
 function request (options, callback) {
