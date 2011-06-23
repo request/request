@@ -228,6 +228,7 @@ Request.prototype.request = function () {
         options.uri = response.headers.location;
         delete options.req;
         delete options.agent;
+        delete options._started;
         if (options.headers) {
           delete options.headers.host;
         }
