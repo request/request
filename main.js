@@ -188,8 +188,8 @@ Request.prototype.request = function () {
     }
   }
   
-  // Nginx for instance, doesn't like DELETE or PUT without a content-length
-  if((options.method === 'DELETE' || options.method === 'PUT') && typeof(options.headers['content-length']) === 'undefined') {
+  // Certain servers will 411 if requset lacks a content-length regardless if they include a body or not
+  if(~['DELETE', 'PUT', 'POST'].indexOf(options.method) && typeof(options.headers['content-length']) === 'undefined') {
     options.headers['content-length'] = 0;
   }
   
