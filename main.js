@@ -188,8 +188,8 @@ Request.prototype.request = function () {
     }
   }
   
-  // Nginx for instance, doesn't like DELETE's without a content-length
-  if(options.method === 'DELETE' && typeof(options.headers['content-length']) === 'undefined') {
+  // Nginx for instance, doesn't like DELETE or PUT without a content-length
+  if((options.method === 'DELETE' || options.method === 'PUT') && typeof(options.headers['content-length']) === 'undefined') {
     options.headers['content-length'] = 0;
   }
   
