@@ -242,7 +242,7 @@ Request.prototype.request = function () {
 
         if (options.encoding) {
           if (options.dests.length !== 0) {
-            console.error("Ingoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.");
+            console.error("Ignoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.");
           } else {
             response.setEncoding(options.encoding);
           }
