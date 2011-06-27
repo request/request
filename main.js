@@ -188,6 +188,11 @@ Request.prototype.request = function () {
     }
   }
   
+  // Nginx for instance, doesn't like DELETE's without a content-length
+  if(options.method === 'DELETE' && typeof(options.headers['content-length']) === 'undefined') {
+    options.headers['content-length'] = 0;
+  }
+  
   options.httpModule = 
     {"http:":http, "https:":https}[options.proxy ? options.proxy.protocol : options.uri.protocol]
 
