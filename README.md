@@ -43,6 +43,7 @@ The first argument is an options object. The only required option is uri, all ot
 * `encoding` - Encoding to be used on response.setEncoding when buffering the response data.
 * `pool` - A hash object containing the agents for these requests. If omitted this request will use the global pool which is set to node's default maxSockets.
 * `pool.maxSockets` - Integer containing the maximum amount of sockets in the pool.
+* `timeout` - Integer containing the number of milliseconds to wait for a request to response before aborting the request	
 
 The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body buffer.
 
