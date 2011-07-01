@@ -211,6 +211,7 @@ Request.prototype.request = function () {
     options.req = options.httpModule.request(options, function (response) {
       options.response = response;
       if (setHost) delete options.headers.host;
+      if (options.timeout && options.timeoutTimer) clearTimeout(options.timeoutTimer);
 
       if (response.statusCode >= 300 && 
           response.statusCode < 400  && 
@@ -276,6 +277,13 @@ Request.prototype.request = function () {
         }
       }
     })
+
+    if (options.timeout) {
+      options.timeoutTimer = setTimeout(function() {
+          options.req.abort();
+          options.emit("error", "ETIMEDOUT");
+      }, options.timeout);
+    }
 
     options.req.on('error', clientErrorHandler);
   }  
