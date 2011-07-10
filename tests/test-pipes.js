@@ -2,6 +2,7 @@ var server = require('./server')
   , events = require('events')
   , stream = require('stream')
   , assert = require('assert')
+  , fs = require('fs')
   , request = require('../main.js')
   ;
 
@@ -10,7 +11,7 @@ var s = server.createServer(3453);
 passes = 0;
 
 function check () {
-  if (passes === 3) {
+  if (passes === 4) {
     console.log('All tests passed.')
     process.exit();
   }
@@ -54,11 +55,11 @@ mypulldata.end = function () {
 
 s.on('/cat', function (req, resp) {
   if (req.method === "GET") {
-    resp.writeHead(200, {'content-type':'text/plain', 'content-length':4});
+    resp.writeHead(200, {'content-type':'text/plain-test', 'content-length':4});
     resp.write('asdf');
     resp.end()
   } else if (req.method === "PUT") {
-    assert.ok(req.headers['content-type'] === 'text/plain');
+    assert.ok(req.headers['content-type'] === 'text/plain-test');
     assert.ok(req.headers['content-length'] == 4)
     var validate = '';
     req.on('data', function (chunk) {validate += chunk})
@@ -71,6 +72,15 @@ s.on('/cat', function (req, resp) {
     })
   }
 })
+s.on('/pushjs', function (req, resp) {
+  if (req.method === "PUT") {
+    assert.ok(req.headers['content-type'] === 'text/javascript');
+    passes += 1;
+    check();
+  }
+})
+
+fs.createReadStream(__filename).pipe(request.put('http://localhost:3453/pushjs'))
 
 request.get('http://localhost:3453/cat').pipe(request.put('http://localhost:3453/cat'))
 

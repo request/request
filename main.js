@@ -19,6 +19,7 @@ var http = require('http')
   , util = require('util')
   , stream = require('stream')
   , qs = require('querystring')
+  , mimetypes = require('./mimetypes')
   ;
 
 try {
@@ -48,6 +49,12 @@ if (https && !https.Agent) {
 
     return s;
   };
+}
+
+var isReadStream = function (rs) {
+  if (rs.readable && rs.path && rs.mode) {
+    return true;  
+  }
 }
 
 var isUrl = /^https?:/;
@@ -293,6 +300,9 @@ Request.prototype.request = function () {
   options.once('pipe', function (src) {
     if (options.ntick) throw new Error("You cannot pipe to this stream after the first nextTick() after creation of the request stream.")
     options.src = src;
+    if (isReadStream(src)) {
+      options.headers['content-type'] = mimetypes.lookup(src.path.slice(src.path.lastIndexOf('.')+1))
+    }
     options.on('pipe', function () {
       console.error("You have already piped to this stream. Pipeing twice is likely to break the request.")
     })
