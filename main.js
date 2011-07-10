@@ -197,11 +197,13 @@ Request.prototype.request = function () {
     options.agent = false;
   } else {
     if (options.maxSockets) {
-      options.agent = options.getAgent(options.host, options.port);
+      // Don't use our pooling if node has the refactored client
+      options.agent = options.httpModule.globalAgent || options.getAgent(options.host, options.port);
       options.agent.maxSockets = options.maxSockets;
     }
     if (options.pool.maxSockets) {
-      options.agent = options.getAgent(options.host, options.port);
+      // Don't use our pooling if node has the refactored client
+      options.agent = options.httpModule.globalAgent || options.getAgent(options.host, options.port);
       options.agent.maxSockets = options.pool.maxSockets;
     }
   }
