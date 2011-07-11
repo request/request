@@ -264,6 +264,12 @@ Request.prototype.request = function () {
             if (response.headers['content-length']) {
               dest.headers['content-length'] = response.headers['content-length'];
             }
+          } 
+          if (dest.setHeader) {
+            dest.setHeader('content-type', response.headers['content-type']);
+            if (response.headers['content-length']) {
+              dest.setHeader('content-length', response.headers['content-length']);
+            }
           }
         })
 

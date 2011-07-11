@@ -10,11 +10,14 @@ var s = server.createServer(3453);
 
 passes = 0;
 
-function check () {
-  if (passes === 4) {
+var check = function () {
+  if (passes === 5) {
     console.log('All tests passed.')
-    process.exit();
+    setTimeout(function () {
+      process.exit();
+    }, 500)
   }
+  if (passes > 5) throw new Error('Need to update for more failures')
 }
 
 // Test pipeing to a request object
@@ -79,8 +82,17 @@ s.on('/pushjs', function (req, resp) {
     check();
   }
 })
+s.on('/catresp', function (req, resp) {
+  request.get('http://localhost:3453/cat').pipe(resp)
+})
 
 fs.createReadStream(__filename).pipe(request.put('http://localhost:3453/pushjs'))
 
 request.get('http://localhost:3453/cat').pipe(request.put('http://localhost:3453/cat'))
 
+request.get('http://localhost:3453/catresp', function (e, resp, body) {
+  assert.ok(resp.headers['content-type'] === 'text/plain-test');
+  assert.ok(resp.headers['content-length'] == 4)
+  passes += 1
+  check();
+})
