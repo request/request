@@ -270,6 +270,7 @@ Request.prototype.request = function () {
             if (response.headers['content-length']) {
               dest.setHeader('content-length', response.headers['content-length']);
             }
+            dest.statusCode = response.statusCode;
           }
         })
 
