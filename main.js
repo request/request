@@ -104,8 +104,7 @@ Request.prototype.request = function () {
   options._redirectsFollowed = options._redirectsFollowed || 0;
   options.maxRedirects = (options.maxRedirects !== undefined) ? options.maxRedirects : 10;
   options.followRedirect = (options.followRedirect !== undefined) ? options.followRedirect : true;
-
-  options.method = options.method || 'GET';
+  
   options.headers = options.headers || {};
 
   var setHost = false;
@@ -217,6 +216,9 @@ Request.prototype.request = function () {
   
   options.start = function () {
     options._started = true;
+    
+    options.method = options.method || 'GET';
+    
     options.req = options.httpModule.request(options, function (response) {
       options.response = response;
       response.request = options;
@@ -268,9 +270,8 @@ Request.prototype.request = function () {
             }
           } 
           if (dest.setHeader) {
-            dest.setHeader('content-type', response.headers['content-type']);
-            if (response.headers['content-length']) {
-              dest.setHeader('content-length', response.headers['content-length']);
+            for (i in response.headers) {
+              dest.setHeader(i, response.headers[i])
             }
             dest.statusCode = response.statusCode;
           }
@@ -312,7 +313,19 @@ Request.prototype.request = function () {
     options.src = src;
     if (isReadStream(src)) {
       options.headers['content-type'] = mimetypes.lookup(src.path.slice(src.path.lastIndexOf('.')+1))
+    } else {
+      if (src.headers) {
+        for (i in src.headers) {
+          if (!options.headers[i]) {
+            options.headers[i] = src.headers[i]
+          }
+        }
+      }
+      if (src.method && !options.method) {
+        options.method = src.method;
+      }
     }
+    
     options.on('pipe', function () {
       console.error("You have already piped to this stream. Pipeing twice is likely to break the request.")
     })
