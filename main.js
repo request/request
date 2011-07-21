@@ -219,6 +219,7 @@ Request.prototype.request = function () {
     options._started = true;
     options.req = options.httpModule.request(options, function (response) {
       options.response = response;
+      response.request = options;
       if (setHost) delete options.headers.host;
       if (options.timeout && options.timeoutTimer) clearTimeout(options.timeoutTimer);
 
