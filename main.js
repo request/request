@@ -288,6 +288,7 @@ Request.prototype.request = function () {
             buffer += chunk; 
           })
           options.on("end", function () { 
+            response.body = buffer;
             options.callback(null, response, buffer); 
           })
           ;
