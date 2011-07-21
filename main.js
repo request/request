@@ -231,6 +231,7 @@ Request.prototype.request = function () {
           response.headers.location) {
         if (options._redirectsFollowed >= options.maxRedirects) {
           options.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."));
+          return;
         }
         options._redirectsFollowed += 1;
         if (!isUrl.test(response.headers.location)) {
