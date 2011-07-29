@@ -348,6 +348,7 @@ Request.prototype.pipe = function (dest) {
   if (this.response) throw new Error("You cannot pipe after the response event.")
   this.dests.push(dest);
   stream.Stream.prototype.pipe.call(this, dest)
+  return dest
 }
 Request.prototype.write = function () {
   if (!this._started) this.start();
