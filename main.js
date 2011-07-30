@@ -144,15 +144,15 @@ Request.prototype.request = function () {
     if (setHost) delete options.headers.host;
     options.emit('error', error);
   }
-  if (options.onResponse) options.on('error', function (e) {options.onResponse(e);});
-  if (options.callback) options.on('error', function (e) {options.callback(e);});
+  if (options.onResponse) options.on('error', options.onResponse);
+  if (options.callback) options.on('error', options.callback);
 
 
   if (options.uri.auth && !options.headers.authorization) {
-    options.headers.authorization = "Basic " + toBase64(options.uri.auth.split(':').map(function(item){ return qs.unescape(item);}).join(':'));
+    options.headers.authorization = "Basic " + toBase64(options.uri.auth.split(':').map(qs.unescape).join(':'));
   }
   if (options.proxy && options.proxy.auth && !options.headers['proxy-authorization']) {
-    options.headers.authorization = "Basic " + toBase64(options.uri.auth.split(':').map(function(item){ return qs.unescape(item);}).join(':'));
+    options.headers.authorization = "Basic " + toBase64(options.uri.auth.split(':').map(qs.unescape).join(':'));
   }
 
   options.path = options.uri.href.replace(options.uri.protocol + '//' + options.uri.host, '');
