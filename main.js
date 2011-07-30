@@ -95,6 +95,9 @@ Request.prototype.request = function () {
   } else {
     if (typeof options.uri == "string") options.uri = url.parse(options.uri);
   }
+  if (options.method === 'HEAD' && (options.body || options.requestBodyStream || options.json || options.multipart)) {
+    throw new Error("HTTP HEAD requests MUST NOT include a request body.");
+  }
   if (options.proxy) {
     if (typeof options.proxy == 'string') options.proxy = url.parse(options.proxy);
   }
@@ -409,9 +412,6 @@ request.put = function (options, callback) {
 request.head = function (options, callback) {
   if (typeof options === 'string') options = {uri:options};
   options.method = 'HEAD';
-  if (options.body || options.requestBodyStream || options.json || options.multipart) {
-    throw new Error("HTTP HEAD requests MUST NOT include a request body.");
-  }
   return request(options, callback);
 };
 request.del = function (options, callback) {
