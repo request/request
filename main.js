@@ -70,8 +70,8 @@ var Request = function (options) {
     options = {uri:options};
   }
 
-  for (i in options) {
-    this[i] = options[i];
+  for (var key in options) {
+    this[key] = options[key];
   }
   if (!this.pool) this.pool = globalPool;
   this.dests = [];
@@ -270,8 +270,8 @@ Request.prototype.request = function () {
             }
           }
           if (dest.setHeader) {
-            for (i in response.headers) {
-              dest.setHeader(i, response.headers[i]);
+            for (var headerName in response.headers) {
+              dest.setHeader(headerName, response.headers[headerName]);
             }
             dest.statusCode = response.statusCode;
           }
@@ -315,9 +315,9 @@ Request.prototype.request = function () {
       options.headers['content-type'] = mimetypes.lookup(src.path.slice(src.path.lastIndexOf('.')+1));
     } else {
       if (src.headers) {
-        for (i in src.headers) {
-          if (!options.headers[i]) {
-            options.headers[i] = src.headers[i];
+        for (var headerName in src.headers) {
+          if (!options.headers[headerName]) {
+            options.headers[headerName] = src.headers[headerName];
           }
         }
       }
@@ -381,14 +381,14 @@ module.exports = request;
 request.defaults = function (options) {
   var def = function (method) {
     var d = function (opts, callback) {
-      for (i in options) {
-        if (opts[i] === undefined) opts[i] = options[i];
+      for (var key in options) {
+        if (opts[key] === undefined) opts[key] = options[key];
       }
       return method(opts, callback);
     };
     return d;
   };
-  de = def(request);
+  var de = def(request);
   de.get = def(request.get);
   de.post = def(request.post);
   de.put = def(request.put);
