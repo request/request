@@ -23,11 +23,11 @@ var http = require('http')
   ;
 
 try {
-    https = require('https');
+  https = require('https');
 } catch (e) {}
 
 try {
-    tls = require('tls');
+  tls = require('tls');
 } catch (e) {}
 
 var toBase64 = function(str) {
@@ -300,8 +300,8 @@ Request.prototype.request = function () {
 
     if (options.timeout) {
       options.timeoutTimer = setTimeout(function() {
-          options.req.abort();
-          options.emit("error", "ETIMEDOUT");
+        options.req.abort();
+        options.emit("error", "ETIMEDOUT");
       }, options.timeout);
     }
 
