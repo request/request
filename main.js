@@ -30,9 +30,9 @@ try {
   tls = require('tls');
 } catch (e) {}
 
-var toBase64 = function(str) {
+function toBase64(str) {
   return (new Buffer(str || "", "ascii")).toString("base64");
-};
+}
 
 // Hacky fix for pre-0.4.4 https
 if (https && !https.Agent) {
@@ -51,17 +51,15 @@ if (https && !https.Agent) {
   };
 }
 
-var isReadStream = function (rs) {
-  if (rs.readable && rs.path && rs.mode) {
-    return true;
-  }
-};
+function isReadStream(rs) {
+  return !!(rs.readable && rs.path && rs.mode);
+}
 
 var isUrl = /^https?:/;
 
 var globalPool = {};
 
-var Request = function (options) {
+function Request(options) {
   stream.Stream.call(this);
   this.readable = true;
   this.writable = true;
@@ -142,10 +140,10 @@ Request.prototype.request = function () {
     delete options.callback;
   }
 
-  var clientErrorHandler = function (error) {
+  function clientErrorHandler(error) {
     if (setHost) delete options.headers.host;
     options.emit('error', error);
-  };
+  }
   if (options.onResponse) options.on('error', function (e) {options.onResponse(e);});
   if (options.callback) options.on('error', function (e) {options.callback(e);});
 
