@@ -379,23 +379,21 @@ function request (options, callback) {
 
 module.exports = request;
 
-request.defaults = function (options) {
-  var def = function (method) {
-    var d = function (opts, callback) {
-      for (var key in options) {
-        if (opts[key] === undefined) opts[key] = options[key];
+request.defaults = function (defaultOptions) {
+  var wrappedRequestObj;
+  ['get', 'post', 'put', 'head', 'delete'].forEach(function (methodName) {
+    function wrappedMethod(options, callback) {
+      if (typeof options === 'string') options = {uri:options};
+      for (var key in defaultOptions) {
+        if (options[key] === undefined) options[key] = defaultOptions[key];
       }
-      return method(opts, callback);
-    };
-    return d;
-  };
-  var de = def(request);
-  de.get = def(request.get);
-  de.post = def(request.post);
-  de.put = def(request.put);
-  de.head = def(request.head);
-  de.del = def(request.del);
-  return de;
+      return request[methodName](options, callback);
+    }
+    if (methodName === 'get') wrappedRequestObj = wrappedMethod;
+    wrappedRequestObj[methodName] = wrappedMethod;
+  });
+  wrappedRequestObj.del = wrappedRequestObj['delete'];
+  return wrappedRequestObj;
 };
 
 ['POST', 'PUT', 'HEAD', 'DELETE'].forEach(function (methodName) {
