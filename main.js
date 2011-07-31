@@ -398,24 +398,13 @@ request.defaults = function (options) {
   return de;
 };
 
+['POST', 'PUT', 'HEAD', 'DELETE'].forEach(function (methodName) {
+  request[methodName.toLowerCase()] = function (options, callback) {
+    if (typeof options === 'string') options = {uri:options};
+      options.method = methodName;
+      return request(options, callback);
+  };
+});
+
 request.get = request;
-request.post = function (options, callback) {
-  if (typeof options === 'string') options = {uri:options};
-  options.method = 'POST';
-  return request(options, callback);
-};
-request.put = function (options, callback) {
-  if (typeof options === 'string') options = {uri:options};
-  options.method = 'PUT';
-  return request(options, callback);
-};
-request.head = function (options, callback) {
-  if (typeof options === 'string') options = {uri:options};
-  options.method = 'HEAD';
-  return request(options, callback);
-};
-request.del = function (options, callback) {
-  if (typeof options === 'string') options = {uri:options};
-  options.method = 'DELETE';
-  return request(options, callback);
-};
+request.del = request['delete'];
