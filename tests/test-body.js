@@ -7,12 +7,12 @@ var server = require('./server')
 
 var s = server.createServer();
 
-var tests = 
-  { testGet : 
-    { resp : server.createGetResponse("TESTING!") 
+var tests =
+  { testGet :
+    { resp : server.createGetResponse("TESTING!")
     , expectBody: "TESTING!"
     }
-  , testPutString : 
+  , testPutString :
     { resp : server.createPostValidator("PUTTINGDATA")
     , method : "PUT"
     , body : "PUTTINGDATA"
@@ -27,12 +27,12 @@ var tests =
     , method : "PUT"
     , requestBodyStream : server.createPostStream("PUTTINGDATA")
     }
-  , testPutJSON : 
+  , testPutJSON :
     { resp : server.createPostValidator(JSON.stringify({foo: 'bar'}))
     , method: "PUT"
-    , json: {foo: 'bar'}  
+    , json: {foo: 'bar'}
     }
-  , testPutMultipart : 
+  , testPutMultipart :
     { resp: server.createPostValidator(
         '--frontier\r\n' +
         'content-type: text/html\r\n' +
@@ -43,32 +43,32 @@ var tests =
         '\r\n--frontier--'
         )
     , method: "PUT"
-    , multipart: 
+    , multipart:
       [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
       , {'body': 'Oh hi.'}
       ]
-    }  
-  }
+    }
+  };
 
 var counter = 0;
 
-for (i in tests) {
+for (name in tests) {
   (function () {
-    var test = tests[i];
-    s.on('/'+i, test.resp);
-    test.uri = s.url + '/' + i;
+    var test = tests[name];
+    s.on('/'+name, test.resp);
+    test.uri = s.url + '/' + name;
     request(test, function (err, resp, body) {
       if (err) throw err;
       if (test.expectBody) {
         if (test.expectBody !== body) console.log(test.expectBody, body);
-        assert.ok(test.expectBody === body)
+        assert.ok(test.expectBody === body);
       }
       counter = counter - 1;
       if (counter === 0) {
-        console.log(Object.keys(tests).length+" tests passed.")
+        console.log(Object.keys(tests).length+" tests passed.");
         s.close();
       }
-    })
+    });
     counter++;
-  })()
+  })();
 }

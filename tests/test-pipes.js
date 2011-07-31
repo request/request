@@ -7,31 +7,30 @@ var server = require('./server')
   , path = require('path')
   ;
 
-var s = server.createServer(3453);
+var s = server.createServer(3453),
+    passes = 0;
 
-passes = 0;
-
-var check = function () {
+function check() {
   if (passes === 7) {
-    console.log('All tests passed.')
+    console.log('All tests passed.');
     setTimeout(function () {
       process.exit();
-    }, 500)
+    }, 500);
   }
-  if (passes > 7) throw new Error('Need to update for more failures')
+  if (passes > 7) throw new Error('Need to update for more failures');
 }
 
 // Test pipeing to a request object
 s.once('/push', server.createPostValidator("mydata"));
 
 var mydata = new stream.Stream();
-mydata.readable = true
+mydata.readable = true;
 
 var r1 = request.put({url:'http://localhost:3453/push'}, function () {
   passes += 1;
   check();
-})
-mydata.pipe(r1)
+});
+mydata.pipe(r1);
 
 mydata.emit('data', 'mydata');
 mydata.emit('end');
@@ -41,18 +40,18 @@ mydata.emit('end');
 s.once('/pull', server.createGetResponse("mypulldata"));
 
 var mypulldata = new stream.Stream();
-mypulldata.writable = true
+mypulldata.writable = true;
 
-request({url:'http://localhost:3453/pull'}).pipe(mypulldata)
+request({url:'http://localhost:3453/pull'}).pipe(mypulldata);
 
 var d = '';
 
 mypulldata.write = function (chunk) {
   d += chunk;
-}
+};
 mypulldata.end = function () {
   assert.ok(d === 'mypulldata');
-  passes += 1
+  passes += 1;
   check();
 };
 
@@ -60,77 +59,73 @@ mypulldata.end = function () {
 s.on('/cat', function (req, resp) {
   if (req.method === "GET") {
     resp.writeHead(200, {'content-type':'text/plain-test', 'content-length':4});
-    resp.end('asdf')
+    resp.end('asdf');
   } else if (req.method === "PUT") {
     assert.ok(req.headers['content-type'] === 'text/plain-test');
-    assert.ok(req.headers['content-length'] == 4)
+    assert.ok(req.headers['content-length'] == 4);
     var validate = '';
-    
-    req.on('data', function (chunk) {validate += chunk})
+
+    req.on('data', function (chunk) {validate += chunk;});
     req.on('end', function () {
       resp.writeHead(201);
       resp.end();
       assert.ok(validate === 'asdf');
       passes += 1;
       check();
-    })
+    });
   }
-})
+});
 s.on('/pushjs', function (req, resp) {
   if (req.method === "PUT") {
     assert.ok(req.headers['content-type'] === 'text/javascript');
     passes += 1;
     check();
   }
-})
+});
 s.on('/catresp', function (req, resp) {
-  request.get('http://localhost:3453/cat').pipe(resp)
-})
+  request.get('http://localhost:3453/cat').pipe(resp);
+});
 s.on('/doodle', function (req, resp) {
   if (req.headers['x-oneline-proxy']) {
-    resp.setHeader('x-oneline-proxy', 'yup')
+    resp.setHeader('x-oneline-proxy', 'yup');
   }
-  resp.writeHead('200', {'content-type':'image/png'})
-  fs.createReadStream(path.join(__dirname, 'googledoodle.png')).pipe(resp)
-})
+  resp.writeHead('200', {'content-type':'image/png'});
+  fs.createReadStream(path.join(__dirname, 'googledoodle.png')).pipe(resp);
+});
 s.on('/onelineproxy', function (req, resp) {
-  var x = request('http://localhost:3453/doodle')
-  req.pipe(x)
-  x.pipe(resp)
-})
+  var x = request('http://localhost:3453/doodle');
+  req.pipe(x);
+  x.pipe(resp);
+});
 
 
-fs.createReadStream(__filename).pipe(request.put('http://localhost:3453/pushjs'))
+fs.createReadStream(__filename).pipe(request.put('http://localhost:3453/pushjs'));
 
-request.get('http://localhost:3453/cat').pipe(request.put('http://localhost:3453/cat'))
+request.get('http://localhost:3453/cat').pipe(request.put('http://localhost:3453/cat'));
 
 request.get('http://localhost:3453/catresp', function (e, resp, body) {
   assert.ok(resp.headers['content-type'] === 'text/plain-test');
-  assert.ok(resp.headers['content-length'] == 4)
-  passes += 1
+  assert.ok(resp.headers['content-length'] == 4);
+  passes += 1;
   check();
-})
+});
 
-var doodleWrite = fs.createWriteStream(path.join(__dirname, 'test.png'))
+var doodleWrite = fs.createWriteStream(path.join(__dirname, 'test.png'));
 
-request.get('http://localhost:3453/doodle').pipe(doodleWrite)
+request.get('http://localhost:3453/doodle').pipe(doodleWrite);
 
 doodleWrite.on('close', function () {
-  assert.deepEqual(fs.readFileSync(path.join(__dirname, 'googledoodle.png')), fs.readFileSync(path.join(__dirname, 'test.png')))
-  passes += 1
-  check()
-})
+  assert.deepEqual(fs.readFileSync(path.join(__dirname, 'googledoodle.png')), fs.readFileSync(path.join(__dirname, 'test.png')));
+  passes += 1;
+  check();
+});
 
 process.on('exit', function () {
-  fs.unlinkSync(path.join(__dirname, 'test.png'))
-})
+  fs.unlinkSync(path.join(__dirname, 'test.png'));
+});
 
 request.get({uri:'http://localhost:3453/onelineproxy', headers:{'x-oneline-proxy':'nope'}}, function (err, resp, body) {
-  assert.ok(resp.headers['x-oneline-proxy'] === 'yup')
-  passes += 1
-  check()
-})
-
-
-
-
+  assert.ok(resp.headers['x-oneline-proxy'] === 'yup');
+  passes += 1;
+  check();
+});
