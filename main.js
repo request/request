@@ -286,13 +286,13 @@ Request.prototype.request = function () {
           options.onResponse(null, response);
         }
         if (options.callback) {
-          var buffer = '';
+          var responseBody = '';
           options.on("data", function (chunk) {
-            buffer += chunk;
+            responseBody += chunk;
           });
           options.on("end", function () {
-            response.body = buffer;
-            options.callback(null, response, buffer);
+            response.body = responseBody;
+            options.callback(null, response, responseBody);
           })
           ;
         }
