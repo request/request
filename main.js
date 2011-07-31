@@ -155,7 +155,7 @@ Request.prototype.request = function () {
     options.headers.authorization = "Basic " + toBase64(options.uri.auth.split(':').map(qs.unescape).join(':'));
   }
   if (options.proxy && options.proxy.auth && !options.headers['proxy-authorization']) {
-    options.headers.authorization = "Basic " + toBase64(options.uri.auth.split(':').map(qs.unescape).join(':'));
+    options.headers['proxy-authorization'] = "Basic " + toBase64(options.proxy.auth.split(':').map(qs.unescape).join(':'));
   }
 
   options.path = options.uri.href.replace(options.uri.protocol + '//' + options.uri.host, '');
