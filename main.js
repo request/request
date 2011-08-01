@@ -40,13 +40,11 @@ if (https && !https.Agent) {
     http.Agent.call(this, options)
   }
   util.inherits(https.Agent, http.Agent)
-
   https.Agent.prototype._getConnection = function(host, port, cb) {
     var s = tls.connect(port, host, this.options, function() {
       // do other checks here?
       if (cb) cb()
     })
-
     return s
   }
 }
@@ -168,8 +166,8 @@ Request.prototype.request = function () {
   } else if (options.multipart) {
     options.body = ''
     options.headers['content-type'] = 'multipart/related;boundary="frontier"'
-
     if (!options.multipart.forEach) throw new Error('Argument error, options.multipart.')
+    
     options.multipart.forEach(function (part) {
       var body = part.body
       if(!body) throw Error('Body attribute missing in multipart.')
@@ -216,7 +214,6 @@ Request.prototype.request = function () {
   
   options.start = function () {
     options._started = true
-    
     options.method = options.method || 'GET'
     
     options.req = options.httpModule.request(options, function (response) {
@@ -236,6 +233,7 @@ Request.prototype.request = function () {
           return
         }
         options._redirectsFollowed += 1
+        
         if (!isUrl.test(response.headers.location)) {
           response.headers.location = url.resolve(options.uri.href, response.headers.location)
         }
@@ -292,8 +290,7 @@ Request.prototype.request = function () {
           options.on("end", function () { 
             response.body = buffer
             options.callback(null, response, buffer) 
-          })
-          
+          })  
         }
       }
     })
