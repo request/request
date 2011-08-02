@@ -289,7 +289,7 @@ Request.prototype.request = function () {
           })
           options.on("end", function () { 
             response.body = buffer
-            if (options.json && response.headers['content-type'] === 'application/json') {
+            if (options.json && response.headers['content-type'] === 'application/json' && response.body != '') {
               response.body = JSON.parse(response.body)
             }
             options.callback(null, response, response.body) 
