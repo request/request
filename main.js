@@ -289,7 +289,10 @@ Request.prototype.request = function () {
           })
           options.on("end", function () { 
             response.body = buffer
-            options.callback(null, response, buffer) 
+            if (options.json && response.headers['content-type'] === 'application/json') {
+              response.body = JSON.parse(response.body)
+            }
+            options.callback(null, response, response.body) 
           })  
         }
       }

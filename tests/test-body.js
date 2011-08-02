@@ -65,8 +65,7 @@ for (i in tests) {
     request(test, function (err, resp, body) {
       if (err) throw err;
       if (test.expectBody) {
-        if (test.expectBody !== body) console.log(test.expectBody, body);
-        assert.equal(test.expectBody, body)
+        assert.deepEqual(test.expectBody, body)
       }
       counter = counter - 1;
       if (counter === 0) {
