@@ -12,6 +12,11 @@ var tests =
     { resp : server.createGetResponse("TESTING!") 
     , expectBody: "TESTING!"
     }
+  , testGetJSON : 
+    { resp : server.createGetResponse('{"test":true}', 'application/json')
+    , json : true
+    , expectBody: {"test":true}
+    }
   , testPutString : 
     { resp : server.createPostValidator("PUTTINGDATA")
     , method : "PUT"
@@ -60,8 +65,7 @@ for (i in tests) {
     request(test, function (err, resp, body) {
       if (err) throw err;
       if (test.expectBody) {
-        if (test.expectBody !== body) console.log(test.expectBody, body);
-        assert.ok(test.expectBody === body)
+        assert.deepEqual(test.expectBody, body)
       }
       counter = counter - 1;
       if (counter === 0) {

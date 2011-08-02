@@ -35,9 +35,10 @@ exports.createPostValidator = function (text) {
   }
   return l;
 }
-exports.createGetResponse = function (text) {
+exports.createGetResponse = function (text, contentType) {
   var l = function (req, resp) {
-    resp.writeHead(200, {'content-type':'text/plain'})
+    contentType = contentType || 'text/plain'
+    resp.writeHead(200, {'content-type':contentType})
     resp.write(text)
     resp.end()
   }
