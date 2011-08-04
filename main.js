@@ -226,7 +226,6 @@ Request.prototype.request = function () {
           response.statusCode < 400  && 
           options.followRedirect     && 
           options.method !== 'PUT' && 
-          options.method !== 'POST' &&
           response.headers.location) {
         if (options._redirectsFollowed >= options.maxRedirects) {
           options.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."))
