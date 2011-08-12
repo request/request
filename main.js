@@ -303,7 +303,9 @@ Request.prototype.request = function () {
     if (options.timeout) {
       options.timeoutTimer = setTimeout(function() {
           options.req.abort()
-          options.emit("error", "ETIMEDOUT")
+          var e = new Error("ETIMEDOUT")
+          e.code = "ETIMEDOUT"
+          options.emit("error", e)
       }, options.timeout)
     }
 
