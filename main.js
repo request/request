@@ -289,7 +289,12 @@ Request.prototype.request = function () {
           })
           options.on("end", function () { 
             response.body = buffer
-            options.callback(null, response, buffer) 
+            if (options.json) {
+              try {
+                response.body = JSON.parse(response.body)
+              } catch (e) {}
+            }
+            options.callback(null, response, response.body) 
           })  
         }
       }
