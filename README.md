@@ -126,9 +126,10 @@ request.del(url)
 
 Examples:
 
-```javscript
-  var request = require('request');
-  var rand = Math.floor(Math.random()*100000000).toString();
+```javascript
+  var request = require('request')
+    , rand = Math.floor(Math.random()*100000000).toString()
+    ;
   request(
     { method: 'PUT'
     , uri: 'http://mikeal.couchone.com/testjs/' + rand
@@ -141,10 +142,10 @@ Examples:
     }
   , function (error, response, body) {
       if(response.statusCode == 201){
-        console.log('document saved as: http://mikeal.couchone.com/testjs/'+ rand);
+        console.log('document saved as: http://mikeal.couchone.com/testjs/'+ rand)
       } else {
-        console.log('error: '+ response.statusCode);
-        console.log(body);
+        console.log('error: '+ response.statusCode)
+        console.log(body)
       }
     }
   )
@@ -166,7 +167,7 @@ The return value of request() is now a Request object, which is a valid stream.
 
 As a writable stream it accepts the body of an HTTP request. As a readable stream it emits the data events for the response.
 
-<pre>
+```javascript
   var r = request(
     { url: "http://mysite.com/image.png"
     , method: 'PUT'
@@ -175,7 +176,7 @@ As a writable stream it accepts the body of an HTTP request. As a readable strea
   )
   fs.createReadStream('image.png').pipe(r)
   r.pipe(fs.createWriteStream('pushlog.txt'))
-</pre>  
+```
   
 # Convenience methods
 
