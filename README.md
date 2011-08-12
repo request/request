@@ -18,18 +18,84 @@ Or from source:
 
 Request is designed to be the simplest way possible to make http calls. It support HTTPS and follows redirects by default.
 
-<pre>
-  var request = require('request');
-  request({uri:'http://www.google.com'}, function (error, response, body) {
-    if (!error && response.statusCode == 200) {
-      sys.puts(body) // Print the google web page.
-    }
-  })
-</pre>
+```javascript
+var request = require('request');
+request('http://www.google.com', function (error, response, body) {
+  if (!error && response.statusCode == 200) {
+    sys.puts(body) // Print the google web page.
+  }
+})
+```
+
+## Streaming
+
+You can stream any response to a file stream.
+
+```javascript
+request('http://google.com/doodle.png').pipe(fs.createWriteStream('doodle.png'))
+```
+
+You can also stream a file to a PUT or POST request. This method will also check the file extension against a mapping of file extensions to content-types, in this case `application/json`, and use the proper content-type in the PUT request if one is not already provided in the headers.
+
+```javascript
+fs.readStream('file.json').pipe(request.put('http://mysite.com/obj.json'))
+```
+
+Request can also pipe to itself. When doing so the content-type and content-length will be preserved in the PUT headers.
+
+```javascript
+request.get('http://google.com/img.png').pipe(request.put('http://mysite.com/img.png'))
+```
+
+Now let's get fancy.
+
+```javascript
+http.createServer(function (req, resp) {
+  if (req.url === '/doodle.png') {
+    if (req.method === 'PUT') {
+      req.pipe(request.put('http://mysite.com/doodle.png'))
+    } else if (req.method === 'GET' || req.method === 'HEAD') {
+      request.get('http://mysite.com/doodle.png').pipe(resp)
+    } 
+  }
+})
+```
+
+You can also pipe() from a http.ServerRequest instance and to a http.ServerResponse instance. The HTTP method and headers will be sent as well as the entity-body data. Which means that, if you don't really care about security, you can do:
+
+```javascript
+http.createServer(function (req, resp) {
+  if (req.url === '/doodle.png') {
+    var x = request('http://mysite.com/doodle.png')
+    req.pipe(x)
+    x.pipe(resp)
+  }
+})
+```
+
+And since pipe() returns the destination stream in node 0.5.x you can do one line proxying :)
+
+```javascript
+req.pipe(request('http://mysite.com/doodle.png')).pipe(resp)
+```
+
+Also, none of this new functionality conflicts with requests previous features, it just expands them.
+
+```javascript
+var r = request.defaults({'proxy':'http://localproxy.com'})
+
+http.createServer(function (req, resp) {
+  if (req.url === '/doodle.png') {
+    r.get('http://google.com/doodle.png').pipe(resp)
+  }
+})
+```
+
+You can still use intermediate proxies, the requests will still follow HTTP forwards, etc.
 
 #### request(options, callback)
 
-The first argument is an options object. The only required option is uri, all others are optional.
+The first argument can be either a url or an options object. The only required option is uri, all others are optional.
 
 * `uri` || `url` - fully qualified uri or a parsed url object from url.parse()
 * `method` - http method, defaults to GET
@@ -48,9 +114,19 @@ The first argument is an options object. The only required option is uri, all ot
 
 The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body buffer.
 
+There are also shorthand methods for different HTTP METHODs.
+
+```javascript
+request.get(url)
+request.put(url)
+request.post(url)
+request.head(url)
+request.del(url)
+```
+
 Examples:
 
-<pre>
+```javscript
   var request = require('request');
   var rand = Math.floor(Math.random()*100000000).toString();
   request(
@@ -72,7 +148,7 @@ Examples:
       }
     }
   )
-</pre>
+```
 
 **Notice for 2.0**
 
