@@ -11,7 +11,7 @@ Or from source:
 <pre>
   git clone git://github.com/mikeal/request.git 
   cd request
-  npm link .
+  npm link
 </pre>
 
 ## Super simple to use
