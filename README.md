@@ -93,7 +93,7 @@ http.createServer(function (req, resp) {
 
 You can still use intermediate proxies, the requests will still follow HTTP forwards, etc.
 
-#### request(options, callback)
+### request(options, callback)
 
 The first argument can be either a url or an options object. The only required option is uri, all others are optional.
 
@@ -114,17 +114,56 @@ The first argument can be either a url or an options object. The only required o
 
 The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body buffer.
 
-There are also shorthand methods for different HTTP METHODs.
+## Convenience methods
+
+There are also shorthand methods for different HTTP METHODs and some other conveniences.
+
+### request.defaults(options)  
+  
+This method returns a wrapper around the normal request API that defaults to whatever options you pass in to it.
+
+### request.put
+
+Same as request() but defaults to `method: "PUT"`.
 
 ```javascript
-request.get(url)
 request.put(url)
+```
+
+### request.post
+
+Same as request() but defaults to `method: "POST"`.
+
+```javascript
 request.post(url)
+```
+
+### request.head
+
+Same as request() but defaults to `method: "HEAD"`.
+
+```javascript
 request.head(url)
+```
+
+### request.del
+
+Same as request() but defaults to `method: "DELETE"`.
+
+```javascript
 request.del(url)
 ```
 
-Examples:
+### request.get
+
+Alias to normal request method for uniformity.
+
+```javascript
+request.get(url)
+```
+
+
+## Examples:
 
 ```javascript
   var request = require('request')
@@ -150,52 +189,3 @@ Examples:
     }
   )
 ```
-
-**Notice for 2.0**
-
-You should no longer recycle mutations in the options object. Because node 0.4.0 has an internal pooling mechanism the preferred way of sharing a connection is using agents which request simplifies with it's new pool API. Therefor options.client and some other mutations have been deprecated.
-
-requestBodyStream and responseBodyStream are also deprecated in favor of a more standard pipe interface documented below.
-
-### stream.pipe(request(options)) and request(options).pipe(stream)
-
-Previous versions of request had no return value and only accepted callbacks and streams for pumping in the options object.
-
-Node has solidified it's Stream interface and request 2.0 is now compliant with that interface.
-
-The return value of request() is now a Request object, which is a valid stream.
-
-As a writable stream it accepts the body of an HTTP request. As a readable stream it emits the data events for the response.
-
-```javascript
-  var r = request(
-    { url: "http://mysite.com/image.png"
-    , method: 'PUT'
-    , headers: {'content-type': 'image/png'}
-    }
-  )
-  fs.createReadStream('image.png').pipe(r)
-  r.pipe(fs.createWriteStream('pushlog.txt'))
-```
-  
-# Convenience methods
-
-### request.defaults(options)  
-  
-This method returns a wrapper around the normal request API that defaults to whatever options you pass in to it.
-
-### request.put
-
-Same as request() but defaults to `method: "PUT"`.
-
-### request.post
-
-Same as request() but defaults to `method: "POST"`.
-
-### request.head
-
-Same as request() but defaults to `method: "HEAD"`.
-
-### request.get
-
-Alias to normal request method for uniformity.
