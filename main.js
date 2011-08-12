@@ -55,6 +55,12 @@ function isReadStream (rs) {
   }
 }
 
+function copy (obj) {
+  var o = {}
+  for (i in obj) o[i] = obj[i]
+  return o
+}
+
 var isUrl = /^https?:/
 
 var globalPool = {}
@@ -103,7 +109,7 @@ Request.prototype.request = function () {
   options.maxRedirects = (options.maxRedirects !== undefined) ? options.maxRedirects : 10
   options.followRedirect = (options.followRedirect !== undefined) ? options.followRedirect : true
   
-  options.headers = options.headers || {}
+  options.headers = options.headers ? copy(options.headers) : {}
 
   var setHost = false
   if (!options.headers.host) {
