@@ -169,7 +169,7 @@ Request.prototype.request = function () {
   if (options.json) {
     options.headers['content-type'] = 'application/json'
     if (typeof options.json === 'boolean') {
-      options.body = JSON.stringify(options.body)
+      if (typeof options.body === 'object') options.body = JSON.stringify(options.body)
     } else {
       options.body = JSON.stringify(options.json)
     }
