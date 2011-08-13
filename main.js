@@ -168,7 +168,12 @@ Request.prototype.request = function () {
 
   if (options.json) {
     options.headers['content-type'] = 'application/json'
-    options.body = JSON.stringify(options.json)
+    if (typeof options.json === 'boolean') {
+      options.body = JSON.stringify(options.body)
+    } else {
+      options.body = JSON.stringify(options.json)
+    }
+    
   } else if (options.multipart) {
     options.body = ''
     options.headers['content-type'] = 'multipart/related;boundary="frontier"'
@@ -392,6 +397,7 @@ module.exports = request
 request.defaults = function (options) {
   var def = function (method) {
     var d = function (opts, callback) {
+      if (typeof opts === 'string') opts = {uri:opts}
       for (i in options) {
         if (opts[i] === undefined) opts[i] = options[i]
       }
