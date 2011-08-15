@@ -284,6 +284,7 @@ Request.prototype.request = function () {
             }
             dest.statusCode = response.statusCode
           }
+          if (options.pipefilter) options.pipefilter(response, dest)
         })
 
         response.on("data", function (chunk) {options.emit("data", chunk)})
