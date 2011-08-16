@@ -255,7 +255,7 @@ Request.prototype.request = function () {
       if (options.callback) {
         var buffer = '';
         var encoding = response.headers['content-encoding'] || '';
-        if (encoding.search('gzip') != -1) {
+        if (encoding.search('gzip') != -1 && options.unCompress) {
             var gunzip = new compress.Gunzip;
             gunzip.init();
         }
