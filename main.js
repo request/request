@@ -294,12 +294,33 @@ Request.prototype.request = function () {
           options.onResponse(null, response)
         }
         if (options.callback) {
-          var buffer = ''
-          options.on("data", function (chunk) { 
-            buffer += chunk 
+          var buffer
+          var offset = 0
+          if (response.headers['content-length']) {
+            buffer = new Buffer(parseInt(response.headers['content-length']))
+          }
+          else {
+            // chunked transfer-encoding, buffer size unknown
+            buffer = new Buffer(131072) // 128K
+          }
+          options.on("data", function (chunk) {
+            if (!response.headers['content-length'] && chunk.length > buffer.length - offset) {
+               var newBuff = new Buffer(buffer.length * 2)
+               buffer.copy(newBuff)
+               buffer = newBuff
+            }
+            chunk.copy(buffer, offset)
+            offset += chunk.length
           })
           options.on("end", function () { 
-            response.body = buffer
+            if (!response.headers['content-length']) {
+              buffer = buffer.slice(0, offset)
+            }
+            if (options.encoding === null) {
+              response.body = buffer
+            } else {
+              response.body = buffer.toString(options.encoding)
+            }
             if (options.json) {
               try {
                 response.body = JSON.parse(response.body)
