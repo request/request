@@ -266,8 +266,9 @@ Request.prototype.request = function () {
             }
             else buffer += chunk; 
         })
-        options.on("end", function () { 
-          options.callback(null, response, buffer); 
+        options.on("end", function () {
+            if (gunzip) buffer += gunzip.end(); 
+            options.callback(null, response, buffer); 
         })
         ;
       }
