@@ -152,7 +152,6 @@ Request.prototype.request = function () {
   }
   if (options.onResponse) options.on('error', function (e) {options.onResponse(e)}) 
   if (options.callback) options.on('error', function (e) {options.callback(e)})
-  
 
   if (options.uri.auth && !options.headers.authorization) {
     options.headers.authorization = "Basic " + toBase64(options.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
@@ -165,7 +164,11 @@ Request.prototype.request = function () {
   if (options.path.length === 0) options.path = '/'
 
   if (options.proxy) options.path = (options.uri.protocol + '//' + options.uri.host + options.path)
-
+  
+  if ( options.method.toUpperCase() == 'POST' && !options.headers['content-type']) {
+    options.headers['content-type'] = 'application/x-www-form-urlencoded'
+  }
+  
   if (options.json) {
     options.headers['content-type'] = 'application/json'
     if (typeof options.json === 'boolean') {
