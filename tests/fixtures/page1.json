@@ -1,0 +1,7 @@
+{
+  "headers": {
+    "location": "http://localhost:6767/page2"
+  },
+
+  "body" : "<p>Document has been moved.</p>"
+}
