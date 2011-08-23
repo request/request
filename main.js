@@ -261,7 +261,9 @@ Request.prototype.request = function () {
         options._redirectsFollowed = 0
         // Be a good stream and emit end when the response is finished.
         // Hack to emit end on close because of a core bug that never fires end
-        response.on('close', function () {options.response.emit('end')})
+        response.on('close', function () {
+          if (!options._ended) options.response.emit('end')
+        })
 
         if (options.encoding) {
           if (options.dests.length !== 0) {
@@ -288,7 +290,10 @@ Request.prototype.request = function () {
         })
 
         response.on("data", function (chunk) {options.emit("data", chunk)})
-        response.on("end", function (chunk) {options.emit("end", chunk)})
+        response.on("end", function (chunk) {
+          options._ended = true 
+          options.emit("end", chunk)
+        })
         response.on("close", function () {options.emit("close")})
 
         if (options.onResponse) {

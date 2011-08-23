@@ -51,7 +51,7 @@ mypulldata.write = function (chunk) {
   d += chunk;
 }
 mypulldata.end = function () {
-  assert.ok(d === 'mypulldata');
+  assert.equal(d, 'mypulldata');
   passes += 1
   check();
 };
@@ -62,15 +62,15 @@ s.on('/cat', function (req, resp) {
     resp.writeHead(200, {'content-type':'text/plain-test', 'content-length':4});
     resp.end('asdf')
   } else if (req.method === "PUT") {
-    assert.ok(req.headers['content-type'] === 'text/plain-test');
-    assert.ok(req.headers['content-length'] == 4)
+    assert.equal(req.headers['content-type'], 'text/plain-test');
+    assert.equal(req.headers['content-length'], 4)
     var validate = '';
     
     req.on('data', function (chunk) {validate += chunk})
     req.on('end', function () {
       resp.writeHead(201);
       resp.end();
-      assert.ok(validate === 'asdf');
+      assert.equal(validate, 'asdf');
       passes += 1;
       check();
     })
@@ -78,7 +78,7 @@ s.on('/cat', function (req, resp) {
 })
 s.on('/pushjs', function (req, resp) {
   if (req.method === "PUT") {
-    assert.ok(req.headers['content-type'] === 'text/javascript');
+    assert.equal(req.headers['content-type'], 'text/javascript');
     passes += 1;
     check();
   }
@@ -105,8 +105,8 @@ fs.createReadStream(__filename).pipe(request.put('http://localhost:3453/pushjs')
 request.get('http://localhost:3453/cat').pipe(request.put('http://localhost:3453/cat'))
 
 request.get('http://localhost:3453/catresp', function (e, resp, body) {
-  assert.ok(resp.headers['content-type'] === 'text/plain-test');
-  assert.ok(resp.headers['content-length'] == 4)
+  assert.equal(resp.headers['content-type'], 'text/plain-test');
+  assert.equal(resp.headers['content-length'], 4)
   passes += 1
   check();
 })
@@ -126,7 +126,7 @@ process.on('exit', function () {
 })
 
 request.get({uri:'http://localhost:3453/onelineproxy', headers:{'x-oneline-proxy':'nope'}}, function (err, resp, body) {
-  assert.ok(resp.headers['x-oneline-proxy'] === 'yup')
+  assert.equal(resp.headers['x-oneline-proxy'], 'yup')
   passes += 1
   check()
 })

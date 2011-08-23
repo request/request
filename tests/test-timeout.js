@@ -25,7 +25,7 @@ var shouldTimeout = {
 }
 
 request(shouldTimeout, function (err, resp, body) {
-   assert.ok(err == "ETIMEDOUT");
+   assert.equal(err, "ETIMEDOUT");
    checkDone();
 })
 
@@ -37,8 +37,8 @@ var shouldntTimeout = {
 }
 
 request(shouldntTimeout, function (err, resp, body) {
-   assert.ok(!err);
-   assert.ok(expectedBody === body)
+   assert.equal(!err);
+   assert.equal(expectedBody, body)
    checkDone();
 })
 
@@ -48,8 +48,8 @@ var noTimeout = {
 }
 
 request(noTimeout, function (err, resp, body) {
-   assert.ok(!err);
-   assert.ok(expectedBody === body)
+   assert.equal(!err);
+   assert.equal(expectedBody, body)
    checkDone();
 })
 
@@ -60,7 +60,7 @@ var negativeTimeout = {
 }
 
 request(negativeTimeout, function (err, resp, body) {
-  assert.ok(err == "ETIMEDOUT");
+  assert.equal(err, "ETIMEDOUT");
   checkDone();
 })
 
@@ -71,7 +71,7 @@ var floatTimeout = {
 }
 
 request(floatTimeout, function (err, resp, body) {
-  assert.ok(err == "ETIMEDOUT");
+  assert.equal(err, "ETIMEDOUT");
   checkDone();
 })
 

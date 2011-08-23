@@ -27,7 +27,7 @@ exports.createPostValidator = function (text) {
     req.on('data', function (chunk) {r += chunk})
     req.on('end', function () {
     if (r !== text) console.log(r, text);
-    assert.ok(r === text)
+    assert.equal(r, text)
     resp.writeHead(200, {'content-type':'text/plain'})
     resp.write('OK')
     resp.end()
