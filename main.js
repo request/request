@@ -333,7 +333,8 @@ Request.prototype.request = function () {
     if (options.ntick) throw new Error("You cannot pipe to this stream after the first nextTick() after creation of the request stream.")
     options.src = src
     if (isReadStream(src)) {
-      options.headers['content-type'] = mimetypes.lookup(src.path.slice(src.path.lastIndexOf('.')+1))
+      if (!options.headers['content-type'] && !options.headers['Content-Type'])
+        options.headers['content-type'] = mimetypes.lookup(src.path.slice(src.path.lastIndexOf('.')+1))
     } else {
       if (src.headers) {
         for (i in src.headers) {
