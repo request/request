@@ -57,7 +57,7 @@ function isReadStream (rs) {
 
 function copy (obj) {
   var o = {}
-  for (i in obj) o[i] = obj[i]
+  for (var i in obj) o[i] = obj[i]
   return o
 }
 
@@ -74,7 +74,7 @@ function Request (options) {
     options = {uri:options}
   }
   
-  for (i in options) {
+  for (var i in options) {
     this[i] = options[i]
   }
   if (!this.pool) this.pool = globalPool
@@ -281,7 +281,7 @@ Request.prototype.request = function () {
             }
           } 
           if (dest.setHeader) {
-            for (i in response.headers) {
+            for (var i in response.headers) {
               dest.setHeader(i, response.headers[i])
             }
             dest.statusCode = response.statusCode
@@ -337,7 +337,7 @@ Request.prototype.request = function () {
         options.headers['content-type'] = mimetypes.lookup(src.path.slice(src.path.lastIndexOf('.')+1))
     } else {
       if (src.headers) {
-        for (i in src.headers) {
+        for (var i in src.headers) {
           if (!options.headers[i]) {
             options.headers[i] = src.headers[i]
           }
@@ -405,7 +405,7 @@ request.defaults = function (options) {
   var def = function (method) {
     var d = function (opts, callback) {
       if (typeof opts === 'string') opts = {uri:opts}
-      for (i in options) {
+      for (var i in options) {
         if (opts[i] === undefined) opts[i] = options[i]
       }
       return method(opts, callback)
