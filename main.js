@@ -74,6 +74,10 @@ function Request (options) {
     options = {uri:options}
   }
   
+  if (typeof options.parseUrl === 'undefined') {
+    options.parseUrl = true;
+  }
+  
   for (var i in options) {
     this[i] = options[i]
   }
@@ -98,7 +102,7 @@ Request.prototype.request = function () {
 
   if (!options.uri) {
     throw new Error("options.uri is a required argument")
-  } else {
+  } else if (options.parseUrl){
     if (typeof options.uri == "string") options.uri = url.parse(options.uri)
   }
   if (options.proxy) {
