@@ -226,10 +226,17 @@ Request.prototype.request = function () {
   options.start = function () {
     options._started = true
     options.method = options.method || 'GET'
-    
+
     options.req = options.httpModule.request(options, function (response) {
       options.response = response
       response.request = options
+
+      if (options.strictSSL && !response.client.authorized) {
+        var sslErr = response.client.authorizationError
+        options.emit('error', new Error('SSL Error: '+ sslErr))
+        return
+      }
+
       if (setHost) delete options.headers.host
       if (options.timeout && options.timeoutTimer) clearTimeout(options.timeoutTimer)
 
