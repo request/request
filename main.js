@@ -433,7 +433,7 @@ request.defaults = function (options) {
     }
     return d
   }
-  de = def(request)
+  var de = def(request)
   de.get = def(request.get)
   de.post = def(request.post)
   de.put = def(request.put)
