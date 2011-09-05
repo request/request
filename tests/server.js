@@ -44,3 +44,14 @@ exports.createGetResponse = function (text, contentType) {
   }
   return l;
 }
+exports.createChunkResponse = function (chunks, contentType) {
+  var l = function (req, resp) {
+    contentType = contentType || 'text/plain'
+    resp.writeHead(200, {'content-type':contentType})
+    chunks.forEach(function (chunk) {
+      resp.write(chunk)
+    })
+    resp.end()
+  }
+  return l;
+}

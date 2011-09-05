@@ -300,12 +300,20 @@ Request.prototype.request = function () {
           options.onResponse(null, response)
         }
         if (options.callback) {
-          var buffer = ''
+          var buffer = []
+          var bodyLen = 0
           options.on("data", function (chunk) { 
-            buffer += chunk 
+            buffer.push(chunk)
+            bodyLen += chunk.length
           })
           options.on("end", function () { 
-            response.body = buffer
+            var body = new Buffer(bodyLen)
+            var i = 0
+            buffer.forEach(function (chunk) {
+              chunk.copy(body, i, 0, chunk.length)
+              i += chunk.length
+            })
+            response.body = body.toString()
             if (options.json) {
               try {
                 response.body = JSON.parse(response.body)
