@@ -12,6 +12,19 @@ var tests =
     { resp : server.createGetResponse("TESTING!") 
     , expectBody: "TESTING!"
     }
+  , testGetChunkBreak : 
+    { resp : server.createChunkResponse(
+      [ new Buffer([239])
+      , new Buffer([163])
+      , new Buffer([191])
+      , new Buffer([206])
+      , new Buffer([169])
+      , new Buffer([226])
+      , new Buffer([152])
+      , new Buffer([131])
+      ])
+    , expectBody: "Ω☃"
+    }
   , testGetJSON : 
     { resp : server.createGetResponse('{"test":true}', 'application/json')
     , json : true
