@@ -14,7 +14,7 @@ s.on('/timeout', function (req, resp) {
   setTimeout(function(){
     resp.writeHead(200, {'content-type':'text/plain'})
     resp.write(expectedBody)
-    resp.end()    
+    resp.end()
   }, 200);
 });
 
@@ -25,8 +25,8 @@ var shouldTimeout = {
 }
 
 request(shouldTimeout, function (err, resp, body) {
-   assert.equal(err, "ETIMEDOUT");
-   checkDone();
+  assert.equal(err.code, "ETIMEDOUT");
+  checkDone();
 })
 
 
@@ -37,9 +37,9 @@ var shouldntTimeout = {
 }
 
 request(shouldntTimeout, function (err, resp, body) {
-   assert.equal(!err);
-   assert.equal(expectedBody, body)
-   checkDone();
+  assert.equal(err, null);
+  assert.equal(expectedBody, body)
+  checkDone();
 })
 
 // Scenario with no timeout set, so shouldn't timeout
@@ -48,9 +48,9 @@ var noTimeout = {
 }
 
 request(noTimeout, function (err, resp, body) {
-   assert.equal(!err);
-   assert.equal(expectedBody, body)
-   checkDone();
+  assert.equal(err);
+  assert.equal(expectedBody, body)
+  checkDone();
 })
 
 // Scenario with a negative timeout value, should be treated a zero or the minimum delay
@@ -60,7 +60,7 @@ var negativeTimeout = {
 }
 
 request(negativeTimeout, function (err, resp, body) {
-  assert.equal(err, "ETIMEDOUT");
+  assert.equal(err.code, "ETIMEDOUT");
   checkDone();
 })
 
@@ -71,14 +71,14 @@ var floatTimeout = {
 }
 
 request(floatTimeout, function (err, resp, body) {
-  assert.equal(err, "ETIMEDOUT");
+  assert.equal(err.code, "ETIMEDOUT");
   checkDone();
 })
 
 function checkDone() {
   if(--remainingTests == 0) {
     s.close();
-    console.log("All tests passed.");    
+    console.log("All tests passed.");
   }
 }
 
