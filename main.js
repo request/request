@@ -89,198 +89,198 @@ Request.prototype.getAgent = function (host, port) {
   return this.pool[host+':'+port]
 }
 Request.prototype.request = function () {
-  var options = this
-  if (options.url) {
+  var self = this
+  if (self.url) {
     // People use this property instead all the time so why not just support it.
-    options.uri = options.url
-    delete options.url
+    self.uri = self.url
+    delete self.url
   }
 
-  if (!options.uri) {
+  if (!self.uri) {
     throw new Error("options.uri is a required argument")
   } else {
-    if (typeof options.uri == "string") options.uri = url.parse(options.uri)
+    if (typeof self.uri == "string") self.uri = url.parse(self.uri)
   }
-  if (options.proxy) {
-    if (typeof options.proxy == 'string') options.proxy = url.parse(options.proxy)
+  if (self.proxy) {
+    if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
   }
 
-  options._redirectsFollowed = options._redirectsFollowed || 0
-  options.maxRedirects = (options.maxRedirects !== undefined) ? options.maxRedirects : 10
-  options.followRedirect = (options.followRedirect !== undefined) ? options.followRedirect : true
+  self._redirectsFollowed = self._redirectsFollowed || 0
+  self.maxRedirects = (self.maxRedirects !== undefined) ? self.maxRedirects : 10
+  self.followRedirect = (self.followRedirect !== undefined) ? self.followRedirect : true
 
-  options.headers = options.headers ? copy(options.headers) : {}
+  self.headers = self.headers ? copy(self.headers) : {}
 
   var setHost = false
-  if (!options.headers.host) {
-    options.headers.host = options.uri.hostname
-    if (options.uri.port) {
-      if ( !(options.uri.port === 80 && options.uri.protocol === 'http:') &&
-           !(options.uri.port === 443 && options.uri.protocol === 'https:') )
-      options.headers.host += (':'+options.uri.port)
+  if (!self.headers.host) {
+    self.headers.host = self.uri.hostname
+    if (self.uri.port) {
+      if ( !(self.uri.port === 80 && self.uri.protocol === 'http:') &&
+           !(self.uri.port === 443 && self.uri.protocol === 'https:') )
+      self.headers.host += (':'+self.uri.port)
     }
     setHost = true
   }
 
-  if (!options.uri.pathname) {options.uri.pathname = '/'}
-  if (!options.uri.port) {
-    if (options.uri.protocol == 'http:') {options.uri.port = 80}
-    else if (options.uri.protocol == 'https:') {options.uri.port = 443}
+  if (!self.uri.pathname) {self.uri.pathname = '/'}
+  if (!self.uri.port) {
+    if (self.uri.protocol == 'http:') {self.uri.port = 80}
+    else if (self.uri.protocol == 'https:') {self.uri.port = 443}
   }
 
-  if (options.bodyStream || options.responseBodyStream) {
+  if (self.bodyStream || self.responseBodyStream) {
     console.error('options.bodyStream and options.responseBodyStream is deprecated. You should now send the request object to stream.pipe()')
-    this.pipe(options.responseBodyStream || options.bodyStream)
+    this.pipe(self.responseBodyStream || self.bodyStream)
   }
 
-  if (options.proxy) {
-    options.port = options.proxy.port
-    options.host = options.proxy.hostname
+  if (self.proxy) {
+    self.port = self.proxy.port
+    self.host = self.proxy.hostname
   } else {
-    options.port = options.uri.port
-    options.host = options.uri.hostname
+    self.port = self.uri.port
+    self.host = self.uri.hostname
   }
 
-  if (options.onResponse === true) {
-    options.onResponse = options.callback
-    delete options.callback
+  if (self.onResponse === true) {
+    self.onResponse = self.callback
+    delete self.callback
   }
 
   var clientErrorHandler = function (error) {
-    if (setHost) delete options.headers.host
-    options.emit('error', error)
+    if (setHost) delete self.headers.host
+    self.emit('error', error)
   }
-  if (options.onResponse) options.on('error', function (e) {options.onResponse(e)})
-  if (options.callback) options.on('error', function (e) {options.callback(e)})
+  if (self.onResponse) self.on('error', function (e) {self.onResponse(e)})
+  if (self.callback) self.on('error', function (e) {self.callback(e)})
 
 
-  if (options.uri.auth && !options.headers.authorization) {
-    options.headers.authorization = "Basic " + toBase64(options.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
+  if (self.uri.auth && !self.headers.authorization) {
+    self.headers.authorization = "Basic " + toBase64(self.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
   }
-  if (options.proxy && options.proxy.auth && !options.headers['proxy-authorization']) {
-    options.headers.authorization = "Basic " + toBase64(options.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
+  if (self.proxy && self.proxy.auth && !self.headers['proxy-authorization']) {
+    self.headers.authorization = "Basic " + toBase64(self.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
   }
 
-  options.path = options.uri.href.replace(options.uri.protocol + '//' + options.uri.host, '')
-  if (options.path.length === 0) options.path = '/'
+  self.path = self.uri.href.replace(self.uri.protocol + '//' + self.uri.host, '')
+  if (self.path.length === 0) self.path = '/'
 
-  if (options.proxy) options.path = (options.uri.protocol + '//' + options.uri.host + options.path)
+  if (self.proxy) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
 
-  if (options.json) {
-    options.headers['content-type'] = 'application/json'
-    if (typeof options.json === 'boolean') {
-      if (typeof options.body === 'object') options.body = JSON.stringify(options.body)
+  if (self.json) {
+    self.headers['content-type'] = 'application/json'
+    if (typeof self.json === 'boolean') {
+      if (typeof self.body === 'object') self.body = JSON.stringify(self.body)
     } else {
-      options.body = JSON.stringify(options.json)
+      self.body = JSON.stringify(self.json)
     }
 
-  } else if (options.multipart) {
-    options.body = ''
-    options.headers['content-type'] = 'multipart/related;boundary="frontier"'
-    if (!options.multipart.forEach) throw new Error('Argument error, options.multipart.')
+  } else if (self.multipart) {
+    self.body = ''
+    self.headers['content-type'] = 'multipart/related;boundary="frontier"'
+    if (!self.multipart.forEach) throw new Error('Argument error, options.multipart.')
 
-    options.multipart.forEach(function (part) {
+    self.multipart.forEach(function (part) {
       var body = part.body
       if(!body) throw Error('Body attribute missing in multipart.')
       delete part.body
-      options.body += '--frontier\r\n'
+      self.body += '--frontier\r\n'
       Object.keys(part).forEach(function(key){
-        options.body += key + ': ' + part[key] + '\r\n'
+        self.body += key + ': ' + part[key] + '\r\n'
       })
-      options.body += '\r\n' + body + '\r\n'
+      self.body += '\r\n' + body + '\r\n'
     })
-    options.body += '--frontier--'
+    self.body += '--frontier--'
   }
 
-  if (options.body) {
-    if (!Buffer.isBuffer(options.body)) {
-      options.body = new Buffer(options.body)
+  if (self.body) {
+    if (!Buffer.isBuffer(self.body)) {
+      self.body = new Buffer(self.body)
     }
-    if (options.body.length) {
-      options.headers['content-length'] = options.body.length
+    if (self.body.length) {
+      self.headers['content-length'] = self.body.length
     } else {
       throw new Error('Argument error, options.body.')
     }
   }
 
-  options.httpModule =
-    {"http:":http, "https:":https}[options.proxy ? options.proxy.protocol : options.uri.protocol]
+  self.httpModule =
+    {"http:":http, "https:":https}[self.proxy ? self.proxy.protocol : self.uri.protocol]
 
-  if (!options.httpModule) throw new Error("Invalid protocol")
+  if (!self.httpModule) throw new Error("Invalid protocol")
 
-  if (options.pool === false) {
-    options.agent = false
+  if (self.pool === false) {
+    self.agent = false
   } else {
-    if (options.maxSockets) {
+    if (self.maxSockets) {
       // Don't use our pooling if node has the refactored client
-      options.agent = options.httpModule.globalAgent || options.getAgent(options.host, options.port)
-      options.agent.maxSockets = options.maxSockets
+      self.agent = self.httpModule.globalAgent || self.getAgent(self.host, self.port)
+      self.agent.maxSockets = self.maxSockets
     }
-    if (options.pool.maxSockets) {
+    if (self.pool.maxSockets) {
       // Don't use our pooling if node has the refactored client
-      options.agent = options.httpModule.globalAgent || options.getAgent(options.host, options.port)
-      options.agent.maxSockets = options.pool.maxSockets
+      self.agent = self.httpModule.globalAgent || self.getAgent(self.host, self.port)
+      self.agent.maxSockets = self.pool.maxSockets
     }
   }
 
-  options.start = function () {
-    options._started = true
-    options.method = options.method || 'GET'
+  self.start = function () {
+    self._started = true
+    self.method = self.method || 'GET'
 
-    options.req = options.httpModule.request(options, function (response) {
-      options.response = response
-      response.request = options
+    self.req = self.httpModule.request(self, function (response) {
+      self.response = response
+      response.request = self
 
-      if (options.strictSSL && !response.client.authorized) {
+      if (self.strictSSL && !response.client.authorized) {
         var sslErr = response.client.authorizationError
-        options.emit('error', new Error('SSL Error: '+ sslErr))
+        self.emit('error', new Error('SSL Error: '+ sslErr))
         return
       }
 
-      if (setHost) delete options.headers.host
-      if (options.timeout && options.timeoutTimer) clearTimeout(options.timeoutTimer)
+      if (setHost) delete self.headers.host
+      if (self.timeout && self.timeoutTimer) clearTimeout(self.timeoutTimer)
 
       if (response.statusCode >= 300 &&
           response.statusCode < 400  &&
-          options.followRedirect     &&
-          options.method !== 'PUT' &&
-          options.method !== 'POST' &&
+          self.followRedirect     &&
+          self.method !== 'PUT' &&
+          self.method !== 'POST' &&
           response.headers.location) {
-        if (options._redirectsFollowed >= options.maxRedirects) {
-          options.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."))
+        if (self._redirectsFollowed >= self.maxRedirects) {
+          self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."))
           return
         }
-        options._redirectsFollowed += 1
+        self._redirectsFollowed += 1
 
         if (!isUrl.test(response.headers.location)) {
-          response.headers.location = url.resolve(options.uri.href, response.headers.location)
+          response.headers.location = url.resolve(self.uri.href, response.headers.location)
         }
-        options.uri = response.headers.location
-        delete options.req
-        delete options.agent
-        delete options._started
-        if (options.headers) {
-          delete options.headers.host
+        self.uri = response.headers.location
+        delete self.req
+        delete self.agent
+        delete self._started
+        if (self.headers) {
+          delete self.headers.host
         }
-        request(options, options.callback)
+        request(self, self.callback)
         return // Ignore the rest of the response
       } else {
-        options._redirectsFollowed = 0
+        self._redirectsFollowed = 0
         // Be a good stream and emit end when the response is finished.
         // Hack to emit end on close because of a core bug that never fires end
         response.on('close', function () {
-          if (!options._ended) options.response.emit('end')
+          if (!self._ended) self.response.emit('end')
         })
 
-        if (options.encoding) {
-          if (options.dests.length !== 0) {
+        if (self.encoding) {
+          if (self.dests.length !== 0) {
             console.error("Ingoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.")
           } else {
-            response.setEncoding(options.encoding)
+            response.setEncoding(self.encoding)
           }
         }
 
-        options.dests.forEach(function (dest) {
+        self.dests.forEach(function (dest) {
           if (dest.headers) {
             dest.headers['content-type'] = response.headers['content-type']
             if (response.headers['content-length']) {
@@ -293,27 +293,27 @@ Request.prototype.request = function () {
             }
             dest.statusCode = response.statusCode
           }
-          if (options.pipefilter) options.pipefilter(response, dest)
+          if (self.pipefilter) self.pipefilter(response, dest)
         })
 
-        response.on("data", function (chunk) {options.emit("data", chunk)})
+        response.on("data", function (chunk) {self.emit("data", chunk)})
         response.on("end", function (chunk) {
-          options._ended = true
-          options.emit("end", chunk)
+          self._ended = true
+          self.emit("end", chunk)
         })
-        response.on("close", function () {options.emit("close")})
+        response.on("close", function () {self.emit("close")})
 
-        if (options.onResponse) {
-          options.onResponse(null, response)
+        if (self.onResponse) {
+          self.onResponse(null, response)
         }
-        if (options.callback) {
+        if (self.callback) {
           var buffer = []
           var bodyLen = 0
-          options.on("data", function (chunk) {
+          self.on("data", function (chunk) {
             buffer.push(chunk)
             bodyLen += chunk.length
           })
-          options.on("end", function () {
+          self.on("end", function () {
             if (buffer.length && Buffer.isBuffer(buffer[0])) {
               var body = new Buffer(bodyLen)
               var i = 0
@@ -326,64 +326,64 @@ Request.prototype.request = function () {
               response.body = buffer.join('')
             }
 
-            if (options.json) {
+            if (self.json) {
               try {
                 response.body = JSON.parse(response.body)
               } catch (e) {}
             }
-            options.callback(null, response, response.body)
+            self.callback(null, response, response.body)
           })
         }
       }
     })
 
-    if (options.timeout) {
-      options.timeoutTimer = setTimeout(function() {
-          options.req.abort()
+    if (self.timeout) {
+      self.timeoutTimer = setTimeout(function() {
+          self.req.abort()
           var e = new Error("ETIMEDOUT")
           e.code = "ETIMEDOUT"
-          options.emit("error", e)
-      }, options.timeout)
+          self.emit("error", e)
+      }, self.timeout)
     }
 
-    options.req.on('error', clientErrorHandler)
+    self.req.on('error', clientErrorHandler)
   }
 
-  options.once('pipe', function (src) {
-    if (options.ntick) throw new Error("You cannot pipe to this stream after the first nextTick() after creation of the request stream.")
-    options.src = src
+  self.once('pipe', function (src) {
+    if (self.ntick) throw new Error("You cannot pipe to this stream after the first nextTick() after creation of the request stream.")
+    self.src = src
     if (isReadStream(src)) {
-      if (!options.headers['content-type'] && !options.headers['Content-Type'])
-        options.headers['content-type'] = mimetypes.lookup(src.path.slice(src.path.lastIndexOf('.')+1))
+      if (!self.headers['content-type'] && !self.headers['Content-Type'])
+        self.headers['content-type'] = mimetypes.lookup(src.path.slice(src.path.lastIndexOf('.')+1))
     } else {
       if (src.headers) {
         for (var i in src.headers) {
-          if (!options.headers[i]) {
-            options.headers[i] = src.headers[i]
+          if (!self.headers[i]) {
+            self.headers[i] = src.headers[i]
           }
         }
       }
-      if (src.method && !options.method) {
-        options.method = src.method
+      if (src.method && !self.method) {
+        self.method = src.method
       }
     }
 
-    options.on('pipe', function () {
+    self.on('pipe', function () {
       console.error("You have already piped to this stream. Pipeing twice is likely to break the request.")
     })
   })
 
   process.nextTick(function () {
-    if (options.body) {
-      options.write(options.body)
-      options.end()
-    } else if (options.requestBodyStream) {
+    if (self.body) {
+      self.write(self.body)
+      self.end()
+    } else if (self.requestBodyStream) {
       console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
-      options.requestBodyStream.pipe(options)
-    } else if (!options.src) {
-      options.end()
+      self.requestBodyStream.pipe(self)
+    } else if (!self.src) {
+      self.end()
     }
-    options.ntick = true
+    self.ntick = true
   })
 }
 Request.prototype.pipe = function (dest) {
