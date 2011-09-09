@@ -314,7 +314,7 @@ Request.prototype.request = function () {
             bodyLen += chunk.length
           })
           options.on("end", function () {
-            if (Buffer.isBuffer(buffer[0])) {
+            if (buffer.length && Buffer.isBuffer(buffer[0])) {
               var body = new Buffer(bodyLen)
               var i = 0
               buffer.forEach(function (chunk) {
@@ -322,7 +322,7 @@ Request.prototype.request = function () {
                 i += chunk.length
               })
               response.body = body.toString()
-            } else {
+            } else if (buffer.length) {
               response.body = buffer.join('')
             }
 
