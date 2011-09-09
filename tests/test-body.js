@@ -25,6 +25,11 @@ var tests =
       ])
     , expectBody: "Ω☃"
     }
+  , testChunkNotABuffer :
+    { resp : server.createChunkResponse(['BM:\u0000\u0000\u0000'])
+    , encoding : 'binary'
+    , expectBody : 'BM:\u0000\u0000\u0000'
+    }
   , testGetJSON : 
     { resp : server.createGetResponse('{"test":true}', 'application/json')
     , json : true

@@ -310,6 +310,7 @@ Request.prototype.request = function () {
           var buffer = []
           var bodyLen = 0
           options.on("data", function (chunk) { 
+            chunk = Buffer.isBuffer(chunk) ? chunk : new Buffer(chunk)
             buffer.push(chunk)
             bodyLen += chunk.length
           })
