@@ -148,6 +148,7 @@ Request.prototype.request = function () {
 
   var clientErrorHandler = function (error) {
     if (setHost) delete self.headers.host
+    if (self.timeout && self.timeoutTimer) clearTimeout(self.timeoutTimer)
     self.emit('error', error)
   }
   if (self.onResponse) self.on('error', function (e) {self.onResponse(e)})
