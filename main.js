@@ -232,7 +232,9 @@ Request.prototype.request = function () {
       self.response = response
       response.request = self
 
-      if (self.strictSSL && !response.client.authorized) {
+      if (self.httpModule === https &&
+          self.strictSSL &&
+          !response.client.authorized) {
         var sslErr = response.client.authorizationError
         self.emit('error', new Error('SSL Error: '+ sslErr))
         return
