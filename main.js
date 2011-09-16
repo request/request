@@ -159,7 +159,7 @@ Request.prototype.request = function () {
     self.headers.authorization = "Basic " + toBase64(self.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
   }
   if (self.proxy && self.proxy.auth && !self.headers['proxy-authorization']) {
-    self.headers.authorization = "Basic " + toBase64(self.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
+    self.headers['proxy-authorization'] = "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
   }
 
   self.path = self.uri.href.replace(self.uri.protocol + '//' + self.uri.host, '')
