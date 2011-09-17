@@ -148,6 +148,7 @@ Request.prototype.request = function () {
 
   var clientErrorHandler = function (error) {
     if (setHost) delete self.headers.host
+    if (self.timeout && self.timeoutTimer) clearTimeout(self.timeoutTimer)
     self.emit('error', error)
   }
   if (self.onResponse) self.on('error', function (e) {self.onResponse(e)})
@@ -158,7 +159,7 @@ Request.prototype.request = function () {
     self.headers.authorization = "Basic " + toBase64(self.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
   }
   if (self.proxy && self.proxy.auth && !self.headers['proxy-authorization']) {
-    self.headers.authorization = "Basic " + toBase64(self.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
+    self.headers['proxy-authorization'] = "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
   }
 
   self.path = self.uri.href.replace(self.uri.protocol + '//' + self.uri.host, '')
@@ -231,7 +232,9 @@ Request.prototype.request = function () {
       self.response = response
       response.request = self
 
-      if (self.strictSSL && !response.client.authorized) {
+      if (self.httpModule === https &&
+          self.strictSSL &&
+          !response.client.authorized) {
         var sslErr = response.client.authorizationError
         self.emit('error', new Error('SSL Error: '+ sslErr))
         return
@@ -432,7 +435,7 @@ request.defaults = function (options) {
     }
     return d
   }
-  de = def(request)
+  var de = def(request)
   de.get = def(request.get)
   de.post = def(request.post)
   de.put = def(request.put)
