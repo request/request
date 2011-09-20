@@ -108,6 +108,8 @@ Request.prototype.request = function () {
   self._redirectsFollowed = self._redirectsFollowed || 0
   self.maxRedirects = (self.maxRedirects !== undefined) ? self.maxRedirects : 10
   self.followRedirect = (self.followRedirect !== undefined) ? self.followRedirect : true
+  if (self.followRedirect)
+    self.redirects = self.redirects || []
 
   self.headers = self.headers ? copy(self.headers) : {}
 
@@ -259,6 +261,8 @@ Request.prototype.request = function () {
           response.headers.location = url.resolve(self.uri.href, response.headers.location)
         }
         self.uri = response.headers.location
+        self.redirects.push( { statusCode : response.statusCode,
+                               redirectUri: response.headers.location })
         delete self.req
         delete self.agent
         delete self._started
@@ -268,7 +272,7 @@ Request.prototype.request = function () {
         request(self, self.callback)
         return // Ignore the rest of the response
       } else {
-        self._redirectsFollowed = 0
+        self._redirectsFollowed = self._redirectsFollowed || 0
         // Be a good stream and emit end when the response is finished.
         // Hack to emit end on close because of a core bug that never fires end
         response.on('close', function () {
