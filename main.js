@@ -108,7 +108,8 @@ Request.prototype.request = function () {
   self._redirectsFollowed = self._redirectsFollowed || 0
   self.maxRedirects = (self.maxRedirects !== undefined) ? self.maxRedirects : 10
   self.followRedirect = (self.followRedirect !== undefined) ? self.followRedirect : true
-  if (self.followRedirect)
+  self.followAllRedirects = (self.followAllRedirects !== undefined) ? self.followAllredirects : false;
+  if (self.followRedirect || self.followAllRedirects)
     self.redirects = self.redirects || []
 
   self.headers = self.headers ? copy(self.headers) : {}
@@ -245,11 +246,9 @@ Request.prototype.request = function () {
       if (setHost) delete self.headers.host
       if (self.timeout && self.timeoutTimer) clearTimeout(self.timeoutTimer)
 
-      if (response.statusCode >= 300 &&
-          response.statusCode < 400  &&
-          self.followRedirect     &&
-          self.method !== 'PUT' &&
-          self.method !== 'POST' &&
+      if (response.statusCode >= 300 && response.statusCode < 400  &&
+          (self.followAllRedirects ||
+           (self.followRedirect && (self.method !== 'PUT' && self.method !== 'POST'))) &&
           response.headers.location) {
         if (self._redirectsFollowed >= self.maxRedirects) {
           self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."))
