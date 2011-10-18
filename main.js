@@ -108,7 +108,7 @@ Request.prototype.request = function () {
   self._redirectsFollowed = self._redirectsFollowed || 0
   self.maxRedirects = (self.maxRedirects !== undefined) ? self.maxRedirects : 10
   self.followRedirect = (self.followRedirect !== undefined) ? self.followRedirect : true
-  self.followAllRedirects = (self.followAllRedirects !== undefined) ? self.followAllredirects : false;
+  self.followAllRedirects = (self.followAllRedirects !== undefined) ? self.followAllRedirects : false;
   if (self.followRedirect || self.followAllRedirects)
     self.redirects = self.redirects || []
 
@@ -262,6 +262,7 @@ Request.prototype.request = function () {
         self.uri = response.headers.location
         self.redirects.push( { statusCode : response.statusCode,
                                redirectUri: response.headers.location })
+        self.method = 'GET'; // Force all redirects to use GET
         delete self.req
         delete self.agent
         delete self._started

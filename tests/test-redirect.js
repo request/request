@@ -6,7 +6,7 @@ var server = require('./server')
   ;
 
 var s = server.createServer();
-var remainingTests = 5;
+var remainingTests = 6;
 var notRedirected = 'Not redirected';
 var redirectSuccessful = 'Redirect succeeded.';
 
@@ -19,33 +19,39 @@ s.on('/redirect', function (req, resp) {
 });
 
 s.on('/other_url', function (req, resp) {
+  if (req.method !== 'GET') { // We should only accept GET redirects
+    console.error("Got a non-GET request to the redirect destination URL");
+    resp.writeHead(400);
+    resp.end();
+    return;
+  }
   resp.writeHead(200, {'content-type':'text/plain' });
   resp.write(redirectSuccessful)
   resp.end()
 });
 
 // Should follow redirects by default
-var options = { url: s.url + "/redirect" };
+var options = { url: s.url + "/redirect", method: 'GET' };
 request(options, function (err, resp, body) {
   assert.equal(body, redirectSuccessful);
   checkDone();
 })
 
 // Shouldn't redirect when followRedirect is false
-options = { url: s.url + "/redirect", followRedirect: false };
+options = { url: s.url + "/redirect", method: 'GET', followRedirect: false };
 request(options, function (err, resp, body) {
   assert.equal(body, notRedirected);
   checkDone();
 })
 
 // Should redirect when followRedirect is true
-options = { url: s.url + "/redirect", followRedirect: true };
+options = { url: s.url + "/redirect", method: 'GET', followRedirect: true };
 request(options, function (err, resp, body) {
   assert.equal(body, redirectSuccessful);
   checkDone();
 })
 
-// Should not follow post redirects when followRedirect true
+// Should not follow post redirects by default
 options = { url: s.url + "/redirect", followRedirect: true };
 request.post(options, function (err, resp, body) {
   assert.equal(body, notRedirected);
@@ -54,8 +60,15 @@ request.post(options, function (err, resp, body) {
 
 // Should follow post redirects when followAllRedirects true
 options = { url: s.url + "/redirect", followAllRedirects: true };
-request(options, function (err, resp, body) {
+request.post(options, function (err, resp, body) {
   assert.equal(body, redirectSuccessful);
+  checkDone();
+})
+
+// Should not follow post redirects when followAllRedirects false
+options = { url: s.url + "/redirect", followAllRedirects: false };
+request.post(options, function (err, resp, body) {
+  assert.equal(body, notRedirected);
   checkDone();
 })
 
