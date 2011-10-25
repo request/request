@@ -164,7 +164,12 @@ Request.prototype.request = function () {
     self.headers['proxy-authorization'] = "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
   }
 
-  self.path = self.uri.href.replace(self.uri.protocol + '//' + self.uri.host, '')
+  if (self.uri.path) {
+    self.path = self.uri.path
+  } else {
+    self.uri.path = self.uri.pathname + (self.uri.search || "")
+  }
+
   if (self.path.length === 0) self.path = '/'
 
   if (self.proxy) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
