@@ -388,6 +388,7 @@ Request.prototype.request = function () {
       console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
       self.requestBodyStream.pipe(self)
     } else if (!self.src) {
+      self.headers['content-length'] = 0
       self.end()
     }
     self.ntick = true
