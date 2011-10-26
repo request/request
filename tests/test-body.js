@@ -7,12 +7,12 @@ var server = require('./server')
 
 var s = server.createServer();
 
-var tests = 
-  { testGet : 
-    { resp : server.createGetResponse("TESTING!") 
+var tests =
+  { testGet :
+    { resp : server.createGetResponse("TESTING!")
     , expectBody: "TESTING!"
     }
-  , testGetChunkBreak : 
+  , testGetChunkBreak :
     { resp : server.createChunkResponse(
       [ new Buffer([239])
       , new Buffer([163])
@@ -25,12 +25,12 @@ var tests =
       ])
     , expectBody: "Ω☃"
     }
-  , testGetJSON : 
+  , testGetJSON :
     { resp : server.createGetResponse('{"test":true}', 'application/json')
     , json : true
     , expectBody: {"test":true}
     }
-  , testPutString : 
+  , testPutString :
     { resp : server.createPostValidator("PUTTINGDATA")
     , method : "PUT"
     , body : "PUTTINGDATA"
@@ -40,17 +40,12 @@ var tests =
     , method : "PUT"
     , body : new Buffer("PUTTINGDATA")
     }
-  , testPutStream :
-    { resp : server.createPostValidator("PUTTINGDATA")
-    , method : "PUT"
-    , requestBodyStream : server.createPostStream("PUTTINGDATA")
-    }
-  , testPutJSON : 
+  , testPutJSON :
     { resp : server.createPostValidator(JSON.stringify({foo: 'bar'}))
     , method: "PUT"
-    , json: {foo: 'bar'}  
+    , json: {foo: 'bar'}
     }
-  , testPutMultipart : 
+  , testPutMultipart :
     { resp: server.createPostValidator(
         '--frontier\r\n' +
         'content-type: text/html\r\n' +
@@ -61,31 +56,35 @@ var tests =
         '\r\n--frontier--'
         )
     , method: "PUT"
-    , multipart: 
+    , multipart:
       [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
       , {'body': 'Oh hi.'}
       ]
-    }  
+    }
   }
 
-var counter = 0;
+s.listen(s.port, function () {
 
-for (i in tests) {
-  (function () {
-    var test = tests[i];
-    s.on('/'+i, test.resp);
-    test.uri = s.url + '/' + i;
-    request(test, function (err, resp, body) {
-      if (err) throw err;
-      if (test.expectBody) {
-        assert.deepEqual(test.expectBody, body)
-      }
-      counter = counter - 1;
-      if (counter === 0) {
-        console.log(Object.keys(tests).length+" tests passed.")
-        s.close();
-      }
-    })
-    counter++;
-  })()
-}
+  var counter = 0
+
+  for (i in tests) {
+    (function () {
+      var test = tests[i]
+      s.on('/'+i, test.resp)
+      test.uri = s.url + '/' + i
+      request(test, function (err, resp, body) {
+        if (err) throw err
+        if (test.expectBody) {
+          assert.deepEqual(test.expectBody, body)
+        }
+        counter = counter - 1;
+        if (counter === 0) {
+          console.log(Object.keys(tests).length+" tests passed.")
+          s.close()
+        }
+      })
+      counter++
+    })()
+  }
+})
+

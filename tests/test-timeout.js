@@ -9,7 +9,8 @@ var s = server.createServer();
 var expectedBody = "waited";
 var remainingTests = 5;
 
-// Request that waits for 200ms
+s.listen(s.port, function () {
+  // Request that waits for 200ms
 s.on('/timeout', function (req, resp) {
   setTimeout(function(){
     resp.writeHead(200, {'content-type':'text/plain'})
@@ -81,4 +82,5 @@ function checkDone() {
     console.log("All tests passed.");
   }
 }
+})
 

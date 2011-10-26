@@ -9,7 +9,7 @@ exports.createServer =  function (port) {
   var s = http.createServer(function (req, resp) {
     s.emit(req.url, req, resp);
   })
-  s.listen(port)
+  s.port = port
   s.url = 'http://localhost:'+port
   return s;
 }

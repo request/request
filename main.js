@@ -130,11 +130,6 @@ Request.prototype.request = function () {
     else if (self.uri.protocol == 'https:') {self.uri.port = 443}
   }
 
-  if (self.bodyStream || self.responseBodyStream) {
-    console.error('options.bodyStream and options.responseBodyStream is deprecated. You should now send the request object to stream.pipe()')
-    this.pipe(self.responseBodyStream || self.bodyStream)
-  }
-
   if (self.proxy) {
     self.port = self.proxy.port
     self.host = self.proxy.hostname
@@ -292,7 +287,7 @@ Request.prototype.request = function () {
           }
         }
 
-        self.dests.forEach(function (dest) {
+        self.pipeDest = function (dest) {
           if (dest.headers) {
             dest.headers['content-type'] = response.headers['content-type']
             if (response.headers['content-length']) {
@@ -306,14 +301,23 @@ Request.prototype.request = function () {
             dest.statusCode = response.statusCode
           }
           if (self.pipefilter) self.pipefilter(response, dest)
+        }
+
+        self.dests.forEach(function (dest) {
+          self.pipeDest(dest)
         })
 
-        response.on("data", function (chunk) {self.emit("data", chunk)})
+        response.on("data", function (chunk) {
+          self._destdata = true
+          self.emit("data", chunk)
+        })
         response.on("end", function (chunk) {
           self._ended = true
           self.emit("end", chunk)
         })
         response.on("close", function () {self.emit("close")})
+
+        self.emit('response', response)
 
         if (self.onResponse) {
           self.onResponse(null, response)
@@ -400,10 +404,21 @@ Request.prototype.request = function () {
   })
 }
 Request.prototype.pipe = function (dest) {
-  if (this.response) throw new Error("You cannot pipe after the response event.")
-  this.dests.push(dest)
-  stream.Stream.prototype.pipe.call(this, dest)
-  return dest
+  if (this.response) {
+    if (this._destdata) {
+      throw new Error("You cannot pipe after data has been emitted from the response.")
+    } else if (this._ended) {
+      throw new Error("You cannot pipe after the response has been ended.")
+    } else {
+      stream.Stream.prototype.pipe.call(this, dest)
+      this.pipeDest(dest)
+      return dest
+    }
+  } else {
+    this.dests.push(dest)
+    stream.Stream.prototype.pipe.call(this, dest)
+    return dest
+  }
 }
 Request.prototype.write = function () {
   if (!this._started) this.start()
