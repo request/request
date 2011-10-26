@@ -167,7 +167,7 @@ Request.prototype.request = function () {
   if (self.uri.path) {
     self.path = self.uri.path
   } else {
-    self.uri.path = self.uri.pathname + (self.uri.search || "")
+    self.path = self.uri.pathname + (self.uri.search || "")
   }
 
   if (self.path.length === 0) self.path = '/'
