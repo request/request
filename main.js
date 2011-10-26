@@ -90,6 +90,17 @@ Request.prototype.getAgent = function (host, port) {
 }
 Request.prototype.request = function () {
   var self = this
+
+  // Protect against double callback
+  if (!self._callback && self.callback) {
+    self._callback = self.callback
+    self.callback = function () {
+      if (self._callbackCalled) return // Print a warning maybe?
+      self._callback.apply(self, arguments)
+      self._callbackCalled = true
+    }
+  }
+
   if (self.url) {
     // People use this property instead all the time so why not just support it.
     self.uri = self.url
