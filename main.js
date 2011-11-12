@@ -209,14 +209,6 @@ Request.prototype.request = function () {
     self.headers.authorization = 
       'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+encodeURIComponent(oa[i])+'"'}).join(',')
     self.headers.authorization += ',oauth_signature="'+encodeURIComponent(signature)+'"'  
-    
-    // oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g'
-    // , oauth_nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8'
-    // , oauth_signature_method: 'HMAC-SHA1'
-    // , oauth_token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc'
-    // , oauth_timestamp: '1272323047'
-    // , oauth_verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY'
-    // , oauth_version: '1.0'
   }
 
   if (self.uri.auth && !self.headers.authorization) {
