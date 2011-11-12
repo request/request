@@ -21,6 +21,13 @@ try {
 }
 
 try {
+  request({uri:local, jar: 'foo'})
+  assert.fail("Should have throw")
+} catch(e) {
+  assert.equal(e.message, 'Argument error, options.jar.')
+}
+
+try {
   request({uri:local, multipart: [{}]})
   assert.fail("Should have throw")
 } catch(e) {

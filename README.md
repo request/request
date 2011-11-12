@@ -112,6 +112,7 @@ The first argument can be either a url or an options object. The only required o
 * `timeout` - Integer containing the number of milliseconds to wait for a request to respond before aborting the request	
 * `proxy` - An HTTP proxy to be used. Support proxy Auth with Basic Auth the same way it's supported with the `url` parameter by embedding the auth info in the uri.
 * `strictSSL` - Set to `true` to require that SSL certificates be valid. Note: to use your own certificate authority, you need to specify an agent that was created with that ca as an option.
+* `jar` - Set to `request.jar()` if you don't want cookies to be remembered for future use
 
 
 The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body buffer.
@@ -190,4 +191,22 @@ request.get(url)
       }
     }
   )
+```
+The jar holds the state of the cookies being set, each request sends the proper cookies for that domain. The boiler is easy to get rid of with `defaults` or per each request if you set `options.jar`.
+
+```javascript
+var j = request.jar()
+var request = request.defaults({jar:j})
+request('http://www.google.com', function () {
+  request('http://images.google.com')
+})
+```
+OR
+```javascript
+var j = request.jar()
+// you can also set a cookie like so:
+j.add('sid=LsoJ7tV9wfwz2VkE9lxC4EqU.%2BXxV0F9i1hfCMb4uNKZTpAUJLTwlf57FewvHne%2BAGVI; path=/; expires=Sun, 23 Nov 2011 16:50:21 GMT; httpOnly')
+request(url: 'http://www.google.com', jar: j, function () {
+  request('http://images.google.com')
+})
 ```
