@@ -164,6 +164,20 @@ Alias to normal request method for uniformity.
 ```javascript
 request.get(url)
 ```
+### request.cookie
+
+Function that creates a new cookie.
+
+```javascript
+request.cookie('cookie_string_here')
+```
+### request.jar
+
+Function that creates a new cookie jar.
+
+```javascript
+request.jar()
+```
 
 
 ## Examples:
