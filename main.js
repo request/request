@@ -20,6 +20,8 @@ var http = require('http')
   , stream = require('stream')
   , qs = require('querystring')
   , mimetypes = require('./mimetypes')
+  , oauth = require('./oauth')
+  , uuid = require('./uuid')
   ;
 
 try {
@@ -162,6 +164,60 @@ Request.prototype.request = function () {
   if (self.onResponse) self.on('error', function (e) {self.onResponse(e)})
   if (self.callback) self.on('error', function (e) {self.callback(e)})
 
+  if (self.form) {
+    self.headers['content-type'] = 'application/x-www-form-urlencoded; charset=utf-8'
+    self.body = qs.stringify(self.form).toString('utf8')
+  }
+
+  if (self.oauth) {
+    var form
+    if (self.headers['content-type'] && 
+        self.headers['content-type'].slice(0, 'application/x-www-form-urlencoded'.length) ===
+          'application/x-www-form-urlencoded' 
+       ) {
+      form = qs.parse(self.body)
+    } 
+    if (self.uri.query) {
+      form = qs.parse(self.uri.query)
+    } 
+    if (!form) form = {}
+    var oa = {}
+    for (i in form) oa[i] = form[i]
+    for (i in self.oauth) oa['oauth_'+i] = self.oauth[i]
+    if (!oa.oauth_version) oa.oauth_version = '1.0'
+    if (!oa.oauth_timestamp) oa.oauth_timestamp = Math.floor( (new Date()).getTime() / 1000 ).toString()
+    if (!oa.oauth_nonce) oa.oauth_nonce = uuid().replace(/-/g, '')
+    
+    oa.oauth_signature_method = 'HMAC-SHA1'
+    
+    var consumer_secret = oa.oauth_consumer_secret
+    delete oa.oauth_consumer_secret
+    var token_secret = oa.oauth_token_secret
+    delete oa.oauth_token_secret
+    
+    var baseurl = self.uri.protocol + '//' + self.uri.host + self.uri.pathname
+    var signature = oauth.hmacsign(self.method, baseurl, oa, consumer_secret, token_secret)
+    
+    // oa.oauth_signature = signature
+    for (i in form) {
+      if ( i.slice(0, 'oauth_') in self.oauth) {
+        // skip 
+      } else {
+        delete oa['oauth_'+i]
+      }
+    }
+    self.headers.authorization = 
+      'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+encodeURIComponent(oa[i])+'"'}).join(',')
+    self.headers.authorization += ',oauth_signature="'+encodeURIComponent(signature)+'"'  
+    
+    // oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g'
+    // , oauth_nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8'
+    // , oauth_signature_method: 'HMAC-SHA1'
+    // , oauth_token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc'
+    // , oauth_timestamp: '1272323047'
+    // , oauth_verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY'
+    // , oauth_version: '1.0'
+  }
 
   if (self.uri.auth && !self.headers.authorization) {
     self.headers.authorization = "Basic " + toBase64(self.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
