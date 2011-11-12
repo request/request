@@ -204,8 +204,8 @@ request('http://www.google.com', function () {
 OR
 ```javascript
 var j = request.jar()
-// you can also set a cookie like so:
-j.add('sid=LsoJ7tV9wfwz2VkE9lxC4EqU.%2BXxV0F9i1hfCMb4uNKZTpAUJLTwlf57FewvHne%2BAGVI; path=/; expires=Sun, 23 Nov 2011 16:50:21 GMT; httpOnly')
+var cookie = request.cookie('sid=LsoJ7tV9wfwz2VkE9lxC4EqU.%2BXxV0F9i1hfCMb4uNKZTpAUJLTwlf57FewvHne%2BAGVI; path=/; expires=Sun, 23 Nov 2011 16:50:21 GMT; httpOnly')
+j.add(cookie)
 request(url: 'http://www.google.com', jar: j, function () {
   request('http://images.google.com')
 })
