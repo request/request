@@ -418,13 +418,16 @@ Request.prototype.request = function () {
                 response.body = JSON.parse(response.body)
               } catch (e) {}
             }
-            if (response.statusCode == 200) {
-              // only add cookies if no custom jar is defined (by the user)
-              if (response.headers['set-cookie'] && !self.jar) {
-                response.headers['set-cookie'].forEach(function(cookie) {
+            if (response.statusCode == 200 && response.headers['set-cookie']) {
+              response.headers['set-cookie'].forEach(function(cookie) {
+                if (self.jar) {
+                  // custom defined jar
+                  self.jar.add(new Cookie(cookie));
+                } else {
+                  // add to the global cookie jar if user don't define his own
                   cookieJar.add(new Cookie(cookie));
-                });
-              }
+                }
+              });
             }
 
             self.callback(null, response, response.body)
