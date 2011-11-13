@@ -140,10 +140,7 @@ Request.prototype.request = function () {
     setHost = true
   }
 
-  // if user tries to define a bad cookie jar
-  if (self.jar && !(self.jar instanceof CookieJar)) {
-    throw new Error("Argument error, options.jar.")
-  } else if (self.jar) {
+  if (self.jar) {
     // fetch cookie from the user defined cookie jar
     var cookies = self.jar.get({ url: self.uri.href })
   } else {
