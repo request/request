@@ -206,7 +206,7 @@ request.jar()
     }
   )
 ```
-The jar holds the state of the cookies being set, each request sends the proper cookies for that domain. The boiler is easy to get rid of with `defaults` or per each request if you set `options.jar`.
+Cookies are enabled by default, so you don't need to specify anything so that the cookies are used in subsequent requests. If you want to use a custom cookie jar (instead of letting request use its own global cookie jar) you do it by setting the jar default or by specifying it as an option:
 
 ```javascript
 var j = request.jar()
