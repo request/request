@@ -140,7 +140,11 @@ Request.prototype.request = function () {
     setHost = true
   }
 
-  if (self.jar) {
+  if (self.jar === false) {
+    // disable cookies
+    var cookies = false;
+    self._disableCookies = true;
+  } else if (self.jar) {
     // fetch cookie from the user defined cookie jar
     var cookies = self.jar.get({ url: self.uri.href })
   } else {
@@ -418,7 +422,7 @@ Request.prototype.request = function () {
                 response.body = JSON.parse(response.body)
               } catch (e) {}
             }
-            if (response.statusCode == 200 && response.headers['set-cookie']) {
+            if (response.statusCode == 200 && response.headers['set-cookie'] && (!self._disableCookies)) {
               response.headers['set-cookie'].forEach(function(cookie) {
                 if (self.jar) {
                   // custom defined jar

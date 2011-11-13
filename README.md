@@ -206,7 +206,16 @@ request.jar()
     }
   )
 ```
-Cookies are enabled by default, so you don't need to specify anything so that the cookies are used in subsequent requests. If you want to use a custom cookie jar (instead of letting request use its own global cookie jar) you do it by setting the jar default or by specifying it as an option:
+Cookies are enabled by default (so they can be used in subsequent requests). To disable cookies set jar to false (either in defaults or in the options sent).
+
+```javascript
+var request = request.defaults({jar: false})
+request('http://www.google.com', function () {
+  request('http://images.google.com')
+})
+```
+
+If you to use a custom cookie jar (instead of letting request use its own global cookie jar) you do so by setting the jar default or by specifying it as an option:
 
 ```javascript
 var j = request.jar()
