@@ -22,6 +22,9 @@ var http = require('http')
   , mimetypes = require('./mimetypes')
   , oauth = require('./oauth')
   , uuid = require('./uuid')
+  , Cookie = require('./vendor/cookie')
+  , CookieJar = require('./vendor/cookie/jar')
+  , cookieJar = new CookieJar
   ;
 
 try {
@@ -136,6 +139,19 @@ Request.prototype.request = function () {
     }
     setHost = true
   }
+
+  if (self.jar === false) {
+    // disable cookies
+    var cookies = false;
+    self._disableCookies = true;
+  } else if (self.jar) {
+    // fetch cookie from the user defined cookie jar
+    var cookies = self.jar.get({ url: self.uri.href })
+  } else {
+    // fetch cookie from the global cookie jar
+    var cookies = cookieJar.get({ url: self.uri.href })
+  }
+  if (cookies) {self.headers.Cookie = cookies}
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
   if (!self.uri.port) {
@@ -406,6 +422,18 @@ Request.prototype.request = function () {
                 response.body = JSON.parse(response.body)
               } catch (e) {}
             }
+            if (response.statusCode == 200 && response.headers['set-cookie'] && (!self._disableCookies)) {
+              response.headers['set-cookie'].forEach(function(cookie) {
+                if (self.jar) {
+                  // custom defined jar
+                  self.jar.add(new Cookie(cookie));
+                } else {
+                  // add to the global cookie jar if user don't define his own
+                  cookieJar.add(new Cookie(cookie));
+                }
+              });
+            }
+
             self.callback(null, response, response.body)
           })
         }
@@ -525,6 +553,8 @@ request.defaults = function (options) {
   de.put = def(request.put)
   de.head = def(request.head)
   de.del = def(request.del)
+  de.cookie = def(request.cookie)
+  de.jar = def(request.jar)
   return de
 }
 
@@ -551,4 +581,11 @@ request.del = function (options, callback) {
   if (typeof options === 'string') options = {uri:options}
   options.method = 'DELETE'
   return request(options, callback)
+}
+request.jar = function () {
+  return new CookieJar
+}
+request.cookie = function (str) {
+  if (typeof str !== 'string') throw new Error("The cookie function only accepts STRING as param")
+  return new Cookie(str)
 }

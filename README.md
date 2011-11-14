@@ -112,6 +112,7 @@ The first argument can be either a url or an options object. The only required o
 * `timeout` - Integer containing the number of milliseconds to wait for a request to respond before aborting the request	
 * `proxy` - An HTTP proxy to be used. Support proxy Auth with Basic Auth the same way it's supported with the `url` parameter by embedding the auth info in the uri.
 * `strictSSL` - Set to `true` to require that SSL certificates be valid. Note: to use your own certificate authority, you need to specify an agent that was created with that ca as an option.
+* `jar` - Set to `false` if you don't want cookies to be remembered for future use or define your custom cookie jar (see examples section)
 
 
 The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body buffer.
@@ -163,6 +164,20 @@ Alias to normal request method for uniformity.
 ```javascript
 request.get(url)
 ```
+### request.cookie
+
+Function that creates a new cookie.
+
+```javascript
+request.cookie('cookie_string_here')
+```
+### request.jar
+
+Function that creates a new cookie jar.
+
+```javascript
+request.jar()
+```
 
 
 ## Examples:
@@ -190,4 +205,32 @@ request.get(url)
       }
     }
   )
+```
+Cookies are enabled by default (so they can be used in subsequent requests). To disable cookies set jar to false (either in defaults or in the options sent).
+
+```javascript
+var request = request.defaults({jar: false})
+request('http://www.google.com', function () {
+  request('http://images.google.com')
+})
+```
+
+If you to use a custom cookie jar (instead of letting request use its own global cookie jar) you do so by setting the jar default or by specifying it as an option:
+
+```javascript
+var j = request.jar()
+var request = request.defaults({jar:j})
+request('http://www.google.com', function () {
+  request('http://images.google.com')
+})
+```
+OR
+
+```javascript
+var j = request.jar()
+var cookie = request.cookie('your_cookie_here')
+j.add(cookie)
+request({url: 'http://www.google.com', jar: j}, function () {
+  request('http://images.google.com')
+})
 ```
