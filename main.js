@@ -151,7 +151,13 @@ Request.prototype.request = function () {
     // fetch cookie from the global cookie jar
     var cookies = cookieJar.get({ url: self.uri.href })
   }
-  if (cookies) {self.headers.Cookie = cookies}
+  if (cookies) {
+      var cookieString = cookies.map(function (c) {
+          return c.name + "=" + c.value;
+      }).join("; ");
+      
+      self.headers.Cookie = cookieString;
+  }
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
   if (!self.uri.port) {
@@ -422,7 +428,7 @@ Request.prototype.request = function () {
                 response.body = JSON.parse(response.body)
               } catch (e) {}
             }
-            if (response.statusCode == 200 && response.headers['set-cookie'] && (!self._disableCookies)) {
+            if (response.headers['set-cookie'] && (!self._disableCookies)) {
               response.headers['set-cookie'].forEach(function(cookie) {
                 if (self.jar) {
                   // custom defined jar
