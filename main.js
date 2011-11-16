@@ -325,6 +325,19 @@ Request.prototype.request = function () {
 
       if (setHost) delete self.headers.host
       if (self.timeout && self.timeoutTimer) clearTimeout(self.timeoutTimer)
+      
+      if (response.headers['set-cookie'] && (!self._disableCookies)) {
+          response.headers['set-cookie'].forEach(function(cookie) {
+              if (self.jar) {
+                  // custom defined jar
+                  self.jar.add(new Cookie(cookie));
+              }
+              else {
+                  // add to the global cookie jar if user don't define his own
+                  cookieJar.add(new Cookie(cookie));
+              }
+          });
+      }
 
       if (response.statusCode >= 300 &&
           response.statusCode < 400  &&
@@ -425,17 +438,6 @@ Request.prototype.request = function () {
               try {
                 response.body = JSON.parse(response.body)
               } catch (e) {}
-            }
-            if (response.headers['set-cookie'] && (!self._disableCookies)) {
-              response.headers['set-cookie'].forEach(function(cookie) {
-                if (self.jar) {
-                  // custom defined jar
-                  self.jar.add(new Cookie(cookie));
-                } else {
-                  // add to the global cookie jar if user don't define his own
-                  cookieJar.add(new Cookie(cookie));
-                }
-              });
             }
 
             self.callback(null, response, response.body)
