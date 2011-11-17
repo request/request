@@ -15,13 +15,12 @@ var port = 6768
 
 var s = server.createServer(port)
 s.listen(port, function () {
-  s.on('/', function (req, res) {
+  s.on('http://google.com/', function (req, res) {
     called = true
     assert.equal(req.headers.host, proxiedHost)
     res.writeHeader(200)
     res.end()
   })
-  console.error('oaneuth')
   request ({
     url: 'http://'+proxiedHost,
     proxy: 'http://localhost:'+port
