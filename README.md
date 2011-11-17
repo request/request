@@ -96,13 +96,14 @@ You can still use intermediate proxies, the requests will still follow HTTP forw
 ## OAuth Signing
 
 ```javascript
+// Twitter OAuth
 var qs = require('querystring')
   , oauth =
-    { callback: 'http://mysite.com/callback/'+this._id
+    { callback: 'http://mysite.com/callback/'
     , consumer_key: CONSUMER_KEY
-    , consumer_secret: CONSUMERSECRET
+    , consumer_secret: CONSUMER_SECRET
     }
-  , url = 'http://api.twitter.com/oauth/request_token'
+  , url = 'https://api.twitter.com/oauth/request_token'
   ;
 request.post({url:url, oauth:oauth}, function (e, r, body) {
   // Assume by some stretch of magic you aquired the verifier
