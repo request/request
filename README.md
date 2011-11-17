@@ -93,6 +93,53 @@ http.createServer(function (req, resp) {
 
 You can still use intermediate proxies, the requests will still follow HTTP forwards, etc.
 
+## OAuth Signing
+
+```javascript
+var qs = require('querystring')
+  , oauth =
+    { callback: 'http://mysite.com/callback/'+this._id
+    , consumer_key: CONSUMER_KEY
+    , consumer_secret: CONSUMERSECRET
+    }
+  , url = 'http://api.twitter.com/oauth/request_token'
+  ;
+request.post({url:url, oauth:oauth}, function (e, r, body) {
+  // Assume by some stretch of magic you aquired the verifier
+  var access_token = qs.parse(body)
+    , oauth = 
+      { consumer_key: CONSUMER_KEY
+      , consumer_secret: CONSUMER_SECRET
+      , token: access_token.oauth_token
+      , verifier: VERIFIER
+      , token_secret: access_token.oauth_token_secret
+      }
+    , url = 'https://api.twitter.com/oauth/access_token'
+    ;
+  request.post({url:url, oauth:oauth}, function (e, r, body) {
+    var perm_token = qs.parse(body)
+      , oauth = 
+        { consumer_key: CONSUMER_KEY
+        , consumer_secret: CONSUMER_SECRET
+        , token: perm_token.oauth_token
+        , token_secret: perm_token.oauth_token_secret
+        }
+      , url = 'https://https://api.twitter.com/1/users/show.json?'
+      , params = 
+        { screen_name: perm_token.screen_name
+        , user_id: perm_token.user_id
+        }
+      ;
+    url += qs.stringify(params)
+    request.get({url:url, oauth:oauth, json:true}, function (e, r, user) {
+      console.log(user)
+    })
+  })
+})
+```
+
+
+
 ### request(options, callback)
 
 The first argument can be either a url or an options object. The only required option is uri, all others are optional.
