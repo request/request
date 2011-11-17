@@ -125,7 +125,7 @@ request.post({url:url, oauth:oauth}, function (e, r, body) {
         , token: perm_token.oauth_token
         , token_secret: perm_token.oauth_token_secret
         }
-      , url = 'https://https://api.twitter.com/1/users/show.json?'
+      , url = 'https://api.twitter.com/1/users/show.json?'
       , params = 
         { screen_name: perm_token.screen_name
         , user_id: perm_token.user_id
