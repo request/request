@@ -159,6 +159,7 @@ The first argument can be either a url or an options object. The only required o
 * `pool.maxSockets` - Integer containing the maximum amount of sockets in the pool.
 * `timeout` - Integer containing the number of milliseconds to wait for a request to respond before aborting the request	
 * `proxy` - An HTTP proxy to be used. Support proxy Auth with Basic Auth the same way it's supported with the `url` parameter by embedding the auth info in the uri.
+* `oauth` - Options for OAuth HMAC-SHA1 signing, see documentation above.
 * `strictSSL` - Set to `true` to require that SSL certificates be valid. Note: to use your own certificate authority, you need to specify an agent that was created with that ca as an option.
 * `jar` - Set to `false` if you don't want cookies to be remembered for future use or define your custom cookie jar (see examples section)
 
