@@ -40,9 +40,8 @@ var Cookie = exports = module.exports = function Cookie(str, req) {
     : Infinity;
 
   // Default or trim path
-  this.path = this.path
-    ? this.path.trim()
-    : url.parse(req.url).pathname;
+  var pathName = Object.keys(this).filter(function (k) { return !!k.match(/path/i); })[0];
+  this.path = (pathName) ? this[pathName] : "/";
 };
 
 /**
