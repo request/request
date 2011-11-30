@@ -204,8 +204,8 @@ Request.prototype.request = function () {
     } 
     if (!form) form = {}
     var oa = {}
-    for (i in form) oa[i] = form[i]
-    for (i in self.oauth) oa['oauth_'+i] = self.oauth[i]
+    for (var i in form) oa[i] = form[i]
+    for (var i in self.oauth) oa['oauth_'+i] = self.oauth[i]
     if (!oa.oauth_version) oa.oauth_version = '1.0'
     if (!oa.oauth_timestamp) oa.oauth_timestamp = Math.floor( (new Date()).getTime() / 1000 ).toString()
     if (!oa.oauth_nonce) oa.oauth_nonce = uuid().replace(/-/g, '')
@@ -221,7 +221,7 @@ Request.prototype.request = function () {
     var signature = oauth.hmacsign(self.method, baseurl, oa, consumer_secret, token_secret)
     
     // oa.oauth_signature = signature
-    for (i in form) {
+    for (var i in form) {
       if ( i.slice(0, 'oauth_') in self.oauth) {
         // skip 
       } else {
@@ -259,7 +259,7 @@ Request.prototype.request = function () {
     }
 
   } else if (self.multipart) {
-    self.body = ''
+    self.body = [];
     self.headers['content-type'] = 'multipart/related;boundary="frontier"'
     if (!self.multipart.forEach) throw new Error('Argument error, options.multipart.')
 
@@ -267,21 +267,34 @@ Request.prototype.request = function () {
       var body = part.body
       if(!body) throw Error('Body attribute missing in multipart.')
       delete part.body
-      self.body += '--frontier\r\n'
+      var preamble = '--frontier\r\n'
       Object.keys(part).forEach(function(key){
-        self.body += key + ': ' + part[key] + '\r\n'
+        preamble += key + ': ' + part[key] + '\r\n'
       })
-      self.body += '\r\n' + body + '\r\n'
+      preamble += '\r\n';
+      self.body.push(new Buffer(preamble));
+      self.body.push(new Buffer(body));
+      self.body.push(new Buffer('\r\n'));
     })
-    self.body += '--frontier--'
+    self.body.push(new Buffer('--frontier--'));
   }
 
   if (self.body) {
+    var length = 0;
     if (!Buffer.isBuffer(self.body)) {
-      self.body = new Buffer(self.body)
+      if (Array.isArray(self.body)) {
+        for (var i = 0; i < self.body.length; i++) {
+          length += self.body[i].length;
+        }
+      } else {
+        self.body = new Buffer(self.body)
+        length = self.body.length;
+      }
+    } else {
+      length = self.body.length;
     }
-    if (self.body.length) {
-      self.headers['content-length'] = self.body.length
+    if (length) {
+      self.headers['content-length'] = length;
     } else {
       throw new Error('Argument error, options.body.')
     }
@@ -486,7 +499,13 @@ Request.prototype.request = function () {
 
   process.nextTick(function () {
     if (self.body) {
-      self.write(self.body)
+      if (Array.isArray(self.body)) {
+        self.body.forEach(function(part) {
+          self.write(part);
+        });
+      } else {
+        self.write(self.body)
+      }
       self.end()
     } else if (self.requestBodyStream) {
       console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")

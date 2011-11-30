@@ -93,6 +93,54 @@ http.createServer(function (req, resp) {
 
 You can still use intermediate proxies, the requests will still follow HTTP forwards, etc.
 
+## OAuth Signing
+
+```javascript
+// Twitter OAuth
+var qs = require('querystring')
+  , oauth =
+    { callback: 'http://mysite.com/callback/'
+    , consumer_key: CONSUMER_KEY
+    , consumer_secret: CONSUMER_SECRET
+    }
+  , url = 'https://api.twitter.com/oauth/request_token'
+  ;
+request.post({url:url, oauth:oauth}, function (e, r, body) {
+  // Assume by some stretch of magic you aquired the verifier
+  var access_token = qs.parse(body)
+    , oauth = 
+      { consumer_key: CONSUMER_KEY
+      , consumer_secret: CONSUMER_SECRET
+      , token: access_token.oauth_token
+      , verifier: VERIFIER
+      , token_secret: access_token.oauth_token_secret
+      }
+    , url = 'https://api.twitter.com/oauth/access_token'
+    ;
+  request.post({url:url, oauth:oauth}, function (e, r, body) {
+    var perm_token = qs.parse(body)
+      , oauth = 
+        { consumer_key: CONSUMER_KEY
+        , consumer_secret: CONSUMER_SECRET
+        , token: perm_token.oauth_token
+        , token_secret: perm_token.oauth_token_secret
+        }
+      , url = 'https://api.twitter.com/1/users/show.json?'
+      , params = 
+        { screen_name: perm_token.screen_name
+        , user_id: perm_token.user_id
+        }
+      ;
+    url += qs.stringify(params)
+    request.get({url:url, oauth:oauth, json:true}, function (e, r, user) {
+      console.log(user)
+    })
+  })
+})
+```
+
+
+
 ### request(options, callback)
 
 The first argument can be either a url or an options object. The only required option is uri, all others are optional.
@@ -111,6 +159,7 @@ The first argument can be either a url or an options object. The only required o
 * `pool.maxSockets` - Integer containing the maximum amount of sockets in the pool.
 * `timeout` - Integer containing the number of milliseconds to wait for a request to respond before aborting the request	
 * `proxy` - An HTTP proxy to be used. Support proxy Auth with Basic Auth the same way it's supported with the `url` parameter by embedding the auth info in the uri.
+* `oauth` - Options for OAuth HMAC-SHA1 signing, see documentation above.
 * `strictSSL` - Set to `true` to require that SSL certificates be valid. Note: to use your own certificate authority, you need to specify an agent that was created with that ca as an option.
 * `jar` - Set to `false` if you don't want cookies to be remembered for future use or define your custom cookie jar (see examples section)
 
@@ -188,7 +237,7 @@ request.jar()
     ;
   request(
     { method: 'PUT'
-    , uri: 'http://mikeal.couchone.com/testjs/' + rand
+    , uri: 'http://mikeal.iriscouch.com/testjs/' + rand
     , multipart: 
       [ { 'content-type': 'application/json'
         ,  body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})
@@ -198,7 +247,7 @@ request.jar()
     }
   , function (error, response, body) {
       if(response.statusCode == 201){
-        console.log('document saved as: http://mikeal.couchone.com/testjs/'+ rand)
+        console.log('document saved as: http://mikeal.iriscouch.com/testjs/'+ rand)
       } else {
         console.log('error: '+ response.statusCode)
         console.log(body)
