@@ -151,7 +151,13 @@ Request.prototype.request = function () {
     // fetch cookie from the global cookie jar
     var cookies = cookieJar.get({ url: self.uri.href })
   }
-  if (cookies) {self.headers.Cookie = cookies}
+  if (cookies) {
+      var cookieString = cookies.map(function (c) {
+          return c.name + "=" + c.value;
+      }).join("; ");
+      
+      self.headers.Cookie = cookieString;
+  }
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
   if (!self.uri.port) {
@@ -332,6 +338,19 @@ Request.prototype.request = function () {
 
       if (setHost) delete self.headers.host
       if (self.timeout && self.timeoutTimer) clearTimeout(self.timeoutTimer)
+      
+      if (response.headers['set-cookie'] && (!self._disableCookies)) {
+          response.headers['set-cookie'].forEach(function(cookie) {
+              if (self.jar) {
+                  // custom defined jar
+                  self.jar.add(new Cookie(cookie));
+              }
+              else {
+                  // add to the global cookie jar if user don't define his own
+                  cookieJar.add(new Cookie(cookie));
+              }
+          });
+      }
 
       if (response.statusCode >= 300 &&
           response.statusCode < 400  &&
@@ -434,17 +453,6 @@ Request.prototype.request = function () {
               try {
                 response.body = JSON.parse(response.body)
               } catch (e) {}
-            }
-            if (response.statusCode == 200 && response.headers['set-cookie'] && (!self._disableCookies)) {
-              response.headers['set-cookie'].forEach(function(cookie) {
-                if (self.jar) {
-                  // custom defined jar
-                  self.jar.add(new Cookie(cookie));
-                } else {
-                  // add to the global cookie jar if user don't define his own
-                  cookieJar.add(new Cookie(cookie));
-                }
-              });
             }
 
             self.callback(null, response, response.body)
