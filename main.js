@@ -229,8 +229,8 @@ Request.prototype.request = function () {
       }
     }
     self.headers.authorization = 
-      'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+encodeURIComponent(oa[i])+'"'}).join(',')
-    self.headers.authorization += ',oauth_signature="'+encodeURIComponent(signature)+'"'  
+      'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+oauth.rfc3986(oa[i])+'"'}).join(',')
+    self.headers.authorization += ',oauth_signature="'+oauth.rfc3986(signature)+'"'  
   }
 
   if (self.uri.auth && !self.headers.authorization) {
