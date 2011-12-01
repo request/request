@@ -13,7 +13,7 @@ function hmacsign (httpMethod, base_uri, params, consumer_secret, token_secret, 
     encodeURIComponent(  base_uri ) + "&" +
     Object.keys(params).sort().map(function (i) {
       // big WTF here with the escape + encoding but it's what twitter wants
-      return encodeURIComponent(qs.escape(i)) + "%3D" + encodeURIComponent(qs.escape(params[i]))
+      return encodeURIComponent(escape(i)) + "%3D" + encodeURIComponent(escape(params[i]))
     }).join("%26")
   var key = consumer_secret + '&'
   if (token_secret) key += token_secret
