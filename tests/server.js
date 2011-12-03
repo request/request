@@ -1,4 +1,7 @@
-var http = require('http')
+var fs = require('fs')
+  , http = require('http')
+  , path = require('path')
+  , https = require('https')
   , events = require('events')
   , stream = require('stream')
   , assert = require('assert')
@@ -11,6 +14,21 @@ exports.createServer =  function (port) {
   })
   s.port = port
   s.url = 'http://localhost:'+port
+  return s;
+}
+
+exports.createSSLServer = function(port) {
+  port = port || 16767
+
+  var options = { 'key' : fs.readFileSync(path.join(__dirname, 'ssl', 'test.key'))
+                , 'cert': fs.readFileSync(path.join(__dirname, 'ssl', 'test.crt'))
+                }
+
+  var s = https.createServer(options, function (req, resp) {
+    s.emit(req.url, req, resp);
+  })
+  s.port = port
+  s.url = 'https://localhost:'+port
   return s;
 }
 
