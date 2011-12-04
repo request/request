@@ -300,8 +300,11 @@ Request.prototype.request = function () {
     }
   }
 
-  self.httpModule =
-    {"http:":http, "https:":https}[self.proxy ? self.proxy.protocol : self.uri.protocol]
+  var protocol = self.proxy ? self.proxy.protocol : self.uri.protocol
+    , defaultModules = {'http:':http, 'https:':https}
+    , httpModules = self.httpModules || {}
+
+  self.httpModule = httpModules[protocol] || defaultModules[protocol]
 
   if (!self.httpModule) throw new Error("Invalid protocol")
 
