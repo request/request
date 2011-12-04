@@ -447,7 +447,7 @@ Request.prototype.request = function () {
                 chunk.copy(body, i, 0, chunk.length)
                 i += chunk.length
               })
-              response.body = body.toString()
+              response.body = body;
             } else if (buffer.length) {
               response.body = buffer.join('')
             }
