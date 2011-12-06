@@ -128,6 +128,7 @@ Request.prototype.request = function () {
     self.redirects = self.redirects || []
 
   self.headers = self.headers ? copy(self.headers) : {}
+  self.method = self.method || 'GET'
 
   var setHost = false
   if (!self.headers.host) {
@@ -325,7 +326,6 @@ Request.prototype.request = function () {
 
   self.start = function () {
     self._started = true
-    self.method = self.method || 'GET'
 
     self.req = self.httpModule.request(self, function (response) {
       self.response = response
