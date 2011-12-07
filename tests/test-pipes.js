@@ -163,5 +163,20 @@ s.listen(s.port, function () {
     afterresp.pipe(v)
     v.on('end', check)
   })
+  
+  s.on('/forward1', function (req, resp) {
+   resp.writeHead(302, {location:'/forward2'})
+    resp.end()
+  })
+  s.on('/forward2', function (req, resp) {
+    resp.writeHead('200', {'content-type':'image/png'})
+    resp.write('d')
+    resp.end()
+  })
+  
+  counter++
+  var validateForward = new ValidationStream('d')
+  validateForward.on('end', check)
+  request.get('http://localhost:3453/forward1').pipe(validateForward)
 
 })
