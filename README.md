@@ -154,7 +154,7 @@ The first argument can be either a url or an options object. The only required o
 * `followRedirect` - follow HTTP 3xx responses as redirects. defaults to true.
 * `maxRedirects` - the maximum number of redirects to follow, defaults to 10.
 * `onResponse` - If true the callback will be fired on the "response" event instead of "end". If a function it will be called on "response" and not effect the regular semantics of the main callback on "end".
-* `encoding` - Encoding to be used on response.setEncoding when buffering the response data.
+* `encoding` - Encoding to be used on `setEncoding` of response data. If set to `null`, the body is returned as a Buffer.
 * `pool` - A hash object containing the agents for these requests. If omitted this request will use the global pool which is set to node's default maxSockets.
 * `pool.maxSockets` - Integer containing the maximum amount of sockets in the pool.
 * `timeout` - Integer containing the number of milliseconds to wait for a request to respond before aborting the request	
@@ -164,7 +164,7 @@ The first argument can be either a url or an options object. The only required o
 * `jar` - Set to `false` if you don't want cookies to be remembered for future use or define your custom cookie jar (see examples section)
 
 
-The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body buffer.
+The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body String or Buffer.
 
 ## Convenience methods
 
