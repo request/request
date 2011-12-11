@@ -25,11 +25,16 @@ var tests =
       ])
     , expectBody: "Ω☃"
     }
-  , testGetJSON :
-    { resp : server.createGetResponse('{"test":true}', 'application/json')
-    , json : true
-    , expectBody: {"test":true}
+  , testGetBuffer :
+    { resp : server.createGetResponse(new Buffer("TESTING!"))
+    , encoding: null
+    , expectBody: new Buffer("TESTING!")
     }
+  , testGetJSON :
+     { resp : server.createGetResponse('{"test":true}', 'application/json')
+     , json : true
+     , expectBody: {"test":true}
+     }
   , testPutString :
     { resp : server.createPostValidator("PUTTINGDATA")
     , method : "PUT"
