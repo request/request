@@ -373,6 +373,10 @@ Request.prototype.request = function () {
         self.uri = response.headers.location
         self.redirects.push( { statusCode : response.statusCode,
                                redirectUri: response.headers.location })
+        //following RFC 2616 
+        if (response.statusCode===303) {
+          self.method='GET';
+        }
         delete self.req
         delete self.agent
         delete self._started
