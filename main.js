@@ -447,7 +447,11 @@ Request.prototype.request = function () {
                 chunk.copy(body, i, 0, chunk.length)
                 i += chunk.length
               })
-              response.body = body.toString()
+              if (self.encoding === null) {
+                response.body = body
+              } else {
+                response.body = body.toString()
+              }
             } else if (buffer.length) {
               response.body = buffer.join('')
             }
