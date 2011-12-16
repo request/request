@@ -167,10 +167,10 @@ Request.prototype.request = function () {
 
   if (self.proxy) {
     self.port = self.proxy.port
-    self.hostname = self.proxy.hostname
+    self.host = self.proxy.hostname
   } else {
     self.port = self.uri.port
-    self.hostname = self.uri.hostname
+    self.host = self.uri.hostname
   }
 
   if (self.onResponse === true) {
@@ -313,12 +313,12 @@ Request.prototype.request = function () {
   } else {
     if (self.maxSockets) {
       // Don't use our pooling if node has the refactored client
-      self.agent = self.httpModule.globalAgent || self.getAgent(self.hostname, self.port)
+      self.agent = self.httpModule.globalAgent || self.getAgent(self.host, self.port)
       self.agent.maxSockets = self.maxSockets
     }
     if (self.pool.maxSockets) {
       // Don't use our pooling if node has the refactored client
-      self.agent = self.httpModule.globalAgent || self.getAgent(self.hostname, self.port)
+      self.agent = self.httpModule.globalAgent || self.getAgent(self.host, self.port)
       self.agent.maxSockets = self.pool.maxSockets
     }
   }
