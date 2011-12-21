@@ -140,6 +140,10 @@ Request.prototype.request = function () {
     setHost = true
   }
 
+  if (self.headers && !self.headers.Cookie && self.headers.cookie) {
+    self.headers.Cookie = self.headers.cookie; // be forgiving
+  }
+
   if (self.jar === false) {
     // disable cookies
     var cookies = false;
@@ -151,12 +155,14 @@ Request.prototype.request = function () {
     // fetch cookie from the global cookie jar
     var cookies = cookieJar.get({ url: self.uri.href })
   }
-  if (cookies) {
-      var cookieString = cookies.map(function (c) {
-          return c.name + "=" + c.value;
-      }).join("; ");
-      
-      self.headers.Cookie = cookieString;
+
+  if (cookies && !self.headers.Cookie) {
+    // preserve cookie string if pre-set by the user
+    var cookieString = cookies.map(function (c) {
+      return c.name + "=" + c.value;
+    }).join("; ");
+    
+    self.headers.Cookie = cookieString;
   }
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
