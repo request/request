@@ -26,6 +26,10 @@ var http = require('http')
   , CookieJar = require('./vendor/cookie/jar')
   , cookieJar = new CookieJar
   ;
+  
+if (process.logging) {
+  var log = process.logging('request')
+}
 
 try {
   https = require('https')
@@ -326,7 +330,7 @@ Request.prototype.request = function () {
   self.start = function () {
     self._started = true
     self.method = self.method || 'GET'
-
+    if (log) log('%method %uri', self)
     self.req = self.httpModule.request(self, function (response) {
       self.response = response
       response.request = self
@@ -379,6 +383,7 @@ Request.prototype.request = function () {
         if (self.headers) {
           delete self.headers.host
         }
+        if (log) log('Redirect to %uri', self)
         request(self, self.callback)
         return // Ignore the rest of the response
       } else {
@@ -427,6 +432,7 @@ Request.prototype.request = function () {
         })
         response.on("close", function () {self.emit("close")})
 
+        if (log) log('Response %statusCode', response)
         self.emit('response', response)
 
         if (self.onResponse) {
