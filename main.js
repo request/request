@@ -330,7 +330,8 @@ Request.prototype.request = function () {
   self.start = function () {
     self._started = true
     self.method = self.method || 'GET'
-    if (log) log('%method %uri.href', self)
+    self.href = self.uri.href
+    if (log) log('%method %href', self)
     self.req = self.httpModule.request(self, function (response) {
       self.response = response
       response.request = self
