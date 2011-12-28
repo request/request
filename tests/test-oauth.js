@@ -56,7 +56,7 @@ console.log('yOahq5m0YjDDjfjxHaXEsW9D+X0=')
 assert.equal(upsign, 'yOahq5m0YjDDjfjxHaXEsW9D+X0=')
 
 
-var r = request.post(
+var rsign = request.post(
   { url: 'https://api.twitter.com/oauth/request_token'
   , oauth: 
     { callback: 'http://localhost:3005/the_dance/process_callback?service_provider_id=11'
@@ -68,10 +68,12 @@ var r = request.post(
     }
   })
 
-console.log(getsignature(r))
-assert.equal(reqsign, getsignature(r))
+setTimeout(function () {
+  console.log(getsignature(rsign))
+  assert.equal(reqsign, getsignature(rsign))
+})
 
-var r = request.post(
+var raccsign = request.post(
   { url: 'https://api.twitter.com/oauth/access_token'
   , oauth:  
     { consumer_key: 'GDdmIQH6jhtmLUypg82g'
@@ -86,10 +88,12 @@ var r = request.post(
     }
   })
 
-console.log(getsignature(r))
-assert.equal(accsign, getsignature(r))
+setTimeout(function () {
+  console.log(getsignature(raccsign))
+  assert.equal(accsign, getsignature(raccsign))
+}, 1) 
 
-var r = request.post(
+var rupsign = request.post(
   { url: 'http://api.twitter.com/1/statuses/update.json' 
   , oauth: 
     { consumer_key: "GDdmIQH6jhtmLUypg82g"
@@ -103,7 +107,11 @@ var r = request.post(
     }
   , form: {status: 'setting up my twitter 私のさえずりを設定する'} 
   })
+setTimeout(function () {
+  console.log(getsignature(rupsign))
+  assert.equal(upsign, getsignature(rupsign))
+}, 1)
 
-console.log(getsignature(r))
-assert.equal(upsign, getsignature(r))
+
+
 
