@@ -1,7 +1,7 @@
 var Cookie = require('../vendor/cookie')
   , assert = require('assert');
 
-var str = 'sid=s543qactge.wKE61E01Bs%2BKhzmxrwrnug; path=/; httpOnly; expires=Sat, 04 Dec 2010 23:27:28 GMT';
+var str = 'sid="s543qactge.wKE61E01Bs%2BKhzmxrwrnug="; path=/; httpOnly; expires=Sat, 04 Dec 2010 23:27:28 GMT';
 var cookie = new Cookie(str);
 
 // test .toString()
@@ -17,7 +17,7 @@ assert.equal(cookie.httpOnly, true);
 assert.equal(cookie.name, 'sid');
 
 // test .value
-assert.equal(cookie.value, 's543qactge.wKE61E01Bs%2BKhzmxrwrnug');
+assert.equal(cookie.value, '"s543qactge.wKE61E01Bs%2BKhzmxrwrnug="');
 
 // test .expires
 assert.equal(cookie.expires instanceof Date, true);
