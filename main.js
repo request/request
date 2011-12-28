@@ -156,11 +156,11 @@ Request.prototype.request = function () {
     var cookies = cookieJar.get({ url: self.uri.href })
   }
   if (cookies) {
-      var cookieString = cookies.map(function (c) {
-          return c.name + "=" + c.value;
-      }).join("; ");
-      
-      self.headers.Cookie = cookieString;
+    var cookieString = cookies.map(function (c) {
+      return c.name + "=" + c.value;
+    }).join("; ");
+    
+    self.headers.Cookie = cookieString;
   }
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
@@ -263,7 +263,7 @@ Request.prototype.request = function () {
     }
 
   } else if (self.multipart) {
-    self.body = [];
+    self.body = []
     self.headers['content-type'] = 'multipart/related;boundary="frontier"'
     if (!self.multipart.forEach) throw new Error('Argument error, options.multipart.')
 
@@ -275,30 +275,30 @@ Request.prototype.request = function () {
       Object.keys(part).forEach(function(key){
         preamble += key + ': ' + part[key] + '\r\n'
       })
-      preamble += '\r\n';
-      self.body.push(new Buffer(preamble));
-      self.body.push(new Buffer(body));
-      self.body.push(new Buffer('\r\n'));
+      preamble += '\r\n'
+      self.body.push(new Buffer(preamble))
+      self.body.push(new Buffer(body))
+      self.body.push(new Buffer('\r\n'))
     })
-    self.body.push(new Buffer('--frontier--'));
+    self.body.push(new Buffer('--frontier--'))
   }
 
   if (self.body) {
-    var length = 0;
+    var length = 0
     if (!Buffer.isBuffer(self.body)) {
       if (Array.isArray(self.body)) {
         for (var i = 0; i < self.body.length; i++) {
-          length += self.body[i].length;
+          length += self.body[i].length
         }
       } else {
         self.body = new Buffer(self.body)
-        length = self.body.length;
+        length = self.body.length
       }
     } else {
-      length = self.body.length;
+      length = self.body.length
     }
     if (length) {
-      self.headers['content-length'] = length;
+      self.headers['content-length'] = length
     } else {
       throw new Error('Argument error, options.body.')
     }
@@ -307,7 +307,7 @@ Request.prototype.request = function () {
   var protocol = self.proxy ? self.proxy.protocol : self.uri.protocol
     , defaultModules = {'http:':http, 'https:':https}
     , httpModules = self.httpModules || {}
-
+    ;
   self.httpModule = httpModules[protocol] || defaultModules[protocol]
 
   if (!self.httpModule) throw new Error("Invalid protocol")
@@ -330,7 +330,7 @@ Request.prototype.request = function () {
   self.start = function () {
     self._started = true
     self.method = self.method || 'GET'
-    if (log) log('%method %uri', self)
+    if (log) log('%method %uri.href', self)
     self.req = self.httpModule.request(self, function (response) {
       self.response = response
       response.request = self
@@ -347,16 +347,10 @@ Request.prototype.request = function () {
       if (self.timeout && self.timeoutTimer) clearTimeout(self.timeoutTimer)
       
       if (response.headers['set-cookie'] && (!self._disableCookies)) {
-          response.headers['set-cookie'].forEach(function(cookie) {
-              if (self.jar) {
-                  // custom defined jar
-                  self.jar.add(new Cookie(cookie));
-              }
-              else {
-                  // add to the global cookie jar if user don't define his own
-                  cookieJar.add(new Cookie(cookie));
-              }
-          });
+        response.headers['set-cookie'].forEach(function(cookie) {
+          if (self.jar) self.jar.add(new Cookie(cookie))
+          else cookieJar.add(new Cookie(cookie))
+        })
       }
 
       if (response.statusCode >= 300 &&
@@ -375,8 +369,11 @@ Request.prototype.request = function () {
           response.headers.location = url.resolve(self.uri.href, response.headers.location)
         }
         self.uri = response.headers.location
-        self.redirects.push( { statusCode : response.statusCode,
-                               redirectUri: response.headers.location })
+        self.redirects.push(
+          { statusCode : response.statusCode
+          , redirectUri: response.headers.location 
+          }
+        )
         delete self.req
         delete self.agent
         delete self._started
@@ -432,7 +429,6 @@ Request.prototype.request = function () {
         })
         response.on("close", function () {self.emit("close")})
 
-        if (log) log('Response %statusCode', response)
         self.emit('response', response)
 
         if (self.onResponse) {
@@ -476,13 +472,13 @@ Request.prototype.request = function () {
 
     if (self.timeout) {
       self.timeoutTimer = setTimeout(function() {
-          self.req.abort()
-          var e = new Error("ETIMEDOUT")
-          e.code = "ETIMEDOUT"
-          self.emit("error", e)
+        self.req.abort()
+        var e = new Error("ETIMEDOUT")
+        e.code = "ETIMEDOUT"
+        self.emit("error", e)
       }, self.timeout)
     }
-
+    
     self.req.on('error', clientErrorHandler)
   }
 
@@ -514,8 +510,8 @@ Request.prototype.request = function () {
     if (self.body) {
       if (Array.isArray(self.body)) {
         self.body.forEach(function(part) {
-          self.write(part);
-        });
+          self.write(part)
+        })
       } else {
         self.write(self.body)
       }
