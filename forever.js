@@ -16,10 +16,8 @@ function ForeverAgent(options) {
     var name = host + ':' + port
     delete socket._reused
     if (self.requests[name] && self.requests[name].length) {
-      console.log('FREE, IMMEDIATE REUSE')
       self.requests[name].shift().onSocket(socket)
     } else if (self.sockets[name].length < self.minSockets) {
-      console.log('FREE, IDLING')
       if (!self.freeSockets[name]) self.freeSockets[name] = []
       self.freeSockets[name].push(socket)
       
@@ -30,7 +28,6 @@ function ForeverAgent(options) {
       socket._onIdleError = onIdleError
       socket.on('error', onIdleError)
     } else {
-      console.log('FREE, DESTROYING')
       // If there are no pending requests just destroy the
       // socket and it will get removed from the pool. This
       // gets us out of timeout issues and allows us to
