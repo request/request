@@ -14,14 +14,13 @@ function ForeverAgent(options) {
   self.minSockets = self.options.minSockets || ForeverAgent.defaultMinSockets
   self.on('free', function(socket, host, port) {
     var name = host + ':' + port
-    delete socket._reused
     if (self.requests[name] && self.requests[name].length) {
       self.requests[name].shift().onSocket(socket)
     } else if (self.sockets[name].length < self.minSockets) {
       if (!self.freeSockets[name]) self.freeSockets[name] = []
       self.freeSockets[name].push(socket)
       
-      // if an error happens while we don't use the socket anyway, meh, throw the socket
+      // if an error happens while we don't use the socket anyway, meh, throw the socket away
       function onIdleError() {
         socket.destroy()
       }
@@ -48,7 +47,7 @@ ForeverAgent.prototype.addRequest = function(req, host, port) {
     var idleSocket = this.freeSockets[name].pop()
     idleSocket.removeListener('error', idleSocket._onIdleError)
     delete idleSocket._onIdleError
-    idleSocket._reused = true
+    req._reusedSocket = true
     req.onSocket(idleSocket)
   } else {
     this.addRequestNoreuse(req, host, port)

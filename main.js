@@ -185,6 +185,12 @@ Request.prototype.request = function () {
 
   var clientErrorHandler = function (error) {
     if (setHost) delete self.headers.host
+    if (self.req._reusedSocket && error.code === 'ECONNRESET') {
+      self.agent = {addRequest: ForeverAgent.prototype.addRequestNoreuse.bind(self.agent)}
+      self.start()
+      self.req.end()
+      return
+    }
     if (self.timeout && self.timeoutTimer) clearTimeout(self.timeoutTimer)
     self.emit('error', error)
   }
@@ -472,7 +478,7 @@ Request.prototype.request = function () {
       }
     })
 
-    if (self.timeout) {
+    if (self.timeout && !self.timeoutTimer) {
       self.timeoutTimer = setTimeout(function() {
         self.req.abort()
         var e = new Error("ETIMEDOUT")
