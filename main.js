@@ -22,6 +22,7 @@ var http = require('http')
   , mimetypes = require('./mimetypes')
   , oauth = require('./oauth')
   , uuid = require('./uuid')
+  , ForeverAgent = require('./forever')
   , Cookie = require('./vendor/cookie')
   , CookieJar = require('./vendor/cookie/jar')
   , cookieJar = new CookieJar
@@ -184,6 +185,12 @@ Request.prototype.request = function () {
 
   var clientErrorHandler = function (error) {
     if (setHost) delete self.headers.host
+    if (self.req._reusedSocket && error.code === 'ECONNRESET') {
+      self.agent = {addRequest: ForeverAgent.prototype.addRequestNoreuse.bind(self.agent)}
+      self.start()
+      self.req.end()
+      return
+    }
     if (self.timeout && self.timeoutTimer) clearTimeout(self.timeoutTimer)
     self.emit('error', error)
   }
@@ -323,12 +330,12 @@ Request.prototype.request = function () {
   } else {
     if (self.maxSockets) {
       // Don't use our pooling if node has the refactored client
-      self.agent = self.httpModule.globalAgent || self.getAgent(self.host, self.port)
+      self.agent = self.agent || self.httpModule.globalAgent || self.getAgent(self.host, self.port)
       self.agent.maxSockets = self.maxSockets
     }
     if (self.pool.maxSockets) {
       // Don't use our pooling if node has the refactored client
-      self.agent = self.httpModule.globalAgent || self.getAgent(self.host, self.port)
+      self.agent = self.agent || self.httpModule.globalAgent || self.getAgent(self.host, self.port)
       self.agent.maxSockets = self.pool.maxSockets
     }
   }
@@ -477,7 +484,7 @@ Request.prototype.request = function () {
       }
     })
 
-    if (self.timeout) {
+    if (self.timeout && !self.timeoutTimer) {
       self.timeoutTimer = setTimeout(function() {
         self.req.abort()
         var e = new Error("ETIMEDOUT")
@@ -599,6 +606,17 @@ request.defaults = function (options) {
   de.cookie = def(request.cookie)
   de.jar = def(request.jar)
   return de
+}
+
+request.forever = function (agentOptions, optionsArg) {
+  var options = {}
+  if (agentOptions) {
+    for (option in optionsArg) {
+      options[option] = optionsArg[option]
+    }
+  }
+  options.agent = new ForeverAgent(agentOptions)
+  return request.defaults(options)
 }
 
 request.get = request
