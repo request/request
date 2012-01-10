@@ -7,7 +7,7 @@ var server = require('./server')
 
 var s = server.createServer();
 var expectedBody = "waited";
-var remainingTests = 5;
+var remainingTests = 6;
 
 s.listen(s.port, function () {
   // Request that waits for 200ms
@@ -73,6 +73,16 @@ s.listen(s.port, function () {
   }
 
   request(floatTimeout, function (err, resp, body) {
+    assert.equal(err.code, "ETIMEDOUT");
+    checkDone();
+  })
+
+  // Set timeout via defaults
+  var o = {
+    url: s.url + "/timeout"
+  }
+  var r = request.defaults({timeout: 50});
+  r(o, function (err, resp, body) {
     assert.equal(err.code, "ETIMEDOUT");
     checkDone();
   })
