@@ -77,6 +77,7 @@ var globalPool = {}
 
 function Request (options) {
   stream.Stream.call(this)
+  this.method = 'GET'
   this.readable = true
   this.writable = true
 
