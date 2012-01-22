@@ -146,6 +146,9 @@ Request.prototype.request = function () {
     setHost = true
   }
 
+  if (self._redirectsFollowed === 0) {
+    self.originalCookieHeader = self.headers.cookie;
+  }
   if (self.jar === false) {
     // disable cookies
     var cookies = false;
@@ -162,9 +165,9 @@ Request.prototype.request = function () {
       return c.name + "=" + c.value
     }).join("; ")
 
-    if (self.headers.cookie) {
+    if (self.originalCookieHeader) {
       // Don't overwrite existing Cookie header
-      self.headers.cookie += '; ' + cookieString
+      self.headers.cookie = self.originalCookieHeader + '; ' + cookieString
     } else {
       self.headers.cookie = cookieString
     }
