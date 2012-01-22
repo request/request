@@ -157,12 +157,17 @@ Request.prototype.request = function () {
     // fetch cookie from the global cookie jar
     var cookies = cookieJar.get({ url: self.uri.href })
   }
-  if (cookies) {
+  if (cookies && cookies.length) {
     var cookieString = cookies.map(function (c) {
-      return c.name + "=" + c.value;
-    }).join("; ");
-    
-    self.headers.Cookie = cookieString;
+      return c.name + "=" + c.value
+    }).join("; ")
+
+    if (self.headers.cookie) {
+      // Don't overwrite existing Cookie header
+      self.headers.cookie += '; ' + cookieString
+    } else {
+      self.headers.cookie = cookieString
+    }
   }
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
