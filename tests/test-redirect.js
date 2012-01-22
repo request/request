@@ -1,6 +1,8 @@
 var server = require('./server')
   , assert = require('assert')
   , request = require('../main.js')
+  , Cookie = require('../vendor/cookie')
+  , Jar = require('../vendor/cookie/jar')
 
 var s = server.createServer()
 
@@ -29,6 +31,8 @@ s.listen(s.port, function () {
         resp.end();
         return;
       }
+      // Make sure the cookie doesn't get included twice, see #139:
+      assert.equal(req.headers.cookie, 'foo=bar; quux=baz');
       hits[landing] = true;
       res.writeHead(200)
       res.end(landing)
@@ -36,7 +40,9 @@ s.listen(s.port, function () {
   }
 
   // Permanent bounce
-  request(server+'/perm', function (er, res, body) {
+  var jar = new Jar()
+  jar.add(new Cookie('quux=baz'))
+  request({uri: server+'/perm', jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     try {
       assert.ok(hits.perm, 'Original request is to /perm')
       assert.ok(hits.perm_landing, 'Forward to permanent landing URL')
@@ -48,7 +54,7 @@ s.listen(s.port, function () {
   })
 
   // Temporary bounce
-  request(server+'/temp', function (er, res, body) {
+  request({uri: server+'/temp', jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     try {
       assert.ok(hits.temp, 'Original request is to /temp')
       assert.ok(hits.temp_landing, 'Forward to temporary landing URL')
