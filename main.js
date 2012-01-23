@@ -191,7 +191,10 @@ Request.prototype.request = function () {
       self.req.end()
       return
     }
-    if (self.timeout && self.timeoutTimer) clearTimeout(self.timeoutTimer)
+    if (self.timeout && self.timeoutTimer) {
+        clearTimeout(self.timeoutTimer);
+        self.timeoutTimer = null;
+    }
     self.emit('error', error)
   }
   if (self.onResponse) self.on('error', function (e) {self.onResponse(e)})
@@ -491,6 +494,17 @@ Request.prototype.request = function () {
         e.code = "ETIMEDOUT"
         self.emit("error", e)
       }, self.timeout)
+      
+      // Set additional timeout on socket - in case if remote
+      // server freeze after sending headers
+      self.req.setTimeout(self.timeout, function(){
+          if (self.req) {
+              self.req.abort()
+              var e = new Error("ESOCKETTIMEDOUT")
+              e.code = "ESOCKETTIMEDOUT"
+              self.emit("error", e)
+          }
+      });
     }
     
     self.req.on('error', clientErrorHandler)
