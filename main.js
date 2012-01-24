@@ -361,7 +361,10 @@ Request.prototype.request = function () {
       }
 
       if (setHost) delete self.headers.host
-      if (self.timeout && self.timeoutTimer) clearTimeout(self.timeoutTimer)
+      if (self.timeout && self.timeoutTimer) {
+          clearTimeout(self.timeoutTimer);
+          self.timeoutTimer = null;
+      }  
       
       if (response.headers['set-cookie'] && (!self._disableCookies)) {
         response.headers['set-cookie'].forEach(function(cookie) {
