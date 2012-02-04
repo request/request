@@ -129,7 +129,8 @@ Request.prototype.request = function () {
   self._redirectsFollowed = self._redirectsFollowed || 0
   self.maxRedirects = (self.maxRedirects !== undefined) ? self.maxRedirects : 10
   self.followRedirect = (self.followRedirect !== undefined) ? self.followRedirect : true
-  if (self.followRedirect)
+  self.followAllRedirects = (self.followAllRedirects !== undefined) ? self.followAllRedirects : false;
+  if (self.followRedirect || self.followAllRedirects)
     self.redirects = self.redirects || []
 
   self.headers = self.headers ? copy(self.headers) : {}
@@ -367,11 +368,9 @@ Request.prototype.request = function () {
         })
       }
 
-      if (response.statusCode >= 300 &&
-          response.statusCode < 400  &&
-          self.followRedirect     &&
-          self.method !== 'PUT' &&
-          self.method !== 'POST' &&
+      if (response.statusCode >= 300 && response.statusCode < 400  &&
+          (self.followAllRedirects ||
+           (self.followRedirect && (self.method !== 'PUT' && self.method !== 'POST'))) &&
           response.headers.location) {
         if (self._redirectsFollowed >= self.maxRedirects) {
           self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."))
@@ -388,6 +387,7 @@ Request.prototype.request = function () {
           , redirectUri: response.headers.location 
           }
         )
+        self.method = 'GET'; // Force all redirects to use GET
         delete self.req
         delete self.agent
         delete self._started
