@@ -1,80 +1,117 @@
 var server = require('./server')
-  , events = require('events')
-  , stream = require('stream')
   , assert = require('assert')
   , request = require('../main.js')
-  ;
 
-var s = server.createServer();
-var remainingTests = 6;
-var notRedirected = 'Not redirected';
-var redirectSuccessful = 'Redirect succeeded.';
+var s = server.createServer()
 
-// Request that redirects
-s.on('/redirect', function (req, resp) {
-  resp.writeHead(301, {'content-type':'text/plain',
-                       'location':s.url + '/other_url'})
-  resp.write(notRedirected)
-  resp.end()
-});
+s.listen(s.port, function () {
+  var server = 'http://localhost:' + s.port;
+  var hits = {}
+  var passed = 0;
 
-s.on('/other_url', function (req, resp) {
-  if (req.method !== 'GET') { // We should only accept GET redirects
-    console.error("Got a non-GET request to the redirect destination URL");
-    resp.writeHead(400);
-    resp.end();
-    return;
+  bouncer(301, 'temp')
+  bouncer(302, 'perm')
+  bouncer(302, 'nope')
+
+  function bouncer(code, label) {
+    var landing = label+'_landing';
+
+    s.on('/'+label, function (req, res) {
+      hits[label] = true;
+      res.writeHead(code, {'location':server + '/'+landing})
+      res.end()
+    })
+
+    s.on('/'+landing, function (req, res) {
+      if (req.method !== 'GET') { // We should only accept GET redirects
+        console.error("Got a non-GET request to the redirect destination URL");
+        resp.writeHead(400);
+        resp.end();
+        return;
+      }
+      hits[landing] = true;
+      res.writeHead(200)
+      res.end(landing)
+    })
   }
-  resp.writeHead(200, {'content-type':'text/plain' });
-  resp.write(redirectSuccessful)
-  resp.end()
-});
 
-// Should follow redirects by default
-var options = { url: s.url + "/redirect", method: 'GET' };
-request(options, function (err, resp, body) {
-  assert.equal(body, redirectSuccessful);
-  checkDone();
-})
+  // Permanent bounce
+  request(server+'/perm', function (er, res, body) {
+    try {
+      assert.ok(hits.perm, 'Original request is to /perm')
+      assert.ok(hits.perm_landing, 'Forward to permanent landing URL')
+      assert.equal(body, 'perm_landing', 'Got permanent landing content')
+      passed += 1
+    } finally {
+      done()
+    }
+  })
 
-// Shouldn't redirect when followRedirect is false
-options = { url: s.url + "/redirect", method: 'GET', followRedirect: false };
-request(options, function (err, resp, body) {
-  assert.equal(body, notRedirected);
-  checkDone();
-})
+  // Temporary bounce
+  request(server+'/temp', function (er, res, body) {
+    try {
+      assert.ok(hits.temp, 'Original request is to /temp')
+      assert.ok(hits.temp_landing, 'Forward to temporary landing URL')
+      assert.equal(body, 'temp_landing', 'Got temporary landing content')
+      passed += 1
+    } finally {
+      done()
+    }
+  })
 
-// Should redirect when followRedirect is true
-options = { url: s.url + "/redirect", method: 'GET', followRedirect: true };
-request(options, function (err, resp, body) {
-  assert.equal(body, redirectSuccessful);
-  checkDone();
-})
+  // Prevent bouncing.
+  request({uri:server+'/nope', followRedirect:false}, function (er, res, body) {
+    try {
+      assert.ok(hits.nope, 'Original request to /nope')
+      assert.ok(!hits.nope_landing, 'No chasing the redirect')
+      assert.equal(res.statusCode, 302, 'Response is the bounce itself')
+      passed += 1
+    } finally {
+      done()
+    }
+  })
 
-// Should not follow post redirects by default
-options = { url: s.url + "/redirect", followRedirect: true };
-request.post(options, function (err, resp, body) {
-  assert.equal(body, notRedirected);
-  checkDone();
-})
+  // Should not follow post redirects by default
+  request.post({uri:server+'/temp'}, function (er, res, body) {
+    try {
+      assert.ok(hits.temp, 'Original request is to /temp')
+      assert.ok(!hits.temp_landing, 'No chasing the redirect when post')
+      assert.equal(res.statusCode, 301, 'Response is the bounce itself')
+      passed += 1
+    } finally {
+      done()
+    }
+  })
 
-// Should follow post redirects when followAllRedirects true
-options = { url: s.url + "/redirect", followAllRedirects: true };
-request.post(options, function (err, resp, body) {
-  assert.equal(body, redirectSuccessful);
-  checkDone();
-})
+  // Should follow post redirects when followAllRedirects true
+  request.post({uri:server+'/temp', followAllRedirects:true}, function (er, res, body) {
+    try {
+      assert.ok(hits.temp, 'Original request is to /temp')
+      assert.ok(hits.temp_landing, 'Forward to temporary landing URL')
+      assert.equal(body, 'temp_landing', 'Got temporary landing content')
+      passed += 1
+    } finally {
+      done()
+    }
+  })
 
-// Should not follow post redirects when followAllRedirects false
-options = { url: s.url + "/redirect", followAllRedirects: false };
-request.post(options, function (err, resp, body) {
-  assert.equal(body, notRedirected);
-  checkDone();
-})
+  request.post({uri:server+'/temp', followAllRedirects:false}, function (er, res, body) {
+    try {
+      assert.ok(hits.temp, 'Original request is to /temp')
+      assert.ok(!hits.temp_landing, 'No chasing the redirect')
+      assert.equal(res.statusCode, 301, 'Response is the bounce itself')
+      passed += 1
+    } finally {
+      done()
+    }
+  })
 
-function checkDone() {
-  if(--remainingTests == 0) {
-    s.close();
-    console.log("All tests passed.");
+  var reqs_done = 0;
+  function done() {
+    reqs_done += 1;
+    if(reqs_done == 6) {
+      console.log(passed + ' tests passed.')
+      s.close()
+    }
   }
-}
+})

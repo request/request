@@ -20,7 +20,17 @@ var http = require('http')
   , stream = require('stream')
   , qs = require('querystring')
   , mimetypes = require('./mimetypes')
+  , oauth = require('./oauth')
+  , uuid = require('./uuid')
+  , ForeverAgent = require('./forever')
+  , Cookie = require('./vendor/cookie')
+  , CookieJar = require('./vendor/cookie/jar')
+  , cookieJar = new CookieJar
   ;
+  
+if (process.logging) {
+  var log = process.logging('request')
+}
 
 try {
   https = require('https')
@@ -90,6 +100,17 @@ Request.prototype.getAgent = function (host, port) {
 }
 Request.prototype.request = function () {
   var self = this
+
+  // Protect against double callback
+  if (!self._callback && self.callback) {
+    self._callback = self.callback
+    self.callback = function () {
+      if (self._callbackCalled) return // Print a warning maybe?
+      self._callback.apply(self, arguments)
+      self._callbackCalled = true
+    }
+  }
+
   if (self.url) {
     // People use this property instead all the time so why not just support it.
     self.uri = self.url
@@ -125,15 +146,29 @@ Request.prototype.request = function () {
     setHost = true
   }
 
+  if (self.jar === false) {
+    // disable cookies
+    var cookies = false;
+    self._disableCookies = true;
+  } else if (self.jar) {
+    // fetch cookie from the user defined cookie jar
+    var cookies = self.jar.get({ url: self.uri.href })
+  } else {
+    // fetch cookie from the global cookie jar
+    var cookies = cookieJar.get({ url: self.uri.href })
+  }
+  if (cookies) {
+    var cookieString = cookies.map(function (c) {
+      return c.name + "=" + c.value;
+    }).join("; ");
+    
+    self.headers.Cookie = cookieString;
+  }
+
   if (!self.uri.pathname) {self.uri.pathname = '/'}
   if (!self.uri.port) {
     if (self.uri.protocol == 'http:') {self.uri.port = 80}
     else if (self.uri.protocol == 'https:') {self.uri.port = 443}
-  }
-
-  if (self.bodyStream || self.responseBodyStream) {
-    console.error('options.bodyStream and options.responseBodyStream is deprecated. You should now send the request object to stream.pipe()')
-    this.pipe(self.responseBodyStream || self.bodyStream)
   }
 
   if (self.proxy) {
@@ -151,12 +186,64 @@ Request.prototype.request = function () {
 
   var clientErrorHandler = function (error) {
     if (setHost) delete self.headers.host
+    if (self.req._reusedSocket && error.code === 'ECONNRESET') {
+      self.agent = {addRequest: ForeverAgent.prototype.addRequestNoreuse.bind(self.agent)}
+      self.start()
+      self.req.end()
+      return
+    }
     if (self.timeout && self.timeoutTimer) clearTimeout(self.timeoutTimer)
     self.emit('error', error)
   }
   if (self.onResponse) self.on('error', function (e) {self.onResponse(e)})
   if (self.callback) self.on('error', function (e) {self.callback(e)})
 
+  if (self.form) {
+    self.headers['content-type'] = 'application/x-www-form-urlencoded; charset=utf-8'
+    self.body = qs.stringify(self.form).toString('utf8')
+  }
+
+  if (self.oauth) {
+    var form
+    if (self.headers['content-type'] && 
+        self.headers['content-type'].slice(0, 'application/x-www-form-urlencoded'.length) ===
+          'application/x-www-form-urlencoded' 
+       ) {
+      form = qs.parse(self.body)
+    } 
+    if (self.uri.query) {
+      form = qs.parse(self.uri.query)
+    } 
+    if (!form) form = {}
+    var oa = {}
+    for (var i in form) oa[i] = form[i]
+    for (var i in self.oauth) oa['oauth_'+i] = self.oauth[i]
+    if (!oa.oauth_version) oa.oauth_version = '1.0'
+    if (!oa.oauth_timestamp) oa.oauth_timestamp = Math.floor( (new Date()).getTime() / 1000 ).toString()
+    if (!oa.oauth_nonce) oa.oauth_nonce = uuid().replace(/-/g, '')
+    
+    oa.oauth_signature_method = 'HMAC-SHA1'
+    
+    var consumer_secret = oa.oauth_consumer_secret
+    delete oa.oauth_consumer_secret
+    var token_secret = oa.oauth_token_secret
+    delete oa.oauth_token_secret
+    
+    var baseurl = self.uri.protocol + '//' + self.uri.host + self.uri.pathname
+    var signature = oauth.hmacsign(self.method, baseurl, oa, consumer_secret, token_secret)
+    
+    // oa.oauth_signature = signature
+    for (var i in form) {
+      if ( i.slice(0, 'oauth_') in self.oauth) {
+        // skip 
+      } else {
+        delete oa['oauth_'+i]
+      }
+    }
+    self.headers.authorization = 
+      'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+oauth.rfc3986(oa[i])+'"'}).join(',')
+    self.headers.authorization += ',oauth_signature="'+oauth.rfc3986(signature)+'"'  
+  }
 
   if (self.uri.auth && !self.headers.authorization) {
     self.headers.authorization = "Basic " + toBase64(self.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
@@ -165,7 +252,12 @@ Request.prototype.request = function () {
     self.headers['proxy-authorization'] = "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
   }
 
-  self.path = self.uri.href.replace(self.uri.protocol + '//' + self.uri.host, '')
+  if (self.uri.path) {
+    self.path = self.uri.path
+  } else {
+    self.path = self.uri.pathname + (self.uri.search || "")
+  }
+
   if (self.path.length === 0) self.path = '/'
 
   if (self.proxy) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
@@ -179,36 +271,58 @@ Request.prototype.request = function () {
     }
 
   } else if (self.multipart) {
-    self.body = ''
-    self.headers['content-type'] = 'multipart/related;boundary="frontier"'
+    self.body = []
+
+    if (!self.headers['content-type']) {
+      self.headers['content-type'] = 'multipart/related;boundary="frontier"';
+    } else {
+      self.headers['content-type'] = self.headers['content-type'].split(';')[0] + ';boundary="frontier"';
+    }
+
     if (!self.multipart.forEach) throw new Error('Argument error, options.multipart.')
 
     self.multipart.forEach(function (part) {
       var body = part.body
       if(!body) throw Error('Body attribute missing in multipart.')
       delete part.body
-      self.body += '--frontier\r\n'
+      var preamble = '--frontier\r\n'
       Object.keys(part).forEach(function(key){
-        self.body += key + ': ' + part[key] + '\r\n'
+        preamble += key + ': ' + part[key] + '\r\n'
       })
-      self.body += '\r\n' + body + '\r\n'
+      preamble += '\r\n'
+      self.body.push(new Buffer(preamble))
+      self.body.push(new Buffer(body))
+      self.body.push(new Buffer('\r\n'))
     })
-    self.body += '--frontier--'
+    self.body.push(new Buffer('--frontier--'))
   }
 
   if (self.body) {
+    var length = 0
     if (!Buffer.isBuffer(self.body)) {
-      self.body = new Buffer(self.body)
+      if (Array.isArray(self.body)) {
+        for (var i = 0; i < self.body.length; i++) {
+          length += self.body[i].length
+        }
+      } else {
+        self.body = new Buffer(self.body)
+        length = self.body.length
+      }
+    } else {
+      length = self.body.length
     }
-    if (self.body.length) {
-      self.headers['content-length'] = self.body.length
+    if (length) {
+      self.headers['content-length'] = length
     } else {
       throw new Error('Argument error, options.body.')
     }
   }
 
-  self.httpModule =
-    {"http:":http, "https:":https}[self.proxy ? self.proxy.protocol : self.uri.protocol]
+  var protocol = self.proxy ? self.proxy.protocol : self.uri.protocol
+    , defaultModules = {'http:':http, 'https:':https}
+    , httpModules = self.httpModules || {}
+    ;
+  self.httpModule = httpModules[protocol] || defaultModules[protocol]
 
   if (!self.httpModule) throw new Error("Invalid protocol")
 
@@ -217,12 +331,12 @@ Request.prototype.request = function () {
   } else {
     if (self.maxSockets) {
       // Don't use our pooling if node has the refactored client
-      self.agent = self.httpModule.globalAgent || self.getAgent(self.host, self.port)
+      self.agent = self.agent || self.httpModule.globalAgent || self.getAgent(self.host, self.port)
       self.agent.maxSockets = self.maxSockets
     }
     if (self.pool.maxSockets) {
       // Don't use our pooling if node has the refactored client
-      self.agent = self.httpModule.globalAgent || self.getAgent(self.host, self.port)
+      self.agent = self.agent || self.httpModule.globalAgent || self.getAgent(self.host, self.port)
       self.agent.maxSockets = self.pool.maxSockets
     }
   }
@@ -230,7 +344,8 @@ Request.prototype.request = function () {
   self.start = function () {
     self._started = true
     self.method = self.method || 'GET'
-
+    self.href = self.uri.href
+    if (log) log('%method %href', self)
     self.req = self.httpModule.request(self, function (response) {
       self.response = response
       response.request = self
@@ -245,6 +360,13 @@ Request.prototype.request = function () {
 
       if (setHost) delete self.headers.host
       if (self.timeout && self.timeoutTimer) clearTimeout(self.timeoutTimer)
+      
+      if (response.headers['set-cookie'] && (!self._disableCookies)) {
+        response.headers['set-cookie'].forEach(function(cookie) {
+          if (self.jar) self.jar.add(new Cookie(cookie))
+          else cookieJar.add(new Cookie(cookie))
+        })
+      }
 
       if (response.statusCode >= 300 && response.statusCode < 400  &&
           (self.followAllRedirects ||
@@ -260,8 +382,11 @@ Request.prototype.request = function () {
           response.headers.location = url.resolve(self.uri.href, response.headers.location)
         }
         self.uri = response.headers.location
-        self.redirects.push( { statusCode : response.statusCode,
-                               redirectUri: response.headers.location })
+        self.redirects.push(
+          { statusCode : response.statusCode
+          , redirectUri: response.headers.location 
+          }
+        )
         self.method = 'GET'; // Force all redirects to use GET
         delete self.req
         delete self.agent
@@ -269,6 +394,7 @@ Request.prototype.request = function () {
         if (self.headers) {
           delete self.headers.host
         }
+        if (log) log('Redirect to %uri', self)
         request(self, self.callback)
         return // Ignore the rest of the response
       } else {
@@ -287,7 +413,7 @@ Request.prototype.request = function () {
           }
         }
 
-        self.dests.forEach(function (dest) {
+        self.pipeDest = function (dest) {
           if (dest.headers) {
             dest.headers['content-type'] = response.headers['content-type']
             if (response.headers['content-length']) {
@@ -301,14 +427,23 @@ Request.prototype.request = function () {
             dest.statusCode = response.statusCode
           }
           if (self.pipefilter) self.pipefilter(response, dest)
+        }
+
+        self.dests.forEach(function (dest) {
+          self.pipeDest(dest)
         })
 
-        response.on("data", function (chunk) {self.emit("data", chunk)})
+        response.on("data", function (chunk) {
+          self._destdata = true
+          self.emit("data", chunk)
+        })
         response.on("end", function (chunk) {
           self._ended = true
           self.emit("end", chunk)
         })
         response.on("close", function () {self.emit("close")})
+
+        self.emit('response', response)
 
         if (self.onResponse) {
           self.onResponse(null, response)
@@ -328,7 +463,11 @@ Request.prototype.request = function () {
                 chunk.copy(body, i, 0, chunk.length)
                 i += chunk.length
               })
-              response.body = body.toString()
+              if (self.encoding === null) {
+                response.body = body
+              } else {
+                response.body = body.toString()
+              }
             } else if (buffer.length) {
               response.body = buffer.join('')
             }
@@ -338,21 +477,22 @@ Request.prototype.request = function () {
                 response.body = JSON.parse(response.body)
               } catch (e) {}
             }
+
             self.callback(null, response, response.body)
           })
         }
       }
     })
 
-    if (self.timeout) {
+    if (self.timeout && !self.timeoutTimer) {
       self.timeoutTimer = setTimeout(function() {
-          self.req.abort()
-          var e = new Error("ETIMEDOUT")
-          e.code = "ETIMEDOUT"
-          self.emit("error", e)
+        self.req.abort()
+        var e = new Error("ETIMEDOUT")
+        e.code = "ETIMEDOUT"
+        self.emit("error", e)
       }, self.timeout)
     }
-
+    
     self.req.on('error', clientErrorHandler)
   }
 
@@ -382,22 +522,40 @@ Request.prototype.request = function () {
 
   process.nextTick(function () {
     if (self.body) {
-      self.write(self.body)
+      if (Array.isArray(self.body)) {
+        self.body.forEach(function(part) {
+          self.write(part)
+        })
+      } else {
+        self.write(self.body)
+      }
       self.end()
     } else if (self.requestBodyStream) {
       console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
       self.requestBodyStream.pipe(self)
     } else if (!self.src) {
+      self.headers['content-length'] = 0
       self.end()
     }
     self.ntick = true
   })
 }
 Request.prototype.pipe = function (dest) {
-  if (this.response) throw new Error("You cannot pipe after the response event.")
-  this.dests.push(dest)
-  stream.Stream.prototype.pipe.call(this, dest)
-  return dest
+  if (this.response) {
+    if (this._destdata) {
+      throw new Error("You cannot pipe after data has been emitted from the response.")
+    } else if (this._ended) {
+      throw new Error("You cannot pipe after the response has been ended.")
+    } else {
+      stream.Stream.prototype.pipe.call(this, dest)
+      this.pipeDest(dest)
+      return dest
+    }
+  } else {
+    this.dests.push(dest)
+    stream.Stream.prototype.pipe.call(this, dest)
+    return dest
+  }
 }
 Request.prototype.write = function () {
   if (!this._started) this.start()
@@ -445,7 +603,20 @@ request.defaults = function (options) {
   de.put = def(request.put)
   de.head = def(request.head)
   de.del = def(request.del)
+  de.cookie = def(request.cookie)
+  de.jar = def(request.jar)
   return de
+}
+
+request.forever = function (agentOptions, optionsArg) {
+  var options = {}
+  if (agentOptions) {
+    for (option in optionsArg) {
+      options[option] = optionsArg[option]
+    }
+  }
+  options.agent = new ForeverAgent(agentOptions)
+  return request.defaults(options)
 }
 
 request.get = request
@@ -471,4 +642,11 @@ request.del = function (options, callback) {
   if (typeof options === 'string') options = {uri:options}
   options.method = 'DELETE'
   return request(options, callback)
+}
+request.jar = function () {
+  return new CookieJar
+}
+request.cookie = function (str) {
+  if (typeof str !== 'string') throw new Error("The cookie function only accepts STRING as param")
+  return new Cookie(str)
 }

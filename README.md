@@ -93,6 +93,54 @@ http.createServer(function (req, resp) {
 
 You can still use intermediate proxies, the requests will still follow HTTP forwards, etc.
 
+## OAuth Signing
+
+```javascript
+// Twitter OAuth
+var qs = require('querystring')
+  , oauth =
+    { callback: 'http://mysite.com/callback/'
+    , consumer_key: CONSUMER_KEY
+    , consumer_secret: CONSUMER_SECRET
+    }
+  , url = 'https://api.twitter.com/oauth/request_token'
+  ;
+request.post({url:url, oauth:oauth}, function (e, r, body) {
+  // Assume by some stretch of magic you aquired the verifier
+  var access_token = qs.parse(body)
+    , oauth = 
+      { consumer_key: CONSUMER_KEY
+      , consumer_secret: CONSUMER_SECRET
+      , token: access_token.oauth_token
+      , verifier: VERIFIER
+      , token_secret: access_token.oauth_token_secret
+      }
+    , url = 'https://api.twitter.com/oauth/access_token'
+    ;
+  request.post({url:url, oauth:oauth}, function (e, r, body) {
+    var perm_token = qs.parse(body)
+      , oauth = 
+        { consumer_key: CONSUMER_KEY
+        , consumer_secret: CONSUMER_SECRET
+        , token: perm_token.oauth_token
+        , token_secret: perm_token.oauth_token_secret
+        }
+      , url = 'https://api.twitter.com/1/users/show.json?'
+      , params = 
+        { screen_name: perm_token.screen_name
+        , user_id: perm_token.user_id
+        }
+      ;
+    url += qs.stringify(params)
+    request.get({url:url, oauth:oauth, json:true}, function (e, r, user) {
+      console.log(user)
+    })
+  })
+})
+```
+
+
+
 ### request(options, callback)
 
 The first argument can be either a url or an options object. The only required option is uri, all others are optional.
@@ -101,18 +149,23 @@ The first argument can be either a url or an options object. The only required o
 * `method` - http method, defaults to GET
 * `headers` - http headers, defaults to {}
 * `body` - entity body for POST and PUT requests. Must be buffer or string.
+* `form` - sets `body` but to querystring representation of value and adds `Content-type: application/x-www-form-urlencoded; charset=utf-8` header.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.
 * `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
 * `followRedirect` - follow HTTP 3xx responses as redirects. defaults to true.
 * `maxRedirects` - the maximum number of redirects to follow, defaults to 10.
 * `onResponse` - If true the callback will be fired on the "response" event instead of "end". If a function it will be called on "response" and not effect the regular semantics of the main callback on "end".
-* `encoding` - Encoding to be used on response.setEncoding when buffering the response data.
+* `encoding` - Encoding to be used on `setEncoding` of response data. If set to `null`, the body is returned as a Buffer.
 * `pool` - A hash object containing the agents for these requests. If omitted this request will use the global pool which is set to node's default maxSockets.
 * `pool.maxSockets` - Integer containing the maximum amount of sockets in the pool.
 * `timeout` - Integer containing the number of milliseconds to wait for a request to respond before aborting the request	
 * `proxy` - An HTTP proxy to be used. Support proxy Auth with Basic Auth the same way it's supported with the `url` parameter by embedding the auth info in the uri.
+* `oauth` - Options for OAuth HMAC-SHA1 signing, see documentation above.
+* `strictSSL` - Set to `true` to require that SSL certificates be valid. Note: to use your own certificate authority, you need to specify an agent that was created with that ca as an option.
+* `jar` - Set to `false` if you don't want cookies to be remembered for future use or define your custom cookie jar (see examples section)
 
-The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body buffer.
+
+The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body String or Buffer.
 
 ## Convenience methods
 
@@ -161,6 +214,20 @@ Alias to normal request method for uniformity.
 ```javascript
 request.get(url)
 ```
+### request.cookie
+
+Function that creates a new cookie.
+
+```javascript
+request.cookie('cookie_string_here')
+```
+### request.jar
+
+Function that creates a new cookie jar.
+
+```javascript
+request.jar()
+```
 
 
 ## Examples:
@@ -171,7 +238,7 @@ request.get(url)
     ;
   request(
     { method: 'PUT'
-    , uri: 'http://mikeal.couchone.com/testjs/' + rand
+    , uri: 'http://mikeal.iriscouch.com/testjs/' + rand
     , multipart: 
       [ { 'content-type': 'application/json'
         ,  body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})
@@ -181,11 +248,39 @@ request.get(url)
     }
   , function (error, response, body) {
       if(response.statusCode == 201){
-        console.log('document saved as: http://mikeal.couchone.com/testjs/'+ rand)
+        console.log('document saved as: http://mikeal.iriscouch.com/testjs/'+ rand)
       } else {
         console.log('error: '+ response.statusCode)
         console.log(body)
       }
     }
   )
+```
+Cookies are enabled by default (so they can be used in subsequent requests). To disable cookies set jar to false (either in defaults or in the options sent).
+
+```javascript
+var request = request.defaults({jar: false})
+request('http://www.google.com', function () {
+  request('http://images.google.com')
+})
+```
+
+If you to use a custom cookie jar (instead of letting request use its own global cookie jar) you do so by setting the jar default or by specifying it as an option:
+
+```javascript
+var j = request.jar()
+var request = request.defaults({jar:j})
+request('http://www.google.com', function () {
+  request('http://images.google.com')
+})
+```
+OR
+
+```javascript
+var j = request.jar()
+var cookie = request.cookie('your_cookie_here')
+j.add(cookie)
+request({url: 'http://www.google.com', jar: j}, function () {
+  request('http://images.google.com')
+})
 ```

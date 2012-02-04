@@ -1,11 +1,8 @@
 var server = require('./server')
-  , events = require('events')
-  , stream = require('stream')
   , assert = require('assert')
   , request = require('../main.js')
-  ;
 
-var s = server.createServer();
+var s = server.createSSLServer();
 
 var tests =
   { testGet :
@@ -25,16 +22,11 @@ var tests =
       ])
     , expectBody: "Ω☃"
     }
-  , testGetBuffer :
-    { resp : server.createGetResponse(new Buffer("TESTING!"))
-    , encoding: null
-    , expectBody: new Buffer("TESTING!")
-    }
   , testGetJSON :
-     { resp : server.createGetResponse('{"test":true}', 'application/json')
-     , json : true
-     , expectBody: {"test":true}
-     }
+    { resp : server.createGetResponse('{"test":true}', 'application/json')
+    , json : true
+    , expectBody: {"test":true}
+    }
   , testPutString :
     { resp : server.createPostValidator("PUTTINGDATA")
     , method : "PUT"
@@ -92,4 +84,3 @@ s.listen(s.port, function () {
     })()
   }
 })
-
