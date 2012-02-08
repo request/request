@@ -578,6 +578,11 @@ Request.prototype.pipe = function (dest) {
     return dest
   }
 }
+Request.prototype.setHeader = function (name, value) {
+  if (!this.headers) this.headers = {}
+  this.headers[name] = value
+}
+
 Request.prototype.write = function () {
   if (!this._started) this.start()
   if (!this.req) throw new Error("This request has been piped before http.request() was called.")
