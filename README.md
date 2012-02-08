@@ -38,7 +38,7 @@ request('http://google.com/doodle.png').pipe(fs.createWriteStream('doodle.png'))
 You can also stream a file to a PUT or POST request. This method will also check the file extension against a mapping of file extensions to content-types, in this case `application/json`, and use the proper content-type in the PUT request if one is not already provided in the headers.
 
 ```javascript
-fs.readStream('file.json').pipe(request.put('http://mysite.com/obj.json'))
+fs.createReadStream('file.json').pipe(request.put('http://mysite.com/obj.json'))
 ```
 
 Request can also pipe to itself. When doing so the content-type and content-length will be preserved in the PUT headers.
