@@ -483,6 +483,8 @@ Request.prototype.request = function () {
         }
       }
     })
+    
+    
 
     if (self.timeout && !self.timeoutTimer) {
       self.timeoutTimer = setTimeout(function() {
@@ -494,6 +496,8 @@ Request.prototype.request = function () {
     }
     
     self.req.on('error', clientErrorHandler)
+    
+    self.emit('request', self.req)
   }
 
   self.once('pipe', function (src) {
