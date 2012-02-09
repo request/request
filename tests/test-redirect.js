@@ -1,6 +1,8 @@
 var server = require('./server')
   , assert = require('assert')
   , request = require('../main.js')
+  , Cookie = require('../vendor/cookie')
+  , Jar = require('../vendor/cookie/jar')
 
 var s = server.createServer()
 
@@ -29,6 +31,8 @@ s.listen(s.port, function () {
         resp.end();
         return;
       }
+      // Make sure the cookie doesn't get included twice, see #139:
+      assert.equal(req.headers.cookie, 'foo=bar; quux=baz');
       hits[landing] = true;
       res.writeHead(200)
       res.end(landing)
@@ -36,7 +40,9 @@ s.listen(s.port, function () {
   }
 
   // Permanent bounce
-  request(server+'/perm', function (er, res, body) {
+  var jar = new Jar()
+  jar.add(new Cookie('quux=baz'))
+  request({uri: server+'/perm', jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     try {
       assert.ok(hits.perm, 'Original request is to /perm')
       assert.ok(hits.perm_landing, 'Forward to permanent landing URL')
@@ -48,7 +54,7 @@ s.listen(s.port, function () {
   })
 
   // Temporary bounce
-  request(server+'/temp', function (er, res, body) {
+  request({uri: server+'/temp', jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     try {
       assert.ok(hits.temp, 'Original request is to /temp')
       assert.ok(hits.temp_landing, 'Forward to temporary landing URL')
@@ -60,7 +66,7 @@ s.listen(s.port, function () {
   })
 
   // Prevent bouncing.
-  request({uri:server+'/nope', followRedirect:false}, function (er, res, body) {
+  request({uri:server+'/nope', jar: jar, headers: {cookie: 'foo=bar'}, followRedirect:false}, function (er, res, body) {
     try {
       assert.ok(hits.nope, 'Original request to /nope')
       assert.ok(!hits.nope_landing, 'No chasing the redirect')
@@ -72,7 +78,7 @@ s.listen(s.port, function () {
   })
 
   // Should not follow post redirects by default
-  request.post({uri:server+'/temp'}, function (er, res, body) {
+  request.post({uri:server+'/temp', jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     try {
       assert.ok(hits.temp, 'Original request is to /temp')
       assert.ok(!hits.temp_landing, 'No chasing the redirect when post')
@@ -84,7 +90,7 @@ s.listen(s.port, function () {
   })
 
   // Should follow post redirects when followAllRedirects true
-  request.post({uri:server+'/temp', followAllRedirects:true}, function (er, res, body) {
+  request.post({uri:server+'/temp', followAllRedirects:true, jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     try {
       assert.ok(hits.temp, 'Original request is to /temp')
       assert.ok(hits.temp_landing, 'Forward to temporary landing URL')
@@ -95,7 +101,7 @@ s.listen(s.port, function () {
     }
   })
 
-  request.post({uri:server+'/temp', followAllRedirects:false}, function (er, res, body) {
+  request.post({uri:server+'/temp', followAllRedirects:false, jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     try {
       assert.ok(hits.temp, 'Original request is to /temp')
       assert.ok(!hits.temp_landing, 'No chasing the redirect')
