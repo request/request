@@ -419,22 +419,6 @@ Request.prototype.request = function () {
           }
         }
 
-        self.pipeDest = function (dest) {
-          if (dest.headers) {
-            dest.headers['content-type'] = response.headers['content-type']
-            if (response.headers['content-length']) {
-              dest.headers['content-length'] = response.headers['content-length']
-            }
-          }
-          if (dest.setHeader) {
-            for (var i in response.headers) {
-              dest.setHeader(i, response.headers[i])
-            }
-            dest.statusCode = response.statusCode
-          }
-          if (self.pipefilter) self.pipefilter(response, dest)
-        }
-
         self.dests.forEach(function (dest) {
           self.pipeDest(dest)
         })
@@ -578,6 +562,25 @@ Request.prototype.pipe = function (dest) {
     return dest
   }
 }
+
+Request.prototype.pipeDest = function (dest) {
+  var response = this.response
+  // Called after the response is received
+  if (dest.headers) {
+    dest.headers['content-type'] = response.headers['content-type']
+    if (response.headers['content-length']) {
+      dest.headers['content-length'] = response.headers['content-length']
+    }
+  }
+  if (dest.setHeader) {
+    for (var i in response.headers) {
+      dest.setHeader(i, response.headers[i])
+    }
+    dest.statusCode = response.statusCode
+  }
+  if (this.pipefilter) this.pipefilter(response, dest)
+}
+
 Request.prototype.setHeader = function (name, value) {
   if (!this.headers) this.headers = {}
   this.headers[name] = value
