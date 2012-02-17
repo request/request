@@ -137,6 +137,9 @@ function Request (options) {
     self.setHost = true
   }
 
+  if (self._redirectsFollowed === 0) {
+    self.originalCookieHeader = self.headers.cookie;
+  }
   if (self.jar === false) {
     // disable cookies
     var cookies = false;
@@ -148,12 +151,17 @@ function Request (options) {
     // fetch cookie from the global cookie jar
     var cookies = cookieJar.get({ url: self.uri.href })
   }
-  if (cookies) {
+  if (cookies && cookies.length) {
     var cookieString = cookies.map(function (c) {
-      return c.name + "=" + c.value;
-    }).join("; ");
-    
-    self.headers.Cookie = cookieString;
+      return c.name + "=" + c.value
+    }).join("; ")
+
+    if (self.originalCookieHeader) {
+      // Don't overwrite existing Cookie header
+      self.headers.cookie = self.originalCookieHeader + '; ' + cookieString
+    } else {
+      self.headers.cookie = cookieString
+    }
   }
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
@@ -674,6 +682,7 @@ request.jar = function () {
   return new CookieJar
 }
 request.cookie = function (str) {
+  if (str && str.uri) str = str.uri
   if (typeof str !== 'string') throw new Error("The cookie function only accepts STRING as param")
   return new Cookie(str)
 }
