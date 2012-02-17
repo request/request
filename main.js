@@ -530,13 +530,16 @@ Request.prototype.pipeDest = function (dest) {
 Request.prototype.setHeader = function (name, value) {
   if (!this.headers) this.headers = {}
   this.headers[name] = value
+  return this
 }
 Request.prototype.setHeaders = function (headers) {
   for (i in headers) {this.setHeader(i, headers[i])}
+  return this
 }
 Request.prototype.form = function (form) {
   this.headers['content-type'] = 'application/x-www-form-urlencoded; charset=utf-8'
   this.body = qs.stringify(form).toString('utf8')
+  return this
 }
 Request.prototype.json = function (val) {
   this.setHeader('content-type', 'application/json')
@@ -545,20 +548,19 @@ Request.prototype.json = function (val) {
   } else {
     this.body = JSON.stringify(val)
   }
+  return this
 }
 
 Request.prototype.oauth = function (_oauth) {
-  var self = this
-    , form
-    ;
-  if (self.headers['content-type'] && 
-      self.headers['content-type'].slice(0, 'application/x-www-form-urlencoded'.length) ===
+  var form
+  if (this.headers['content-type'] && 
+      this.headers['content-type'].slice(0, 'application/x-www-form-urlencoded'.length) ===
         'application/x-www-form-urlencoded' 
      ) {
-    form = qs.parse(self.body)
+    form = qs.parse(this.body)
   } 
-  if (self.uri.query) {
-    form = qs.parse(self.uri.query)
+  if (this.uri.query) {
+    form = qs.parse(this.uri.query)
   } 
   if (!form) form = {}
   var oa = {}
@@ -575,8 +577,8 @@ Request.prototype.oauth = function (_oauth) {
   var token_secret = oa.oauth_token_secret
   delete oa.oauth_token_secret
   
-  var baseurl = self.uri.protocol + '//' + self.uri.host + self.uri.pathname
-  var signature = oauth.hmacsign(self.method, baseurl, oa, consumer_secret, token_secret)
+  var baseurl = this.uri.protocol + '//' + this.uri.host + this.uri.pathname
+  var signature = oauth.hmacsign(this.method, baseurl, oa, consumer_secret, token_secret)
   
   // oa.oauth_signature = signature
   for (var i in form) {
@@ -586,10 +588,10 @@ Request.prototype.oauth = function (_oauth) {
       delete oa['oauth_'+i]
     }
   }
-  self.headers.authorization = 
+  this.headers.authorization = 
     'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+oauth.rfc3986(oa[i])+'"'}).join(',')
-  self.headers.authorization += ',oauth_signature="'+oauth.rfc3986(signature)+'"'
-  return self
+  this.headers.authorization += ',oauth_signature="'+oauth.rfc3986(signature)+'"'
+  return this
 }
 
 
