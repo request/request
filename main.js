@@ -76,31 +76,22 @@ var isUrl = /^https?:/
 var globalPool = {}
 
 function Request (options) {
-  stream.Stream.call(this)
-  this.readable = true
-  this.writable = true
+  var self = this
+  stream.Stream.call(self)
+  self.readable = true
+  self.writable = true
 
   if (typeof options === 'string') {
     options = {uri:options}
   }
 
   for (var i in options) {
-    this[i] = options[i]
+    self[i] = options[i]
   }
-  if (!this.pool) this.pool = globalPool
-  this.dests = []
-  this.__isRequestRequest = true
-}
-util.inherits(Request, stream.Stream)
-Request.prototype.getAgent = function (host, port) {
-  if (!this.pool[host+':'+port]) {
-    this.pool[host+':'+port] = new this.httpModule.Agent({host:host, port:port})
-  }
-  return this.pool[host+':'+port]
-}
-Request.prototype.request = function () {
-  var self = this
-
+  if (!self.pool) self.pool = globalPool
+  self.dests = []
+  self.__isRequestRequest = true
+  
   // Protect against double callback
   if (!self._callback && self.callback) {
     self._callback = self.callback
@@ -135,7 +126,7 @@ Request.prototype.request = function () {
 
   self.headers = self.headers ? copy(self.headers) : {}
 
-  var setHost = false
+  self.setHost = false
   if (!self.headers.host) {
     self.headers.host = self.uri.hostname
     if (self.uri.port) {
@@ -143,7 +134,7 @@ Request.prototype.request = function () {
            !(self.uri.port === 443 && self.uri.protocol === 'https:') )
       self.headers.host += (':'+self.uri.port)
     }
-    setHost = true
+    self.setHost = true
   }
 
   if (self.jar === false) {
@@ -184,8 +175,8 @@ Request.prototype.request = function () {
     delete self.callback
   }
 
-  var clientErrorHandler = function (error) {
-    if (setHost) delete self.headers.host
+  self.clientErrorHandler = function (error) {
+    if (self.setHost) delete self.headers.host
     if (self.req._reusedSocket && error.code === 'ECONNRESET') {
       self.agent = {addRequest: ForeverAgent.prototype.addRequestNoreuse.bind(self.agent)}
       self.start()
@@ -344,163 +335,6 @@ Request.prototype.request = function () {
     }
   }
 
-  self.start = function () {
-    self._started = true
-    self.method = self.method || 'GET'
-    self.href = self.uri.href
-    if (log) log('%method %href', self)
-    self.req = self.httpModule.request(self, function (response) {
-      self.response = response
-      response.request = self
-
-      if (self.httpModule === https &&
-          self.strictSSL &&
-          !response.client.authorized) {
-        var sslErr = response.client.authorizationError
-        self.emit('error', new Error('SSL Error: '+ sslErr))
-        return
-      }
-
-      if (setHost) delete self.headers.host
-      if (self.timeout && self.timeoutTimer) {
-          clearTimeout(self.timeoutTimer);
-          self.timeoutTimer = null;
-      }  
-      
-      if (response.headers['set-cookie'] && (!self._disableCookies)) {
-        response.headers['set-cookie'].forEach(function(cookie) {
-          if (self.jar) self.jar.add(new Cookie(cookie))
-          else cookieJar.add(new Cookie(cookie))
-        })
-      }
-
-      if (response.statusCode >= 300 && response.statusCode < 400  &&
-          (self.followAllRedirects ||
-           (self.followRedirect && (self.method !== 'PUT' && self.method !== 'POST'))) &&
-          response.headers.location) {
-        if (self._redirectsFollowed >= self.maxRedirects) {
-          self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."))
-          return
-        }
-        self._redirectsFollowed += 1
-
-        if (!isUrl.test(response.headers.location)) {
-          response.headers.location = url.resolve(self.uri.href, response.headers.location)
-        }
-        self.uri = response.headers.location
-        self.redirects.push(
-          { statusCode : response.statusCode
-          , redirectUri: response.headers.location 
-          }
-        )
-        self.method = 'GET'; // Force all redirects to use GET
-        delete self.req
-        delete self.agent
-        delete self._started
-        if (self.headers) {
-          delete self.headers.host
-        }
-        if (log) log('Redirect to %uri', self)
-        request(self, self.callback)
-        return // Ignore the rest of the response
-      } else {
-        self._redirectsFollowed = self._redirectsFollowed || 0
-        // Be a good stream and emit end when the response is finished.
-        // Hack to emit end on close because of a core bug that never fires end
-        response.on('close', function () {
-          if (!self._ended) self.response.emit('end')
-        })
-
-        if (self.encoding) {
-          if (self.dests.length !== 0) {
-            console.error("Ingoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.")
-          } else {
-            response.setEncoding(self.encoding)
-          }
-        }
-
-        self.dests.forEach(function (dest) {
-          self.pipeDest(dest)
-        })
-
-        response.on("data", function (chunk) {
-          self._destdata = true
-          self.emit("data", chunk)
-        })
-        response.on("end", function (chunk) {
-          self._ended = true
-          self.emit("end", chunk)
-        })
-        response.on("close", function () {self.emit("close")})
-
-        self.emit('response', response)
-
-        if (self.onResponse) {
-          self.onResponse(null, response)
-        }
-        if (self.callback) {
-          var buffer = []
-          var bodyLen = 0
-          self.on("data", function (chunk) {
-            buffer.push(chunk)
-            bodyLen += chunk.length
-          })
-          self.on("end", function () {
-            if (buffer.length && Buffer.isBuffer(buffer[0])) {
-              var body = new Buffer(bodyLen)
-              var i = 0
-              buffer.forEach(function (chunk) {
-                chunk.copy(body, i, 0, chunk.length)
-                i += chunk.length
-              })
-              if (self.encoding === null) {
-                response.body = body
-              } else {
-                response.body = body.toString()
-              }
-            } else if (buffer.length) {
-              response.body = buffer.join('')
-            }
-
-            if (self.json) {
-              try {
-                response.body = JSON.parse(response.body)
-              } catch (e) {}
-            }
-
-            self.callback(null, response, response.body)
-          })
-        }
-      }
-    })
-    
-    
-
-    if (self.timeout && !self.timeoutTimer) {
-      self.timeoutTimer = setTimeout(function() {
-        self.req.abort()
-        var e = new Error("ETIMEDOUT")
-        e.code = "ETIMEDOUT"
-        self.emit("error", e)
-      }, self.timeout)
-      
-      // Set additional timeout on socket - in case if remote
-      // server freeze after sending headers
-      self.req.setTimeout(self.timeout, function(){
-          if (self.req) {
-              self.req.abort()
-              var e = new Error("ESOCKETTIMEDOUT")
-              e.code = "ESOCKETTIMEDOUT"
-              self.emit("error", e)
-          }
-      });
-    }
-    
-    self.req.on('error', clientErrorHandler)
-    
-    self.emit('request', self.req)
-  }
-
   self.once('pipe', function (src) {
     if (self.ntick) throw new Error("You cannot pipe to this stream after the first nextTick() after creation of the request stream.")
     self.src = src
@@ -545,22 +379,167 @@ Request.prototype.request = function () {
     self.ntick = true
   })
 }
-Request.prototype.pipe = function (dest) {
-  if (this.response) {
-    if (this._destdata) {
-      throw new Error("You cannot pipe after data has been emitted from the response.")
-    } else if (this._ended) {
-      throw new Error("You cannot pipe after the response has been ended.")
-    } else {
-      stream.Stream.prototype.pipe.call(this, dest)
-      this.pipeDest(dest)
-      return dest
-    }
-  } else {
-    this.dests.push(dest)
-    stream.Stream.prototype.pipe.call(this, dest)
-    return dest
+util.inherits(Request, stream.Stream)
+Request.prototype.getAgent = function (host, port) {
+  if (!this.pool[host+':'+port]) {
+    this.pool[host+':'+port] = new this.httpModule.Agent({host:host, port:port})
   }
+  return this.pool[host+':'+port]
+}
+Request.prototype.start = function () {
+  var self = this
+  self._started = true
+  self.method = self.method || 'GET'
+  self.href = self.uri.href
+  if (log) log('%method %href', self)
+  self.req = self.httpModule.request(self, function (response) {
+    self.response = response
+    response.request = self
+
+    if (self.httpModule === https &&
+        self.strictSSL &&
+        !response.client.authorized) {
+      var sslErr = response.client.authorizationError
+      self.emit('error', new Error('SSL Error: '+ sslErr))
+      return
+    }
+
+    if (self.setHost) delete self.headers.host
+    if (self.timeout && self.timeoutTimer) {
+        clearTimeout(self.timeoutTimer);
+        self.timeoutTimer = null;
+    }  
+    
+    if (response.headers['set-cookie'] && (!self._disableCookies)) {
+      response.headers['set-cookie'].forEach(function(cookie) {
+        if (self.jar) self.jar.add(new Cookie(cookie))
+        else cookieJar.add(new Cookie(cookie))
+      })
+    }
+
+    if (response.statusCode >= 300 && response.statusCode < 400  &&
+        (self.followAllRedirects ||
+         (self.followRedirect && (self.method !== 'PUT' && self.method !== 'POST'))) &&
+        response.headers.location) {
+      if (self._redirectsFollowed >= self.maxRedirects) {
+        self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."))
+        return
+      }
+      self._redirectsFollowed += 1
+
+      if (!isUrl.test(response.headers.location)) {
+        response.headers.location = url.resolve(self.uri.href, response.headers.location)
+      }
+      self.uri = response.headers.location
+      self.redirects.push(
+        { statusCode : response.statusCode
+        , redirectUri: response.headers.location 
+        }
+      )
+      self.method = 'GET'; // Force all redirects to use GET
+      delete self.req
+      delete self.agent
+      delete self._started
+      if (self.headers) {
+        delete self.headers.host
+      }
+      if (log) log('Redirect to %uri', self)
+      request(self, self.callback)
+      return // Ignore the rest of the response
+    } else {
+      self._redirectsFollowed = self._redirectsFollowed || 0
+      // Be a good stream and emit end when the response is finished.
+      // Hack to emit end on close because of a core bug that never fires end
+      response.on('close', function () {
+        if (!self._ended) self.response.emit('end')
+      })
+
+      if (self.encoding) {
+        if (self.dests.length !== 0) {
+          console.error("Ingoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.")
+        } else {
+          response.setEncoding(self.encoding)
+        }
+      }
+
+      self.dests.forEach(function (dest) {
+        self.pipeDest(dest)
+      })
+
+      response.on("data", function (chunk) {
+        self._destdata = true
+        self.emit("data", chunk)
+      })
+      response.on("end", function (chunk) {
+        self._ended = true
+        self.emit("end", chunk)
+      })
+      response.on("close", function () {self.emit("close")})
+
+      self.emit('response', response)
+
+      if (self.onResponse) {
+        self.onResponse(null, response)
+      }
+      if (self.callback) {
+        var buffer = []
+        var bodyLen = 0
+        self.on("data", function (chunk) {
+          buffer.push(chunk)
+          bodyLen += chunk.length
+        })
+        self.on("end", function () {
+          if (buffer.length && Buffer.isBuffer(buffer[0])) {
+            var body = new Buffer(bodyLen)
+            var i = 0
+            buffer.forEach(function (chunk) {
+              chunk.copy(body, i, 0, chunk.length)
+              i += chunk.length
+            })
+            if (self.encoding === null) {
+              response.body = body
+            } else {
+              response.body = body.toString()
+            }
+          } else if (buffer.length) {
+            response.body = buffer.join('')
+          }
+
+          if (self.json) {
+            try {
+              response.body = JSON.parse(response.body)
+            } catch (e) {}
+          }
+
+          self.callback(null, response, response.body)
+        })
+      }
+    }
+  })
+
+  if (self.timeout && !self.timeoutTimer) {
+    self.timeoutTimer = setTimeout(function() {
+      self.req.abort()
+      var e = new Error("ETIMEDOUT")
+      e.code = "ETIMEDOUT"
+      self.emit("error", e)
+    }, self.timeout)
+    
+    // Set additional timeout on socket - in case if remote
+    // server freeze after sending headers
+    self.req.setTimeout(self.timeout, function(){
+        if (self.req) {
+            self.req.abort()
+            var e = new Error("ESOCKETTIMEDOUT")
+            e.code = "ESOCKETTIMEDOUT"
+            self.emit("error", e)
+        }
+    });
+  }
+  
+  self.req.on('error', self.clientErrorHandler)
+  
+  self.emit('request', self.req)
 }
 
 Request.prototype.pipeDest = function (dest) {
@@ -581,11 +560,31 @@ Request.prototype.pipeDest = function (dest) {
   if (this.pipefilter) this.pipefilter(response, dest)
 }
 
+// Composable API
 Request.prototype.setHeader = function (name, value) {
   if (!this.headers) this.headers = {}
   this.headers[name] = value
 }
 
+
+// Stream API
+Request.prototype.pipe = function (dest) {
+  if (this.response) {
+    if (this._destdata) {
+      throw new Error("You cannot pipe after data has been emitted from the response.")
+    } else if (this._ended) {
+      throw new Error("You cannot pipe after the response has been ended.")
+    } else {
+      stream.Stream.prototype.pipe.call(this, dest)
+      this.pipeDest(dest)
+      return dest
+    }
+  } else {
+    this.dests.push(dest)
+    stream.Stream.prototype.pipe.call(this, dest)
+    return dest
+  }
+}
 Request.prototype.write = function () {
   if (!this._started) this.start()
   if (!this.req) throw new Error("This request has been piped before http.request() was called.")
@@ -609,7 +608,6 @@ function request (options, callback) {
   if (typeof options === 'string') options = {uri:options}
   if (callback) options.callback = callback
   var r = new Request(options)
-  r.request()
   return r
 }
 
