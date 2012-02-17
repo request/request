@@ -86,10 +86,10 @@ function Request (options) {
   }
 
   for (var i in options) {
-    if (i !== 'oauth') {
+    if (i !== 'oauth' && i !== 'form' && i !== 'json') {
       self[i] = options[i]
     }
-  }  
+  }
   
   if (!self.pool) self.pool = globalPool
   self.dests = []
@@ -203,9 +203,8 @@ function Request (options) {
   if (self.onResponse) self.on('error', function (e) {self.onResponse(e)})
   if (self.callback) self.on('error', function (e) {self.callback(e)})
 
-  if (self.form) {
-    self.headers['content-type'] = 'application/x-www-form-urlencoded; charset=utf-8'
-    self.body = qs.stringify(self.form).toString('utf8')
+  if (options.form) {
+    self.form(options.form)
   }
 
   if (options.oauth) {
@@ -229,14 +228,8 @@ function Request (options) {
 
   if (self.proxy) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
 
-  if (self.json) {
-    self.headers['content-type'] = 'application/json'
-    if (typeof self.json === 'boolean') {
-      if (typeof self.body === 'object') self.body = JSON.stringify(self.body)
-    } else {
-      self.body = JSON.stringify(self.json)
-    }
-
+  if (options.json) {
+    self.json(options.json)
   } else if (self.multipart) {
     self.body = []
 
@@ -538,9 +531,22 @@ Request.prototype.setHeader = function (name, value) {
   if (!this.headers) this.headers = {}
   this.headers[name] = value
 }
-Request.prototype.headers = function (headers) {
+Request.prototype.setHeaders = function (headers) {
   for (i in headers) {this.setHeader(i, headers[i])}
 }
+Request.prototype.form = function (form) {
+  this.headers['content-type'] = 'application/x-www-form-urlencoded; charset=utf-8'
+  this.body = qs.stringify(form).toString('utf8')
+}
+Request.prototype.json = function (val) {
+  this.setHeader('content-type', 'application/json')
+  if (typeof val === 'boolean') {
+    if (typeof this.body === 'object') this.body = JSON.stringify(this.body)
+  } else {
+    this.body = JSON.stringify(val)
+  }
+}
+
 Request.prototype.oauth = function (_oauth) {
   var self = this
     , form
