@@ -86,8 +86,11 @@ function Request (options) {
   }
 
   for (var i in options) {
-    self[i] = options[i]
-  }
+    if (i !== 'oauth') {
+      self[i] = options[i]
+    }
+  }  
+  
   if (!self.pool) self.pool = globalPool
   self.dests = []
   self.__isRequestRequest = true
@@ -205,46 +208,8 @@ function Request (options) {
     self.body = qs.stringify(self.form).toString('utf8')
   }
 
-  if (self.oauth) {
-    var form
-    if (self.headers['content-type'] && 
-        self.headers['content-type'].slice(0, 'application/x-www-form-urlencoded'.length) ===
-          'application/x-www-form-urlencoded' 
-       ) {
-      form = qs.parse(self.body)
-    } 
-    if (self.uri.query) {
-      form = qs.parse(self.uri.query)
-    } 
-    if (!form) form = {}
-    var oa = {}
-    for (var i in form) oa[i] = form[i]
-    for (var i in self.oauth) oa['oauth_'+i] = self.oauth[i]
-    if (!oa.oauth_version) oa.oauth_version = '1.0'
-    if (!oa.oauth_timestamp) oa.oauth_timestamp = Math.floor( (new Date()).getTime() / 1000 ).toString()
-    if (!oa.oauth_nonce) oa.oauth_nonce = uuid().replace(/-/g, '')
-    
-    oa.oauth_signature_method = 'HMAC-SHA1'
-    
-    var consumer_secret = oa.oauth_consumer_secret
-    delete oa.oauth_consumer_secret
-    var token_secret = oa.oauth_token_secret
-    delete oa.oauth_token_secret
-    
-    var baseurl = self.uri.protocol + '//' + self.uri.host + self.uri.pathname
-    var signature = oauth.hmacsign(self.method, baseurl, oa, consumer_secret, token_secret)
-    
-    // oa.oauth_signature = signature
-    for (var i in form) {
-      if ( i.slice(0, 'oauth_') in self.oauth) {
-        // skip 
-      } else {
-        delete oa['oauth_'+i]
-      }
-    }
-    self.headers.authorization = 
-      'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+oauth.rfc3986(oa[i])+'"'}).join(',')
-    self.headers.authorization += ',oauth_signature="'+oauth.rfc3986(signature)+'"'  
+  if (options.oauth) {
+    self.oauth(options.oauth)
   }
 
   if (self.uri.auth && !self.headers.authorization) {
@@ -572,6 +537,53 @@ Request.prototype.pipeDest = function (dest) {
 Request.prototype.setHeader = function (name, value) {
   if (!this.headers) this.headers = {}
   this.headers[name] = value
+}
+Request.prototype.headers = function (headers) {
+  for (i in headers) {this.setHeader(i, headers[i])}
+}
+Request.prototype.oauth = function (_oauth) {
+  var self = this
+    , form
+    ;
+  if (self.headers['content-type'] && 
+      self.headers['content-type'].slice(0, 'application/x-www-form-urlencoded'.length) ===
+        'application/x-www-form-urlencoded' 
+     ) {
+    form = qs.parse(self.body)
+  } 
+  if (self.uri.query) {
+    form = qs.parse(self.uri.query)
+  } 
+  if (!form) form = {}
+  var oa = {}
+  for (var i in form) oa[i] = form[i]
+  for (var i in _oauth) oa['oauth_'+i] = _oauth[i]
+  if (!oa.oauth_version) oa.oauth_version = '1.0'
+  if (!oa.oauth_timestamp) oa.oauth_timestamp = Math.floor( (new Date()).getTime() / 1000 ).toString()
+  if (!oa.oauth_nonce) oa.oauth_nonce = uuid().replace(/-/g, '')
+  
+  oa.oauth_signature_method = 'HMAC-SHA1'
+  
+  var consumer_secret = oa.oauth_consumer_secret
+  delete oa.oauth_consumer_secret
+  var token_secret = oa.oauth_token_secret
+  delete oa.oauth_token_secret
+  
+  var baseurl = self.uri.protocol + '//' + self.uri.host + self.uri.pathname
+  var signature = oauth.hmacsign(self.method, baseurl, oa, consumer_secret, token_secret)
+  
+  // oa.oauth_signature = signature
+  for (var i in form) {
+    if ( i.slice(0, 'oauth_') in _oauth) {
+      // skip 
+    } else {
+      delete oa['oauth_'+i]
+    }
+  }
+  self.headers.authorization = 
+    'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+oauth.rfc3986(oa[i])+'"'}).join(',')
+  self.headers.authorization += ',oauth_signature="'+oauth.rfc3986(signature)+'"'
+  return self
 }
 
 
