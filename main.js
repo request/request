@@ -86,7 +86,7 @@ function Request (options) {
   }
 
   for (var i in options) {
-    if (i !== 'oauth' && i !== 'form' && i !== 'json') {
+    if (i !== 'oauth' && i !== 'form' && i !== 'json' && i !== 'multipart') {
       self[i] = options[i]
     }
   }
@@ -230,31 +230,8 @@ function Request (options) {
 
   if (options.json) {
     self.json(options.json)
-  } else if (self.multipart) {
-    self.body = []
-
-    if (!self.headers['content-type']) {
-      self.headers['content-type'] = 'multipart/related;boundary="frontier"';
-    } else {
-      self.headers['content-type'] = self.headers['content-type'].split(';')[0] + ';boundary="frontier"';
-    }
-
-    if (!self.multipart.forEach) throw new Error('Argument error, options.multipart.')
-
-    self.multipart.forEach(function (part) {
-      var body = part.body
-      if(!body) throw Error('Body attribute missing in multipart.')
-      delete part.body
-      var preamble = '--frontier\r\n'
-      Object.keys(part).forEach(function(key){
-        preamble += key + ': ' + part[key] + '\r\n'
-      })
-      preamble += '\r\n'
-      self.body.push(new Buffer(preamble))
-      self.body.push(new Buffer(body))
-      self.body.push(new Buffer('\r\n'))
-    })
-    self.body.push(new Buffer('--frontier--'))
+  } else if (options.multipart) {
+    self.multipart(options.multipart)
   }
 
   if (self.body) {
@@ -507,7 +484,6 @@ Request.prototype.start = function () {
   
   self.emit('request', self.req)
 }
-
 Request.prototype.pipeDest = function (dest) {
   var response = this.response
   // Called after the response is received
@@ -541,6 +517,34 @@ Request.prototype.form = function (form) {
   this.body = qs.stringify(form).toString('utf8')
   return this
 }
+Request.prototype.multipart = function (multipart) {
+  var self = this
+  self.body = []
+
+  if (!self.headers['content-type']) {
+    self.headers['content-type'] = 'multipart/related;boundary="frontier"';
+  } else {
+    self.headers['content-type'] = self.headers['content-type'].split(';')[0] + ';boundary="frontier"';
+  }
+
+  if (!multipart.forEach) throw new Error('Argument error, options.multipart.')
+
+  multipart.forEach(function (part) {
+    var body = part.body
+    if(!body) throw Error('Body attribute missing in multipart.')
+    delete part.body
+    var preamble = '--frontier\r\n'
+    Object.keys(part).forEach(function(key){
+      preamble += key + ': ' + part[key] + '\r\n'
+    })
+    preamble += '\r\n'
+    self.body.push(new Buffer(preamble))
+    self.body.push(new Buffer(body))
+    self.body.push(new Buffer('\r\n'))
+  })
+  self.body.push(new Buffer('--frontier--'))
+  return self
+}
 Request.prototype.json = function (val) {
   this.setHeader('content-type', 'application/json')
   if (typeof val === 'boolean') {
@@ -550,7 +554,6 @@ Request.prototype.json = function (val) {
   }
   return this
 }
-
 Request.prototype.oauth = function (_oauth) {
   var form
   if (this.headers['content-type'] && 
