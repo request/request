@@ -84,7 +84,7 @@ function Request (options) {
   self.writable = true
 
   if (typeof options === 'string') {
-    options = {uri:options}
+    options = {uri: options}
   }
 
   var reserved = Object.keys(Request.prototype)
@@ -657,9 +657,18 @@ Request.prototype.destroy = function () {
   if (!this._ended) this.end()
 }
 
-function request (options, callback) {
-  if (typeof options === 'string') options = {uri:options}
-  if (callback) options.callback = callback
+function request (uri, options, callback) {
+  if ((typeof options === 'function') && !callback) callback = options;
+  if (typeof options === 'object') {
+    options.uri = uri;
+    //console.log(options);
+  } else if (typeof uri === 'string') {
+    options = {uri: uri};
+  } else {
+    options = uri;
+  }
+
+  if (callback) options.callback = callback;
   var r = new Request(options)
   return r
 }

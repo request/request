@@ -8,7 +8,7 @@ var fs = require('fs')
   ;
 
 exports.createServer =  function (port) {
-  port = port || 6767
+  port = port || 6768
   var s = http.createServer(function (req, resp) {
     s.emit(req.url, req, resp);
   })
@@ -18,7 +18,7 @@ exports.createServer =  function (port) {
 }
 
 exports.createSSLServer = function(port) {
-  port = port || 16767
+  port = port || 16768
 
   var options = { 'key' : fs.readFileSync(path.join(__dirname, 'ssl', 'test.key'))
                 , 'cert': fs.readFileSync(path.join(__dirname, 'ssl', 'test.crt'))
