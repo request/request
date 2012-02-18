@@ -67,7 +67,9 @@ function isReadStream (rs) {
 
 function copy (obj) {
   var o = {}
-  for (var i in obj) o[i] = obj[i]
+  Object.keys(obj).forEach(function (i) {
+    o[i] = obj[i]
+  })
   return o
 }
 
@@ -85,11 +87,17 @@ function Request (options) {
     options = {uri:options}
   }
 
+  var reserved = Object.keys(Request.prototype)
   for (var i in options) {
-    if (i !== 'oauth' && i !== 'form' && i !== 'json' && i !== 'multipart') {
+    if (reserved.indexOf(i) === -1) {
       self[i] = options[i]
+    } else {
+      if (typeof options[i] === 'function') {
+        delete options[i]
+      }
     }
   }
+  options = copy(options)
   
   if (!self.pool) self.pool = globalPool
   self.dests = []
@@ -139,33 +147,8 @@ function Request (options) {
     }
     self.setHost = true
   }
-
-  if (self._redirectsFollowed === 0) {
-    self.originalCookieHeader = self.headers.cookie;
-  }
-  if (self.jar === false) {
-    // disable cookies
-    var cookies = false;
-    self._disableCookies = true;
-  } else if (self.jar) {
-    // fetch cookie from the user defined cookie jar
-    var cookies = self.jar.get({ url: self.uri.href })
-  } else {
-    // fetch cookie from the global cookie jar
-    var cookies = cookieJar.get({ url: self.uri.href })
-  }
-  if (cookies && cookies.length) {
-    var cookieString = cookies.map(function (c) {
-      return c.name + "=" + c.value
-    }).join("; ")
-
-    if (self.originalCookieHeader) {
-      // Don't overwrite existing Cookie header
-      self.headers.cookie = self.originalCookieHeader + '; ' + cookieString
-    } else {
-      self.headers.cookie = cookieString
-    }
-  }
+  
+  self.jar(options.jar)
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
   if (!self.uri.port) {
@@ -355,7 +338,7 @@ Request.prototype.start = function () {
     
     if (response.headers['set-cookie'] && (!self._disableCookies)) {
       response.headers['set-cookie'].forEach(function(cookie) {
-        if (self.jar) self.jar.add(new Cookie(cookie))
+        if (self._jar) self._jar.add(new Cookie(cookie))
         else cookieJar.add(new Cookie(cookie))
       })
     }
@@ -594,6 +577,40 @@ Request.prototype.oauth = function (_oauth) {
   this.headers.authorization = 
     'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+oauth.rfc3986(oa[i])+'"'}).join(',')
   this.headers.authorization += ',oauth_signature="'+oauth.rfc3986(signature)+'"'
+  return this
+}
+Request.prototype.jar = function (jar) {
+  var cookies
+  
+  if (this._redirectsFollowed === 0) {
+    this.originalCookieHeader = this.headers.cookie
+  }
+  
+  if (jar === false) {
+    // disable cookies
+    cookies = false;
+    this._disableCookies = true;
+  } else if (jar) {
+    // fetch cookie from the user defined cookie jar
+    cookies = jar.get({ url: this.uri.href })
+  } else {
+    // fetch cookie from the global cookie jar
+    cookies = cookieJar.get({ url: this.uri.href })
+  }
+  
+  if (cookies && cookies.length) {
+    var cookieString = cookies.map(function (c) {
+      return c.name + "=" + c.value
+    }).join("; ")
+
+    if (this.originalCookieHeader) {
+      // Don't overwrite existing Cookie header
+      this.headers.cookie = this.originalCookieHeader + '; ' + cookieString
+    } else {
+      this.headers.cookie = cookieString
+    }
+  }
+  this._jar = jar
   return this
 }
 
