@@ -202,17 +202,10 @@ function Request (options) {
   }
 
   self.path = self.uri.pathname
-  self.uri.search = ''
-  self.uri.query = self.uri.query || { }
-  
-  if (self.query) for (q in self.query) self.uri.query[q] = self.query[q]
-
-  var search = qs.stringify(self.uri.query)
-  if (search !== '') self.uri.search = '?' + search
 
   if (self.path.length === 0) self.path = '/'
 
-  if (self.uri.search !== '?') self.path += self.uri.search
+  if (options.query) self.qs(options.query)
 
   if (self.proxy) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
 
@@ -499,6 +492,18 @@ Request.prototype.setHeader = function (name, value, clobber) {
 }
 Request.prototype.setHeaders = function (headers) {
   for (i in headers) {this.setHeader(i, headers[i])}
+  return this
+}
+Request.prototype.qs = function (q, clobber) {
+  if (clobber) this.uri.query = q
+  else for (i in q) this.uri.query[i] = q[i]
+  
+  this.uri.search = qs.stringify(this.uri.query)
+  if (this.uri.search !== '') {
+	  this.uri.search = '?' + this.uri.search
+	  this.path += this.uri.search
+  }
+
   return this
 }
 Request.prototype.form = function (form) {
