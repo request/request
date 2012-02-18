@@ -488,7 +488,7 @@ Request.prototype.pipeDest = function (dest) {
 // Composable API
 Request.prototype.setHeader = function (name, value, clobber) {
   if (clobber === undefined) clobber = true
-  if (clobber) this.headers[name] = value
+  if (clobber || !this.headers.hasOwnProperty(name)) this.headers[name] = value
   else this.headers[name] += ',' + value
   return this
 }
