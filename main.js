@@ -639,7 +639,8 @@ Request.prototype.write = function () {
   if (!this.req) throw new Error("This request has been piped before http.request() was called.")
   this.req.write.apply(this.req, arguments)
 }
-Request.prototype.end = function () {
+Request.prototype.end = function (chunk) {
+  if (chunk) this.write(chunk)
   if (!this._started) this.start()
   if (!this.req) throw new Error("This request has been piped before http.request() was called.")
   this.req.end.apply(this.req, arguments)
@@ -651,6 +652,9 @@ Request.prototype.pause = function () {
 Request.prototype.resume = function () {
   if (!this.response) throw new Error("This request has been piped before http.request() was called.")
   this.response.resume.apply(this.response, arguments)
+}
+Request.prototype.destroy = function () {
+  if (!this._ended) this.end()
 }
 
 function request (options, callback) {
