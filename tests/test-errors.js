@@ -27,4 +27,11 @@ try {
   assert.equal(e.message, 'Body attribute missing in multipart.')
 }
 
+try {
+  request(local, {multipart: [{}]})
+  assert.fail("Should have throw")
+} catch(e) {
+  assert.equal(e.message, 'Body attribute missing in multipart.')
+}
+
 console.log("All tests passed.")

@@ -60,16 +60,16 @@ plain_server.listen(plain_server.port, function() {
 })
 
 function run_tests(httpModules) {
-  var to_https = {'httpModules':httpModules, 'uri':'http://localhost:'+plain_server.port+'/to_https'}
-  var to_plain = {'httpModules':httpModules, 'uri':'https://localhost:'+https_server.port+'/to_plain'}
+  var to_https = 'http://localhost:'+plain_server.port+'/to_https'
+  var to_plain = 'https://localhost:'+https_server.port+'/to_plain'
 
-  request(to_https, function (er, res, body) {
+  request(to_https, {'httpModules':httpModules}, function (er, res, body) {
     assert.ok(!er, 'Bounce to SSL worked')
     assert.equal(body, 'https', 'Received HTTPS server body')
     done()
   })
 
-  request(to_plain, function (er, res, body) {
+  request(to_plain, {'httpModules':httpModules}, function (er, res, body) {
     assert.ok(!er, 'Bounce to plaintext server worked')
     assert.equal(body, 'plain', 'Received HTTPS server body')
     done()
