@@ -122,7 +122,7 @@ function Request (options) {
   if (!self.uri) {
     throw new Error("options.uri is a required argument")
   } else {
-    if (typeof self.uri == "string") self.uri = url.parse(self.uri)
+    if (typeof self.uri == "string") self.uri = url.parse(self.uri, true)
   }
   if (self.proxy) {
     if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
@@ -201,13 +201,14 @@ function Request (options) {
     self.headers['proxy-authorization'] = "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
   }
 
-  if (self.uri.path) {
-    self.path = self.uri.path
-  } else {
-    self.path = self.uri.pathname + (self.uri.search || "")
-  }
+  self.path = self.uri.pathname
+  self.uri.query = self.uri.query || { }
+  
+  if (self.query) for (q in self.query) self.uri.query[q] = self.query[q]
 
   if (self.path.length === 0) self.path = '/'
+
+  if (self.uri.query) self.path += '?' + qs.stringify(self.uri.query)
 
   if (self.proxy) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
 

@@ -5,12 +5,13 @@ var fs = require('fs')
   , events = require('events')
   , stream = require('stream')
   , assert = require('assert')
+  , url = require('url')  
   ;
 
 exports.createServer =  function (port) {
   port = port || 6767
   var s = http.createServer(function (req, resp) {
-    s.emit(req.url, req, resp);
+    s.emit(url.parse(req.url).pathname, req, resp);
   })
   s.port = port
   s.url = 'http://localhost:'+port
