@@ -202,13 +202,17 @@ function Request (options) {
   }
 
   self.path = self.uri.pathname
+  self.uri.search = ''
   self.uri.query = self.uri.query || { }
   
   if (self.query) for (q in self.query) self.uri.query[q] = self.query[q]
 
+  var search = qs.stringify(self.uri.query)
+  if (search !== '') self.uri.search = '?' + search
+
   if (self.path.length === 0) self.path = '/'
 
-  if (self.uri.query) self.path += '?' + qs.stringify(self.uri.query)
+  if (self.uri.search !== '?') self.path += self.uri.search
 
   if (self.proxy) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
 
@@ -546,9 +550,8 @@ Request.prototype.oauth = function (_oauth) {
         'application/x-www-form-urlencoded' 
      ) {
     form = qs.parse(this.body)
-  } 
-  if (this.uri.query) {
-    form = qs.parse(this.uri.query)
+  } else if (this.uri.query) {
+    form = this.uri.query
   } 
   if (!form) form = {}
   var oa = {}

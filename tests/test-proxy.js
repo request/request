@@ -15,7 +15,7 @@ var port = 6768
 
 var s = server.createServer(port)
 s.listen(port, function () {
-  s.on('http://google.com/', function (req, res) {
+  s.on('/', function (req, res) {
     called = true
     assert.equal(req.headers.host, proxiedHost)
     res.writeHeader(200)
