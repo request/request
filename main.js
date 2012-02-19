@@ -657,9 +657,17 @@ Request.prototype.destroy = function () {
   if (!this._ended) this.end()
 }
 
-function request (options, callback) {
-  if (typeof options === 'string') options = {uri:options}
-  if (callback) options.callback = callback
+function request (uri, options, callback) {
+  if ((typeof options === 'function') && !callback) callback = options;
+  if (typeof options === 'object') {
+    options.uri = uri;
+  } else if (typeof uri === 'string') {
+    options = {uri:uri};
+  } else {
+    options = uri;
+  }
+
+  if (callback) options.callback = callback;
   var r = new Request(options)
   return r
 }
