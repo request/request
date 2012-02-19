@@ -179,4 +179,24 @@ s.listen(s.port, function () {
   validateForward.on('end', check)
   request.get('http://localhost:3453/forward1').pipe(validateForward)
 
+  // Test pipe options
+  s.once('/opts', server.createGetResponse('opts response'));
+
+  var optsStream = new stream.Stream();
+  optsStream.writable = true
+  
+  var optsData = '';
+  optsStream.write = function (buf) {
+    optsData += buf;
+    if (optsData === 'opts response') {
+      setTimeout(check, 10);
+    }
+  }
+
+  optsStream.end = function () {
+    assert.fail('end called')
+  };
+
+  counter++
+  request({url:'http://localhost:3453/opts'}).pipe(optsStream, { end : false })
 })
