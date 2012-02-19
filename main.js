@@ -122,7 +122,7 @@ function Request (options) {
   if (!self.uri) {
     throw new Error("options.uri is a required argument")
   } else {
-    if (typeof self.uri == "string") self.uri = url.parse(self.uri, true)
+    if (typeof self.uri == "string") self.uri = url.parse(self.uri)
   }
   if (self.proxy) {
     if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
@@ -201,11 +201,15 @@ function Request (options) {
     self.headers['proxy-authorization'] = "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
   }
 
-  self.path = self.uri.pathname
+  if (options.qs) self.qs(options.qs)
+
+  if (self.uri.path) {
+    self.path = self.uri.path
+  } else {
+    self.path = self.uri.pathname + (self.uri.search || "")
+  }
 
   if (self.path.length === 0) self.path = '/'
-
-  if (options.qs) self.qs(options.qs)
 
   if (self.proxy) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
 
@@ -495,14 +499,16 @@ Request.prototype.setHeaders = function (headers) {
   return this
 }
 Request.prototype.qs = function (q, clobber) {
-  if (clobber) this.uri.query = q
-  else for (i in q) this.uri.query[i] = q[i]
-  
-  this.uri.search = qs.stringify(this.uri.query)
-  if (this.uri.search !== '') {
-	  this.uri.search = '?' + this.uri.search
-	  this.path += this.uri.search
-  }
+  var uri = {
+  	protocol: this.uri.protocol,
+  	host: this.uri.host,
+  	pathname: this.uri.pathname,
+  	query: clobber ? q : qs.parse(this.uri.query),
+  	hash: this.uri.hash
+  };
+  if (!clobber) for (var i in q) uri.query[i] = q[i]
+
+  this.uri= url.parse(url.format(uri))
 
   return this
 }
@@ -555,8 +561,9 @@ Request.prototype.oauth = function (_oauth) {
         'application/x-www-form-urlencoded' 
      ) {
     form = qs.parse(this.body)
-  } else if (this.uri.query) {
-    form = this.uri.query
+  }
+  if (this.uri.query) {
+    form = qs.parse(this.uri.query)
   } 
   if (!form) form = {}
   var oa = {}
