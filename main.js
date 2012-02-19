@@ -617,20 +617,20 @@ Request.prototype.jar = function (jar) {
 
 
 // Stream API
-Request.prototype.pipe = function (dest) {
+Request.prototype.pipe = function (dest, opts) {
   if (this.response) {
     if (this._destdata) {
       throw new Error("You cannot pipe after data has been emitted from the response.")
     } else if (this._ended) {
       throw new Error("You cannot pipe after the response has been ended.")
     } else {
-      stream.Stream.prototype.pipe.call(this, dest)
+      stream.Stream.prototype.pipe.call(this, dest, opts)
       this.pipeDest(dest)
       return dest
     }
   } else {
     this.dests.push(dest)
-    stream.Stream.prototype.pipe.call(this, dest)
+    stream.Stream.prototype.pipe.call(this, dest, opts)
     return dest
   }
 }
