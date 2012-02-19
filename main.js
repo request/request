@@ -205,7 +205,7 @@ function Request (options) {
 
   if (self.path.length === 0) self.path = '/'
 
-  if (options.query) self.qs(options.query)
+  if (options.qs) self.qs(options.qs)
 
   if (self.proxy) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
 

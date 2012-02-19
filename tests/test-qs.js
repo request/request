@@ -33,19 +33,19 @@ s.listen(s.port, function () {
   }
 
   // Test adding a querystring
-  createTest({ query: { q : 'search' } }, '', function (req, res) {
+  createTest({ qs: { q : 'search' } }, '', function (req, res) {
     var result = qs.parse(url.parse(req.url).query)
     assert.deepEqual({ q : 'search' }, result)
   })
 
   // Test replacing a querystring value
-  createTest({ query: { q : 'search' } }, '?q=abc', function (req, res) {
+  createTest({ qs: { q : 'search' } }, '?q=abc', function (req, res) {
     var result = qs.parse(url.parse(req.url).query)
     assert.deepEqual({ q : 'search' }, result)
   })
 
   // Test appending a querystring value to the ones present in the uri
-  createTest({ query: { q : 'search' } }, '?x=y', function (req, res) {
+  createTest({ qs: { q : 'search' } }, '?x=y', function (req, res) {
     var result = qs.parse(url.parse(req.url).query)
     assert.deepEqual({ q : 'search', x : 'y' }, result)
   })
