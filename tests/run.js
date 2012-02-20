@@ -1,21 +1,29 @@
-var fs = require('fs')
-  , spawn = require('child_process').spawn
-  , tests = []
+var spawn = require('child_process').spawn
   , exitCode = 0
   ;
- 
-fs.readdirSync('tests').forEach(function (file) {
-  if (! /test-/.test(file)) return
 
-  tests.push('tests/' + file)
-})
+var tests = [
+    'test-body.js'
+  , 'test-cookie.js'
+  , 'test-cookiejar.js'
+  , 'test-errors.js'
+  , 'test-headers.js'
+  , 'test-httpModule.js'
+  , 'test-https.js'
+  , 'test-oauth.js'
+  , 'test-pipes.js'
+  , 'test-proxy.js'
+  , 'test-qs.js'
+  , 'test-redirect.js'
+  , 'test-timeout.js'
+] 
 
 var next = function () {
   if (tests.length === 0) process.exit(exitCode);
   
-  var file = tests.pop()
+  var file = tests.shift()
   console.log(file)
-  var proc = spawn('node', [ file ])
+  var proc = spawn('node', [ 'tests/' + file ])
   proc.stdout.pipe(process.stdout)
   proc.stderr.pipe(process.stderr)
   proc.on('exit', function (code) {

@@ -11,5 +11,5 @@
   { "url" : "http://github.com/mikeal/request/issues" }
 , "engines" : ["node >= 0.3.6"]
 , "main" : "./main"
-, "scripts": { "test": "bash tests/run.sh" }
+, "scripts": { "test": "node tests/run.js" }
 }
