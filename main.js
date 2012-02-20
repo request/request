@@ -690,12 +690,12 @@ module.exports = request
 
 request.defaults = function (options) {
   var def = function (method) {
-    var d = function (opts, callback) {
-      if (typeof opts === 'string') opts = {uri:opts}
+    var d = function (uri, opts, callback) {
+      var params = initParams(uri, opts, callback);
       for (var i in options) {
-        if (opts[i] === undefined) opts[i] = options[i]
+        if (params.options[i] === undefined) params.options[i] = options[i]
       }
-      return method(opts, callback)
+      return method(params.uri, params.options, params.callback)
     }
     return d
   }
