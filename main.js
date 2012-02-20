@@ -657,6 +657,20 @@ Request.prototype.destroy = function () {
   if (!this._ended) this.end()
 }
 
+// organize params for post, put, head, del
+function initParams(uri, options, callback) {
+  if ((typeof options === 'function') && !callback) callback = options;
+  if (typeof options === 'object') {
+    options.uri = uri;
+  } else if (typeof uri === 'string') {
+    options = {uri:uri};
+  } else {
+    options = uri;
+    uri = options.uri;
+  }
+  return { uri: uri, options: options, callback: callback };
+}
+
 function request (uri, options, callback) {
   if ((typeof options === 'function') && !callback) callback = options;
   if (typeof options === 'object') {
@@ -708,28 +722,28 @@ request.forever = function (agentOptions, optionsArg) {
 }
 
 request.get = request
-request.post = function (options, callback) {
-  if (typeof options === 'string') options = {uri:options}
-  options.method = 'POST'
-  return request(options, callback)
+request.post = function (uri, options, callback) {
+  var params = initParams(uri, options, callback);
+  params.options.method = 'POST';
+  return request(params.uri, params.options, params.callback)
 }
-request.put = function (options, callback) {
-  if (typeof options === 'string') options = {uri:options}
-  options.method = 'PUT'
-  return request(options, callback)
+request.put = function (uri, options, callback) {
+  var params = initParams(uri, options, callback);
+  params.options.method = 'PUT'
+  return request(params.uri, params.options, params.callback)
 }
-request.head = function (options, callback) {
-  if (typeof options === 'string') options = {uri:options}
-  options.method = 'HEAD'
+request.head = function (uri, options, callback) {
+  var params = initParams(uri, options, callback);
+  params.options.method = 'HEAD'
   if (options.body || options.requestBodyStream || options.json || options.multipart) {
     throw new Error("HTTP HEAD requests MUST NOT include a request body.")
   }
-  return request(options, callback)
+  return request(params.uri, params.options, params.callback)
 }
-request.del = function (options, callback) {
-  if (typeof options === 'string') options = {uri:options}
-  options.method = 'DELETE'
-  return request(options, callback)
+request.del = function (uri, options, callback) {
+  var params = initParams(uri, options, callback);
+  params.options.method = 'DELETE'
+  return request(params.uri, params.options, params.callback)
 }
 request.jar = function () {
   return new CookieJar
