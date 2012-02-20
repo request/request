@@ -78,7 +78,7 @@ s.listen(s.port, function () {
   })
 
   // Should not follow post redirects by default
-  request.post({uri:server+'/temp', jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
+  request.post(server+'/temp', { jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     try {
       assert.ok(hits.temp, 'Original request is to /temp')
       assert.ok(!hits.temp_landing, 'No chasing the redirect when post')
