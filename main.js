@@ -201,6 +201,8 @@ function Request (options) {
     self.headers['proxy-authorization'] = "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
   }
 
+  if (options.qs) self.qs(options.qs)
+
   if (self.uri.path) {
     self.path = self.uri.path
   } else {
@@ -496,6 +498,20 @@ Request.prototype.setHeaders = function (headers) {
   for (i in headers) {this.setHeader(i, headers[i])}
   return this
 }
+Request.prototype.qs = function (q, clobber) {
+  var uri = {
+  	protocol: this.uri.protocol,
+  	host: this.uri.host,
+  	pathname: this.uri.pathname,
+  	query: clobber ? q : qs.parse(this.uri.query),
+  	hash: this.uri.hash
+  };
+  if (!clobber) for (var i in q) uri.query[i] = q[i]
+
+  this.uri= url.parse(url.format(uri))
+
+  return this
+}
 Request.prototype.form = function (form) {
   this.headers['content-type'] = 'application/x-www-form-urlencoded; charset=utf-8'
   this.body = qs.stringify(form).toString('utf8')
@@ -545,7 +561,7 @@ Request.prototype.oauth = function (_oauth) {
         'application/x-www-form-urlencoded' 
      ) {
     form = qs.parse(this.body)
-  } 
+  }
   if (this.uri.query) {
     form = qs.parse(this.uri.query)
   } 
