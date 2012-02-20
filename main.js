@@ -643,7 +643,7 @@ Request.prototype.end = function (chunk) {
   if (chunk) this.write(chunk)
   if (!this._started) this.start()
   if (!this.req) throw new Error("This request has been piped before http.request() was called.")
-  this.req.end.apply(this.req, arguments)
+  this.req.end(this.req)
 }
 Request.prototype.pause = function () {
   if (!this.response) throw new Error("This request has been piped before http.request() was called.")
