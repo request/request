@@ -238,6 +238,10 @@ function Request (options) {
     } else {
       throw new Error('Argument error, options.body.')
     }
+  } else {
+    if (self.method && self.method != 'GET') {
+      self.headers['content-length'] = 0
+    }
   }
 
   var protocol = self.proxy ? self.proxy.protocol : self.uri.protocol
@@ -301,7 +305,6 @@ function Request (options) {
       console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
       self.requestBodyStream.pipe(self)
     } else if (!self.src) {
-      self.headers['content-length'] = 0
       self.end()
     }
     self.ntick = true
