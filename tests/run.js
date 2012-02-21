@@ -6,6 +6,7 @@ var tests = [
     'test-body.js'
   , 'test-cookie.js'
   , 'test-cookiejar.js'
+  , 'test-defaults.js'
   , 'test-errors.js'
   , 'test-headers.js'
   , 'test-httpModule.js'
