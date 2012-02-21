@@ -146,6 +146,7 @@ request.post({url:url, oauth:oauth}, function (e, r, body) {
 The first argument can be either a url or an options object. The only required option is uri, all others are optional.
 
 * `uri` || `url` - fully qualified uri or a parsed url object from url.parse()
+* `qs` - object containing querystring values to be appended to the uri
 * `method` - http method, defaults to GET
 * `headers` - http headers, defaults to {}
 * `body` - entity body for POST and PUT requests. Must be buffer or string.
