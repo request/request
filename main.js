@@ -288,6 +288,11 @@ function Request (options) {
   })
 
   process.nextTick(function () {
+    if (self._wasAborted) {
+      self.emit("error", "abort");
+      return;
+    }
+    
     if (self.body) {
       if (Array.isArray(self.body)) {
         self.body.forEach(function(part) {
@@ -306,6 +311,10 @@ function Request (options) {
     }
     self.ntick = true
   })
+  
+  self.abort = function() {
+    self._wasAborted = true;
+  }
 }
 util.inherits(Request, stream.Stream)
 Request.prototype.getAgent = function (host, port) {
@@ -316,6 +325,12 @@ Request.prototype.getAgent = function (host, port) {
 }
 Request.prototype.start = function () {
   var self = this
+  
+  if (self._wasAborted) {
+    self.emit("error", "abort");
+    return;
+  }
+  
   self._started = true
   self.method = self.method || 'GET'
   self.href = self.uri.href
@@ -323,6 +338,12 @@ Request.prototype.start = function () {
   self.req = self.httpModule.request(self, function (response) {
     self.response = response
     response.request = self
+
+    self.abort = function() {
+      self.req.abort();
+      self.emit("error", "abort");
+      return;
+    }
 
     if (self.httpModule === https &&
         self.strictSSL &&
@@ -444,6 +465,12 @@ Request.prototype.start = function () {
       }
     }
   })
+
+  self.abort = function() {
+    self.req.abort();
+    self.emit("error", "abort");
+    return;
+  }
 
   if (self.timeout && !self.timeoutTimer) {
     self.timeoutTimer = setTimeout(function() {
