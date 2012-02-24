@@ -78,19 +78,18 @@ var isUrl = /^https?:/
 var globalPool = {}
 
 function Request (options) {
-  var self = this
-  stream.Stream.call(self)
-  self.readable = true
-  self.writable = true
+  stream.Stream.call(this)
+  this.readable = true
+  this.writable = true
 
   if (typeof options === 'string') {
     options = {uri:options}
   }
-
+  
   var reserved = Object.keys(Request.prototype)
   for (var i in options) {
     if (reserved.indexOf(i) === -1) {
-      self[i] = options[i]
+      this[i] = options[i]
     } else {
       if (typeof options[i] === 'function') {
         delete options[i]
@@ -98,6 +97,14 @@ function Request (options) {
     }
   }
   options = copy(options)
+  
+  this.init(options)
+}
+util.inherits(Request, stream.Stream)
+Request.prototype.init = function (options) {
+  var self = this
+  
+  if (!options) options = {}
   
   if (!self.pool) self.pool = globalPool
   self.dests = []
@@ -307,7 +314,6 @@ function Request (options) {
     self.ntick = true
   })
 }
-util.inherits(Request, stream.Stream)
 Request.prototype.getAgent = function (host, port) {
   if (!this.pool[host+':'+port]) {
     this.pool[host+':'+port] = new this.httpModule.Agent({host:host, port:port})
@@ -372,7 +378,7 @@ Request.prototype.start = function () {
         delete self.headers.host
       }
       if (log) log('Redirect to %uri', self)
-      request(self, self.callback)
+      self.init()
       return // Ignore the rest of the response
     } else {
       self._redirectsFollowed = self._redirectsFollowed || 0
