@@ -439,7 +439,7 @@ Request.prototype.start = function () {
             response.body = buffer.join('')
           }
 
-          if (self.json) {
+          if (self._json) {
             try {
               response.body = JSON.parse(response.body)
             } catch (e) {}
@@ -554,6 +554,7 @@ Request.prototype.multipart = function (multipart) {
 Request.prototype.json = function (val) {
   this.setHeader('content-type', 'application/json')
   this.setHeader('accept', 'application/json')
+  this._json = true
   if (typeof val === 'boolean') {
     if (typeof this.body === 'object') this.body = JSON.stringify(this.body)
   } else {
