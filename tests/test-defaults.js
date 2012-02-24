@@ -44,7 +44,7 @@ s.listen(s.port, function () {
   });
 
   // test .del(string, function)
-  request.defaults({headers:{foo:"bar"}}).del(s.url + '/del', function (e, r, b){
+  request.defaults({headers:{foo:"bar"}, json:true}).del(s.url + '/del', function (e, r, b){
     if (e) throw e;
     assert.deepEqual('bar', b.foo);
     counter += 1;
