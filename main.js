@@ -177,9 +177,7 @@ Request.prototype.init = function (options) {
   }
 
   self.clientErrorHandler = function (error) {
-    if (self._aborted) {
-      return
-    }
+    if (self._aborted) return
     
     if (self.setHost) delete self.headers.host
     if (self.req._reusedSocket && error.code === 'ECONNRESET') {
@@ -299,9 +297,7 @@ Request.prototype.init = function (options) {
   })
 
   process.nextTick(function () {
-    if (self._aborted) {
-      return;
-    }
+    if (self._aborted) return
     
     if (self.body) {
       if (Array.isArray(self.body)) {
@@ -331,18 +327,14 @@ Request.prototype.getAgent = function (host, port) {
 Request.prototype.start = function () {
   var self = this
   
-  if (self._aborted) {
-    return;
-  }
+  if (self._aborted) return
   
   self._started = true
   self.method = self.method || 'GET'
   self.href = self.uri.href
   if (log) log('%method %href', self)
   self.req = self.httpModule.request(self, function (response) {
-    if (self._aborted) {
-      return
-    }
+    if (self._aborted) return
     
     self.response = response
     response.request = self
@@ -440,9 +432,7 @@ Request.prototype.start = function () {
           bodyLen += chunk.length
         })
         self.on("end", function () {
-          if (self._aborted) {
-            return
-          }
+          if (self._aborted) return
           
           if (buffer.length && Buffer.isBuffer(buffer[0])) {
             var body = new Buffer(bodyLen)
