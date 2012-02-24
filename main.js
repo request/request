@@ -170,6 +170,10 @@ function Request (options) {
   }
 
   self.clientErrorHandler = function (error) {
+    if (self._aborted) {
+      return
+    }
+    
     if (self.setHost) delete self.headers.host
     if (self.req._reusedSocket && error.code === 'ECONNRESET') {
       self.agent = {addRequest: ForeverAgent.prototype.addRequestNoreuse.bind(self.agent)}
@@ -288,8 +292,7 @@ function Request (options) {
   })
 
   process.nextTick(function () {
-    if (self._wasAborted) {
-      self.emit("error", "abort");
+    if (self._aborted) {
       return;
     }
     
@@ -311,10 +314,6 @@ function Request (options) {
     }
     self.ntick = true
   })
-  
-  self.abort = function() {
-    self._wasAborted = true;
-  }
 }
 util.inherits(Request, stream.Stream)
 Request.prototype.getAgent = function (host, port) {
@@ -326,8 +325,7 @@ Request.prototype.getAgent = function (host, port) {
 Request.prototype.start = function () {
   var self = this
   
-  if (self._wasAborted) {
-    self.emit("error", "abort");
+  if (self._aborted) {
     return;
   }
   
@@ -336,14 +334,12 @@ Request.prototype.start = function () {
   self.href = self.uri.href
   if (log) log('%method %href', self)
   self.req = self.httpModule.request(self, function (response) {
+    if (self._aborted) {
+      return
+    }
+    
     self.response = response
     response.request = self
-
-    self.abort = function() {
-      self.req.abort();
-      self.emit("error", "abort");
-      return;
-    }
 
     if (self.httpModule === https &&
         self.strictSSL &&
@@ -438,6 +434,10 @@ Request.prototype.start = function () {
           bodyLen += chunk.length
         })
         self.on("end", function () {
+          if (self._aborted) {
+            return
+          }
+          
           if (buffer.length && Buffer.isBuffer(buffer[0])) {
             var body = new Buffer(bodyLen)
             var i = 0
@@ -466,12 +466,6 @@ Request.prototype.start = function () {
     }
   })
 
-  self.abort = function() {
-    self.req.abort();
-    self.emit("error", "abort");
-    return;
-  }
-
   if (self.timeout && !self.timeoutTimer) {
     self.timeoutTimer = setTimeout(function() {
       self.req.abort()
@@ -496,6 +490,20 @@ Request.prototype.start = function () {
   
   self.emit('request', self.req)
 }
+
+Request.prototype.abort = function() {
+  this._aborted = true;
+  
+  if (this.req) {
+    this.req.abort()
+  }
+  else if (this.response) {
+    this.response.abort()
+  }
+  
+  this.emit("abort")
+}
+
 Request.prototype.pipeDest = function (dest) {
   var response = this.response
   // Called after the response is received
