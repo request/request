@@ -177,6 +177,10 @@ Request.prototype.init = function (options) {
   }
 
   self.clientErrorHandler = function (error) {
+    if (self._aborted) {
+      return
+    }
+    
     if (self.setHost) delete self.headers.host
     if (self.req._reusedSocket && error.code === 'ECONNRESET') {
       self.agent = {addRequest: ForeverAgent.prototype.addRequestNoreuse.bind(self.agent)}
@@ -295,6 +299,10 @@ Request.prototype.init = function (options) {
   })
 
   process.nextTick(function () {
+    if (self._aborted) {
+      return;
+    }
+    
     if (self.body) {
       if (Array.isArray(self.body)) {
         self.body.forEach(function(part) {
@@ -322,11 +330,20 @@ Request.prototype.getAgent = function (host, port) {
 }
 Request.prototype.start = function () {
   var self = this
+  
+  if (self._aborted) {
+    return;
+  }
+  
   self._started = true
   self.method = self.method || 'GET'
   self.href = self.uri.href
   if (log) log('%method %href', self)
   self.req = self.httpModule.request(self, function (response) {
+    if (self._aborted) {
+      return
+    }
+    
     self.response = response
     response.request = self
 
@@ -423,6 +440,10 @@ Request.prototype.start = function () {
           bodyLen += chunk.length
         })
         self.on("end", function () {
+          if (self._aborted) {
+            return
+          }
+          
           if (buffer.length && Buffer.isBuffer(buffer[0])) {
             var body = new Buffer(bodyLen)
             var i = 0
@@ -475,6 +496,20 @@ Request.prototype.start = function () {
   
   self.emit('request', self.req)
 }
+
+Request.prototype.abort = function() {
+  this._aborted = true;
+  
+  if (this.req) {
+    this.req.abort()
+  }
+  else if (this.response) {
+    this.response.abort()
+  }
+  
+  this.emit("abort")
+}
+
 Request.prototype.pipeDest = function (dest) {
   var response = this.response
   // Called after the response is received
