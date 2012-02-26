@@ -27,7 +27,7 @@ var http = require('http')
   , CookieJar = require('./vendor/cookie/jar')
   , cookieJar = new CookieJar
   ;
-  
+
 if (process.logging) {
   var log = process.logging('request')
 }
@@ -85,7 +85,7 @@ function Request (options) {
   if (typeof options === 'string') {
     options = {uri:options}
   }
-  
+
   var reserved = Object.keys(Request.prototype)
   for (var i in options) {
     if (reserved.indexOf(i) === -1) {
@@ -97,19 +97,19 @@ function Request (options) {
     }
   }
   options = copy(options)
-  
+
   this.init(options)
 }
 util.inherits(Request, stream.Stream)
 Request.prototype.init = function (options) {
   var self = this
-  
+
   if (!options) options = {}
-  
+
   if (!self.pool) self.pool = globalPool
   self.dests = []
   self.__isRequestRequest = true
-  
+
   // Protect against double callback
   if (!self._callback && self.callback) {
     self._callback = self.callback
@@ -154,7 +154,7 @@ Request.prototype.init = function (options) {
     }
     self.setHost = true
   }
-  
+
   self.jar(options.jar)
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
@@ -178,7 +178,7 @@ Request.prototype.init = function (options) {
 
   self.clientErrorHandler = function (error) {
     if (self._aborted) return
-    
+
     if (self.setHost) delete self.headers.host
     if (self.req._reusedSocket && error.code === 'ECONNRESET') {
       self.agent = {addRequest: ForeverAgent.prototype.addRequestNoreuse.bind(self.agent)}
@@ -298,7 +298,7 @@ Request.prototype.init = function (options) {
 
   process.nextTick(function () {
     if (self._aborted) return
-    
+
     if (self.body) {
       if (Array.isArray(self.body)) {
         self.body.forEach(function(part) {
@@ -326,16 +326,16 @@ Request.prototype.getAgent = function (host, port) {
 }
 Request.prototype.start = function () {
   var self = this
-  
+
   if (self._aborted) return
-  
+
   self._started = true
   self.method = self.method || 'GET'
   self.href = self.uri.href
   if (log) log('%method %href', self)
   self.req = self.httpModule.request(self, function (response) {
     if (self._aborted) return
-    
+
     self.response = response
     response.request = self
 
@@ -351,8 +351,8 @@ Request.prototype.start = function () {
     if (self.timeout && self.timeoutTimer) {
         clearTimeout(self.timeoutTimer);
         self.timeoutTimer = null;
-    }  
-    
+    }
+
     if (response.headers['set-cookie'] && (!self._disableCookies)) {
       response.headers['set-cookie'].forEach(function(cookie) {
         if (self._jar) self._jar.add(new Cookie(cookie))
@@ -376,7 +376,7 @@ Request.prototype.start = function () {
       self.uri = response.headers.location
       self.redirects.push(
         { statusCode : response.statusCode
-        , redirectUri: response.headers.location 
+        , redirectUri: response.headers.location
         }
       )
       self.method = 'GET'; // Force all redirects to use GET
@@ -433,7 +433,7 @@ Request.prototype.start = function () {
         })
         self.on("end", function () {
           if (self._aborted) return
-          
+
           if (buffer.length && Buffer.isBuffer(buffer[0])) {
             var body = new Buffer(bodyLen)
             var i = 0
@@ -469,7 +469,7 @@ Request.prototype.start = function () {
       e.code = "ETIMEDOUT"
       self.emit("error", e)
     }, self.timeout)
-    
+
     // Set additional timeout on socket - in case if remote
     // server freeze after sending headers
     self.req.setTimeout(self.timeout, function(){
@@ -481,22 +481,22 @@ Request.prototype.start = function () {
         }
     });
   }
-  
+
   self.req.on('error', self.clientErrorHandler)
-  
+
   self.emit('request', self.req)
 }
 
 Request.prototype.abort = function() {
   this._aborted = true;
-  
+
   if (this.req) {
     this.req.abort()
   }
   else if (this.response) {
     this.response.abort()
   }
-  
+
   this.emit("abort")
 }
 
@@ -589,15 +589,15 @@ Request.prototype.json = function (val) {
 }
 Request.prototype.oauth = function (_oauth) {
   var form
-  if (this.headers['content-type'] && 
+  if (this.headers['content-type'] &&
       this.headers['content-type'].slice(0, 'application/x-www-form-urlencoded'.length) ===
-        'application/x-www-form-urlencoded' 
+        'application/x-www-form-urlencoded'
      ) {
     form = qs.parse(this.body)
   }
   if (this.uri.query) {
     form = qs.parse(this.uri.query)
-  } 
+  }
   if (!form) form = {}
   var oa = {}
   for (var i in form) oa[i] = form[i]
@@ -605,37 +605,37 @@ Request.prototype.oauth = function (_oauth) {
   if (!oa.oauth_version) oa.oauth_version = '1.0'
   if (!oa.oauth_timestamp) oa.oauth_timestamp = Math.floor( (new Date()).getTime() / 1000 ).toString()
   if (!oa.oauth_nonce) oa.oauth_nonce = uuid().replace(/-/g, '')
-  
+
   oa.oauth_signature_method = 'HMAC-SHA1'
-  
+
   var consumer_secret = oa.oauth_consumer_secret
   delete oa.oauth_consumer_secret
   var token_secret = oa.oauth_token_secret
   delete oa.oauth_token_secret
-  
+
   var baseurl = this.uri.protocol + '//' + this.uri.host + this.uri.pathname
   var signature = oauth.hmacsign(this.method, baseurl, oa, consumer_secret, token_secret)
-  
+
   // oa.oauth_signature = signature
   for (var i in form) {
     if ( i.slice(0, 'oauth_') in _oauth) {
-      // skip 
+      // skip
     } else {
       delete oa['oauth_'+i]
     }
   }
-  this.headers.authorization = 
+  this.headers.authorization =
     'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+oauth.rfc3986(oa[i])+'"'}).join(',')
   this.headers.authorization += ',oauth_signature="'+oauth.rfc3986(signature)+'"'
   return this
 }
 Request.prototype.jar = function (jar) {
   var cookies
-  
+
   if (this._redirectsFollowed === 0) {
     this.originalCookieHeader = this.headers.cookie
   }
-  
+
   if (jar === false) {
     // disable cookies
     cookies = false;
@@ -647,7 +647,7 @@ Request.prototype.jar = function (jar) {
     // fetch cookie from the global cookie jar
     cookies = cookieJar.get({ url: this.uri.href })
   }
-  
+
   if (cookies && cookies.length) {
     var cookieString = cookies.map(function (c) {
       return c.name + "=" + c.value
