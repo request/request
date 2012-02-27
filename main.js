@@ -472,14 +472,16 @@ Request.prototype.start = function () {
     
     // Set additional timeout on socket - in case if remote
     // server freeze after sending headers
-    self.req.setTimeout(self.timeout, function(){
-        if (self.req) {
-            self.req.abort()
-            var e = new Error("ESOCKETTIMEDOUT")
-            e.code = "ESOCKETTIMEDOUT"
-            self.emit("error", e)
-        }
-    });
+    if (self.req.setTimeout) { // only works on node 0.6+
+      self.req.setTimeout(self.timeout, function(){
+          if (self.req) {
+              self.req.abort()
+              var e = new Error("ESOCKETTIMEDOUT")
+              e.code = "ESOCKETTIMEDOUT"
+              self.emit("error", e)
+          }
+      })
+    }
   }
   
   self.req.on('error', self.clientErrorHandler)
