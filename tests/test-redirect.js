@@ -112,10 +112,46 @@ s.listen(s.port, function () {
     }
   })
 
+  // Should not follow delete redirects by default
+  request.del(server+'/temp', { jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
+    try {
+      assert.ok(hits.temp, 'Original request is to /temp')
+      assert.ok(!hits.temp_landing, 'No chasing the redirect when delete')
+      assert.equal(res.statusCode, 301, 'Response is the bounce itself')
+      passed += 1
+    } finally {
+      done()
+    }
+  })
+
+  // Should not follow delete redirects even if followRedirect is set to true
+  request.del(server+'/temp', { followRedirect: true, jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
+    try {
+      assert.ok(hits.temp, 'Original request is to /temp')
+      assert.ok(!hits.temp_landing, 'No chasing the redirect when delete')
+      assert.equal(res.statusCode, 301, 'Response is the bounce itself')
+      passed += 1
+    } finally {
+      done()
+    }
+  })
+
+  // Should follow delete redirects when followAllRedirects true
+  request.del(server+'/temp', {followAllRedirects:true, jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
+    try {
+      assert.ok(hits.temp, 'Original request is to /temp')
+      assert.ok(hits.temp_landing, 'Forward to temporary landing URL')
+      assert.equal(body, 'temp_landing', 'Got temporary landing content')
+      passed += 1
+    } finally {
+      done()
+    }
+  })
+
   var reqs_done = 0;
   function done() {
     reqs_done += 1;
-    if(reqs_done == 6) {
+    if(reqs_done == 9) {
       console.log(passed + ' tests passed.')
       s.close()
     }
