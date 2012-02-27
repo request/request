@@ -362,7 +362,7 @@ Request.prototype.start = function () {
 
     if (response.statusCode >= 300 && response.statusCode < 400  &&
         (self.followAllRedirects ||
-         (self.followRedirect && (self.method !== 'PUT' && self.method !== 'POST'))) &&
+         (self.followRedirect && (self.method !== 'PUT' && self.method !== 'POST' && self.method !== 'DELETE'))) &&
         response.headers.location) {
       if (self._redirectsFollowed >= self.maxRedirects) {
         self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."))
