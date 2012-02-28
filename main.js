@@ -335,6 +335,7 @@ Request.prototype.start = function () {
   if (log) log('%method %href', self)
   self.req = self.httpModule.request(self, function (response) {
     if (self._aborted) return
+    if (self._paused) response.pause()
     
     self.response = response
     response.request = self
@@ -687,22 +688,20 @@ Request.prototype.pipe = function (dest, opts) {
 }
 Request.prototype.write = function () {
   if (!this._started) this.start()
-  if (!this.req) throw new Error("This request has been piped before http.request() was called.")
   this.req.write.apply(this.req, arguments)
 }
 Request.prototype.end = function (chunk) {
   if (chunk) this.write(chunk)
   if (!this._started) this.start()
-  if (!this.req) throw new Error("This request has been piped before http.request() was called.")
   this.req.end()
 }
 Request.prototype.pause = function () {
-  if (!this.response) throw new Error("This request has been piped before http.request() was called.")
-  this.response.pause.apply(this.response, arguments)
+  if (!this.response) this._paused = true
+  else this.response.pause.apply(this.response, arguments)
 }
 Request.prototype.resume = function () {
-  if (!this.response) throw new Error("This request has been piped before http.request() was called.")
-  this.response.resume.apply(this.response, arguments)
+  if (!this.response) this._paused = false
+  else this.response.resume.apply(this.response, arguments)
 }
 Request.prototype.destroy = function () {
   if (!this._ended) this.end()
