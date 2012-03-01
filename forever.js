@@ -1,8 +1,11 @@
 module.exports = ForeverAgent
+ForeverAgent.SSL = ForeverAgentSSL
 
 var util = require('util')
   , Agent = require('http').Agent
   , net = require('net')
+  , tls = require('tls')
+  , AgentSSL = require('https').Agent
 
 function ForeverAgent(options) {
   var self = this
@@ -34,8 +37,11 @@ function ForeverAgent(options) {
       socket.destroy();
     }
   })
-  self.createConnection = net.createConnection
+
 }
+
+ForeverAgent.prototype.createConnection = net.createConnection
+
 util.inherits(ForeverAgent, Agent)
 
 ForeverAgent.defaultMinSockets = 5
@@ -81,4 +87,18 @@ ForeverAgent.prototype.removeSocket = function(s, name, host, port) {
     // needs to be created to take over in the pool for the one that closed.
     this.createSocket(name, host, port).emit('free');
   }
+}
+
+function ForeverAgentSSL (options) {
+  ForeverAgent.call(this, options)
+}
+util.inherits(ForeverAgentSSL, ForeverAgent)
+
+ForeverAgentSSL.prototype.createConnection = createConnectionSSL
+ForeverAgentSSL.prototype.addRequestNoreuse = AgentSSL.prototype.addRequest
+
+function createConnectionSSL (port, host, options) {
+  options.port = port
+  options.host = host
+  return tls.connect(options)
 }
