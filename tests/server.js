@@ -17,12 +17,19 @@ exports.createServer =  function (port) {
   return s;
 }
 
-exports.createSSLServer = function(port) {
+exports.createSSLServer = function(port, opts) {
   port = port || 16767
 
-  var options = { 'key' : fs.readFileSync(path.join(__dirname, 'ssl', 'test.key'))
-                , 'cert': fs.readFileSync(path.join(__dirname, 'ssl', 'test.crt'))
+  var options = { 'key' : path.join(__dirname, 'ssl', 'test.key')
+                , 'cert': path.join(__dirname, 'ssl', 'test.crt')
                 }
+  if (opts) {
+    for (var i in opts) options[i] = opts[i]
+  }
+
+  for (var i in options) {
+    options[i] = fs.readFileSync(options[i])
+  }
 
   var s = https.createServer(options, function (req, resp) {
     s.emit(req.url, req, resp);
