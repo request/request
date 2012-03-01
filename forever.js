@@ -39,13 +39,12 @@ function ForeverAgent(options) {
   })
 
 }
-
-ForeverAgent.prototype.createConnection = net.createConnection
-
 util.inherits(ForeverAgent, Agent)
 
 ForeverAgent.defaultMinSockets = 5
 
+
+ForeverAgent.prototype.createConnection = net.createConnection
 ForeverAgent.prototype.addRequestNoreuse = Agent.prototype.addRequest
 ForeverAgent.prototype.addRequest = function(req, host, port) {
   var name = host + ':' + port
