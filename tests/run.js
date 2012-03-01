@@ -11,6 +11,7 @@ var tests = [
   , 'test-headers.js'
   , 'test-httpModule.js'
   , 'test-https.js'
+  , 'test-https-strict.js'
   , 'test-oauth.js'
   , 'test-pipes.js'
   , 'test-proxy.js'
