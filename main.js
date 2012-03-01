@@ -26,6 +26,7 @@ var http = require('http')
   , Cookie = require('./vendor/cookie')
   , CookieJar = require('./vendor/cookie/jar')
   , cookieJar = new CookieJar
+  , tunnel = require('./tunnel')
   ;
   
 if (process.logging) {
@@ -133,6 +134,20 @@ Request.prototype.init = function (options) {
   }
   if (self.proxy) {
     if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
+
+    // do the HTTP CONNECT dance using koichik/node-tunnel
+    if (http.globalAgent && self.uri.protocol === "https:") {
+      self.tunnel = true
+      var tunnelFn = self.proxy.protocol === "http:"
+                   ? tunnel.httpsOverHttp : tunnel.httpsOverHttps
+
+      var tunnelOptions = { proxy: { host: self.proxy.hostname
+                                   , port: +self.proxy.port }
+                          , ca: this.ca }
+
+      self.agent = tunnelFn(tunnelOptions)
+      self.tunnel = true
+    }
   }
 
   self._redirectsFollowed = self._redirectsFollowed || 0
@@ -163,7 +178,7 @@ Request.prototype.init = function (options) {
     else if (self.uri.protocol == 'https:') {self.uri.port = 443}
   }
 
-  if (self.proxy) {
+  if (self.proxy && !self.tunnel) {
     self.port = self.proxy.port
     self.host = self.proxy.hostname
   } else {
@@ -207,7 +222,7 @@ Request.prototype.init = function (options) {
   if (self.uri.auth && !self.headers.authorization) {
     self.headers.authorization = "Basic " + toBase64(self.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
   }
-  if (self.proxy && self.proxy.auth && !self.headers['proxy-authorization']) {
+  if (self.proxy && self.proxy.auth && !self.headers['proxy-authorization'] && !self.tunnel) {
     self.headers['proxy-authorization'] = "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
   }
 
@@ -221,7 +236,7 @@ Request.prototype.init = function (options) {
 
   if (self.path.length === 0) self.path = '/'
 
-  if (self.proxy) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
+  if (self.proxy && !self.tunnel) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
 
   if (options.json) {
     self.json(options.json)
@@ -250,7 +265,7 @@ Request.prototype.init = function (options) {
     }
   }
 
-  var protocol = self.proxy ? self.proxy.protocol : self.uri.protocol
+  var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
     , defaultModules = {'http:':http, 'https:':https}
     , httpModules = self.httpModules || {}
     ;

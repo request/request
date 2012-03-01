@@ -11,12 +11,14 @@ var tests = [
   , 'test-headers.js'
   , 'test-httpModule.js'
   , 'test-https.js'
+  , 'test-https-strict.js'
   , 'test-oauth.js'
   , 'test-pipes.js'
   , 'test-proxy.js'
   , 'test-qs.js'
   , 'test-redirect.js'
   , 'test-timeout.js'
+  , 'test-tunnel.js'
 ] 
 
 var next = function () {
