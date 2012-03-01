@@ -180,8 +180,9 @@ Request.prototype.init = function (options) {
     if (self._aborted) return
     
     if (self.setHost) delete self.headers.host
-    if (self.req._reusedSocket && error.code === 'ECONNRESET') {
-      self.agent = {addRequest: ForeverAgent.prototype.addRequestNoreuse.bind(self.agent)}
+    if (self.req._reusedSocket && error.code === 'ECONNRESET'
+        && self.agent.addRequestNoreuse) {
+      self.agent = { addRequest: self.agent.addRequestNoreuse.bind(self.agent) }
       self.start()
       self.req.end()
       return
@@ -257,17 +258,30 @@ Request.prototype.init = function (options) {
 
   if (!self.httpModule) throw new Error("Invalid protocol")
 
+  if (options.ca) self.ca = options.ca
+
+  if (!self.agent) {
+    if (options.agentOptions) self.agentOptions = options.agentOptions
+
+    if (options.agentClass) {
+      self.agentClass = options.agentClass
+    } else if (options.forever) {
+      self.agentClass = protocol === 'http:' ? ForeverAgent : ForeverAgent.SSL
+    } else {
+      self.agentClass = self.httpModule.Agent
+    }
+  }
+
   if (self.pool === false) {
     self.agent = false
   } else {
+    self.agent = self.agent || self.getAgent()
     if (self.maxSockets) {
       // Don't use our pooling if node has the refactored client
-      self.agent = self.agent || self.httpModule.globalAgent || self.getAgent(self.host, self.port)
       self.agent.maxSockets = self.maxSockets
     }
     if (self.pool.maxSockets) {
       // Don't use our pooling if node has the refactored client
-      self.agent = self.agent || self.httpModule.globalAgent || self.getAgent(self.host, self.port)
       self.agent.maxSockets = self.pool.maxSockets
     }
   }
@@ -318,12 +332,48 @@ Request.prototype.init = function (options) {
     self.ntick = true
   })
 }
-Request.prototype.getAgent = function (host, port) {
-  if (!this.pool[host+':'+port]) {
-    this.pool[host+':'+port] = new this.httpModule.Agent({host:host, port:port})
+
+Request.prototype.getAgent = function () {
+  var Agent = this.agentClass
+  var options = {}
+  if (this.agentOptions) {
+    for (var i in this.agentOptions) {
+      options[i] = this.agentOptions[i]
+    }
   }
-  return this.pool[host+':'+port]
+  if (this.ca) options.ca = this.ca
+
+  var poolKey = ''
+
+  // different types of agents are in different pools
+  if (Agent !== this.httpModule.Agent) {
+    poolKey += Agent.name
+  }
+
+  if (!this.httpModule.globalAgent) {
+    // node 0.4.x
+    options.host = this.host
+    options.port = this.port
+    if (poolKey) poolKey += ':'
+    poolKey += this.host + ':' + this.port
+  }
+
+  if (options.ca) {
+    if (poolKey) poolKey += ':'
+    poolKey += options.ca
+  }
+
+  if (!poolKey && Agent === this.httpModule.Agent && this.httpModule.globalAgent) {
+    // not doing anything special.  Use the globalAgent
+    return this.httpModule.globalAgent
+  }
+
+  // already generated an agent for this setting
+  if (this.pool[poolKey]) return this.pool[poolKey]
+
+  return this.pool[poolKey] = new Agent(options)
 }
+
 Request.prototype.start = function () {
   var self = this
   
@@ -762,12 +812,13 @@ request.defaults = function (options) {
 
 request.forever = function (agentOptions, optionsArg) {
   var options = {}
-  if (agentOptions) {
+  if (optionsArg) {
     for (option in optionsArg) {
       options[option] = optionsArg[option]
     }
   }
-  options.agent = new ForeverAgent(agentOptions)
+  if (agentOptions) options.agentOptions = agentOptions
+  options.forever = true
   return request.defaults(options)
 }
 
