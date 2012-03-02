@@ -842,12 +842,12 @@ request.get = request
 request.post = function (uri, options, callback) {
   var params = initParams(uri, options, callback);
   params.options.method = 'POST';
-  return request(params.uri, params.options, params.callback)
+  return request(params.uri || null, params.options, params.callback)
 }
 request.put = function (uri, options, callback) {
   var params = initParams(uri, options, callback);
   params.options.method = 'PUT'
-  return request(params.uri, params.options, params.callback)
+  return request(params.uri || null, params.options, params.callback)
 }
 request.head = function (uri, options, callback) {
   var params = initParams(uri, options, callback);
@@ -858,12 +858,12 @@ request.head = function (uri, options, callback) {
       params.options.multipart) {
     throw new Error("HTTP HEAD requests MUST NOT include a request body.")
   }
-  return request(params.uri, params.options, params.callback)
+  return request(params.uri || null, params.options, params.callback)
 }
 request.del = function (uri, options, callback) {
   var params = initParams(uri, options, callback);
   params.options.method = 'DELETE'
-  return request(params.uri, params.options, params.callback)
+  return request(params.uri || null, params.options, params.callback)
 }
 request.jar = function () {
   return new CookieJar
