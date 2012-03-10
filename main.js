@@ -142,7 +142,8 @@ Request.prototype.init = function (options) {
                    ? tunnel.httpsOverHttp : tunnel.httpsOverHttps
 
       var tunnelOptions = { proxy: { host: self.proxy.hostname
-                                   , port: +self.proxy.port }
+                                   , port: +self.proxy.port 
+                                   , proxyAuth: self.proxy.auth }
                           , ca: this.ca }
 
       self.agent = tunnelFn(tunnelOptions)
