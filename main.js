@@ -598,17 +598,17 @@ Request.prototype.setHeaders = function (headers) {
   return this
 }
 Request.prototype.qs = function (q, clobber) {
-  var uri = {
-  	protocol: this.uri.protocol,
-  	host: this.uri.host,
-  	pathname: this.uri.pathname,
-  	query: clobber ? q : qs.parse(this.uri.query),
-  	hash: this.uri.hash
-  };
-  if (!clobber) for (var i in q) uri.query[i] = q[i]
-
-  this.uri= url.parse(url.format(uri))
-
+  var base
+  if (!clobber && this.uri.query) base = qs.parse(this.uri.query)
+  else base = {}
+  
+  for (var i in q) {
+    base[i] = q[i]
+  }
+  
+  this.uri = url.parse(this.uri.href.split('?')[0] + '?' + qs.stringify(base))
+  this.url = this.uri
+  
   return this
 }
 Request.prototype.form = function (form) {
