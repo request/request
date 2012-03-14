@@ -140,12 +140,11 @@ Request.prototype.init = function (options) {
 
     // do the HTTP CONNECT dance using koichik/node-tunnel
     if (http.globalAgent && self.uri.protocol === "https:") {
-      self.tunnel = true
       var tunnelFn = self.proxy.protocol === "http:"
                    ? tunnel.httpsOverHttp : tunnel.httpsOverHttps
 
       var tunnelOptions = { proxy: { host: self.proxy.hostname
-                                   , port: +self.proxy.port 
+                                   , port: +self.proxy.port
                                    , proxyAuth: self.proxy.auth }
                           , ca: this.ca }
 
@@ -367,6 +366,70 @@ Request.prototype.init = function (options) {
   })
 }
 
+// Must call this when following a redirect from https to http or vice versa
+// Attempts to keep everything as identical as possible, but update the
+// httpModule, Tunneling agent, and/or Forever Agent in use.
+Request.prototype._updateProtocol = function () {
+  var self = this
+  var protocol = self.uri.protocol
+
+  if (protocol === 'https:') {
+    // previously was doing http, now doing https
+    // if it's https, then we might need to tunnel now.
+    if (self.proxy) {
+      self.tunnel = true
+      var tunnelFn = self.proxy.protocol === 'http:'
+                   ? tunnel.httpsOverHttp : tunnel.httpsOverHttps
+      var tunnelOptions = { proxy: { host: self.proxy.hostname
+                                   , post: +self.proxy.port
+                                   , proxyAuth: self.proxy.auth }
+                          , ca: self.ca }
+      self.agent = tunnelFn(tunnelOptions)
+      return
+    }
+
+    self.httpModule = https
+    switch (self.agentClass) {
+      case ForeverAgent:
+        self.agentClass = ForeverAgent.SSL
+        break
+      case http.Agent:
+        self.agentClass = https.Agent
+        break
+      default:
+        // nothing we can do.  Just hope for the best.
+        return
+    }
+
+    // if there's an agent, we need to get a new one.
+    if (self.agent) self.agent = self.getAgent()
+
+  } else {
+    if (log) log('previously https, now http')
+    // previously was doing https, now doing http
+    // stop any tunneling.
+    if (self.tunnel) self.tunnel = false
+    self.httpModule = http
+    switch (self.agentClass) {
+      case ForeverAgent.SSL:
+        self.agentClass = ForeverAgent
+        break
+      case https.Agent:
+        self.agentClass = http.Agent
+        break
+      default:
+        // nothing we can do.  just hope for the best
+        return
+    }
+
+    // if there's an agent, then get a new one.
+    if (self.agent) {
+      self.agent = null
+      self.agent = self.getAgent()
+    }
+  }
+}
+
 Request.prototype.getAgent = function () {
   var Agent = this.agentClass
   var options = {}
@@ -392,7 +455,11 @@ Request.prototype.getAgent = function () {
     poolKey += this.host + ':' + this.port
   }
 
-  if (options.ca) {
+  // ca option is only relevant if proxy or destination are https
+  var proxy = this.proxy
+  if (typeof proxy === 'string') proxy = url.parse(proxy)
+  var caRelevant = (proxy && proxy.protocol === 'https:') || this.uri.protocol === 'https:'
+  if (options.ca && caRelevant) {
     if (poolKey) poolKey += ':'
     poolKey += options.ca
   }
@@ -401,6 +468,9 @@ Request.prototype.getAgent = function () {
     // not doing anything special.  Use the globalAgent
     return this.httpModule.globalAgent
   }
+
+  // we're using a stored agent.  Make sure it's protocol-specific
+  poolKey = this.uri.protocol + poolKey
 
   // already generated an agent for this setting
   if (this.pool[poolKey]) return this.pool[poolKey]
@@ -470,7 +540,15 @@ Request.prototype.start = function () {
       if (!isUrl.test(response.headers.location)) {
         response.headers.location = url.resolve(self.uri.href, response.headers.location)
       }
-      self.uri = response.headers.location
+
+      var uriPrev = self.uri
+      self.uri = url.parse(response.headers.location)
+
+      // handle the case where we change protocol from https to http or vice versa
+      if (self.uri.protocol !== uriPrev.protocol) {
+        self._updateProtocol()
+      }
+
       self.redirects.push(
         { statusCode : response.statusCode
         , redirectUri: response.headers.location 
