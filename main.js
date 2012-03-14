@@ -450,6 +450,7 @@ Request.prototype.start = function () {
       delete self.req
       delete self.agent
       delete self._started
+      delete self.body
       if (self.headers) {
         delete self.headers.host
       }
