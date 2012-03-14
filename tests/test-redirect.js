@@ -20,7 +20,10 @@ s.listen(s.port, function () {
 
     s.on('/'+label, function (req, res) {
       hits[label] = true;
-      res.writeHead(code, {'location':server + '/'+landing})
+      res.writeHead(code, {
+        'location':server + '/'+landing,
+        'set-cookie': 'ham=eggs'
+      })
       res.end()
     })
 
@@ -32,7 +35,8 @@ s.listen(s.port, function () {
         return;
       }
       // Make sure the cookie doesn't get included twice, see #139:
-      assert.equal(req.headers.cookie, 'foo=bar; quux=baz');
+      // Make sure cookies are set properly after redirect
+      assert.equal(req.headers.cookie, 'foo=bar; quux=baz; ham=eggs');
       hits[landing] = true;
       res.writeHead(200)
       res.end(landing)
