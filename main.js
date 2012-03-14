@@ -142,7 +142,8 @@ Request.prototype.init = function (options) {
                    ? tunnel.httpsOverHttp : tunnel.httpsOverHttps
 
       var tunnelOptions = { proxy: { host: self.proxy.hostname
-                                   , port: +self.proxy.port }
+                                   , port: +self.proxy.port 
+                                   , proxyAuth: self.proxy.auth }
                           , ca: this.ca }
 
       self.agent = tunnelFn(tunnelOptions)
@@ -170,7 +171,7 @@ Request.prototype.init = function (options) {
     self.setHost = true
   }
   
-  self.jar(options.jar)
+  self.jar(self._jar || options.jar)
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
   if (!self.uri.port) {
@@ -449,6 +450,7 @@ Request.prototype.start = function () {
       delete self.req
       delete self.agent
       delete self._started
+      delete self.body
       if (self.headers) {
         delete self.headers.host
       }
