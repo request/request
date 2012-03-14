@@ -171,7 +171,7 @@ Request.prototype.init = function (options) {
     self.setHost = true
   }
   
-  self.jar(options.jar)
+  self.jar(self._jar || options.jar)
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
   if (!self.uri.port) {
