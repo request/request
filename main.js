@@ -445,7 +445,7 @@ Request.prototype.start = function () {
         , redirectUri: response.headers.location 
         }
       )
-      self.method = 'GET'; // Force all redirects to use GET
+      // self.method = 'GET'; // Force all redirects to use GET || commented out fixes #215
       delete self.req
       delete self.agent
       delete self._started
