@@ -694,9 +694,9 @@ Request.prototype.oauth = function (_oauth) {
       delete oa['oauth_'+i]
     }
   }
-  this.headers.authorization = 
+  this.headers.Authorization = 
     'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+oauth.rfc3986(oa[i])+'"'}).join(',')
-  this.headers.authorization += ',oauth_signature="'+oauth.rfc3986(signature)+'"'
+  this.headers.Authorization += ',oauth_signature="'+oauth.rfc3986(signature)+'"'
   return this
 }
 Request.prototype.jar = function (jar) {
