@@ -6,7 +6,7 @@ var hmacsign = require('../oauth').hmacsign
 
 function getsignature (r) {
   var sign
-  r.headers.authorization.slice('OAuth '.length).replace(/,\ /g, ',').split(',').forEach(function (v) {
+  r.headers.Authorization.slice('OAuth '.length).replace(/,\ /g, ',').split(',').forEach(function (v) {
     if (v.slice(0, 'oauth_signature="'.length) === 'oauth_signature="') sign = v.slice('oauth_signature="'.length, -1)
   })
   return decodeURIComponent(sign)
