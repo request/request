@@ -3,11 +3,12 @@
 , "tags" : ["http", "simple", "util", "utility"]
 , "version" : "2.9.153"
 , "author" : "Mikeal Rogers <mikeal.rogers@gmail.com>"
-, "contributors": [
+, "contributors" : [
     {
-      "name": "Ashish Gandhi",
-      "email": "ag@ashonomics.com"
+      "name" : "Ashish Gandhi",
+      "email" : "ag@ashonomics.com"
     }
+  ]
 , "repository" :
   { "type" : "git"
   , "url" : "http://github.com/mikeal/request.git"
