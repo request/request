@@ -154,6 +154,7 @@ Request.prototype.init = function (options) {
   self._redirectsFollowed = self._redirectsFollowed || 0
   self.maxRedirects = (self.maxRedirects !== undefined) ? self.maxRedirects : 10
   self.followRedirect = (self.followRedirect !== undefined) ? self.followRedirect : true
+  self.returnRedirectUri = (self.returnRedirectUri !== undefined) ? self.returnRedirectUri : false
   self.followAllRedirects = (self.followAllRedirects !== undefined) ? self.followAllRedirects : false;
   if (self.followRedirect || self.followAllRedirects)
     self.redirects = self.redirects || []
@@ -524,7 +525,11 @@ Request.prototype.start = function () {
             } catch (e) {}
           }
 
-          self.callback(null, response, response.body)
+          if (self.returnRedirectUri) {
+            self.callback(null, response, response.body, self.uri)
+          } else {
+            self.callback(null, response, response.body)
+          }
         })
       }
     }
