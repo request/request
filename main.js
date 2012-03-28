@@ -526,7 +526,7 @@ Request.prototype.start = function () {
           }
 
           if (self.returnRedirectUri) {
-            self.callback(null, response, response.body, self.uri)
+            self.callback(null, response, response.body, url.format(self.uri))
           } else {
             self.callback(null, response, response.body)
           }
