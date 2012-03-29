@@ -145,26 +145,26 @@ request.post({url:url, oauth:oauth}, function (e, r, body) {
 
 The first argument can be either a url or an options object. The only required option is uri, all others are optional.
 
-* `uri` || `url` - Fully qualified uri or a parsed url object from `url.parse()`.
-* `qs` - Object containing querystring values to be appended to the URI.
-* `method` - HTTP method, defaults to GET.
-* `headers` - HTTP headers, defaults to {}.
-* `body` - Entity body for POST and PUT requests. Must be buffer or string.
-* `form` - Sets `body` but to querystring representation of value and adds `Content-type: application/x-www-form-urlencoded; charset=utf-8` header.
-* `json` - Sets `body` but to JSON representation of value and adds `Content-type: application/json` header.
-* `multipart` - (experimental) Array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
-* `followRedirect` - Follow HTTP 3xx responses as redirects. Defaults to `true`.
-* `followAllRedirects` - Follow non-GET HTTP 3xx responses as redirects. Defaults to `false`.
-* `maxRedirects` - The maximum number of redirects to follow. Defaults to 10.
+* `uri` || `url` - fully qualified uri or a parsed url object from url.parse()
+* `qs` - object containing querystring values to be appended to the uri
+* `method` - http method, defaults to GET
+* `headers` - http headers, defaults to {}
+* `body` - entity body for POST and PUT requests. Must be buffer or string.
+* `form` - sets `body` but to querystring representation of value and adds `Content-type: application/x-www-form-urlencoded; charset=utf-8` header.
+* `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.
+* `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
+* `followRedirect` - follow HTTP 3xx responses as redirects. defaults to true.
+* `followAllRedirects` - follow non-GET HTTP 3xx responses as redirects. defaults to false.
+* `maxRedirects` - the maximum number of redirects to follow, defaults to 10.
 * `onResponse` - If true the callback will be fired on the "response" event instead of "end". If a function it will be called on "response" and not effect the regular semantics of the main callback on "end".
 * `encoding` - Encoding to be used on `setEncoding` of response data. If set to `null`, the body is returned as a Buffer.
 * `pool` - A hash object containing the agents for these requests. If omitted this request will use the global pool which is set to node's default maxSockets.
 * `pool.maxSockets` - Integer containing the maximum amount of sockets in the pool.
-* `timeout` - Integer containing the number of milliseconds to wait for a request to respond before aborting the request	
-* `proxy` - An HTTP proxy to be used. Support proxy Auth with Basic Auth the same way it's supported with the `url` parameter by embedding the auth info in the URI.
+* `timeout` - Integer containing the number of milliseconds to wait for a request to respond before aborting the request  
+* `proxy` - An HTTP proxy to be used. Support proxy Auth with Basic Auth the same way it's supported with the `url` parameter by embedding the auth info in the uri.
 * `oauth` - Options for OAuth HMAC-SHA1 signing, see documentation above.
 * `strictSSL` - Set to `true` to require that SSL certificates be valid. Note: to use your own certificate authority, you need to specify an agent that was created with that ca as an option.
-* `jar` - Set to `false` if you don't want cookies to be remembered for future use or define your custom cookie jar (see examples section).
+* `jar` - Set to `false` if you don't want cookies to be remembered for future use or define your custom cookie jar (see examples section)
 * `returnRedirectUri` - Set to `true` if you need to know the final destination URI after redirects. The `callback` passed to `request()` would need to take an additional  `redirectUrl` as the fourth parameter. Defaults to `false`.
 
 
