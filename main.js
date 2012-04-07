@@ -119,6 +119,8 @@ Request.prototype.init = function (options) {
       self._callback.apply(self, arguments)
       self._callbackCalled = true
     }
+    self.on('error', self.callback.bind())
+    self.on('complete', self.callback.bind(self, null))
   }
 
   if (self.url) {
@@ -187,11 +189,6 @@ Request.prototype.init = function (options) {
     self.host = self.uri.hostname
   }
 
-  if (self.onResponse === true) {
-    self.onResponse = self.callback
-    delete self.callback
-  }
-
   self.clientErrorHandler = function (error) {
     if (self._aborted) return
     
@@ -209,8 +206,6 @@ Request.prototype.init = function (options) {
     }
     self.emit('error', error)
   }
-  if (self.onResponse) self.on('error', function (e) {self.onResponse(e)})
-  if (self.callback) self.on('error', function (e) {self.callback(e)})
 
   if (options.form) {
     self.form(options.form)
@@ -490,9 +485,6 @@ Request.prototype.start = function () {
 
       self.emit('response', response)
 
-      if (self.onResponse) {
-        self.onResponse(null, response)
-      }
       if (self.callback) {
         var buffer = []
         var bodyLen = 0
@@ -524,8 +516,8 @@ Request.prototype.start = function () {
               response.body = JSON.parse(response.body)
             } catch (e) {}
           }
-
-          self.callback(null, response, response.body)
+          
+          self.emit('complete', response, response.body)
         })
       }
     }
