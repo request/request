@@ -204,8 +204,8 @@ Request.prototype.init = function (options) {
       return
     }
     if (self.timeout && self.timeoutTimer) {
-        clearTimeout(self.timeoutTimer);
-        self.timeoutTimer = null;
+      clearTimeout(self.timeoutTimer)
+      self.timeoutTimer = null
     }
     self.emit('error', error)
   }
@@ -416,8 +416,8 @@ Request.prototype.start = function () {
 
     if (self.setHost) delete self.headers.host
     if (self.timeout && self.timeoutTimer) {
-        clearTimeout(self.timeoutTimer);
-        self.timeoutTimer = null;
+      clearTimeout(self.timeoutTimer)
+      self.timeoutTimer = null
     }  
     
     if (response.headers['set-cookie'] && (!self._disableCookies)) {
@@ -542,12 +542,12 @@ Request.prototype.start = function () {
     // server freeze after sending headers
     if (self.req.setTimeout) { // only works on node 0.6+
       self.req.setTimeout(self.timeout, function(){
-          if (self.req) {
-              self.req.abort()
-              var e = new Error("ESOCKETTIMEDOUT")
-              e.code = "ESOCKETTIMEDOUT"
-              self.emit("error", e)
-          }
+        if (self.req) {
+          self.req.abort()
+          var e = new Error("ESOCKETTIMEDOUT")
+          e.code = "ESOCKETTIMEDOUT"
+          self.emit("error", e)
+        }
       })
     }
   }
