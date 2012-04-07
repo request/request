@@ -160,11 +160,12 @@ The first argument can be either a url or an options object. The only required o
 * `encoding` - Encoding to be used on `setEncoding` of response data. If set to `null`, the body is returned as a Buffer.
 * `pool` - A hash object containing the agents for these requests. If omitted this request will use the global pool which is set to node's default maxSockets.
 * `pool.maxSockets` - Integer containing the maximum amount of sockets in the pool.
-* `timeout` - Integer containing the number of milliseconds to wait for a request to respond before aborting the request	
+* `timeout` - Integer containing the number of milliseconds to wait for a request to respond before aborting the request  
 * `proxy` - An HTTP proxy to be used. Support proxy Auth with Basic Auth the same way it's supported with the `url` parameter by embedding the auth info in the uri.
 * `oauth` - Options for OAuth HMAC-SHA1 signing, see documentation above.
 * `strictSSL` - Set to `true` to require that SSL certificates be valid. Note: to use your own certificate authority, you need to specify an agent that was created with that ca as an option.
 * `jar` - Set to `false` if you don't want cookies to be remembered for future use or define your custom cookie jar (see examples section)
+* `returnRedirectUri` - Set to `true` if you need to know the final destination URI after redirects. The `callback` passed to `request()` would need to take an additional  `redirectUrl` as the fourth parameter. Defaults to `false`.
 
 
 The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body String or Buffer.
