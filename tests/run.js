@@ -18,6 +18,7 @@ var tests = [
   , 'test-qs.js'
   , 'test-redirect.js'
   , 'test-timeout.js'
+  , 'test-toJSON.js'
   , 'test-tunnel.js'
 ] 
 
