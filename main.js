@@ -613,7 +613,7 @@ Request.prototype.form = function (form) {
   return this
 }
 Request.prototype.multipart = function (multipart) {
-  var self = this, boundary = 'frontier' + Math.random() * 200000 | 0
+  var self = this, boundary = 'frontier' + (Math.random() * 200000 | 0)
   self.body = []
 
   if (!self.headers['content-type']) {

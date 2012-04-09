@@ -51,7 +51,7 @@ var tests =
     , json: {foo: 'bar'}
     }
   , testPutMultipart :
-    { resp: server.createPostValidator(
+    { resp: server.createPostValidatorMultipart(
         '--frontier\r\n' +
         'content-type: text/html\r\n' +
         '\r\n' +
