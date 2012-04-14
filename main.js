@@ -807,7 +807,7 @@ request.defaults = function (options) {
       for (var i in options) {
         if (params.options[i] === undefined) params.options[i] = options[i]
       }
-      return method(params.uri, params.options, params.callback)
+      return method(params.options, params.callback)
     }
     return d
   }
