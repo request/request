@@ -800,6 +800,8 @@ function request (uri, options, callback) {
 
 module.exports = request
 
+request.initParams = initParams;
+
 request.defaults = function (options) {
   var def = function (method) {
     var d = function (uri, opts, callback) {
