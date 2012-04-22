@@ -613,13 +613,13 @@ Request.prototype.form = function (form) {
   return this
 }
 Request.prototype.multipart = function (multipart) {
-  var self = this
+  var self = this, boundary = 'frontier' + (Math.random() * 200000 | 0)
   self.body = []
 
   if (!self.headers['content-type']) {
-    self.headers['content-type'] = 'multipart/related; boundary=frontier';
+    self.headers['content-type'] = 'multipart/related; boundary=' + boundary;
   } else {
-    self.headers['content-type'] = self.headers['content-type'].split(';')[0] + '; boundary=frontier';
+    self.headers['content-type'] = self.headers['content-type'].split(';')[0] + '; boundary=' + boundary;
   }
 
   if (!multipart.forEach) throw new Error('Argument error, options.multipart.')
@@ -628,7 +628,7 @@ Request.prototype.multipart = function (multipart) {
     var body = part.body
     if(!body) throw Error('Body attribute missing in multipart.')
     delete part.body
-    var preamble = '--frontier\r\n'
+    var preamble = '--' + boundary + '\r\n'
     Object.keys(part).forEach(function(key){
       preamble += key + ': ' + part[key] + '\r\n'
     })
@@ -637,7 +637,7 @@ Request.prototype.multipart = function (multipart) {
     self.body.push(new Buffer(body))
     self.body.push(new Buffer('\r\n'))
   })
-  self.body.push(new Buffer('--frontier--'))
+  self.body.push(new Buffer('--' + boundary + '--'))
   return self
 }
 Request.prototype.json = function (val) {

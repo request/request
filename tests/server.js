@@ -60,6 +60,24 @@ exports.createPostValidator = function (text) {
   }
   return l;
 }
+exports.createPostValidatorMultipart = function (text) {
+  var l = function (req, resp) {
+    var r = '';
+    req.on('data', function (chunk) {r += chunk})
+    req.on('end', function () {
+
+    // strip the random numbers before checking equality
+    r = r.split(/frontier\d+/).join('frontier')
+
+    if (r !== text) console.log(r, text);
+    assert.equal(r, text)
+    resp.writeHead(200, {'content-type':'text/plain'})
+    resp.write('OK')
+    resp.end()
+    })
+  }
+  return l;
+}
 exports.createGetResponse = function (text, contentType) {
   var l = function (req, resp) {
     contentType = contentType || 'text/plain'
