@@ -237,7 +237,7 @@ Request.prototype.init = function (options) {
   if (options.json) {
     self.json(options.json)
   } else if (options.multipart) {
-	self.boundary = uuid()
+    self.boundary = uuid()
     self.multipart(options.multipart)
   }
 
