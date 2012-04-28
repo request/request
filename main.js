@@ -211,6 +211,8 @@ Request.prototype.init = function (options) {
     self.form(options.form)
   }
 
+  if (options.qs) self.qs(options.qs)
+
   if (options.oauth) {
     self.oauth(options.oauth)
   }
@@ -221,8 +223,6 @@ Request.prototype.init = function (options) {
   if (self.proxy && self.proxy.auth && !self.headers['proxy-authorization'] && !self.tunnel) {
     self.headers['proxy-authorization'] = "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
   }
-
-  if (options.qs) self.qs(options.qs)
 
   if (self.uri.path) {
     self.path = self.uri.path
@@ -605,6 +605,7 @@ Request.prototype.qs = function (q, clobber) {
   
   this.uri = url.parse(this.uri.href.split('?')[0] + '?' + qs.stringify(base))
   this.url = this.uri
+  this.path = this.url.path
   
   return this
 }
@@ -689,6 +690,7 @@ Request.prototype.oauth = function (_oauth) {
       // skip 
     } else {
       delete oa['oauth_'+i]
+      delete oa[i]
     }
   }
   this.headers.Authorization = 
