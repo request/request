@@ -417,11 +417,14 @@ Request.prototype.start = function () {
       self.timeoutTimer = null
     }  
     
+    var addCookie = function(cookie){
+      if (self._jar) self._jar.add(new Cookie(cookie))
+      else cookieJar.add(new Cookie(cookie))
+    }
+
     if (response.headers['set-cookie'] && (!self._disableCookies)) {
-      response.headers['set-cookie'].forEach(function(cookie) {
-        if (self._jar) self._jar.add(new Cookie(cookie))
-        else cookieJar.add(new Cookie(cookie))
-      })
+      if (Array.isArray(response.headers['set-cookie'])) response.headers['set-cookie'].forEach(addCookie)
+      else addCookie(response.headers['set-cookie'])
     }
 
     if (response.statusCode >= 300 && response.statusCode < 400  &&
