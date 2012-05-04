@@ -338,9 +338,11 @@ Request.prototype.init = function (options) {
       console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
       self.requestBodyStream.pipe(self)
     } else if (!self.src) {
-      self.headers['content-length'] = 0
-      self.end()
-    }
+        if (self.method !== 'GET' && typeof self.method !== 'undefined') {
+           self.headers['content-length'] = 0;
+        }
+        self.end();
+     }
     self.ntick = true
   })
 }
