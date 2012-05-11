@@ -27,6 +27,7 @@ var http = require('http')
   , CookieJar = require('./vendor/cookie/jar')
   , cookieJar = new CookieJar
   , tunnel = require('./tunnel')
+  , aws = require('./aws')
   ;
   
 if (process.logging) {
@@ -394,6 +395,14 @@ Request.prototype.start = function () {
   self.method = self.method || 'GET'
   self.href = self.uri.href
   if (log) log('%method %href', self)
+  
+  if (self.src && self.src.stat) {
+    self.headers['content-length'] = self.src.stat
+  }
+  if (self._aws) {
+    self.aws(self._aws, true)
+  }
+  
   self.req = self.httpModule.request(self, function (response) {
     if (self._aborted) return
     if (self._paused) response.pause()
@@ -651,6 +660,28 @@ Request.prototype.json = function (val) {
   }
   return this
 }
+Request.prototype.aws = function (opts, now) {
+  if (!now) {
+    this._aws = opts
+    return this
+  }
+  var date = new Date()
+  this.setHeader('date', date.toUTCString())
+  this.setHeader('authorization', aws.authorization(
+    { key: opts.key
+    , secret: opts.secret
+    , verb: this.method
+    , date: date
+    , resource: aws.canonicalizeResource('/' + opts.bucket + this.path)
+    , contentType: this.headers['content-type']
+    , md5: ''
+    , amazonHeaders: aws.canonicalizeHeaders(this.headers)
+    }
+  ))
+  
+  return this
+}
+
 Request.prototype.oauth = function (_oauth) {
   var form
   if (this.headers['content-type'] && 
