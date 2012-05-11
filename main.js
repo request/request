@@ -215,6 +215,10 @@ Request.prototype.init = function (options) {
   if (options.oauth) {
     self.oauth(options.oauth)
   }
+  
+  if (options.aws) {
+    self.aws(options.aws)
+  }
 
   if (self.uri.auth && !self.headers.authorization) {
     self.headers.authorization = "Basic " + toBase64(self.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
