@@ -401,8 +401,8 @@ Request.prototype.start = function () {
   self.href = self.uri.href
   if (log) log('%method %href', self)
   
-  if (self.src && self.src.stat) {
-    self.headers['content-length'] = self.src.stat
+  if (self.src && self.src.stat && self.src.stat.size) {
+    self.headers['content-length'] = self.src.stat.size
   }
   if (self._aws) {
     self.aws(self._aws, true)
@@ -683,8 +683,8 @@ Request.prototype.aws = function (opts, now) {
     , verb: this.method
     , date: date
     , resource: aws.canonicalizeResource('/' + opts.bucket + this.path)
-    , contentType: this.headers['content-type']
-    , md5: ''
+    , contentType: this.headers['content-type'] || ''
+    , md5: this.headers['content-md5'] || ''
     , amazonHeaders: aws.canonicalizeHeaders(this.headers)
     }
   ))
