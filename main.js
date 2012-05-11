@@ -238,6 +238,7 @@ Request.prototype.init = function (options) {
   if (options.json) {
     self.json(options.json)
   } else if (options.multipart) {
+    self.boundary = uuid()
     self.multipart(options.multipart)
   }
 
@@ -425,11 +426,14 @@ Request.prototype.start = function () {
       self.timeoutTimer = null
     }  
     
+    var addCookie = function(cookie){
+      if (self._jar) self._jar.add(new Cookie(cookie))
+      else cookieJar.add(new Cookie(cookie))
+    }
+
     if (response.headers['set-cookie'] && (!self._disableCookies)) {
-      response.headers['set-cookie'].forEach(function(cookie) {
-        if (self._jar) self._jar.add(new Cookie(cookie))
-        else cookieJar.add(new Cookie(cookie))
-      })
+      if (Array.isArray(response.headers['set-cookie'])) response.headers['set-cookie'].forEach(addCookie)
+      else addCookie(response.headers['set-cookie'])
     }
 
     if (response.statusCode >= 300 && response.statusCode < 400  &&
@@ -626,10 +630,12 @@ Request.prototype.multipart = function (multipart) {
   self.body = []
 
   if (!self.headers['content-type']) {
-    self.headers['content-type'] = 'multipart/related; boundary=frontier';
+    self.headers['content-type'] = 'multipart/related; boundary=' + self.boundary;
   } else {
-    self.headers['content-type'] = self.headers['content-type'].split(';')[0] + '; boundary=frontier';
+    self.headers['content-type'] = self.headers['content-type'].split(';')[0] + '; boundary=' + self.boundary;
   }
+
+  console.log('boundary >> ' + self.boundary)
 
   if (!multipart.forEach) throw new Error('Argument error, options.multipart.')
 
@@ -637,7 +643,7 @@ Request.prototype.multipart = function (multipart) {
     var body = part.body
     if(!body) throw Error('Body attribute missing in multipart.')
     delete part.body
-    var preamble = '--frontier\r\n'
+    var preamble = '--' + self.boundary + '\r\n'
     Object.keys(part).forEach(function(key){
       preamble += key + ': ' + part[key] + '\r\n'
     })
@@ -646,7 +652,7 @@ Request.prototype.multipart = function (multipart) {
     self.body.push(new Buffer(body))
     self.body.push(new Buffer('\r\n'))
   })
-  self.body.push(new Buffer('--frontier--'))
+  self.body.push(new Buffer('--' + self.boundary + '--'))
   return self
 }
 Request.prototype.json = function (val) {
@@ -802,7 +808,7 @@ Request.prototype.destroy = function () {
 // organize params for post, put, head, del
 function initParams(uri, options, callback) {
   if ((typeof options === 'function') && !callback) callback = options;
-  if (typeof options === 'object') {
+  if (options && typeof options === 'object') {
     options.uri = uri;
   } else if (typeof uri === 'string') {
     options = {uri:uri};
@@ -816,7 +822,7 @@ function initParams(uri, options, callback) {
 function request (uri, options, callback) {
   if (typeof uri === 'undefined') throw new Error('undefined is not a valid uri or options object.')
   if ((typeof options === 'function') && !callback) callback = options;
-  if (typeof options === 'object') {
+  if (options && typeof options === 'object') {
     options.uri = uri;
   } else if (typeof uri === 'string') {
     options = {uri:uri};
