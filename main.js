@@ -520,7 +520,7 @@ Request.prototype.start = function () {
               chunk.copy(body, i, 0, chunk.length)
               i += chunk.length
             })
-            if (self.encoding === null) {
+            if (!self.encoding) {
               response.body = body
             } else {
               response.body = body.toString()
