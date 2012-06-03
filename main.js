@@ -607,7 +607,7 @@ Request.prototype.setHeader = function (name, value, clobber) {
   return this
 }
 Request.prototype.setHeaders = function (headers) {
-  for (i in headers) {this.setHeader(i, headers[i])}
+  for (var i in headers) {this.setHeader(i, headers[i])}
   return this
 }
 Request.prototype.qs = function (q, clobber) {
