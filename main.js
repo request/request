@@ -645,7 +645,7 @@ Request.prototype.multipart = function (multipart) {
 
   multipart.forEach(function (part) {
     var body = part.body
-    if(!body) throw Error('Body attribute missing in multipart.')
+    if(body == null) throw Error('Body attribute missing in multipart.')
     delete part.body
     var preamble = '--' + self.boundary + '\r\n'
     Object.keys(part).forEach(function(key){
