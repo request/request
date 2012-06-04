@@ -52,8 +52,8 @@ if (https && !https.Agent) {
     http.Agent.call(this, options)
   }
   util.inherits(https.Agent, http.Agent)
-  https.Agent.prototype._getConnection = function(host, port, cb) {
-    var s = tls.connect(port, host, this.options, function() {
+  https.Agent.prototype._getConnection = function (host, port, cb) {
+    var s = tls.connect(port, host, this.options, function () {
       // do other checks here?
       if (cb) cb()
     })
@@ -332,7 +332,7 @@ Request.prototype.init = function (options) {
     
     if (self.body) {
       if (Array.isArray(self.body)) {
-        self.body.forEach(function(part) {
+        self.body.forEach(function (part) {
           self.write(part)
         })
       } else {
@@ -343,11 +343,11 @@ Request.prototype.init = function (options) {
       console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
       self.requestBodyStream.pipe(self)
     } else if (!self.src) {
-        if (self.method !== 'GET' && typeof self.method !== 'undefined') {
-           self.headers['content-length'] = 0;
-        }
-        self.end();
-     }
+      if (self.method !== 'GET' && typeof self.method !== 'undefined') {
+        self.headers['content-length'] = 0;
+      }
+      self.end();
+    }
     self.ntick = true
   })
 }
@@ -432,7 +432,7 @@ Request.prototype.start = function () {
       self.timeoutTimer = null
     }  
     
-    var addCookie = function(cookie){
+    var addCookie = function (cookie) {
       if (self._jar) self._jar.add(new Cookie(cookie))
       else cookieJar.add(new Cookie(cookie))
     }
@@ -544,7 +544,7 @@ Request.prototype.start = function () {
   })
 
   if (self.timeout && !self.timeoutTimer) {
-    self.timeoutTimer = setTimeout(function() {
+    self.timeoutTimer = setTimeout(function () {
       self.req.abort()
       var e = new Error("ETIMEDOUT")
       e.code = "ETIMEDOUT"
@@ -554,7 +554,7 @@ Request.prototype.start = function () {
     // Set additional timeout on socket - in case if remote
     // server freeze after sending headers
     if (self.req.setTimeout) { // only works on node 0.6+
-      self.req.setTimeout(self.timeout, function(){
+      self.req.setTimeout(self.timeout, function () {
         if (self.req) {
           self.req.abort()
           var e = new Error("ESOCKETTIMEDOUT")
@@ -570,7 +570,7 @@ Request.prototype.start = function () {
   self.emit('request', self.req)
 }
 
-Request.prototype.abort = function() {
+Request.prototype.abort = function () {
   this._aborted = true;
   
   if (this.req) {
@@ -650,7 +650,7 @@ Request.prototype.multipart = function (multipart) {
     if(body == null) throw Error('Body attribute missing in multipart.')
     delete part.body
     var preamble = '--' + self.boundary + '\r\n'
-    Object.keys(part).forEach(function(key){
+    Object.keys(part).forEach(function (key) {
       preamble += key + ': ' + part[key] + '\r\n'
     })
     preamble += '\r\n'
