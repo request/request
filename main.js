@@ -108,7 +108,7 @@ Request.prototype.init = function (options) {
   
   if (!options) options = {}
   
-  if (!self.pool) self.pool = globalPool
+  if (!self.pool && self.pool !== false) self.pool = globalPool
   self.dests = []
   self.__isRequestRequest = true
   
