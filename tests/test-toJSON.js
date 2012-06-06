@@ -8,7 +8,7 @@ var s = http.createServer(function (req, resp) {
   resp.end('asdf')
 }).listen(8080, function () {
   var r = request('http://localhost:8080', function (e, resp) {
-    assert(JSON.parse(JSON.stringify(r)).response.statusCode, 200)
+    assert.equal(JSON.parse(JSON.stringify(r)).response.statusCode, 200)
     s.close()
   })
 })
