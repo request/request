@@ -14,6 +14,7 @@ var tests = [
   , 'test-https-strict.js'
   , 'test-oauth.js'
   , 'test-pipes.js'
+  , 'test-pool.js'
   , 'test-proxy.js'
   , 'test-qs.js'
   , 'test-redirect.js'
