@@ -97,6 +97,13 @@ ForeverAgentSSL.prototype.createConnection = createConnectionSSL
 ForeverAgentSSL.prototype.addRequestNoreuse = AgentSSL.prototype.addRequest
 
 function createConnectionSSL (port, host, options) {
+  // node 0.6.x does not expect options as first parameter:
+  // TODO:  make port, host part of options!
+  // exports.connect = function(port /* host, options, cb */) {
+  var nodeVersion = process.versions.node.split('.');
+  if( nodeVersion[0]==0 && nodeVersion[1]<=6 )
+    return tls.connect(port, host, options);
+
   options.port = port
   options.host = host
   return tls.connect(options)
