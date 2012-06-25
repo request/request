@@ -581,6 +581,9 @@ Request.prototype.start = function () {
   }
   
   self.req.on('error', self.clientErrorHandler)
+  self.req.on('drain', function() {
+    self.emit('drain')
+  })
   
   self.emit('request', self.req)
 }
@@ -807,7 +810,7 @@ Request.prototype.pipe = function (dest, opts) {
 }
 Request.prototype.write = function () {
   if (!this._started) this.start()
-  this.req.write.apply(this.req, arguments)
+  return this.req.write.apply(this.req, arguments)
 }
 Request.prototype.end = function (chunk) {
   if (chunk) this.write(chunk)
