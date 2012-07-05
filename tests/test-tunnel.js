@@ -32,9 +32,10 @@ squid.stdout.on('data', function (c) {
 })
 
 squid.on('exit', function (c) {
-  console.error('exit '+c)
+  console.error('squid: exit '+c)
   if (c && !ready) {
     console.error('squid must be installed to run this test.')
+    console.error('skipping this test. please install squid and run again if you need to test tunneling.')
     c = null
     hadError = null
     process.exit(0)
