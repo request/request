@@ -661,7 +661,10 @@ Request.prototype.multipart = function (multipart) {
 
   if (!multipart.forEach) throw new Error('Argument error, options.multipart.')
 
-  self.body.push(new Buffer('\r\n'))
+  if (self.preambleCRLF) {
+    self.body.push(new Buffer('\r\n'))
+  }
+  
   multipart.forEach(function (part) {
     var body = part.body
     if(body == null) throw Error('Body attribute missing in multipart.')
