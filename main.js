@@ -659,8 +659,6 @@ Request.prototype.multipart = function (multipart) {
     self.headers['content-type'] = self.headers['content-type'].split(';')[0] + '; boundary=' + self.boundary;
   }
 
-  console.log('boundary >> ' + self.boundary)
-
   if (!multipart.forEach) throw new Error('Argument error, options.multipart.')
 
   self.body.push(new Buffer('\r\n'))
