@@ -52,7 +52,7 @@ var tests =
     }
   , testPutMultipart :
     { resp: server.createPostValidator(
-        '--__BOUNDARY__\r\n' +
+        '\r\n--__BOUNDARY__\r\n' +
         'content-type: text/html\r\n' +
         '\r\n' +
         '<html><body>Oh hi.</body></html>' +
