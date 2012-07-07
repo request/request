@@ -747,6 +747,7 @@ Request.prototype.oauth = function (_oauth) {
       // skip 
     } else {
       delete oa['oauth_'+i]
+      delete oa[i]
     }
   }
   this.headers.Authorization = 
