@@ -319,6 +319,7 @@ Request.prototype.init = function (options) {
   }
 
   self.once('pipe', function (src) {
+    if (self.ntick && self._started) throw new Error("You cannot pipe to this stream after the outbound request has started.")
     self.src = src
     if (isReadStream(src)) {
       if (!self.headers['content-type'] && !self.headers['Content-Type'])
