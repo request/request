@@ -319,7 +319,6 @@ Request.prototype.init = function (options) {
   }
 
   self.once('pipe', function (src) {
-    if (self.ntick) throw new Error("You cannot pipe to this stream after the first nextTick() after creation of the request stream.")
     self.src = src
     if (isReadStream(src)) {
       if (!self.headers['content-type'] && !self.headers['Content-Type'])
