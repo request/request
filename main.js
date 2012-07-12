@@ -288,7 +288,10 @@ Request.prototype.init = function (options) {
     ;
   self.httpModule = httpModules[protocol] || defaultModules[protocol]
 
-  if (!self.httpModule) throw new Error("Invalid protocol")
+  if (!self.httpModule) {
+      self.emit('error', new Error("Invalid protocol"));
+	  return;
+  }
 
   if (options.ca) self.ca = options.ca
 
