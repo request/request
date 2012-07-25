@@ -862,16 +862,25 @@ function request (uri, options, callback) {
 
 module.exports = request
 
-request.defaults = function (options) {
+request.initParams = initParams;
+
+request.defaults = function (options, requester) {
   var def = function (method) {
     var d = function (uri, opts, callback) {
       var params = initParams(uri, opts, callback);
       for (var i in options) {
         if (params.options[i] === undefined) params.options[i] = options[i]
       }
-      return method(params.options, params.callback)
+      if(typeof requester === 'function') {
+        if(method === request) {
+          method = requester;
+        } else {
+          params.options._requester = requester;
+        }
+      }
+      return method(params.options, params.callback);
     }
-    return d
+    return d;
   }
   var de = def(request)
   de.get = def(request.get)
@@ -921,6 +930,9 @@ request.head = function (uri, options, callback) {
 request.del = function (uri, options, callback) {
   var params = initParams(uri, options, callback);
   params.options.method = 'DELETE'
+  if(typeof params.options._requester === 'function') {
+    request = params.options._requester;
+  }
   return request(params.uri || null, params.options, params.callback)
 }
 request.jar = function () {
