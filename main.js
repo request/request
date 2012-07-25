@@ -470,6 +470,9 @@ Request.prototype.start = function () {
       if (!isUrl.test(response.headers.location)) {
         response.headers.location = url.resolve(self.uri.href, response.headers.location)
       }
+      if ( ! /%25/.test(encodeURI(response.headers.location))) {
+        response.headers.location = encodeURI(response.headers.location)
+      }
       self.uri = response.headers.location
       self.redirects.push(
         { statusCode : response.statusCode
