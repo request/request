@@ -21,6 +21,7 @@ var tests = [
   , 'test-timeout.js'
   , 'test-toJSON.js'
   , 'test-tunnel.js'
+  , 'test-basicauth.js'
 ] 
 
 var next = function () {
