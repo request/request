@@ -225,12 +225,12 @@ Request.prototype.init = function (options) {
   self._parserErrorHandler = function (error) {
     if (this.res) {
       if (this.res.request) {
-        this.res.request.emit('error', error);
+        this.res.request.emit('error', error)
       } else {
-        this.res.emit('error', error);
+        this.res.emit('error', error)
       }
     } else {
-      this._httpMessage.emit('error', error);
+      this._httpMessage.emit('error', error)
     }
   }
 
@@ -509,7 +509,7 @@ Request.prototype.start = function () {
 
   self.req = self.httpModule.request(self, function (response) {
     if (response.connection.listeners('error').indexOf(self._parserErrorHandler) === -1) {
-      response.connection.on('error', self._parserErrorHandler);
+      response.connection.on('error', self._parserErrorHandler)
     }
     if (self._aborted) return
     if (self._paused) response.pause()
