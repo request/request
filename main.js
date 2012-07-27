@@ -496,6 +496,9 @@ Request.prototype.start = function () {
   }
   
   self.req = self.httpModule.request(self, function (response) {
+    response.connection.on('error', function(err) {
+      self.emit('error', err);
+    });
     if (self._aborted) return
     if (self._paused) response.pause()
     
