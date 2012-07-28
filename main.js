@@ -509,7 +509,7 @@ Request.prototype.start = function () {
 
   self.req = self.httpModule.request(self, function (response) {
     if (response.connection.listeners('error').indexOf(self._parserErrorHandler) === -1) {
-      response.connection.on('error', self._parserErrorHandler)
+      response.connection.once('error', self._parserErrorHandler)
     }
     if (self._aborted) return
     if (self._paused) response.pause()
@@ -677,7 +677,9 @@ Request.prototype.start = function () {
   self.req.on('drain', function() {
     self.emit('drain')
   })
-  
+  self.on('end', function() {
+    self.req.connection.removeListener('error', self._parserErrorHandler)
+  })
   self.emit('request', self.req)
 }
 
