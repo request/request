@@ -30,6 +30,11 @@ var tests =
     , encoding: null
     , expectBody: new Buffer("TESTING!")
     }
+  , testGetEncoding :
+    { resp : server.createGetResponse(new Buffer('efa3bfcea9e29883', 'hex'))
+    , encoding: 'hex'
+    , expectBody: "efa3bfcea9e29883"
+    }
   , testGetJSON :
      { resp : server.createGetResponse('{"test":true}', 'application/json')
      , json : true
