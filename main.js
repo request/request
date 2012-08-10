@@ -618,7 +618,7 @@ Request.prototype.start = function () {
             if (self.encoding === null) {
               response.body = body
             } else {
-              response.body = body.toString()
+              response.body = body.toString(self.encoding)
             }
           } else if (buffer.length) {
             response.body = buffer.join('')
