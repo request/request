@@ -222,6 +222,18 @@ Request.prototype.init = function (options) {
     self.emit('error', error)
   }
 
+  self._parserErrorHandler = function (error) {
+    if (this.res) {
+      if (this.res.request) {
+        this.res.request.emit('error', error)
+      } else {
+        this.res.emit('error', error)
+      }
+    } else {
+      this._httpMessage.emit('error', error)
+    }
+  }
+
   if (options.form) {
     self.form(options.form)
   }
@@ -480,25 +492,28 @@ Request.prototype.getAgent = function () {
 
 Request.prototype.start = function () {
   var self = this
-  
+
   if (self._aborted) return
-  
+
   self._started = true
   self.method = self.method || 'GET'
   self.href = self.uri.href
   if (log) log('%method %href', self)
-  
+
   if (self.src && self.src.stat && self.src.stat.size) {
     self.headers['content-length'] = self.src.stat.size
   }
   if (self._aws) {
     self.aws(self._aws, true)
   }
-  
+
   self.req = self.httpModule.request(self, function (response) {
+    if (response.connection.listeners('error').indexOf(self._parserErrorHandler) === -1) {
+      response.connection.once('error', self._parserErrorHandler)
+    }
     if (self._aborted) return
     if (self._paused) response.pause()
-    
+
     self.response = response
     response.request = self
     response.toJSON = toJSON
@@ -516,7 +531,7 @@ Request.prototype.start = function () {
       clearTimeout(self.timeoutTimer)
       self.timeoutTimer = null
     }  
-    
+
     var addCookie = function (cookie) {
       if (self._jar) self._jar.add(new Cookie(cookie))
       else cookieJar.add(new Cookie(cookie))
@@ -662,7 +677,9 @@ Request.prototype.start = function () {
   self.req.on('drain', function() {
     self.emit('drain')
   })
-  
+  self.on('end', function() {
+    self.req.connection.removeListener('error', self._parserErrorHandler)
+  })
   self.emit('request', self.req)
 }
 
