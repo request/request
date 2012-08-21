@@ -8,6 +8,7 @@ var tests = [
   , 'test-cookiejar.js'
   , 'test-defaults.js'
   , 'test-errors.js'
+  , 'test-gzip.js'
   , 'test-headers.js'
   , 'test-httpModule.js'
   , 'test-https.js'
