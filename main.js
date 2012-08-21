@@ -42,6 +42,12 @@ try {
   tls = require('tls')
 } catch (e) {}
 
+// MikeR: added for gzip support in nodejs >= 0.6.x
+try {
+  zlib = require('zlib')
+} catch (e) {}
+
+
 function toBase64 (str) {
   return (new Buffer(str || "", "ascii")).toString("base64")
 }
@@ -176,6 +182,13 @@ Request.prototype.init = function (options) {
     self.redirects = self.redirects || []
 
   self.headers = self.headers ? copy(self.headers) : {}
+
+  // MikeR: if zlib support is available and no Accept-Encoding is specified, 
+  //        add Accept-Encoding so supporting web servers will send gzipped
+  if (zlib && !self.headers['Accept-Encoding'])
+  {
+    self.headers['Accept-Encoding'] = 'gzip';
+  }
 
   self.setHost = false
   if (!self.headers.host) {
@@ -623,23 +636,47 @@ Request.prototype.start = function () {
         self.on("end", function () {
           if (self._aborted) return
           
-          if (buffer.length && Buffer.isBuffer(buffer[0])) {
+          if (buffer.length && Buffer.isBuffer(buffer[0]))
+          {
             var body = new Buffer(bodyLen)
             var i = 0
             buffer.forEach(function (chunk) {
               chunk.copy(body, i, 0, chunk.length)
               i += chunk.length
             })
-            if (self.encoding === null) {
+            if (self.encoding === null)
+            {
               response.body = body
-            } else {
+            }
+            else
+            {
               response.body = body.toString(self.encoding)
             }
-          } else if (buffer.length) {
+          }
+          else if (buffer.length)
+          {
             response.body = buffer.join('')
           }
 
-          if (self._json) {
+          // MikeR: if the response headers include Content-Encoding parameter
+          //        and it includes 'gzip', use zlib to inflate it
+          if(zlib && response.headers['content-encoding'] && 
+            response.headers['content-encoding'].toLowerCase().toLowerCase().indexOf('gzip') >= 0)
+          {
+            zlib.gunzip(response.body, function (error, dat) {
+              if(!error)
+              {
+                response.body = dat.toString();
+              }
+              else
+              {
+                self.emit('error', error);
+              }
+            });
+          }
+
+          if (self._json)
+          {
             try {
               response.body = JSON.parse(response.body)
             } catch (e) {}
