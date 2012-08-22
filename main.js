@@ -245,6 +245,8 @@ Request.prototype.init = function (options) {
   if (options.aws) {
     self.aws(options.aws)
   }
+  
+  self._endOnTick = options.endOnTick === null ? true : options.endOnTick;
 
   if (self.uri.auth && !self.headers.authorization) {
     self.headers.authorization = "Basic " + toBase64(self.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
@@ -329,8 +331,6 @@ Request.prototype.init = function (options) {
     }
   }
   
-  self._endOnTick = options.endOnTick ? options.endOnTick : true;
-
   self.once('pipe', function (src) {
     if (self.ntick && self._started) throw new Error("You cannot pipe to this stream after the outbound request has started.")
     self.src = src
