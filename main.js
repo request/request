@@ -328,6 +328,8 @@ Request.prototype.init = function (options) {
       self.agent.maxSockets = self.pool.maxSockets
     }
   }
+  
+  self._endOnTick = options.endOnTick ? options.endOnTick : true;
 
   self.once('pipe', function (src) {
     if (self.ntick && self._started) throw new Error("You cannot pipe to this stream after the outbound request has started.")
@@ -354,6 +356,7 @@ Request.prototype.init = function (options) {
   })
 
   process.nextTick(function () {
+    if (self._endOnTick === false) return
     if (self._aborted) return
     
     if (self.body) {
