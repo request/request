@@ -106,13 +106,16 @@ var qs = require('querystring')
   , url = 'https://api.twitter.com/oauth/request_token'
   ;
 request.post({url:url, oauth:oauth}, function (e, r, body) {
-  // Assume by some stretch of magic you aquired the verifier
+  // Ideally, you would take the body in the response
+  // and construct a URL that a user clicks on (like a sign in button).
+  // The verifier is only available in the response after a user has 
+  // verified with twitter that they are authorizing your app.
   var access_token = qs.parse(body)
     , oauth = 
       { consumer_key: CONSUMER_KEY
       , consumer_secret: CONSUMER_SECRET
       , token: access_token.oauth_token
-      , verifier: VERIFIER
+      , verifier: access_token.oauth_verifier
       , token_secret: access_token.oauth_token_secret
       }
     , url = 'https://api.twitter.com/oauth/access_token'
