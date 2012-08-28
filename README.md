@@ -116,7 +116,6 @@ request.post({url:url, oauth:oauth}, function (e, r, body) {
       , consumer_secret: CONSUMER_SECRET
       , token: access_token.oauth_token
       , verifier: access_token.oauth_verifier
-      , token_secret: access_token.oauth_token_secret
       }
     , url = 'https://api.twitter.com/oauth/access_token'
     ;
