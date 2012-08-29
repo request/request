@@ -240,6 +240,10 @@ Request.prototype.init = function (options) {
     self.form(options.form)
   }
 
+  if (options.basicAuth) {
+    self.basicAuth(options.basicAuth)
+  }
+
   if (options.oauth) {
     self.oauth(options.oauth)
   }
@@ -818,6 +822,11 @@ Request.prototype.aws = function (opts, now) {
   ))
   
   return this
+}
+
+Request.prototype.basicAuth = function (credentials) {
+  var base64cred = new Buffer(credentials[0] + ":" + credentials[1]).toString("base64");
+  this.headers["Authorization"] = "Basic " + base64cred;
 }
 
 Request.prototype.oauth = function (_oauth) {
