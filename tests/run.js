@@ -9,6 +9,8 @@ var tests = [
   , 'test-defaults.js'
   , 'test-errors.js'
   , 'test-form.js'
+  , 'test-follow-all-303.js'
+  , 'test-follow-all.js'
   , 'test-headers.js'
   , 'test-httpModule.js'
   , 'test-https.js'

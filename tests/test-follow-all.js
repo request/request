@@ -1,4 +1,4 @@
-var request = require('request');
+var request = require('../main');
 var http = require('http');
 var requests = 0;
 var assert = require('assert');
