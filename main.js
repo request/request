@@ -19,7 +19,6 @@ var http = require('http')
   , util = require('util')
   , stream = require('stream')
   , qs = require('querystring')
-  , mimetypes = require('./mimetypes')
   , oauth = require('./oauth')
   , uuid = require('./uuid')
   , ForeverAgent = require('./forever')
@@ -29,6 +28,7 @@ var http = require('http')
   , tunnel = require('./tunnel')
   , aws = require('./aws')
   
+  , mime = require('mime')
   , FormData = require('form-data')
   ;
   
@@ -336,7 +336,7 @@ Request.prototype.init = function (options) {
     self.src = src
     if (isReadStream(src)) {
       if (!self.headers['content-type'] && !self.headers['Content-Type'])
-        self.headers['content-type'] = mimetypes.lookup(src.path.slice(src.path.lastIndexOf('.')+1))
+        self.headers['content-type'] = mime.lookup(src.path)
     } else {
       if (src.headers) {
         for (var i in src.headers) {
