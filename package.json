@@ -1,7 +1,7 @@
 { "name" : "request"
 , "description" : "Simplified HTTP request client."
 , "tags" : ["http", "simple", "util", "utility"]
-, "version" : "2.9.203"
+, "version" : "2.10.0"
 , "author" : "Mikeal Rogers <mikeal.rogers@gmail.com>"
 , "repository" :
   { "type" : "git"
@@ -11,5 +11,6 @@
   { "url" : "http://github.com/mikeal/request/issues" }
 , "engines" : ["node >= 0.3.6"]
 , "main" : "./main"
+, "bundleDependencies": ["form-data", "mime"]
 , "scripts": { "test": "node tests/run.js" }
 }

@@ -28,6 +28,8 @@ var http = require('http')
   , cookieJar = new CookieJar
   , tunnel = require('./tunnel')
   , aws = require('./aws')
+  
+  , FormData = require('form-data')
   ;
   
 if (process.logging) {
@@ -344,6 +346,10 @@ Request.prototype.init = function (options) {
   process.nextTick(function () {
     if (self._aborted) return
     
+    if (self._form) {
+      self.setHeaders(self._form.getHeaders())
+      self._form.pipe(self)
+    }
     if (self.body) {
       if (Array.isArray(self.body)) {
         self.body.forEach(function (part) {
@@ -723,9 +729,14 @@ Request.prototype.qs = function (q, clobber) {
   return this
 }
 Request.prototype.form = function (form) {
-  this.headers['content-type'] = 'application/x-www-form-urlencoded; charset=utf-8'
-  this.body = qs.stringify(form).toString('utf8')
-  return this
+  if (form) {
+    this.headers['content-type'] = 'application/x-www-form-urlencoded; charset=utf-8'
+    this.body = qs.stringify(form).toString('utf8')
+    return this
+  } 
+  // create form-data object
+  this._form = new FormData()
+  return this._form
 }
 Request.prototype.multipart = function (multipart) {
   var self = this
