@@ -94,7 +94,7 @@ You can still use intermediate proxies, the requests will still follow HTTP forw
 
 ## Forms
 
-`request` supports `application/x-www-form-urlencoded` and `multipart/form-data` form. For `multipart/related` refer to the `multipart` API.
+`request` supports `application/x-www-form-urlencoded` and `multipart/form-data` form uploads. For `multipart/related` refer to the `multipart` API.
 
 Url encoded forms are simple
 
@@ -104,7 +104,7 @@ request.post('http://service.com/upload', {form:{key:'value'}})
 request.post('http://service.com/upload').form({key:'value'})
 ```
 
-For `multipart-form-data` we use the `form-data` library by @felixge. You don't need to worry about piping the form object or setting the headers, `request` will handle that for you.
+For `multipart/form-data` we use the [form-data](https://github.com/felixge/node-form-data) library by [@felixge](https://github.com/felixge). You don't need to worry about piping the form object or setting the headers, `request` will handle that for you.
 
 ```javascript
 var r = request.post('http://service.com/upload')
