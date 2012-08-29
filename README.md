@@ -90,8 +90,30 @@ http.createServer(function (req, resp) {
   }
 })
 ```
-
 You can still use intermediate proxies, the requests will still follow HTTP forwards, etc.
+
+## Forms
+
+`request` supports `application/x-www-form-urlencoded` and `multipart/form-data` form. For `multipart/related` refer to the `multipart` API.
+
+Url encoded forms are simple
+
+```javascript
+request.post('http://service.com/upload', {form:{key:'value'}})
+// or
+request.post('http://service.com/upload').form({key:'value'})
+```
+
+For `multipart-form-data` we use the `form-data` library by @felixge. You don't need to worry about piping the form object or setting the headers, `request` will handle that for you.
+
+```javascript
+var r = request.post('http://service.com/upload')
+var form = r.form()
+form.append('my_field', 'my_value')
+form.append('my_buffer', new Buffer([1, 2, 3]))
+form.append('my_file', fs.createReadStream(path.join(__dirname, 'doodle.png'))
+form.append('remote_file', request('http://google.com/doodle.png'))
+```
 
 ## OAuth Signing
 
@@ -150,7 +172,7 @@ The first argument can be either a url or an options object. The only required o
 * `method` - http method, defaults to GET
 * `headers` - http headers, defaults to {}
 * `body` - entity body for POST and PUT requests. Must be buffer or string.
-* `form` - sets `body` but to querystring representation of value and adds `Content-type: application/x-www-form-urlencoded; charset=utf-8` header.
+* `form` - when passed an object this will set `body` but to a querystring representation of value and adds `Content-type: application/x-www-form-urlencoded; charset=utf-8` header. When passed no option a FormData instance is returned that will be piped to request.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as json.
 * `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
 * `followRedirect` - follow HTTP 3xx responses as redirects. defaults to true.
