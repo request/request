@@ -50,8 +50,9 @@ squid.on('exit', function (c) {
 
 setTimeout(function F () {
   if (!ready) return setTimeout(F, 100)
-  request({ uri: 'https://registry.npmjs.org/request/'
+  request({ uri: 'https://registry.npmjs.org/'
           , proxy: 'http://localhost:3128'
+          , strictSSL: true
           , ca: ca
           , json: true }, function (er, body) {
     hadError = er
