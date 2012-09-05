@@ -188,8 +188,7 @@ Request.prototype.init = function (options) {
 
   // if zlib support is available and no Accept-Encoding is specified, add 
   // Accept-Encoding so supporting web servers will send gzipped
-  if (zlib && self.headers['Accept-Encoding'] === undefined)
-  {
+  if (zlib && self.headers['Accept-Encoding'] === undefined) {
     self.headers['Accept-Encoding'] = 'gzip';
   }
   
@@ -659,8 +658,7 @@ Request.prototype.start = function () {
               response.body = body.toString(self.encoding)
             }
 
-          if (self._json)
-          {
+          if (self._json) {
             try {
               response.body = JSON.parse(response.body);
             } catch (e) {}
@@ -683,25 +681,18 @@ Request.prototype.start = function () {
           }
 
           if(zlib && response.headers['content-encoding'] && 
-              response.headers['content-encoding'].toLowerCase().indexOf('gzip') >= 0)
-          {
-            if(!Buffer.isBuffer(body))
-            {
+              response.headers['content-encoding'].toLowerCase().indexOf('gzip') >= 0) {
+            if(!Buffer.isBuffer(body)) {
               body = new Buffer(body);
             }
             zlib.gunzip(body, function (error, dat) {
-              if(!error)
-              {
+              if(!error) {
                 self.emit("response_body_complete", dat)
-              }
-              else
-              {
+              } else {
                 self.emit('error', error)
               }
             })
-          }
-          else
-          {
+          } else {
             self.emit("response_body_complete", body);
           }
         })
