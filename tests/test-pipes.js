@@ -99,7 +99,7 @@ s.listen(s.port, function () {
   })
   s.on('/pushjs', function (req, resp) {
     if (req.method === "PUT") {
-      assert.equal(req.headers['content-type'], 'text/javascript');
+      assert.equal(req.headers['content-type'], 'application/javascript');
       check();
     }
   })

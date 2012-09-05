@@ -1,4 +1,4 @@
-var request = require('request');
+var request = require('../main.js');
 var http = require('http');
 var assert = require('assert');
 var zlib = require('zlib');

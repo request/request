@@ -20,7 +20,6 @@ var http = require('http')
   , util = require('util')
   , stream = require('stream')
   , qs = require('querystring')
-  , mimetypes = require('./mimetypes')
   , oauth = require('./oauth')
   , uuid = require('./uuid')
   , ForeverAgent = require('./forever')
@@ -29,6 +28,9 @@ var http = require('http')
   , cookieJar = new CookieJar
   , tunnel = require('./tunnel')
   , aws = require('./aws')
+  
+  , mime = require('mime')
+  , FormData = require('form-data')
   ;
   
 if (process.logging) {
@@ -349,7 +351,7 @@ Request.prototype.init = function (options) {
     self.src = src
     if (isReadStream(src)) {
       if (!self.headers['content-type'] && !self.headers['Content-Type'])
-        self.headers['content-type'] = mimetypes.lookup(src.path.slice(src.path.lastIndexOf('.')+1))
+        self.headers['content-type'] = mime.lookup(src.path)
     } else {
       if (src.headers) {
         for (var i in src.headers) {
@@ -371,6 +373,10 @@ Request.prototype.init = function (options) {
   process.nextTick(function () {
     if (self._aborted) return
     
+    if (self._form) {
+      self.setHeaders(self._form.getHeaders())
+      self._form.pipe(self)
+    }
     if (self.body) {
       if (Array.isArray(self.body)) {
         self.body.forEach(function (part) {
@@ -794,9 +800,14 @@ Request.prototype.qs = function (q, clobber) {
   return this
 }
 Request.prototype.form = function (form) {
-  this.headers['content-type'] = 'application/x-www-form-urlencoded; charset=utf-8'
-  this.body = qs.stringify(form).toString('utf8')
-  return this
+  if (form) {
+    this.headers['content-type'] = 'application/x-www-form-urlencoded; charset=utf-8'
+    this.body = qs.stringify(form).toString('utf8')
+    return this
+  } 
+  // create form-data object
+  this._form = new FormData()
+  return this._form
 }
 Request.prototype.multipart = function (multipart) {
   var self = this
