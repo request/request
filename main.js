@@ -997,7 +997,7 @@ request.defaults = function (options, requester) {
   de.head = def(request.head)
   de.del = def(request.del)
   de.cookie = def(request.cookie)
-  de.jar = def(request.jar)
+  de.jar = request.jar
   return de
 }
 
