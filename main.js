@@ -577,6 +577,7 @@ Request.prototype.start = function () {
       )
       if (self.followAllRedirects) self.method = 'GET'
       // self.method = 'GET'; // Force all redirects to use GET || commented out fixes #215
+      delete self.src
       delete self.req
       delete self.agent
       delete self._started
