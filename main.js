@@ -684,7 +684,7 @@ Request.prototype.start = function () {
     self.emit('drain')
   })
   self.on('end', function() {
-    self.req.connection.removeListener('error', self._parserErrorHandler)
+    if ( self.req.connection ) self.req.connection.removeListener('error', self._parserErrorHandler)
   })
   self.emit('request', self.req)
 }
