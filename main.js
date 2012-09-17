@@ -553,7 +553,7 @@ Request.prototype.start = function () {
          (self.followRedirect && (self.method !== 'PUT' && self.method !== 'POST' && self.method !== 'DELETE'))) &&
         response.headers.location) {
       if (self._redirectsFollowed >= self.maxRedirects) {
-        self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop."))
+        self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop "+self.uri.href))
         return
       }
       self._redirectsFollowed += 1
