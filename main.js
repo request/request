@@ -345,6 +345,8 @@ Request.prototype.init = function (options) {
           }
         }
       }
+      if (self._json && !self.headers['content-type'] && !self.headers['Content-Type'])
+        self.headers['content-type'] = 'application/json'
       if (src.method && !self.method) {
         self.method = src.method
       }
@@ -789,12 +791,15 @@ Request.prototype.multipart = function (multipart) {
   return self
 }
 Request.prototype.json = function (val) {
-  this.setHeader('content-type', 'application/json')
   this.setHeader('accept', 'application/json')
   this._json = true
   if (typeof val === 'boolean') {
-    if (typeof this.body === 'object') this.body = JSON.stringify(this.body)
+    if (typeof this.body === 'object') {
+      this.setHeader('content-type', 'application/json')
+      this.body = JSON.stringify(this.body)
+    }
   } else {
+    this.setHeader('content-type', 'application/json')
     this.body = JSON.stringify(val)
   }
   return this
