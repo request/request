@@ -806,17 +806,26 @@ Request.prototype.aws = function (opts, now) {
   }
   var date = new Date()
   this.setHeader('date', date.toUTCString())
-  this.setHeader('authorization', aws.authorization(
+  var auth =
     { key: opts.key
     , secret: opts.secret
-    , verb: this.method
+    , verb: this.method.toUpperCase()
     , date: date
-    , resource: aws.canonicalizeResource('/' + opts.bucket + this.path)
     , contentType: this.headers['content-type'] || ''
     , md5: this.headers['content-md5'] || ''
     , amazonHeaders: aws.canonicalizeHeaders(this.headers)
     }
-  ))
+  if (opts.bucket && this.path) {
+    auth.resource = '/' + opts.bucket + this.path
+  } else if (opts.bucket && !this.path) {
+    auth.resource = '/' + opts.bucket
+  } else if (!opts.bucket && this.path) {
+    auth.resource = this.path
+  } else if (!opts.bucket && !this.path) {
+    auth.resource = '/'
+  }
+  auth.resource = aws.canonicalizeResource(auth.resource)
+  this.setHeader('authorization', aws.authorization(auth))
   
   return this
 }
