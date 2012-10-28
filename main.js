@@ -133,7 +133,8 @@ Request.prototype.init = function (options) {
   }
 
   if (!self.uri) {
-    throw new Error("options.uri is a required argument")
+    // this will throw if unhandled but is handleable when in a redirect
+    return self.emit('error', new Error("options.uri is a required argument"))
   } else {
     if (typeof self.uri == "string") self.uri = url.parse(self.uri)
   }
@@ -301,7 +302,7 @@ Request.prototype.init = function (options) {
     ;
   self.httpModule = httpModules[protocol] || defaultModules[protocol]
 
-  if (!self.httpModule) throw new Error("Invalid protocol")
+  if (!self.httpModule) return this.emit('error', new Error("Invalid protocol"))
 
   if (options.ca) self.ca = options.ca
 
