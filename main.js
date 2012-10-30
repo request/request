@@ -587,6 +587,8 @@ Request.prototype.start = function () {
       delete self.body
       if (self.headers) {
         delete self.headers.host
+        delete self.headers['content-type']
+        delete self.headers['content-length']
       }
       if (log) log('Redirect to %uri', self)
       self.init()
