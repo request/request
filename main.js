@@ -585,6 +585,7 @@ Request.prototype.start = function () {
       delete self.agent
       delete self._started
       delete self.body
+      delete self._form
       if (self.headers) {
         delete self.headers.host
         delete self.headers['content-type']
