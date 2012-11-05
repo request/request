@@ -290,6 +290,7 @@ Request.prototype.init = function (options) {
       length = self.body.length
     }
     if (length) {
+      if(!self.headers['content-length'] && !self.headers['Content-Length'])
       self.headers['content-length'] = length
     } else {
       throw new Error('Argument error, options.body.')
@@ -509,13 +510,12 @@ Request.prototype.start = function () {
   self.href = self.uri.href
   if (log) log('%method %href', self)
 
-  if (self.src && self.src.stat && self.src.stat.size) {
+  if (self.src && self.src.stat && self.src.stat.size && !self.headers['content-length'] && !self.headers['Content-Length']) {
     self.headers['content-length'] = self.src.stat.size
   }
   if (self._aws) {
     self.aws(self._aws, true)
   }
-
   self.req = self.httpModule.request(self, function (response) {
     if (response.connection.listeners('error').indexOf(self._parserErrorHandler) === -1) {
       response.connection.once('error', self._parserErrorHandler)
