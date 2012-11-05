@@ -21,13 +21,14 @@ function hmacsign (httpMethod, base_uri, params, consumer_secret, token_secret) 
   // https://dev.twitter.com/docs/auth/creating-signature
 
   var querystring = Object.keys(params).sort().map(function(key){
-    return key +"="+ params[key];
-  }).join('&');
+    // big WTF here with the escape + encoding but it's what twitter wants
+    return escape(rfc3986(key)) + "%3D" + escape(rfc3986(params[key]));
+  }).join('%26');
 
   var base = [
-    httpMethod ? httpMethod.toUpperCase : 'GET',
+    httpMethod ? httpMethod.toUpperCase() : 'GET',
     rfc3986(base_uri),
-    rfc3986(querystring),
+    querystring
   ].join('&');
 
   var key = [
