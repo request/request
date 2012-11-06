@@ -380,7 +380,7 @@ Request.prototype.init = function (options) {
       self.requestBodyStream.pipe(self)
     } else if (!self.src) {
       if (self.method !== 'GET' && typeof self.method !== 'undefined') {
-        self.headers['content-length'] = 0;
+        self.headers['content-length'] = 0
       }
       self.end();
     }
