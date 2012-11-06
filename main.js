@@ -808,6 +808,15 @@ Request.prototype.json = function (val) {
   }
   return this
 }
+function getHeader(name, headers) {
+    var result, re, match
+    Object.keys(headers).forEach(function (key) {
+        re = new RegExp(name, 'i')
+        match = key.match(re)
+        if (match) result = headers[key]
+    })
+    return result
+}
 Request.prototype.aws = function (opts, now) {
   if (!now) {
     this._aws = opts
@@ -820,8 +829,8 @@ Request.prototype.aws = function (opts, now) {
     , secret: opts.secret
     , verb: this.method.toUpperCase()
     , date: date
-    , contentType: this.headers['content-type'] || ''
-    , md5: this.headers['content-md5'] || ''
+    , contentType: getHeader('content-type', this.headers) || ''
+    , md5: getHeader('content-md5', this.headers) || ''
     , amazonHeaders: aws.canonicalizeHeaders(this.headers)
     }
   if (opts.bucket && this.path) {
