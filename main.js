@@ -133,8 +133,12 @@ Request.prototype.init = function (options) {
   }
 
   if (!self.uri) {
-    // this will throw if unhandled but is handleable when in a redirect
-    return self.emit('error', new Error("options.uri is a required argument"))
+    // this is handleable when in a redirect, but not on initial request
+    // unless fired on process.nextTick
+    process.nextTick(function () {
+      self.emit('error', new Error("options.uri is a required argument"))
+    })
+    return // This error was fatal
   } else {
     if (typeof self.uri == "string") self.uri = url.parse(self.uri)
   }
@@ -167,7 +171,9 @@ Request.prototype.init = function (options) {
       // he should be warned that it can be caused by a redirection (can save some hair)
       message += '. This can be caused by a crappy redirection.'
     }
-    self.emit('error', new Error(message))
+    process.nextTick(function () {
+      self.emit('error', new Error(message))
+    })
     return // This error was fatal
   }
 
