@@ -34,4 +34,20 @@ try {
   assert.equal(e.message, 'Body attribute missing in multipart.')
 }
 
+try {
+  request('/invalid').on('error', function (e) {
+    assert.equal(e.message, 'Invalid URI "/invalid"')
+  });
+} catch (e) {
+  assert.fail("Should not throw");
+}
+
+try {
+  request('').on('error', function (e) {
+    assert.equal(e.message, 'options.uri is a required argument')
+  });
+} catch (e) {
+  assert.fail("Should not throw");
+}
+
 console.log("All tests passed.")
