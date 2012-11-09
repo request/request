@@ -883,7 +883,10 @@ Request.prototype.oauth = function (_oauth) {
       // skip 
     } else {
       delete oa['oauth_'+i]
-      delete oa[i]
+      
+      if (i !== 'x_auth_type') {
+        delete oa[i]
+      }
     }
   }
   this.headers.Authorization = 
