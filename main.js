@@ -884,7 +884,7 @@ Request.prototype.oauth = function (_oauth) {
     } else {
       delete oa['oauth_'+i]
       
-      if (i !== 'x_auth_type') {
+      if (i !== 'x_auth_mode') {
         delete oa[i]
       }
     }
