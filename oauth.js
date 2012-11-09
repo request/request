@@ -22,21 +22,21 @@ function hmacsign (httpMethod, base_uri, params, consumer_secret, token_secret) 
 
   var querystring = Object.keys(params).sort().map(function(key){
     // big WTF here with the escape + encoding but it's what twitter wants
-    return escape(rfc3986(key)) + "%3D" + escape(rfc3986(params[key]));
-  }).join('%26');
+    return escape(rfc3986(key)) + "%3D" + escape(rfc3986(params[key]))
+  }).join('%26')
 
   var base = [
     httpMethod ? httpMethod.toUpperCase() : 'GET',
     rfc3986(base_uri),
     querystring
-  ].join('&');
+  ].join('&')
 
   var key = [
     consumer_secret,
     token_secret || ''
-  ].map(rfc3986).join('&');
+  ].map(rfc3986).join('&')
 
-  return sha1(key, base);
+  return sha1(key, base)
 }
 
 exports.hmacsign = hmacsign

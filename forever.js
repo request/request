@@ -34,7 +34,7 @@ function ForeverAgent(options) {
       // socket and it will get removed from the pool. This
       // gets us out of timeout issues and allows us to
       // default to Connection:keep-alive.
-      socket.destroy();
+      socket.destroy()
     }
   })
 
@@ -61,14 +61,14 @@ ForeverAgent.prototype.addRequest = function(req, host, port) {
 
 ForeverAgent.prototype.removeSocket = function(s, name, host, port) {
   if (this.sockets[name]) {
-    var index = this.sockets[name].indexOf(s);
+    var index = this.sockets[name].indexOf(s)
     if (index !== -1) {
-      this.sockets[name].splice(index, 1);
+      this.sockets[name].splice(index, 1)
     }
   } else if (this.sockets[name] && this.sockets[name].length === 0) {
     // don't leak
-    delete this.sockets[name];
-    delete this.requests[name];
+    delete this.sockets[name]
+    delete this.requests[name]
   }
   
   if (this.freeSockets[name]) {
@@ -84,7 +84,7 @@ ForeverAgent.prototype.removeSocket = function(s, name, host, port) {
   if (this.requests[name] && this.requests[name].length) {
     // If we have pending requests and a socket gets closed a new one
     // needs to be created to take over in the pool for the one that closed.
-    this.createSocket(name, host, port).emit('free');
+    this.createSocket(name, host, port).emit('free')
   }
 }
 

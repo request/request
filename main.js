@@ -174,7 +174,7 @@ Request.prototype.init = function (options) {
   self._redirectsFollowed = self._redirectsFollowed || 0
   self.maxRedirects = (self.maxRedirects !== undefined) ? self.maxRedirects : 10
   self.followRedirect = (self.followRedirect !== undefined) ? self.followRedirect : true
-  self.followAllRedirects = (self.followAllRedirects !== undefined) ? self.followAllRedirects : false;
+  self.followAllRedirects = (self.followAllRedirects !== undefined) ? self.followAllRedirects : false
   if (self.followRedirect || self.followAllRedirects)
     self.redirects = self.redirects || []
 
@@ -382,7 +382,7 @@ Request.prototype.init = function (options) {
       if (self.method !== 'GET' && typeof self.method !== 'undefined') {
         self.headers['content-length'] = 0
       }
-      self.end();
+      self.end()
     }
     self.ntick = true
   })
@@ -579,7 +579,7 @@ Request.prototype.start = function () {
         }
       )
       if (self.followAllRedirects) self.method = 'GET'
-      // self.method = 'GET'; // Force all redirects to use GET || commented out fixes #215
+      // self.method = 'GET' // Force all redirects to use GET || commented out fixes #215
       delete self.src
       delete self.req
       delete self.agent
@@ -697,7 +697,7 @@ Request.prototype.start = function () {
 }
 
 Request.prototype.abort = function () {
-  this._aborted = true;
+  this._aborted = true
   
   if (this.req) {
     this.req.abort()
@@ -767,9 +767,9 @@ Request.prototype.multipart = function (multipart) {
   self.body = []
 
   if (!self.headers['content-type']) {
-    self.headers['content-type'] = 'multipart/related; boundary=' + self.boundary;
+    self.headers['content-type'] = 'multipart/related; boundary=' + self.boundary
   } else {
-    self.headers['content-type'] = self.headers['content-type'].split(';')[0] + '; boundary=' + self.boundary;
+    self.headers['content-type'] = self.headers['content-type'].split(';')[0] + '; boundary=' + self.boundary
   }
 
   if (!multipart.forEach) throw new Error('Argument error, options.multipart.')
@@ -883,15 +883,12 @@ Request.prototype.oauth = function (_oauth) {
       // skip 
     } else {
       delete oa['oauth_'+i]
-      
-      if (i !== 'x_auth_mode') {
-        delete oa[i]
-      }
+      if (i !== 'x_auth_mode') delete oa[i]
     }
   }
   this.headers.Authorization = 
     'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+oauth.rfc3986(oa[i])+'"'}).join(',')
-  this.headers.Authorization += ',oauth_signature="'+oauth.rfc3986(signature)+'"'
+  this.headers.Authorization += ',oauth_signature="' + oauth.rfc3986(signature) + '"'
   return this
 }
 Request.prototype.jar = function (jar) {
@@ -903,8 +900,8 @@ Request.prototype.jar = function (jar) {
   
   if (jar === false) {
     // disable cookies
-    cookies = false;
-    this._disableCookies = true;
+    cookies = false
+    this._disableCookies = true
   } else if (jar) {
     // fetch cookie from the user defined cookie jar
     cookies = jar.get({ url: this.uri.href })
@@ -971,55 +968,55 @@ Request.prototype.destroy = function () {
 
 // organize params for post, put, head, del
 function initParams(uri, options, callback) {
-  if ((typeof options === 'function') && !callback) callback = options;
+  if ((typeof options === 'function') && !callback) callback = options
   if (options && typeof options === 'object') {
-    options.uri = uri;
+    options.uri = uri
   } else if (typeof uri === 'string') {
-    options = {uri:uri};
+    options = {uri:uri}
   } else {
-    options = uri;
-    uri = options.uri;
+    options = uri
+    uri = options.uri
   }
-  return { uri: uri, options: options, callback: callback };
+  return { uri: uri, options: options, callback: callback }
 }
 
 function request (uri, options, callback) {
   if (typeof uri === 'undefined') throw new Error('undefined is not a valid uri or options object.')
-  if ((typeof options === 'function') && !callback) callback = options;
+  if ((typeof options === 'function') && !callback) callback = options
   if (options && typeof options === 'object') {
-    options.uri = uri;
+    options.uri = uri
   } else if (typeof uri === 'string') {
-    options = {uri:uri};
+    options = {uri:uri}
   } else {
-    options = uri;
+    options = uri
   }
 
-  if (callback) options.callback = callback;
+  if (callback) options.callback = callback
   var r = new Request(options)
   return r
 }
 
 module.exports = request
 
-request.initParams = initParams;
+request.initParams = initParams
 
 request.defaults = function (options, requester) {
   var def = function (method) {
     var d = function (uri, opts, callback) {
-      var params = initParams(uri, opts, callback);
+      var params = initParams(uri, opts, callback)
       for (var i in options) {
         if (params.options[i] === undefined) params.options[i] = options[i]
       }
       if(typeof requester === 'function') {
         if(method === request) {
-          method = requester;
+          method = requester
         } else {
-          params.options._requester = requester;
+          params.options._requester = requester
         }
       }
-      return method(params.options, params.callback);
+      return method(params.options, params.callback)
     }
-    return d;
+    return d
   }
   var de = def(request)
   de.get = def(request.get)
@@ -1046,17 +1043,17 @@ request.forever = function (agentOptions, optionsArg) {
 
 request.get = request
 request.post = function (uri, options, callback) {
-  var params = initParams(uri, options, callback);
-  params.options.method = 'POST';
+  var params = initParams(uri, options, callback)
+  params.options.method = 'POST'
   return request(params.uri || null, params.options, params.callback)
 }
 request.put = function (uri, options, callback) {
-  var params = initParams(uri, options, callback);
+  var params = initParams(uri, options, callback)
   params.options.method = 'PUT'
   return request(params.uri || null, params.options, params.callback)
 }
 request.head = function (uri, options, callback) {
-  var params = initParams(uri, options, callback);
+  var params = initParams(uri, options, callback)
   params.options.method = 'HEAD'
   if (params.options.body || 
       params.options.requestBodyStream || 
@@ -1067,10 +1064,10 @@ request.head = function (uri, options, callback) {
   return request(params.uri || null, params.options, params.callback)
 }
 request.del = function (uri, options, callback) {
-  var params = initParams(uri, options, callback);
+  var params = initParams(uri, options, callback)
   params.options.method = 'DELETE'
   if(typeof params.options._requester === 'function') {
-    request = params.options._requester;
+    request = params.options._requester
   }
   return request(params.uri || null, params.options, params.callback)
 }

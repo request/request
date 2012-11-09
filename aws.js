@@ -10,14 +10,15 @@
  */
 
 var crypto = require('crypto')
-  , parse = require('url').parse;
+  , parse = require('url').parse
+  ;
 
 /**
  * Valid keys.
  */
 
-var keys = [
-    'acl'
+var keys = 
+  [ 'acl'
   , 'location'
   , 'logging'
   , 'notification'
@@ -31,7 +32,7 @@ var keys = [
   , 'versioning'
   , 'versions'
   , 'website'
-];
+  ]
 
 /**
  * Return an "Authorization" header value with the given `options`
@@ -43,8 +44,8 @@ var keys = [
  */
 
 exports.authorization = function(options){
-  return 'AWS ' + options.key + ':' + exports.sign(options);
-};
+  return 'AWS ' + options.key + ':' + exports.sign(options)
+}
 
 /**
  * Simple HMAC-SHA1 Wrapper
@@ -55,8 +56,8 @@ exports.authorization = function(options){
  */ 
 
 exports.hmacSha1 = function(options){
-  return crypto.createHmac('sha1', options.secret).update(options.message).digest('base64');
-};
+  return crypto.createHmac('sha1', options.secret).update(options.message).digest('base64')
+}
 
 /**
  * Create a base64 sha1 HMAC for `options`. 
@@ -67,9 +68,9 @@ exports.hmacSha1 = function(options){
  */
 
 exports.sign = function(options){
-  options.message = exports.stringToSign(options);
-  return exports.hmacSha1(options);
-};
+  options.message = exports.stringToSign(options)
+  return exports.hmacSha1(options)
+}
 
 /**
  * Create a base64 sha1 HMAC for `options`. 
@@ -82,9 +83,9 @@ exports.sign = function(options){
  */
 
 exports.signQuery = function(options){
-  options.message = exports.queryStringToSign(options);
-  return exports.hmacSha1(options);
-};
+  options.message = exports.queryStringToSign(options)
+  return exports.hmacSha1(options)
+}
 
 /**
  * Return a string for sign() with the given `options`.
@@ -104,16 +105,17 @@ exports.signQuery = function(options){
  */
 
 exports.stringToSign = function(options){
-  var headers = options.amazonHeaders || '';
-  if (headers) headers += '\n';
-  return [
-      options.verb
+  var headers = options.amazonHeaders || ''
+  if (headers) headers += '\n'
+  var r = 
+    [ options.verb
     , options.md5
     , options.contentType
     , options.date.toUTCString()
     , headers + options.resource
-  ].join('\n');
-};
+    ]
+  return r.join('\n')
+}
 
 /**
  * Return a string for sign() with the given `options`, but is meant exclusively
@@ -130,9 +132,7 @@ exports.stringToSign = function(options){
  */
 
 exports.queryStringToSign = function(options){
-  return 'GET\n\n\n' +
-    options.date + '\n' +
-    options.resource;
+  return 'GET\n\n\n' + options.date + '\n' + options.resource
 };
 
 /**
@@ -151,15 +151,17 @@ exports.queryStringToSign = function(options){
 
 exports.canonicalizeHeaders = function(headers){
   var buf = []
-    , fields = Object.keys(headers);
+    , fields = Object.keys(headers)
+    ;
   for (var i = 0, len = fields.length; i < len; ++i) {
     var field = fields[i]
       , val = headers[field]
-      , field = field.toLowerCase();
-    if (0 !== field.indexOf('x-amz')) continue;
-    buf.push(field + ':' + val);
+      , field = field.toLowerCase()
+      ;
+    if (0 !== field.indexOf('x-amz')) continue
+    buf.push(field + ':' + val)
   }
-  return buf.sort().join('\n');
+  return buf.sort().join('\n')
 };
 
 /**
@@ -176,15 +178,14 @@ exports.canonicalizeHeaders = function(headers){
 exports.canonicalizeResource = function(resource){
   var url = parse(resource, true)
     , path = url.pathname
-    , buf = [];
+    , buf = []
+    ;
 
   Object.keys(url.query).forEach(function(key){
-    if (!~keys.indexOf(key)) return;
-    var val = '' == url.query[key] ? '' : '=' + encodeURIComponent(url.query[key]);
-    buf.push(key + val);
-  });
+    if (!~keys.indexOf(key)) return
+    var val = '' == url.query[key] ? '' : '=' + encodeURIComponent(url.query[key])
+    buf.push(key + val)
+  })
 
-  return path + (buf.length
-    ? '?' + buf.sort().join('&')
-    : '');
+  return path + (buf.length ? '?' + buf.sort().join('&') : '')
 };
