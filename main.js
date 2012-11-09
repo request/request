@@ -181,12 +181,12 @@ Request.prototype.init = function (options) {
   self.headers = self.headers ? copy(self.headers) : {}
 
   self.setHost = false
-  if (!self.headers.host) {
-    self.headers.host = self.uri.hostname
+  if (!self.headers.Host) {
+    self.headers.Host = self.uri.hostname
     if (self.uri.port) {
       if ( !(self.uri.port === 80 && self.uri.protocol === 'http:') &&
            !(self.uri.port === 443 && self.uri.protocol === 'https:') )
-      self.headers.host += (':'+self.uri.port)
+      self.headers.Host += (':'+self.uri.port)
     }
     self.setHost = true
   }
@@ -210,7 +210,7 @@ Request.prototype.init = function (options) {
   self.clientErrorHandler = function (error) {
     if (self._aborted) return
     
-    if (self.setHost) delete self.headers.host
+    if (self.setHost) delete self.headers.Host
     if (self.req._reusedSocket && error.code === 'ECONNRESET'
         && self.agent.addRequestNoreuse) {
       self.agent = { addRequest: self.agent.addRequestNoreuse.bind(self.agent) }
@@ -535,7 +535,7 @@ Request.prototype.start = function () {
       return
     }
 
-    if (self.setHost) delete self.headers.host
+    if (self.setHost) delete self.headers.Host
     if (self.timeout && self.timeoutTimer) {
       clearTimeout(self.timeoutTimer)
       self.timeoutTimer = null
@@ -587,7 +587,7 @@ Request.prototype.start = function () {
       delete self.body
       delete self._form
       if (self.headers) {
-        delete self.headers.host
+        delete self.headers.Host
         delete self.headers['content-type']
         delete self.headers['content-length']
       }
