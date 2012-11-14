@@ -40,6 +40,11 @@ var tests =
      , json : true
      , expectBody: {"test":true}
      }
+  , testGetUTF8:
+     { resp: server.createGetResponse(new Buffer([0xEF, 0xBB, 0xBF, 226, 152, 131]))
+     , encoding: "utf8"
+     , expectBody: "☃"
+     }   
   , testPutString :
     { resp : server.createPostValidator("PUTTINGDATA")
     , method : "PUT"
