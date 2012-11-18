@@ -138,6 +138,7 @@ Request.prototype.init = function (options) {
   } else {
     if (typeof self.uri == "string") self.uri = url.parse(self.uri)
   }
+  
   if (self.proxy) {
     if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
 
@@ -148,7 +149,9 @@ Request.prototype.init = function (options) {
 
       var tunnelOptions = { proxy: { host: self.proxy.hostname
                                    , port: +self.proxy.port
-                                   , proxyAuth: self.proxy.auth }
+                                   , proxyAuth: self.proxy.auth
+                                   , headers: { Host: self.uri.hostname + ':' + 
+                                        (self.uri.port || self.uri.protocol === 'https:' ? 443 : 80) }}
                           , ca: this.ca }
 
       self.agent = tunnelFn(tunnelOptions)
