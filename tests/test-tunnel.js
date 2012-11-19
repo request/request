@@ -23,7 +23,7 @@ var ready = false
 squid.stderr.on('data', function (c) {
   console.error('SQUIDERR ' + c.toString().trim().split('\n')
                .join('\nSQUIDERR '))
-  ready = c.toString().match(/ready to serve requests/i)
+  ready = c.toString().match(/ready to serve requests|Accepting HTTP Socket connections/i)
 })
 
 squid.stdout.on('data', function (c) {
