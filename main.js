@@ -876,7 +876,8 @@ Request.prototype.oauth = function (_oauth) {
   delete oa.oauth_consumer_secret
   var token_secret = oa.oauth_token_secret
   delete oa.oauth_token_secret
-  
+  var timestamp = oa.oauth_timestamp
+
   var baseurl = this.uri.protocol + '//' + this.uri.host + this.uri.pathname
   var signature = oauth.hmacsign(this.method, baseurl, oa, consumer_secret, token_secret)
   
@@ -889,7 +890,8 @@ Request.prototype.oauth = function (_oauth) {
       if (i !== 'x_auth_mode') delete oa[i]
     }
   }
-  this.headers.Authorization = 
+  oa.oauth_timestamp = timestamp
+  this.headers.Authorization =
     'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+oauth.rfc3986(oa[i])+'"'}).join(',')
   this.headers.Authorization += ',oauth_signature="' + oauth.rfc3986(signature) + '"'
   return this
