@@ -111,7 +111,7 @@ Request.prototype.init = function (options) {
   if (!options) options = {}
   if (process.env.NODE_DEBUG && /request/.test(process.env.NODE_DEBUG)) console.error('REQUEST', options)
   if (!self.pool && self.pool !== false) self.pool = globalPool
-  self.dests = []
+  self.dests = self.dests || []
   self.__isRequestRequest = true
   
   // Protect against double callback
