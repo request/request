@@ -243,6 +243,17 @@ Request.prototype.init = function (options) {
   if (options.form) {
     self.form(options.form)
   }
+  
+  if (options.qs) self.qs(options.qs)
+
+  if (self.uri.path) {
+    self.path = self.uri.path
+  } else {
+    self.path = self.uri.pathname + (self.uri.search || "")
+  }
+
+  if (self.path.length === 0) self.path = '/'
+
 
   if (options.oauth) {
     self.oauth(options.oauth)
@@ -259,16 +270,7 @@ Request.prototype.init = function (options) {
     self.headers['proxy-authorization'] = "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
   }
 
-  if (options.qs) self.qs(options.qs)
-
-  if (self.uri.path) {
-    self.path = self.uri.path
-  } else {
-    self.path = self.uri.pathname + (self.uri.search || "")
-  }
-
-  if (self.path.length === 0) self.path = '/'
-
+  
   if (self.proxy && !self.tunnel) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
 
   if (options.json) {
@@ -1125,4 +1127,3 @@ function toJSON () {
 }
 
 Request.prototype.toJSON = toJSON
-
