@@ -1122,7 +1122,7 @@ function getSafe (self, uuid) {
 }
 
 function toJSON () {
-  return getSafe(this, (((1+Math.random())*0x10000)|0).toString(16))
+  return getSafe(this, '__' + (((1+Math.random())*0x10000)|0).toString(16))
 }
 
 Request.prototype.toJSON = toJSON
