@@ -30,6 +30,7 @@ var http = require('http')
   
   , mime = require('mime')
   , FormData = require('form-data')
+  , _ = require('underscore')
   ;
   
 if (process.logging) {
@@ -1013,6 +1014,8 @@ request.defaults = function (options, requester) {
       for (var i in options) {
         if (params.options[i] === undefined) params.options[i] = options[i]
       }
+      // merge headers options (#257)
+      params.options.headers = _.extend({},options.headers, params.options.headers)
       if(typeof requester === 'function') {
         if(method === request) {
           method = requester
