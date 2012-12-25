@@ -10,7 +10,7 @@ s.listen(s.port, function () {
     , numTests = 0
     , numOutstandingTests = 0
 
-  function createTest(requestObj, serverAssertFn) {
+  function createTest(requestObj, serverAssertFn, decorationFn) {
     var testNumber = numTests;
     numTests += 1;
     numOutstandingTests += 1;
@@ -20,7 +20,11 @@ s.listen(s.port, function () {
       res.end();
     });
     requestObj.url = serverUri + '/' + testNumber
-    request(requestObj, function (err, res, body) {
+    var req = request;
+    if(decorationFn) {
+      req = decorationFn(req);
+    }
+    req(requestObj, function (err, res, body) {
       assert.ok(!err)
       assert.equal(res.statusCode, 200)
       numOutstandingTests -= 1
@@ -49,4 +53,18 @@ s.listen(s.port, function () {
   createTest({}, function (req, res) {
     assert.ok(!req.headers.cookie)
   })
+
+  // Issue 257: default headers should be merged
+  createTest({headers: {'if-modified-since': 'Tue, 29 May 2012 19:30:57 GMT'}}, function (req, res) {
+      // request should include default and per-request headers
+      assert.equal(req.headers['if-modified-since'], 'Tue, 29 May 2012 19:30:57 GMT')
+      assert.equal(req.headers['user-agent'], 'some user agent')
+  }, function(req) {
+    return req.defaults({
+      headers: {
+        'user-agent': 'some user agent'
+      }
+    });
+  })
+
 })
