@@ -571,6 +571,8 @@ Request.prototype.start = function () {
   delete reqOptions.auth
 
   self.req = self.httpModule.request(reqOptions, function (response) {
+    response.resume();
+
     if (response.connection.listeners('error').indexOf(self._parserErrorHandler) === -1) {
       response.connection.once('error', self._parserErrorHandler)
     }
