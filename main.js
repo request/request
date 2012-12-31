@@ -363,33 +363,38 @@ Request.prototype.init = function (options) {
     })
   })
 
-  process.nextTick(function () {
-    if (self._aborted) return
-    
-    if (self._form) {
-      self.setHeaders(self._form.getHeaders())
-      self._form.pipe(self)
-    }
-    if (self.body) {
-      if (Array.isArray(self.body)) {
-        self.body.forEach(function (part) {
-          self.write(part)
-        })
-      } else {
-        self.write(self.body)
+  if (self.method === 'GET' || self.method === 'HEAD' || self.method === 'DELETE') {
+    // will not be sending body, can end now
+    self.end();
+  } else { // may have a body, wait until next tick
+    process.nextTick(function () {
+      if (self._aborted) return
+
+      if (self._form) {
+        self.setHeaders(self._form.getHeaders())
+        self._form.pipe(self)
       }
-      self.end()
-    } else if (self.requestBodyStream) {
-      console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
-      self.requestBodyStream.pipe(self)
-    } else if (!self.src) {
-      if (self.method !== 'GET' && typeof self.method !== 'undefined') {
-        self.headers['content-length'] = 0
+      if (self.body) {
+        if (Array.isArray(self.body)) {
+          self.body.forEach(function (part) {
+            self.write(part)
+          })
+        } else {
+          self.write(self.body)
+        }
+        self.end()
+      } else if (self.requestBodyStream) {
+        console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
+        self.requestBodyStream.pipe(self)
+      } else if (!self.src) {
+        if (self.method !== 'GET' && typeof self.method !== 'undefined') {
+          self.headers['content-length'] = 0
+        }
+        self.end()
       }
-      self.end()
-    }
-    self.ntick = true
-  })
+      self.ntick = true
+    })
+  }
 }
 
 // Must call this when following a redirect from https to http or vice versa
