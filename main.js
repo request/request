@@ -109,7 +109,7 @@ Request.prototype.init = function (options) {
   var self = this
   
   if (!options) options = {}
-  if (process.env.NODE_DEBUG && /request/.test(process.env.NODE_DEBUG)) console.error('REQUEST', options)
+  if (request.debug) console.error('REQUEST', options)
   if (!self.pool && self.pool !== false) self.pool = globalPool
   self.dests = self.dests || []
   self.__isRequestRequest = true
@@ -1003,6 +1003,8 @@ function request (uri, options, callback) {
 }
 
 module.exports = request
+
+request.debug = process.env.NODE_DEBUG && /request/.test(process.env.NODE_DEBUG)
 
 request.initParams = initParams
 
