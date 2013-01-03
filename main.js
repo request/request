@@ -478,6 +478,8 @@ Request.prototype.getAgent = function () {
     }
   }
   if (this.ca) options.ca = this.ca
+  if (typeof this.rejectUnauthorized !== 'undefined')
+    options.rejectUnauthorized = this.rejectUnauthorized;
 
   var poolKey = ''
 
@@ -497,10 +499,17 @@ Request.prototype.getAgent = function () {
   // ca option is only relevant if proxy or destination are https
   var proxy = this.proxy
   if (typeof proxy === 'string') proxy = url.parse(proxy)
-  var caRelevant = (proxy && proxy.protocol === 'https:') || this.uri.protocol === 'https:'
-  if (options.ca && caRelevant) {
-    if (poolKey) poolKey += ':'
-    poolKey += options.ca
+  var isHttps = (proxy && proxy.protocol === 'https:') || this.uri.protocol === 'https:'
+  if (isHttps) {
+    if (options.ca) {
+      if (poolKey) poolKey += ':'
+      poolKey += options.ca
+    }
+
+    if (typeof options.rejectUnauthorized !== 'undefined') {
+      if (poolKey) poolKey += ':'
+      poolKey += options.rejectUnauthorized
+    }
   }
 
   if (!poolKey && Agent === this.httpModule.Agent && this.httpModule.globalAgent) {
