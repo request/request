@@ -18,6 +18,7 @@ var tests = [
   , 'test-httpModule.js'
   , 'test-https.js'
   , 'test-https-strict.js'
+  , 'test-noproxy.js'
   , 'test-oauth.js'
   , 'test-params.js'
   , 'test-pipes.js'
