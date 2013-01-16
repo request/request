@@ -4,10 +4,12 @@ var spawn = require('child_process').spawn
   ;
 
 var tests = [
-    'test-body.js'
+    'test-basic-auth.js'
+  , 'test-body.js'
   , 'test-cookie.js'
   , 'test-cookiejar.js'
   , 'test-defaults.js'
+  , 'test-digest-auth.js'
   , 'test-errors.js'
   , 'test-form.js'
   , 'test-follow-all-303.js'
