@@ -11,6 +11,7 @@ var tests = [
   , 'test-defaults.js'
   , 'test-digest-auth.js'
   , 'test-errors.js'
+  , 'test-gzip.js'
   , 'test-form.js'
   , 'test-follow-all-303.js'
   , 'test-follow-all.js'

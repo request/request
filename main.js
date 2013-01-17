@@ -15,6 +15,7 @@
 var http = require('http')
   , https = false
   , tls = false
+  , zlib = false
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
@@ -44,6 +45,12 @@ try {
 try {
   tls = require('tls')
 } catch (e) {}
+
+// added for gzip support in nodejs >= 0.6.x
+try {
+  zlib = require('zlib')
+} catch (e) {}
+
 
 function toBase64 (str) {
   return (new Buffer(str || "", "ascii")).toString("base64")
@@ -187,6 +194,13 @@ Request.prototype.init = function (options) {
     self.redirects = self.redirects || []
 
   self.headers = self.headers ? copy(self.headers) : {}
+
+  // if zlib support is available and no Accept-Encoding is specified, add 
+  // Accept-Encoding so supporting web servers will send gzipped
+  if (zlib && self.headers['Accept-Encoding'] === undefined) {
+    self.headers['Accept-Encoding'] = 'gzip';
+  }
+  
 
   self.setHost = false
   if (!self.headers.host) {
@@ -693,8 +707,14 @@ Request.prototype.start = function () {
 
       if (self.encoding) {
         if (self.dests.length !== 0) {
-          console.error("Ingoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.")
-        } else {
+          console.error("Ignoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.")
+        }
+        else if(response.headers['content-encoding'] &&
+              response.headers['content-encoding'].toLowerCase().indexOf('gzip') >= 0)
+        {
+          console.error("Ignoring encoding parameter as this stream is being decoded as gzip")
+        }
+        else {
           response.setEncoding(self.encoding)
         }
       }
@@ -718,36 +738,59 @@ Request.prototype.start = function () {
       if (self.callback) {
         var buffer = []
         var bodyLen = 0
+
         self.on("data", function (chunk) {
           buffer.push(chunk)
-          bodyLen += chunk.length
+          bodyLen += chunk.length   
         })
+
+        // fired when the entire body has been read. if the request was gzipped
+        // it has been deflated by now
+        self.on("response_body_complete", function(body){
+
+          if (self.encoding === null) {
+              response.body = body
+            } else {
+              response.body = body.toString(self.encoding)
+            }
+
+          if (self._json) {
+            try {
+              response.body = JSON.parse(response.body);
+            } catch (e) {}
+          }
+          self.emit("complete", response, response.body);
+        })
+
         self.on("end", function () {
           if (self._aborted) return
-          
+          var body = ''
           if (buffer.length && Buffer.isBuffer(buffer[0])) {
-            var body = new Buffer(bodyLen)
+            body = new Buffer(bodyLen)
             var i = 0
             buffer.forEach(function (chunk) {
               chunk.copy(body, i, 0, chunk.length)
               i += chunk.length
             })
-            if (self.encoding === null) {
-              response.body = body
-            } else {
-              response.body = body.toString(self.encoding)
-            }
           } else if (buffer.length) {
-            response.body = buffer.join('')
+            body = buffer.join('')
           }
 
-          if (self._json) {
-            try {
-              response.body = JSON.parse(response.body)
-            } catch (e) {}
+          if(zlib && response.headers['content-encoding'] && 
+              response.headers['content-encoding'].toLowerCase().indexOf('gzip') >= 0) {
+            if(!Buffer.isBuffer(body)) {
+              body = new Buffer(body);
+            }
+            zlib.gunzip(body, function (error, dat) {
+              if(!error) {
+                self.emit("response_body_complete", dat)
+              } else {
+                self.emit('error', error)
+              }
+            })
+          } else {
+            self.emit("response_body_complete", body);
           }
-          
-          self.emit('complete', response, response.body)
         })
       }
     }
@@ -784,6 +827,8 @@ Request.prototype.start = function () {
   })
   self.emit('request', self.req)
 }
+
+
 
 Request.prototype.abort = function () {
   this._aborted = true
