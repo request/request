@@ -420,7 +420,7 @@ Request.prototype._updateProtocol = function () {
       var tunnelFn = self.proxy.protocol === 'http:'
                    ? tunnel.httpsOverHttp : tunnel.httpsOverHttps
       var tunnelOptions = { proxy: { host: self.proxy.hostname
-                                   , post: +self.proxy.port
+                                   , port: +self.proxy.port
                                    , proxyAuth: self.proxy.auth }
                           , ca: self.ca }
       self.agent = tunnelFn(tunnelOptions)
