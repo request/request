@@ -19,6 +19,7 @@ var http = require('http')
   , util = require('util')
   , stream = require('stream')
   , qs = require('querystring')
+  , crypto = require('crypto')
   , oauth = require('./oauth')
   , uuid = require('./uuid')
   , ForeverAgent = require('./forever')
@@ -46,6 +47,10 @@ try {
 
 function toBase64 (str) {
   return (new Buffer(str || "", "ascii")).toString("base64")
+}
+
+function md5 (str) {
+  return crypto.createHash('md5').update(str).digest('hex')
 }
 
 // Hacky fix for pre-0.4.4 https
@@ -109,9 +114,9 @@ Request.prototype.init = function (options) {
   var self = this
   
   if (!options) options = {}
-  if (process.env.NODE_DEBUG && /request/.test(process.env.NODE_DEBUG)) console.error('REQUEST', options)
+  if (request.debug) console.error('REQUEST', options)
   if (!self.pool && self.pool !== false) self.pool = globalPool
-  self.dests = []
+  self.dests = self.dests || []
   self.__isRequestRequest = true
   
   // Protect against double callback
@@ -138,6 +143,7 @@ Request.prototype.init = function (options) {
   } else {
     if (typeof self.uri == "string") self.uri = url.parse(self.uri)
   }
+  
   if (self.proxy) {
     if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
 
@@ -148,7 +154,9 @@ Request.prototype.init = function (options) {
 
       var tunnelOptions = { proxy: { host: self.proxy.hostname
                                    , port: +self.proxy.port
-                                   , proxyAuth: self.proxy.auth }
+                                   , proxyAuth: self.proxy.auth
+                                   , headers: { Host: self.uri.hostname + ':' + 
+                                        (self.uri.port || self.uri.protocol === 'https:' ? 443 : 80) }}
                           , ca: this.ca }
 
       self.agent = tunnelFn(tunnelOptions)
@@ -240,22 +248,7 @@ Request.prototype.init = function (options) {
   if (options.form) {
     self.form(options.form)
   }
-
-  if (options.oauth) {
-    self.oauth(options.oauth)
-  }
   
-  if (options.aws) {
-    self.aws(options.aws)
-  }
-
-  if (self.uri.auth && !self.headers.authorization) {
-    self.headers.authorization = "Basic " + toBase64(self.uri.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
-  }
-  if (self.proxy && self.proxy.auth && !self.headers['proxy-authorization'] && !self.tunnel) {
-    self.headers['proxy-authorization'] = "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
-  }
-
   if (options.qs) self.qs(options.qs)
 
   if (self.uri.path) {
@@ -266,6 +259,31 @@ Request.prototype.init = function (options) {
 
   if (self.path.length === 0) self.path = '/'
 
+
+  if (options.oauth) {
+    self.oauth(options.oauth)
+  }
+  
+  if (options.aws) {
+    self.aws(options.aws)
+  }
+
+  if (options.auth) {
+    self.auth(
+      options.auth.user || options.auth.username,
+      options.auth.pass || options.auth.password,
+      options.auth.sendImmediately)
+  }
+
+  if (self.uri.auth && !self.headers.authorization) {
+    var authPieces = self.uri.auth.split(':').map(function(item){ return qs.unescape(item) })
+    self.auth(authPieces[0], authPieces[1], true)
+  }
+  if (self.proxy && self.proxy.auth && !self.headers['proxy-authorization'] && !self.tunnel) {
+    self.headers['proxy-authorization'] = "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
+  }
+
+  
   if (self.proxy && !self.tunnel) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
 
   if (options.json) {
@@ -403,7 +421,7 @@ Request.prototype._updateProtocol = function () {
       var tunnelFn = self.proxy.protocol === 'http:'
                    ? tunnel.httpsOverHttp : tunnel.httpsOverHttps
       var tunnelOptions = { proxy: { host: self.proxy.hostname
-                                   , post: +self.proxy.port
+                                   , port: +self.proxy.port
                                    , proxyAuth: self.proxy.auth }
                           , ca: self.ca }
       self.agent = tunnelFn(tunnelOptions)
@@ -516,7 +534,13 @@ Request.prototype.start = function () {
   if (self._aws) {
     self.aws(self._aws, true)
   }
-  self.req = self.httpModule.request(self, function (response) {
+
+  // We have a method named auth, which is completely different from the http.request
+  // auth option.  If we don't remove it, we're gonna have a bad time.
+  var reqOptions = copy(self)
+  delete reqOptions.auth
+
+  self.req = self.httpModule.request(reqOptions, function (response) {
     if (response.connection.listeners('error').indexOf(self._parserErrorHandler) === -1) {
       response.connection.once('error', self._parserErrorHandler)
     }
@@ -551,22 +575,86 @@ Request.prototype.start = function () {
       else addCookie(response.headers['set-cookie'])
     }
 
-    if (response.statusCode >= 300 && response.statusCode < 400  &&
-        (self.followAllRedirects ||
-         (self.followRedirect && (self.method !== 'PUT' && self.method !== 'POST' && self.method !== 'DELETE'))) &&
-        response.headers.location) {
+    var redirectTo = null
+    if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+      if (self.followAllRedirects) {
+        redirectTo = response.headers.location
+      } else if (self.followRedirect) {
+        switch (self.method) {
+          case 'PUT':
+          case 'POST':
+          case 'DELETE':
+            // Do not follow redirects
+            break
+          default:
+            redirectTo = response.headers.location
+            break
+        }
+      }
+    } else if (response.statusCode == 401 && self._hasAuth && !self._sentAuth) {
+      var authHeader = response.headers['www-authenticate']
+      var authVerb = authHeader && authHeader.split(' ')[0]
+      switch (authVerb) {
+        case 'Basic':
+          self.auth(self._user, self._pass, true)
+          redirectTo = self.uri
+          break
+
+        case 'Digest':
+          // TODO: More complete implementation of RFC 2617.  For reference:
+          // http://tools.ietf.org/html/rfc2617#section-3
+          // https://github.com/bagder/curl/blob/master/lib/http_digest.c
+
+          var matches = authHeader.match(/([a-z0-9_-]+)="([^"]+)"/gi)
+          var challenge = {}
+
+          for (var i = 0; i < matches.length; i++) {
+            var eqPos = matches[i].indexOf('=')
+            var key = matches[i].substring(0, eqPos)
+            var quotedValue = matches[i].substring(eqPos + 1)
+            challenge[key] = quotedValue.substring(1, quotedValue.length - 1)
+          }
+
+          var ha1 = md5(self._user + ':' + challenge.realm + ':' + self._pass)
+          var ha2 = md5(self.method + ':' + self.uri.path)
+          var digestResponse = md5(ha1 + ':' + challenge.nonce + ':1::auth:' + ha2)
+          var authValues = {
+            username: self._user,
+            realm: challenge.realm,
+            nonce: challenge.nonce,
+            uri: self.uri.path,
+            qop: challenge.qop,
+            response: digestResponse,
+            nc: 1,
+            cnonce: ''
+          }
+
+          authHeader = []
+          for (var k in authValues) {
+            authHeader.push(k + '="' + authValues[k] + '"')
+          }
+          authHeader = 'Digest ' + authHeader.join(', ')
+          self.setHeader('authorization', authHeader)
+          self._sentAuth = true
+
+          redirectTo = self.uri
+          break
+      }
+    }
+
+    if (redirectTo) {
       if (self._redirectsFollowed >= self.maxRedirects) {
         self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop "+self.uri.href))
         return
       }
       self._redirectsFollowed += 1
 
-      if (!isUrl.test(response.headers.location)) {
-        response.headers.location = url.resolve(self.uri.href, response.headers.location)
+      if (!isUrl.test(redirectTo)) {
+        redirectTo = url.resolve(self.uri.href, redirectTo)
       }
 
       var uriPrev = self.uri
-      self.uri = url.parse(response.headers.location)
+      self.uri = url.parse(redirectTo)
 
       // handle the case where we change protocol from https to http or vice versa
       if (self.uri.protocol !== uriPrev.protocol) {
@@ -575,23 +663,25 @@ Request.prototype.start = function () {
 
       self.redirects.push(
         { statusCode : response.statusCode
-        , redirectUri: response.headers.location 
+        , redirectUri: redirectTo
         }
       )
-      if (self.followAllRedirects) self.method = 'GET'
+      if (self.followAllRedirects && response.statusCode != 401) self.method = 'GET'
       // self.method = 'GET' // Force all redirects to use GET || commented out fixes #215
       delete self.src
       delete self.req
       delete self.agent
       delete self._started
-      delete self.body
-      delete self._form
+      if (response.statusCode != 401) {
+        delete self.body
+        delete self._form
+      }
       if (self.headers) {
         delete self.headers.host
         delete self.headers['content-type']
         delete self.headers['content-length']
       }
-      if (log) log('Redirect to %uri', self)
+      if (log) log('Redirect to %uri due to status %status', {uri: self.uri, status: response.statusCode})
       self.init()
       return // Ignore the rest of the response
     } else {
@@ -817,6 +907,19 @@ function getHeader(name, headers) {
     })
     return result
 }
+Request.prototype.auth = function (user, pass, sendImmediately) {
+  if (typeof user !== 'string' || typeof pass !== 'string') {
+    throw new Error('auth() received invalid user or password')
+  }
+  this._user = user
+  this._pass = pass
+  this._hasAuth = true
+  if (sendImmediately || typeof sendImmediately == 'undefined') {
+    this.setHeader('authorization', 'Basic ' + toBase64(user + ':' + pass))
+    this._sentAuth = true
+  }
+  return this
+}
 Request.prototype.aws = function (opts, now) {
   if (!now) {
     this._aws = opts
@@ -873,7 +976,8 @@ Request.prototype.oauth = function (_oauth) {
   delete oa.oauth_consumer_secret
   var token_secret = oa.oauth_token_secret
   delete oa.oauth_token_secret
-  
+  var timestamp = oa.oauth_timestamp
+
   var baseurl = this.uri.protocol + '//' + this.uri.host + this.uri.pathname
   var signature = oauth.hmacsign(this.method, baseurl, oa, consumer_secret, token_secret)
   
@@ -886,7 +990,8 @@ Request.prototype.oauth = function (_oauth) {
       if (i !== 'x_auth_mode') delete oa[i]
     }
   }
-  this.headers.Authorization = 
+  oa.oauth_timestamp = timestamp
+  this.headers.Authorization =
     'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+oauth.rfc3986(oa[i])+'"'}).join(',')
   this.headers.Authorization += ',oauth_signature="' + oauth.rfc3986(signature) + '"'
   return this
@@ -997,6 +1102,8 @@ function request (uri, options, callback) {
 }
 
 module.exports = request
+
+request.debug = process.env.NODE_DEBUG && /request/.test(process.env.NODE_DEBUG)
 
 request.initParams = initParams
 
@@ -1116,8 +1223,7 @@ function getSafe (self, uuid) {
 }
 
 function toJSON () {
-  return getSafe(this, (((1+Math.random())*0x10000)|0).toString(16))
+  return getSafe(this, '__' + (((1+Math.random())*0x10000)|0).toString(16))
 }
 
 Request.prototype.toJSON = toJSON
-
