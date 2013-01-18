@@ -218,7 +218,6 @@ Request.prototype.init = function (options) {
   self.clientErrorHandler = function (error) {
     if (self._aborted) return
     
-    if (self.setHost) delete self.headers.host
     if (self.req && self.req._reusedSocket && error.code === 'ECONNRESET'
         && self.agent.addRequestNoreuse) {
       self.agent = { addRequest: self.agent.addRequestNoreuse.bind(self.agent) }
