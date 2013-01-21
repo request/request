@@ -481,6 +481,11 @@ Request.prototype.getAgent = function () {
   if (typeof this.rejectUnauthorized !== 'undefined')
     options.rejectUnauthorized = this.rejectUnauthorized;
 
+  if (this.cert && this.key) {
+    options.key = this.key
+    options.cert = this.cert
+  }
+
   var poolKey = ''
 
   // different types of agents are in different pools
@@ -510,6 +515,9 @@ Request.prototype.getAgent = function () {
       if (poolKey) poolKey += ':'
       poolKey += options.rejectUnauthorized
     }
+
+    if (options.cert)
+      poolKey += options.cert.toString('ascii') + options.key.toString('ascii')
   }
 
   if (!poolKey && Agent === this.httpModule.Agent && this.httpModule.globalAgent) {
