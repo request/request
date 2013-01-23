@@ -741,12 +741,12 @@ Request.prototype.start = function () {
             response.body = buffer.join('')
           }
 
-          if (self._json) {
+          if (self._json || response.headers['content-type'] === 'application/json') {
             try {
               response.body = JSON.parse(response.body)
             } catch (e) {}
           }
-          
+
           self.emit('complete', response, response.body)
         })
       }
