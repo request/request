@@ -779,6 +779,18 @@ Request.prototype.start = function () {
   self.req.on('drain', function() {
     self.emit('drain')
   })
+  self.req.on('socket', function(socket) {
+    self.emit('socket', socket);
+  });
+  self.req.on('connect', function(response, socket, head) {
+    self.emit('connect', response, socket, head);
+  });
+  self.req.on('upgrade', function(response, socket, head) {
+    self.emit('upgrade', response, socket, head);
+  });
+  self.req.on('continue', function() {
+    self.emit('continue');
+  });
   self.on('end', function() {
     if ( self.req.connection ) self.req.connection.removeListener('error', self._parserErrorHandler)
   })
