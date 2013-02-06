@@ -105,7 +105,6 @@ function Request (options) {
       }
     }
   }
-  options = copy(options)
   
   this.init(options)
 }
@@ -1094,6 +1093,8 @@ function request (uri, options, callback) {
   } else {
     options = uri
   }
+
+  options = copy(options)
 
   if (callback) options.callback = callback
   var r = new Request(options)
