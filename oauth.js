@@ -16,17 +16,26 @@ function rfc3986 (str) {
     ;
 }
 
-function hmacsign (httpMethod, base_uri, params, consumer_secret, token_secret, body) {
-  // adapted from https://dev.twitter.com/docs/auth/oauth
-  var base = 
-    (httpMethod || 'GET') + "&" +
-    encodeURIComponent(  base_uri ) + "&" +
-    Object.keys(params).sort().map(function (i) {
-      // big WTF here with the escape + encoding but it's what twitter wants
-      return escape(rfc3986(i)) + "%3D" + escape(rfc3986(params[i]))
-    }).join("%26")
-  var key = encodeURIComponent(consumer_secret) + '&'
-  if (token_secret) key += encodeURIComponent(token_secret)
+function hmacsign (httpMethod, base_uri, params, consumer_secret, token_secret) {
+  // adapted from https://dev.twitter.com/docs/auth/oauth and 
+  // https://dev.twitter.com/docs/auth/creating-signature
+
+  var querystring = Object.keys(params).sort().map(function(key){
+    // big WTF here with the escape + encoding but it's what twitter wants
+    return escape(rfc3986(key)) + "%3D" + escape(rfc3986(params[key]))
+  }).join('%26')
+
+  var base = [
+    httpMethod ? httpMethod.toUpperCase() : 'GET',
+    rfc3986(base_uri),
+    querystring
+  ].join('&')
+
+  var key = [
+    consumer_secret,
+    token_secret || ''
+  ].map(rfc3986).join('&')
+
   return sha1(key, base)
 }
 

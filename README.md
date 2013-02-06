@@ -115,6 +115,26 @@ form.append('my_file', fs.createReadStream(path.join(__dirname, 'doodle.png'))
 form.append('remote_file', request('http://google.com/doodle.png'))
 ```
 
+## HTTP Authentication
+
+```javascript
+request.auth('username', 'password', false).get('http://some.server.com/');
+// or
+request.get('http://some.server.com/', {
+  'auth': {
+    'user': 'username',
+    'pass': 'password',
+    'sendImmediately': false
+  }
+});
+```
+
+If passed as an option, `auth` should be a hash containing values `user` || `username`, `password` || `pass`, and `sendImmediately` (optional).  The method form takes parameters `auth(username, password, sendImmediately)`.
+
+`sendImmediately` defaults to true, which will cause a basic authentication header to be sent.  If `sendImmediately` is `false`, then `request` will retry with a proper authentication header after receiving a 401 response from the server (which must contain a `WWW-Authenticate` header indicating the required authentication method).
+
+Digest authentication is supported, but it only works with `sendImmediately` set to `false` (otherwise `request` will send basic authentication on the initial request, which will probably cause the request to fail).
+
 ## OAuth Signing
 
 ```javascript
@@ -173,6 +193,7 @@ The first argument can be either a url or an options object. The only required o
 * `headers` - http headers, defaults to {}
 * `body` - entity body for POST and PUT requests. Must be buffer or string.
 * `form` - when passed an object this will set `body` but to a querystring representation of value and adds `Content-type: application/x-www-form-urlencoded; charset=utf-8` header. When passed no option a FormData instance is returned that will be piped to request.
+* `auth` - A hash containing values `user` || `username`, `password` || `pass`, and `sendImmediately` (optional).  See documentation above.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as json.
 * `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
 * `followRedirect` - follow HTTP 3xx responses as redirects. defaults to true.
@@ -186,6 +207,7 @@ The first argument can be either a url or an options object. The only required o
 * `oauth` - Options for OAuth HMAC-SHA1 signing, see documentation above.
 * `strictSSL` - Set to `true` to require that SSL certificates be valid. Note: to use your own certificate authority, you need to specify an agent that was created with that ca as an option.
 * `jar` - Set to `false` if you don't want cookies to be remembered for future use or define your custom cookie jar (see examples section)
+* `aws` - object containing aws signing information, should have the properties `key` and `secret` as well as `bucket` unless you're specifying your bucket as part of the path, or you are making a request that doesn't use a bucket (i.e. GET Services)
 
 
 The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body String or Buffer.

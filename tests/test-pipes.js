@@ -58,6 +58,20 @@ s.listen(s.port, function () {
   mydata.emit('data', 'mydata');
   mydata.emit('end');
 
+  // Test pipeing to a request object with a json body
+  s.once('/push-json', server.createPostValidator("{\"foo\":\"bar\"}", "application/json"));
+
+  var mybodydata = new stream.Stream();
+  mybodydata.readable = true
+
+  counter++
+  var r2 = request.put({url:'http://localhost:3453/push-json',json:true}, function () {
+    check();
+  })
+  mybodydata.pipe(r2)
+
+  mybodydata.emit('data', JSON.stringify({foo:"bar"}));
+  mybodydata.emit('end');
 
   // Test pipeing from a request object.
   s.once('/pull', server.createGetResponse("mypulldata"));

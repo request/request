@@ -18,8 +18,12 @@ var http = require('http')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
+<<<<<<< HEAD
+  , qs = require('qs')
+=======
   , qs = require('querystring')
   , crypto = require('crypto')
+>>>>>>> 28e8be5175793ac99236df88e26c0139a143e32d
   , oauth = require('./oauth')
   , uuid = require('./uuid')
   , ForeverAgent = require('./forever')
