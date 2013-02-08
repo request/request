@@ -189,7 +189,7 @@ Request.prototype.init = function (options) {
   self.headers = self.headers ? copy(self.headers) : {}
 
   self.setHost = false
-  if (!self.headers.host) {
+  if (!(self.headers.host || self.headers.Host)) {
     self.headers.host = self.uri.hostname
     if (self.uri.port) {
       if ( !(self.uri.port === 80 && self.uri.protocol === 'http:') &&
