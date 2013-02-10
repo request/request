@@ -1,21 +1,25 @@
 PACKAGE = asyncjs
 NODEJS = $(if $(shell test -f /usr/bin/nodejs && echo "true"),nodejs,node)
+CWD := $(shell pwd)
+NODEUNIT = $(CWD)/node_modules/nodeunit/bin/nodeunit
+UGLIFY = $(CWD)/node_modules/uglify-js/bin/uglifyjs
+NODELINT = $(CWD)/node_modules/nodelint/nodelint
 
 BUILDDIR = dist
 
-all: build
+all: clean test build
 
 build: $(wildcard  lib/*.js)
 	mkdir -p $(BUILDDIR)
-	uglifyjs lib/async.js > $(BUILDDIR)/async.min.js
+	$(UGLIFY) lib/async.js > $(BUILDDIR)/async.min.js
 
 test:
-	nodeunit test
+	$(NODEUNIT) test
 
 clean:
 	rm -rf $(BUILDDIR)
 
 lint:
-	nodelint --config nodelint.cfg lib/async.js
+	$(NODELINT) --config nodelint.cfg lib/async.js
 
 .PHONY: test build all

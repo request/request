@@ -27,7 +27,7 @@ var server = http.createServer(function(req, res) {
   //
   // var form = new IncomingForm();
   // form.uploadDir = common.dir.tmp;
-  // form.parse(req);
+  //  form.parse(req);
   // form
   //   .on('field', function(name, value) {
   //     var field = FIELDS.shift();
@@ -38,6 +38,7 @@ var server = http.createServer(function(req, res) {
   //     var field = FIELDS.shift();
   //     assert.strictEqual(name, field.name);
   //     assert.strictEqual(file.name, path.basename(field.value.path));
+  //     // mime.lookup file.NAME == 'my_file' ?
   //     assert.strictEqual(file.type, mime.lookup(file.name));
   //   })
   //   .on('end', function() {
@@ -48,11 +49,9 @@ var server = http.createServer(function(req, res) {
   // temp workaround
   var data = '';
   req.setEncoding('utf8');
-
   req.on('data', function(d) {
     data += d;
   });
-
   req.on('end', function() {
     // check for the fields' traces
 
@@ -70,7 +69,6 @@ var server = http.createServer(function(req, res) {
     var field = FIELDS.shift();
     assert.ok( data.indexOf('form-data; name="'+field.name+'"') != -1 );
     assert.ok( data.indexOf('; filename="'+path.basename(field.value.path)+'"') != -1 );
-
     // check for unicycle.jpg traces
     assert.ok( data.indexOf('2005:06:21 01:44:12') != -1 );
     assert.ok( data.indexOf('Content-Type: '+mime.lookup(field.value.path) ) != -1 );
@@ -88,11 +86,12 @@ var server = http.createServer(function(req, res) {
 
   });
 
-
 });
 
 server.listen(common.port, function() {
+
   var form = new FormData();
+
   FIELDS.forEach(function(field) {
     // important to append ReadStreams within the same tick
     if ((typeof field.value == 'function')) {
@@ -101,18 +100,20 @@ server.listen(common.port, function() {
     form.append(field.name, field.value);
   });
 
-  var request = http.request({
-    method: 'post',
+  // custom params object passed to submit
+  form.submit({
     port: common.port,
-    path: '/upload',
-    headers: form.getHeaders()
-  });
+    path: '/'
+  }, function(err, res) {
 
-  form.pipe(request);
+    if (err) {
+      throw err;
+    }
 
-  request.on('response', function(res) {
+    assert.strictEqual(res.statusCode, 200);
     server.close();
   });
+
 });
 
 process.on('exit', function() {

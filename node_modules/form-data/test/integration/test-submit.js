@@ -10,16 +10,20 @@ var IncomingForm = require('formidable').IncomingForm;
 
 var remoteFile = 'http://nodejs.org/images/logo.png';
 
+// wrap non simple values into function
+// just to deal with ReadStream "autostart"
+// Can't wait for 0.10
 var FIELDS = [
   {name: 'my_field', value: 'my_value'},
-  {name: 'my_buffer', value: new Buffer([1, 2, 3])},
-  {name: 'my_file', value: fs.createReadStream(common.dir.fixture + '/unicycle.jpg') },
-  {name: 'remote_file', value: request(remoteFile) }
+  {name: 'my_buffer', value: function(){ return new Buffer([1, 2, 3])} },
+  {name: 'my_file', value: function(){ return fs.createReadStream(common.dir.fixture + '/unicycle.jpg')} },
+  {name: 'remote_file', value: function(){ return request(remoteFile)} }
 ];
 
 var server = http.createServer(function(req, res) {
 
-  // formidable is broken so let's do it manual way
+  // formidable is fixed on github
+  // but still 7 month old in npm
   //
   // var form = new IncomingForm();
   // form.uploadDir = common.dir.tmp;
@@ -85,8 +89,14 @@ var server = http.createServer(function(req, res) {
 });
 
 server.listen(common.port, function() {
+
   var form = new FormData();
+
   FIELDS.forEach(function(field) {
+    // important to append ReadStreams within the same tick
+    if ((typeof field.value == 'function')) {
+      field.value = field.value();
+    }
     form.append(field.name, field.value);
   });
 
