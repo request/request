@@ -5,6 +5,8 @@ var server = require('./server')
   , Jar = require('../vendor/cookie/jar')
 
 var s = server.createServer()
+var otherHostServer = server.createServer(6768)
+
 
 s.listen(s.port, function () {
   var server = 'http://localhost:' + s.port;
@@ -12,6 +14,7 @@ s.listen(s.port, function () {
   var passed = 0;
 
   bouncer(301, 'temp')
+  bouncer(301, 'auth')
   bouncer(302, 'perm')
   bouncer(302, 'nope')
 
@@ -34,6 +37,13 @@ s.listen(s.port, function () {
         res.end();
         return;
       }
+
+      // Enusre that if we're hitting the auth_landing endpoint that we've
+      // kept our auth header (same host case)
+      if (landing === 'auth_landing'){
+        assert.notEqual(req.headers.authorization, undefined)
+      }
+
       // Make sure the cookie doesn't get included twice, see #139:
       // Make sure cookies are set properly after redirect
       assert.equal(req.headers.cookie, 'foo=bar; quux=baz; ham=eggs');
@@ -143,12 +153,69 @@ s.listen(s.port, function () {
     done()
   })
 
+
+  // Test for issue #160, Strip auth headers during redirect to different domain
+  otherHostServer.listen(otherHostServer.port, function(){
+    var landing = 'auth_test_landing';
+    var otherURL = 'http://localhost:' + otherHostServer.port;
+    otherHostServer.on('/', function (req, res) {
+      hits['authTest'] = true;
+      res.writeHead(301, {
+        'location':server + '/' + landing,
+        'set-cookie': 'ham=eggs'
+      })
+      res.end()
+    })
+
+    s.on('/' + landing, function (req, res) {
+      if (req.method !== 'GET') { // We should only accept GET redirects
+        console.error("Got a non-GET request to the redirect destination URL");
+        res.writeHead(400);
+        res.end();
+        return;
+      }
+
+      // Make sure the cookie doesn't get included twice, see #139:
+      // Make sure cookies are set properly after redirect
+      assert.equal(req.headers.cookie, 'foo=bar; quux=baz; ham=eggs');
+      // Make sure we're not forwarding headers outside the realm (#160)
+      assert.equal(req.headers.authorization, undefined);
+      hits[landing] = true;
+      res.writeHead(200)
+      res.end(landing)
+    })
+
+    // Different host, make sure that the auth header is gone
+    request({uri: otherURL, jar: jar, headers: {authorization: "Basic abcdef=", cookie: 'foo=bar'}}, function (er, res, body) {
+      if (er) throw er
+      if (res.statusCode !== 200) throw new Error('Status is not 200: '+res.statusCode)
+      assert.ok(hits.authTest, 'Original request is to /temp')
+      assert.ok(hits.auth_test_landing, 'Forward to temporary landing URL')
+      assert.equal(body, 'auth_test_landing', 'Got temporary landing content')
+      passed += 1
+      done()
+    })
+
+    // Same server, ensure that auth header is present
+    request({uri: server+'/auth', jar: jar, headers: {authorization: "Basic abcdef=", cookie: 'foo=bar'}}, function (er, res, body) {
+      if (er) throw er
+      if (res.statusCode !== 200) throw new Error('Status is not 200: '+res.statusCode)
+      assert.ok(hits.auth, 'Original request is to /auth`')
+      assert.ok(hits.auth_landing, 'Forward to auth landing URL')
+      assert.equal(body, 'auth_landing', 'Got auth landing content')
+      passed += 1
+      done()
+    })
+  })
+
+
   var reqs_done = 0;
   function done() {
     reqs_done += 1;
-    if(reqs_done == 9) {
+    if(reqs_done == 10) {
       console.log(passed + ' tests passed.')
       s.close()
+      otherHostServer.close()
     }
   }
 })
