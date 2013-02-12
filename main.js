@@ -559,7 +559,6 @@ Request.prototype.start = function () {
     }
 
     if (self.setHost){
-      self.originalHost = self.headers.host
       delete self.headers.host
     }
 
@@ -680,7 +679,7 @@ Request.prototype.start = function () {
         delete self._form
 
         // Check for auth header and remove if the host doesn't match, issue #160
-        if (self.headers && url.parse(redirectTo).host !== self.originalHost){
+        if (self.headers && url.parse(redirectTo).hostname !== self.host){
           delete self.headers['authorization']
           delete self.headers['Authorization']
         }
