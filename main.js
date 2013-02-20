@@ -576,6 +576,7 @@ Request.prototype.start = function () {
     }
 
     if (self.setHost) delete self.headers.host
+
     if (self.timeout && self.timeoutTimer) {
       clearTimeout(self.timeoutTimer)
       self.timeoutTimer = null
@@ -691,12 +692,20 @@ Request.prototype.start = function () {
       if (response.statusCode != 401) {
         delete self.body
         delete self._form
+
+        // Check for auth header and remove if the host doesn't match, issue #160
+        if (self.headers && url.parse(redirectTo).hostname !== self.host){
+          delete self.headers['authorization']
+          delete self.headers['Authorization']
+        }
       }
+
       if (self.headers) {
         delete self.headers.host
         delete self.headers['content-type']
         delete self.headers['content-length']
       }
+
       if (log) log('Redirect to %uri due to status %status', {uri: self.uri, status: response.statusCode})
       self.init()
       return // Ignore the rest of the response

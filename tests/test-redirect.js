@@ -6,12 +6,15 @@ var server = require('./server')
 
 var s = server.createServer()
 
+
 s.listen(s.port, function () {
   var server = 'http://localhost:' + s.port;
   var hits = {}
   var passed = 0;
 
   bouncer(301, 'temp')
+  bouncer(301, 'auth_same')
+  bouncer(301, 'auth_diff')
   bouncer(302, 'perm')
   bouncer(302, 'nope')
 
@@ -34,6 +37,17 @@ s.listen(s.port, function () {
         res.end();
         return;
       }
+
+      // #160 Enusre that if we're hitting the auth_same_landing endpoint that we've
+      // kept our auth header (same host case)
+      if (landing === 'auth_same_landing'){
+        assert.notEqual(req.headers.authorization, undefined)
+      // #160 Enusre that if we're hitting the auth_diff_landing endpoint that we've
+      // deleted any auth header (diff host case)
+      } else if (landing === 'auth_diff_landing') {
+        assert.equal(req.headers.authorization, undefined)
+      }
+
       // Make sure the cookie doesn't get included twice, see #139:
       // Make sure cookies are set properly after redirect
       assert.equal(req.headers.cookie, 'foo=bar; quux=baz; ham=eggs');
@@ -143,10 +157,33 @@ s.listen(s.port, function () {
     done()
   })
 
+
+  // Test for issue #160, Strip auth headers during redirect to different domain
+  request({uri: 'http://127.0.0.1:' + s.port + "/auth_diff", jar: jar, headers: {authorization: "Basic abcdef=", cookie: 'foo=bar'}}, function (er, res, body) {
+    if (er) throw er
+    if (res.statusCode !== 200) throw new Error('Status is not 200: '+res.statusCode)
+    assert.ok(hits.auth_diff, 'Original request is to /auth_diff')
+    assert.ok(hits.auth_diff_landing, 'Forward to diff auth landing URL')
+    assert.equal(body, 'auth_diff_landing', 'Got diff auth landing content')
+    passed += 1
+    done()
+  })
+
+  // Test for issue #160, keep auth headers during redirect to different domain
+  request({uri: server+'/auth_same', jar: jar, headers: {authorization: "Basic abcdef=", cookie: 'foo=bar'}}, function (er, res, body) {
+    if (er) throw er
+    if (res.statusCode !== 200) throw new Error('Status is not 200: '+res.statusCode)
+    assert.ok(hits.auth_same, 'Original request is to /auth_same')
+    assert.ok(hits.auth_same_landing, 'Forward to same auth landing URL')
+    assert.equal(body, 'auth_same_landing', 'Got same auth landing content')
+    passed += 1
+    done()
+  })
+
   var reqs_done = 0;
   function done() {
     reqs_done += 1;
-    if(reqs_done == 9) {
+    if(reqs_done == 10) {
       console.log(passed + ' tests passed.')
       s.close()
     }
