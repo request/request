@@ -558,9 +558,7 @@ Request.prototype.start = function () {
       return
     }
 
-    if (self.setHost){
-      delete self.headers.host
-    }
+    if (self.setHost) delete self.headers.host
 
     if (self.timeout && self.timeoutTimer) {
       clearTimeout(self.timeoutTimer)
