@@ -93,11 +93,5 @@ function ForeverAgentSSL (options) {
 }
 util.inherits(ForeverAgentSSL, ForeverAgent)
 
-ForeverAgentSSL.prototype.createConnection = createConnectionSSL
+ForeverAgentSSL.prototype.createConnection = tls.connect
 ForeverAgentSSL.prototype.addRequestNoreuse = AgentSSL.prototype.addRequest
-
-function createConnectionSSL (port, host, options) {
-  options.port = port
-  options.host = host
-  return tls.connect(options)
-}
