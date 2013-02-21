@@ -26,3 +26,9 @@ var req4 = request.get({ uri: 'http://www.google.com?x=y'})
 setTimeout(function() {
 	assert.equal('/?x=y', req4.path)
 }, 1)
+
+// Test giving empty qs property
+var req5 = request.get({ uri: 'http://www.google.com', qs: {}})
+setTimeout(function(){
+	assert.equal('/', req5.path)
+}, 1)
