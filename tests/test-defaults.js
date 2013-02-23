@@ -36,6 +36,21 @@ s.listen(s.port, function () {
     counter += 1;
   });
 
+  s.on('/patch', function (req, resp) {
+    assert.equal(req.headers.foo, 'bar');
+    assert.equal(req.headers['content-type'], null);
+    assert.equal(req.method, 'PATCH')
+    resp.writeHead(200, {'Content-Type': 'application/json'});
+    resp.end(JSON.stringify({foo:'bar'}));
+  });
+
+  // test post(string, object, function)
+  request.defaults({headers:{foo:"bar"}}).patch(s.url + '/patch', {json: true}, function (e, r, b){
+    if (e) throw e;
+    assert.deepEqual('bar', b.foo);
+    counter += 1;
+  });
+
   s.on('/post-body', function (req, resp) {
     assert.equal(req.headers.foo, 'bar');
     assert.equal(req.headers['content-type'], 'application/json');
