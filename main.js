@@ -762,8 +762,13 @@ Request.prototype.start = function () {
             try {
               response.body = JSON.parse(response.body)
             } catch (e) {}
+          } else if (response.headers && response.headers['content-type']) {
+            var contentType = response.headers['content-type'].split(';')[0]
+            if (contentType == 'application/json') {
+              response.body = JSON.parse(response.body)
+            }
           }
-          
+
           self.emit('complete', response, response.body)
         })
       }
