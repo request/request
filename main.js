@@ -124,8 +124,8 @@ Request.prototype.init = function (options) {
     self._callback = self.callback
     self.callback = function () {
       if (self._callbackCalled) return // Print a warning maybe?
-      self._callback.apply(self, arguments)
       self._callbackCalled = true
+      self._callback.apply(self, arguments)
     }
     self.on('error', self.callback.bind())
     self.on('complete', self.callback.bind(self, null))
