@@ -597,6 +597,7 @@ Request.prototype.start = function () {
         redirectTo = response.headers.location
       } else if (self.followRedirect) {
         switch (self.method) {
+          case 'PATCH':
           case 'PUT':
           case 'POST':
           case 'DELETE':
@@ -1087,7 +1088,7 @@ Request.prototype.destroy = function () {
   if (!this._ended) this.end()
 }
 
-// organize params for post, put, head, del
+// organize params for patch, post, put, head, del
 function initParams(uri, options, callback) {
   if ((typeof options === 'function') && !callback) callback = options
   if (options && typeof options === 'object') {
@@ -1143,6 +1144,7 @@ request.defaults = function (options, requester) {
   }
   var de = def(request)
   de.get = def(request.get)
+  de.patch = def(request.patch)
   de.post = def(request.post)
   de.put = def(request.put)
   de.head = def(request.head)
@@ -1173,6 +1175,11 @@ request.post = function (uri, options, callback) {
 request.put = function (uri, options, callback) {
   var params = initParams(uri, options, callback)
   params.options.method = 'PUT'
+  return request(params.uri || null, params.options, params.callback)
+}
+request.patch = function (uri, options, callback) {
+  var params = initParams(uri, options, callback)
+  params.options.method = 'PATCH'
   return request(params.uri || null, params.options, params.callback)
 }
 request.head = function (uri, options, callback) {
