@@ -114,6 +114,9 @@ function Request (options) {
 }
 util.inherits(Request, stream.Stream)
 Request.prototype.init = function (options) {
+  // init() contains all the code to setup the request object.
+  // the actual outgoing request is not started until start() is called
+  // this function is called from both the constructor and on redirect.
   var self = this
   if (!options) options = {}
   
@@ -545,6 +548,8 @@ Request.prototype.getAgent = function () {
 }
 
 Request.prototype.start = function () {
+  // start() is called once we are ready to send the outgoing HTTP request.
+  // this is usually called on the first write(), end() or on nextTick()
   var self = this
 
   if (self._aborted) return
