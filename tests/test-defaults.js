@@ -80,6 +80,9 @@ s.listen(s.port, function () {
     counter += 1;
   });
 
+  // test .defaults({}).jar()
+  request.defaults({headers:{foo:"bar"}, json:true}).jar();
+
   s.on('/head', function (req, resp) {
     assert.equal(req.headers.foo, 'bar');
     assert.equal(req.method, 'HEAD')
