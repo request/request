@@ -24,9 +24,11 @@ var http = require('http')
   , hawk = require('hawk')
   , uuid = require('node-uuid')
   , ForeverAgent = require('./forever')
-  , Cookie = require('./vendor/cookie')
-  , CookieJar = require('./vendor/cookie/jar')
+  
+  , Cookie = require('cookie-jar')
+  , CookieJar = Cookie.Jar
   , cookieJar = new CookieJar
+  
   , tunnel = require('./tunnel')
   , aws = require('./aws')
   
