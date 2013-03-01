@@ -12,6 +12,5 @@
 , "engines" : ["node >= 0.3.6"]
 , "main" : "./main"
 , "dependencies": { "form-data":"~0.0.3", "mime":"~1.2.7" }
-, "bundleDependencies": ["form-data", "mime"]
 , "scripts": { "test": "node tests/run.js" }
 }
