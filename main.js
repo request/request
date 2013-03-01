@@ -20,8 +20,10 @@ var http = require('http')
   , stream = require('stream')
   , qs = require('querystring')
   , crypto = require('crypto')
+  
   , oauth = require('./oauth')
   , hawk = require('hawk')
+  , aws = require('aws-sign')
   , uuid = require('node-uuid')
   , ForeverAgent = require('./forever')
   
@@ -30,7 +32,6 @@ var http = require('http')
   , cookieJar = new CookieJar
   
   , tunnel = require('./tunnel')
-  , aws = require('./aws')
   
   , mime = require('mime')
   , FormData = require('form-data')
