@@ -1,5 +1,5 @@
 var createServer = require('http').createServer
-  , request = require('../main')
+  , request = require('../index')
   , hawk = require('hawk')
   , assert = require('assert')
   ;

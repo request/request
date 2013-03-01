@@ -1,6 +1,6 @@
 var assert = require('assert')
   , http = require('http')
-  , request = require('../main')
+  , request = require('../index')
   ;
 
 // Test digest auth
