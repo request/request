@@ -25,16 +25,15 @@ var http = require('http')
   , hawk = require('hawk')
   , aws = require('aws-sign')
   , uuid = require('node-uuid')
+  , mime = require('mime')
+  , tunnel = require('tunnel-agent')
+
   , ForeverAgent = require('forever-agent')
+  , FormData = require('form-data')
   
   , Cookie = require('cookie-jar')
   , CookieJar = Cookie.Jar
   , cookieJar = new CookieJar
-  
-  , tunnel = require('./tunnel')
-  
-  , mime = require('mime')
-  , FormData = require('form-data')
   ;
   
 if (process.logging) {
