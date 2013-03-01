@@ -1,6 +1,6 @@
 var assert = require('assert')
   , http = require('http')
-  , request = require('../main')
+  , request = require('../index')
   ;
 
 var numBasicRequests = 0;

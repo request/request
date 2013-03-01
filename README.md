@@ -191,7 +191,7 @@ The first argument can be either a url or an options object. The only required o
 * `qs` - object containing querystring values to be appended to the uri
 * `method` - http method, defaults to GET
 * `headers` - http headers, defaults to {}
-* `body` - entity body for POST and PUT requests. Must be buffer or string.
+* `body` - entity body for PATCH, POST and PUT requests. Must be buffer or string.
 * `form` - when passed an object this will set `body` but to a querystring representation of value and adds `Content-type: application/x-www-form-urlencoded; charset=utf-8` header. When passed no option a FormData instance is returned that will be piped to request.
 * `auth` - A hash containing values `user` || `username`, `password` || `pass`, and `sendImmediately` (optional).  See documentation above.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as json.
@@ -205,6 +205,7 @@ The first argument can be either a url or an options object. The only required o
 * `timeout` - Integer containing the number of milliseconds to wait for a request to respond before aborting the request	
 * `proxy` - An HTTP proxy to be used. Support proxy Auth with Basic Auth the same way it's supported with the `url` parameter by embedding the auth info in the uri.
 * `oauth` - Options for OAuth HMAC-SHA1 signing, see documentation above.
+* `hawk` - Options for [Hawk signing](https://github.com/hueniverse/hawk). The `id`, `key`, and `algorithm` properties are used for credentials, any other properties will be treated as extensions.
 * `strictSSL` - Set to `true` to require that SSL certificates be valid. Note: to use your own certificate authority, you need to specify an agent that was created with that ca as an option.
 * `jar` - Set to `false` if you don't want cookies to be remembered for future use or define your custom cookie jar (see examples section)
 * `aws` - object containing aws signing information, should have the properties `key` and `secret` as well as `bucket` unless you're specifying your bucket as part of the path, or you are making a request that doesn't use a bucket (i.e. GET Services)
@@ -226,6 +227,14 @@ Same as request() but defaults to `method: "PUT"`.
 
 ```javascript
 request.put(url)
+```
+
+### request.patch
+
+Same as request() but defaults to `method: "PATCH"`.
+
+```javascript
+request.patch(url)
 ```
 
 ### request.post

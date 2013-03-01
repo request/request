@@ -3,7 +3,7 @@ var server = require('./server')
   , stream = require('stream')
   , assert = require('assert')
   , fs = require('fs')
-  , request = require('../main.js')
+  , request = require('../index')
   , path = require('path')
   , util = require('util')
   ;
@@ -124,8 +124,8 @@ s.listen(s.port, function () {
     if (req.headers['x-oneline-proxy']) {
       resp.setHeader('x-oneline-proxy', 'yup')
     }
-    resp.writeHead('200', {'content-type':'image/png'})
-    fs.createReadStream(path.join(__dirname, 'googledoodle.png')).pipe(resp)
+    resp.writeHead('200', {'content-type':'image/jpeg'})
+    fs.createReadStream(path.join(__dirname, 'googledoodle.jpg')).pipe(resp)
   })
   s.on('/onelineproxy', function (req, resp) {
     var x = request('http://localhost:3453/doodle')
@@ -146,18 +146,18 @@ s.listen(s.port, function () {
     check();
   })
 
-  var doodleWrite = fs.createWriteStream(path.join(__dirname, 'test.png'))
+  var doodleWrite = fs.createWriteStream(path.join(__dirname, 'test.jpg'))
 
   counter++
   request.get('http://localhost:3453/doodle').pipe(doodleWrite)
 
   doodleWrite.on('close', function () {
-    assert.deepEqual(fs.readFileSync(path.join(__dirname, 'googledoodle.png')), fs.readFileSync(path.join(__dirname, 'test.png')))
+    assert.deepEqual(fs.readFileSync(path.join(__dirname, 'googledoodle.jpg')), fs.readFileSync(path.join(__dirname, 'test.jpg')))
     check()
   })
 
   process.on('exit', function () {
-    fs.unlinkSync(path.join(__dirname, 'test.png'))
+    fs.unlinkSync(path.join(__dirname, 'test.jpg'))
   })
 
   counter++

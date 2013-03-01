@@ -20,17 +20,20 @@ var http = require('http')
   , stream = require('stream')
   , qs = require('querystring')
   , crypto = require('crypto')
-  , oauth = require('./oauth')
-  , uuid = require('./uuid')
-  , ForeverAgent = require('./forever')
-  , Cookie = require('./vendor/cookie')
-  , CookieJar = require('./vendor/cookie/jar')
-  , cookieJar = new CookieJar
-  , tunnel = require('./tunnel')
-  , aws = require('./aws')
   
+  , oauth = require('oauth-sign')
+  , hawk = require('hawk')
+  , aws = require('aws-sign')
+  , uuid = require('node-uuid')
   , mime = require('mime')
+  , tunnel = require('tunnel-agent')
+
+  , ForeverAgent = require('forever-agent')
   , FormData = require('form-data')
+  
+  , Cookie = require('cookie-jar')
+  , CookieJar = Cookie.Jar
+  , cookieJar = new CookieJar
   ;
   
 if (process.logging) {
@@ -111,8 +114,10 @@ function Request (options) {
 util.inherits(Request, stream.Stream)
 Request.prototype.init = function (options) {
   var self = this
-  
   if (!options) options = {}
+  
+  self.method = options.method || 'GET'
+  
   if (request.debug) console.error('REQUEST', options)
   if (!self.pool && self.pool !== false) self.pool = globalPool
   self.dests = self.dests || []
@@ -123,8 +128,8 @@ Request.prototype.init = function (options) {
     self._callback = self.callback
     self.callback = function () {
       if (self._callbackCalled) return // Print a warning maybe?
-      self._callback.apply(self, arguments)
       self._callbackCalled = true
+      self._callback.apply(self, arguments)
     }
     self.on('error', self.callback.bind())
     self.on('complete', self.callback.bind(self, null))
@@ -188,7 +193,7 @@ Request.prototype.init = function (options) {
   self.headers = self.headers ? copy(self.headers) : {}
 
   self.setHost = false
-  if (!self.headers.host) {
+  if (!(self.headers.host || self.headers.Host)) {
     self.headers.host = self.uri.hostname
     if (self.uri.port) {
       if ( !(self.uri.port === 80 && self.uri.protocol === 'http:') &&
@@ -258,12 +263,17 @@ Request.prototype.init = function (options) {
   if (self.path.length === 0) self.path = '/'
 
 
+  // Auth must happen last in case signing is dependent on other headers
   if (options.oauth) {
     self.oauth(options.oauth)
   }
   
   if (options.aws) {
     self.aws(options.aws)
+  }
+  
+  if (options.hawk) {
+    self.hawk(options.hawk)
   }
 
   if (options.auth) {
@@ -477,6 +487,13 @@ Request.prototype.getAgent = function () {
     }
   }
   if (this.ca) options.ca = this.ca
+  if (typeof this.rejectUnauthorized !== 'undefined')
+    options.rejectUnauthorized = this.rejectUnauthorized;
+
+  if (this.cert && this.key) {
+    options.key = this.key
+    options.cert = this.cert
+  }
 
   var poolKey = ''
 
@@ -496,10 +513,20 @@ Request.prototype.getAgent = function () {
   // ca option is only relevant if proxy or destination are https
   var proxy = this.proxy
   if (typeof proxy === 'string') proxy = url.parse(proxy)
-  var caRelevant = (proxy && proxy.protocol === 'https:') || this.uri.protocol === 'https:'
-  if (options.ca && caRelevant) {
-    if (poolKey) poolKey += ':'
-    poolKey += options.ca
+  var isHttps = (proxy && proxy.protocol === 'https:') || this.uri.protocol === 'https:'
+  if (isHttps) {
+    if (options.ca) {
+      if (poolKey) poolKey += ':'
+      poolKey += options.ca
+    }
+
+    if (typeof options.rejectUnauthorized !== 'undefined') {
+      if (poolKey) poolKey += ':'
+      poolKey += options.rejectUnauthorized
+    }
+
+    if (options.cert)
+      poolKey += options.cert.toString('ascii') + options.key.toString('ascii')
   }
 
   if (!poolKey && Agent === this.httpModule.Agent && this.httpModule.globalAgent) {
@@ -579,6 +606,7 @@ Request.prototype.start = function () {
         redirectTo = response.headers.location
       } else if (self.followRedirect) {
         switch (self.method) {
+          case 'PATCH':
           case 'PUT':
           case 'POST':
           case 'DELETE':
@@ -949,6 +977,17 @@ Request.prototype.aws = function (opts, now) {
   return this
 }
 
+Request.prototype.hawk = function (opts) {
+  var creds = {key:opts.key, id:opts.id, algorithm:opts.algorithm}
+  delete opts.key
+  delete opts.id
+  delete opts.algorithm
+  
+  var port = this.uri.port || (this.uri.protocol === 'https:' ? 443 : 80)
+  
+  this.headers.Authorization = hawk.getAuthorizationHeader(creds, this.method, this.uri.path, this.uri.hostname, parseInt(port), opts)
+}
+
 Request.prototype.oauth = function (_oauth) {
   var form
   if (this.headers['content-type'] && 
@@ -1069,7 +1108,7 @@ Request.prototype.destroy = function () {
   if (!this._ended) this.end()
 }
 
-// organize params for post, put, head, del
+// organize params for patch, post, put, head, del
 function initParams(uri, options, callback) {
   if ((typeof options === 'function') && !callback) callback = options
   if (options && typeof options === 'object') {
@@ -1127,6 +1166,7 @@ request.defaults = function (options, requester) {
   }
   var de = def(request)
   de.get = def(request.get)
+  de.patch = def(request.patch)
   de.post = def(request.post)
   de.put = def(request.put)
   de.head = def(request.head)
@@ -1157,6 +1197,11 @@ request.post = function (uri, options, callback) {
 request.put = function (uri, options, callback) {
   var params = initParams(uri, options, callback)
   params.options.method = 'PUT'
+  return request(params.uri || null, params.options, params.callback)
+}
+request.patch = function (uri, options, callback) {
+  var params = initParams(uri, options, callback)
+  params.options.method = 'PATCH'
   return request(params.uri || null, params.options, params.callback)
 }
 request.head = function (uri, options, callback) {
