@@ -113,10 +113,10 @@ function Request (options) {
 util.inherits(Request, stream.Stream)
 Request.prototype.init = function (options) {
   var self = this
+  if (!options) options = {}
   
   self.method = options.method || 'GET'
   
-  if (!options) options = {}
   if (request.debug) console.error('REQUEST', options)
   if (!self.pool && self.pool !== false) self.pool = globalPool
   self.dests = self.dests || []
