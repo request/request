@@ -1112,6 +1112,7 @@ Request.prototype.resume = function () {
 }
 Request.prototype.destroy = function () {
   if (!this._ended) this.end()
+  else if (this.response) this.response.abort()
 }
 
 // organize params for patch, post, put, head, del
