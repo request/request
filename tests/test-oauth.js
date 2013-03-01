@@ -1,4 +1,4 @@
-var hmacsign = require('../oauth').hmacsign
+var hmacsign = require('oauth-sign').hmacsign
   , assert = require('assert')
   , qs = require('querystring')
   , request = require('../main')

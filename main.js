@@ -21,7 +21,7 @@ var http = require('http')
   , qs = require('querystring')
   , crypto = require('crypto')
   
-  , oauth = require('./oauth')
+  , oauth = require('oauth-sign')
   , hawk = require('hawk')
   , aws = require('aws-sign')
   , uuid = require('node-uuid')
