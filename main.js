@@ -25,7 +25,7 @@ var http = require('http')
   , hawk = require('hawk')
   , aws = require('aws-sign')
   , uuid = require('node-uuid')
-  , ForeverAgent = require('./forever')
+  , ForeverAgent = require('forever-agent')
   
   , Cookie = require('cookie-jar')
   , CookieJar = Cookie.Jar

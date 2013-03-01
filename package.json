@@ -27,7 +27,8 @@
     "node-uuid": "~1.4.0",
     "cookie-jar": "~0.2.0",
     "aws-sign": "~0.2.0",
-    "oauth-sign": "~0.2.0"
+    "oauth-sign": "~0.2.0",
+    "forever-agent": "~0.2.0"
   },
   "scripts": {
     "test": "node tests/run.js"
