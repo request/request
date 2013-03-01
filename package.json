@@ -23,7 +23,8 @@
   "dependencies": {
     "form-data": "~0.0.3",
     "mime": "~1.2.7",
-    "hawk": "~0.8.1"
+    "hawk": "~0.8.1",
+    "node-uuid": "~1.4.0"
   },
   "scripts": {
     "test": "node tests/run.js"
