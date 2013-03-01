@@ -21,6 +21,7 @@ var http = require('http')
   , qs = require('querystring')
   , crypto = require('crypto')
   , oauth = require('./oauth')
+  , hawk = require('hawk')
   , uuid = require('./uuid')
   , ForeverAgent = require('./forever')
   , Cookie = require('./vendor/cookie')
@@ -112,6 +113,8 @@ function Request (options) {
 util.inherits(Request, stream.Stream)
 Request.prototype.init = function (options) {
   var self = this
+  
+  self.method = options.method || 'GET'
   
   if (!options) options = {}
   if (request.debug) console.error('REQUEST', options)
@@ -259,12 +262,17 @@ Request.prototype.init = function (options) {
   if (self.path.length === 0) self.path = '/'
 
 
+  // Auth must happen last in case signing is dependent on other headers
   if (options.oauth) {
     self.oauth(options.oauth)
   }
   
   if (options.aws) {
     self.aws(options.aws)
+  }
+  
+  if (options.hawk) {
+    self.hawk(options.hawk)
   }
 
   if (options.auth) {
@@ -966,6 +974,17 @@ Request.prototype.aws = function (opts, now) {
   this.setHeader('authorization', aws.authorization(auth))
   
   return this
+}
+
+Request.prototype.hawk = function (opts) {
+  var creds = {key:opts.key, id:opts.id, algorithm:opts.algorithm}
+  delete opts.key
+  delete opts.id
+  delete opts.algorithm
+  
+  var port = this.uri.port || (this.uri.protocol === 'https:' ? 443 : 80)
+  
+  this.headers.Authorization = hawk.getAuthorizationHeader(creds, this.method, this.uri.path, this.uri.hostname, parseInt(port), opts)
 }
 
 Request.prototype.oauth = function (_oauth) {
