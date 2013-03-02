@@ -25,7 +25,7 @@ var server = createServer(function (req, resp) {
 
 server.listen(8080, function () {
   var creds = {key: 'werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn', algorithm: 'sha256', id:'dh37fgj492je'}
-  request('http://localhost:8080', {hawk:creds}, function (e, r, b) {
+  request('http://localhost:8080', {hawk:{credentials:creds}}, function (e, r, b) {
     assert.equal(200, r.statusCode)
     assert.equal(b, 'Hello Steve')
     server.close()
