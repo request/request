@@ -1002,7 +1002,7 @@ Request.prototype.oauth = function (_oauth) {
   for (var i in form) oa[i] = form[i]
   for (var i in _oauth) oa['oauth_'+i] = _oauth[i]
   if (!oa.oauth_version) oa.oauth_version = '1.0'
-  if (!oa.oauth_timestamp) oa.oauth_timestamp = Math.floor( (new Date()).getTime() / 1000 ).toString()
+  if (!oa.oauth_timestamp) oa.oauth_timestamp = Math.floor( Date.now() / 1000 ).toString()
   if (!oa.oauth_nonce) oa.oauth_nonce = uuid().replace(/-/g, '')
   
   oa.oauth_signature_method = 'HMAC-SHA1'
