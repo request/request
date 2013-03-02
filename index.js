@@ -983,14 +983,7 @@ Request.prototype.aws = function (opts, now) {
 }
 
 Request.prototype.hawk = function (opts) {
-  var creds = {key:opts.key, id:opts.id, algorithm:opts.algorithm}
-  delete opts.key
-  delete opts.id
-  delete opts.algorithm
-  
-  var port = this.uri.port || (this.uri.protocol === 'https:' ? 443 : 80)
-  
-  this.headers.Authorization = hawk.getAuthorizationHeader(creds, this.method, this.uri.path, this.uri.hostname, parseInt(port), opts)
+  this.headers.Authorization = hawk.getAuthorizationHeader(this.uri, this.method, opts)
 }
 
 Request.prototype.oauth = function (_oauth) {
