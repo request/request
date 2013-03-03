@@ -35,10 +35,6 @@ var http = require('http')
   , CookieJar = Cookie.Jar
   , cookieJar = new CookieJar
   ;
-  
-if (process.logging) {
-  var log = process.logging('request')
-}
 
 try {
   https = require('https')
@@ -456,7 +452,6 @@ Request.prototype._updateProtocol = function () {
     if (self.agent) self.agent = self.getAgent()
 
   } else {
-    if (log) log('previously https, now http')
     // previously was doing https, now doing http
     // stop any tunneling.
     if (self.tunnel) self.tunnel = false
@@ -556,7 +551,6 @@ Request.prototype.start = function () {
   self._started = true
   self.method = self.method || 'GET'
   self.href = self.uri.href
-  if (log) log('%method %href', self)
 
   if (self.src && self.src.stat && self.src.stat.size && !self.headers['content-length'] && !self.headers['Content-Length']) {
     self.headers['content-length'] = self.src.stat.size
@@ -712,7 +706,6 @@ Request.prototype.start = function () {
         delete self.headers['content-type']
         delete self.headers['content-length']
       }
-      if (log) log('Redirect to %uri due to status %status', {uri: self.uri, status: response.statusCode})
       self.init()
       return // Ignore the rest of the response
     } else {
