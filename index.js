@@ -13,9 +13,9 @@
 //    limitations under the License.
 
 var http = require('http')
-  , https = false
-  , tls = false
-  , zlib = false
+  , https = require('https')
+  , tls = require('tls')
+  , zlib = require('zlib')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
@@ -41,40 +41,12 @@ if (process.logging) {
   var log = process.logging('request')
 }
 
-try {
-  https = require('https')
-} catch (e) {}
-
-// for gzip support in node >= 0.6.x
-try {
-  zlib = require('zlib')
-} catch (e) {}
-
-try {
-  tls = require('tls')
-} catch (e) {}
-
 function toBase64 (str) {
   return (new Buffer(str || "", "ascii")).toString("base64")
 }
 
 function md5 (str) {
   return crypto.createHash('md5').update(str).digest('hex')
-}
-
-// Hacky fix for pre-0.4.4 https
-if (https && !https.Agent) {
-  https.Agent = function (options) {
-    http.Agent.call(this, options)
-  }
-  util.inherits(https.Agent, http.Agent)
-  https.Agent.prototype._getConnection = function (host, port, cb) {
-    var s = tls.connect(port, host, this.options, function () {
-      // do other checks here?
-      if (cb) cb()
-    })
-    return s
-  }
 }
 
 function isReadStream (rs) {
@@ -514,14 +486,6 @@ Request.prototype.getAgent = function () {
   // different types of agents are in different pools
   if (Agent !== this.httpModule.Agent) {
     poolKey += Agent.name
-  }
-
-  if (!this.httpModule.globalAgent) {
-    // node 0.4.x
-    options.host = this.host
-    options.port = this.port
-    if (poolKey) poolKey += ':'
-    poolKey += this.host + ':' + this.port
   }
 
   // ca option is only relevant if proxy or destination are https
