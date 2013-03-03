@@ -173,9 +173,9 @@ Request.prototype.init = function (options) {
 
   self.headers = self.headers ? copy(self.headers) : {}
 
-  // if zlib support is available and no Accept-Encoding is specified, add 
-  // Accept-Encoding so supporting web servers will send gzipped
-  if (zlib && self.headers['Accept-Encoding'] === undefined)
+  // no Accept-Encoding is specified, add Accept-Encoding so supporting web
+  // servers will send gzipped
+  if (self.headers['Accept-Encoding'] === undefined)
     self.headers['Accept-Encoding'] = 'gzip';
 
   self.setHost = false
@@ -764,7 +764,7 @@ Request.prototype.start = function () {
             body = buffer.join("")
           }
 
-          if (zlib && response.headers['content-encoding'] && response.headers['content-encoding'].toLowerCase().indexOf('gzip') >= 0) {
+          if (response.headers['content-encoding'] && response.headers['content-encoding'].toLowerCase().indexOf('gzip') >= 0) {
             if (!Buffer.isBuffer(body))
               body = new Buffer(body);
 
