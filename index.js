@@ -13,8 +13,9 @@
 //    limitations under the License.
 
 var http = require('http')
-  , https = false
-  , tls = false
+  , https = require('https')
+  , tls = require('tls')
+  , zlib = require('zlib')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
@@ -37,35 +38,12 @@ var http = require('http')
   , cookieJar = new CookieJar
   ;
 
-try {
-  https = require('https')
-} catch (e) {}
-
-try {
-  tls = require('tls')
-} catch (e) {}
-
 function toBase64 (str) {
   return (new Buffer(str || "", "ascii")).toString("base64")
 }
 
 function md5 (str) {
   return crypto.createHash('md5').update(str).digest('hex')
-}
-
-// Hacky fix for pre-0.4.4 https
-if (https && !https.Agent) {
-  https.Agent = function (options) {
-    http.Agent.call(this, options)
-  }
-  util.inherits(https.Agent, http.Agent)
-  https.Agent.prototype._getConnection = function (host, port, cb) {
-    var s = tls.connect(port, host, this.options, function () {
-      // do other checks here?
-      if (cb) cb()
-    })
-    return s
-  }
 }
 
 function isReadStream (rs) {
@@ -191,6 +169,11 @@ Request.prototype.init = function (options) {
     self.redirects = self.redirects || []
 
   self.headers = self.headers ? copy(self.headers) : {}
+
+  // no Accept-Encoding is specified, add Accept-Encoding so supporting web
+  // servers will send gzipped
+  if (self.headers['Accept-Encoding'] === undefined)
+    self.headers['Accept-Encoding'] = 'gzip';
 
   self.setHost = false
   if (!(self.headers.host || self.headers.Host)) {
@@ -501,14 +484,6 @@ Request.prototype.getAgent = function () {
     poolKey += Agent.name
   }
 
-  if (!this.httpModule.globalAgent) {
-    // node 0.4.x
-    options.host = this.host
-    options.port = this.port
-    if (poolKey) poolKey += ':'
-    poolKey += this.host + ':' + this.port
-  }
-
   // ca option is only relevant if proxy or destination are https
   var proxy = this.proxy
   if (typeof proxy === 'string') proxy = url.parse(proxy)
@@ -720,6 +695,8 @@ Request.prototype.start = function () {
       if (self.encoding) {
         if (self.dests.length !== 0) {
           console.error("Ingoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.")
+        } else if(response.headers['content-encoding'] && response.headers['content-encoding'].toLowerCase().indexOf('gzip') >= 0) {
+          console.error("Ignoring encoding parameter as this stream is being decoded as gzip")
         } else {
           response.setEncoding(self.encoding)
         }
@@ -739,41 +716,61 @@ Request.prototype.start = function () {
       })
       response.on("close", function () {self.emit("close")})
 
-      self.emit('response', response)
+      self.emit("response", response)
 
       if (self.callback) {
         var buffer = []
         var bodyLen = 0
+
         self.on("data", function (chunk) {
           buffer.push(chunk)
           bodyLen += chunk.length
         })
+
+        // fired when the entire body has been read. if the request was gzipped
+        // it has been deflated by now
+        self.on("response_body_complete", function(body){
+          if (self.encoding === null)
+            response.body = body
+          else
+            response.body = body.toString(self.encoding);
+
+          if (self._json) {
+            try {
+              response.body = JSON.parse(response.body);
+            } catch(e) {}
+          }
+          self.emit("complete", response, response.body);
+        })
+
         self.on("end", function () {
           if (self._aborted) return
           
+          var body = ""
           if (buffer.length && Buffer.isBuffer(buffer[0])) {
-            var body = new Buffer(bodyLen)
+            body = new Buffer(bodyLen)
             var i = 0
             buffer.forEach(function (chunk) {
               chunk.copy(body, i, 0, chunk.length)
               i += chunk.length
             })
-            if (self.encoding === null) {
-              response.body = body
-            } else {
-              response.body = body.toString(self.encoding)
-            }
           } else if (buffer.length) {
-            response.body = buffer.join('')
+            body = buffer.join("")
           }
 
-          if (self._json) {
-            try {
-              response.body = JSON.parse(response.body)
-            } catch (e) {}
+          if (response.headers['content-encoding'] && response.headers['content-encoding'].toLowerCase().indexOf('gzip') >= 0) {
+            if (!Buffer.isBuffer(body))
+              body = new Buffer(body);
+
+            zlib.gunzip(body, function (error, dat) {
+              if (!error)
+                self.emit("response_body_complete", dat)
+              else
+                self.emit('error', error)
+            })
+          } else {
+            self.emit("response_body_complete", body);
           }
-          
-          self.emit('complete', response, response.body)
         })
       }
     }
