@@ -27,6 +27,7 @@ var http = require('http')
   , uuid = require('node-uuid')
   , mime = require('mime')
   , tunnel = require('tunnel-agent')
+  , safeStringify = require('json-stringify-safe')
 
   , ForeverAgent = require('forever-agent')
   , FormData = require('form-data')
@@ -914,11 +915,11 @@ Request.prototype.json = function (val) {
   if (typeof val === 'boolean') {
     if (typeof this.body === 'object') {
       this.setHeader('content-type', 'application/json')
-      this.body = JSON.stringify(this.body)
+      this.body = safeStringify(this.body)
     }
   } else {
     this.setHeader('content-type', 'application/json')
-    this.body = JSON.stringify(val)
+    this.body = safeStringify(val)
   }
   return this
 }
