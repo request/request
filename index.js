@@ -861,6 +861,10 @@ Request.prototype.qs = function (q, clobber) {
   for (var i in q) {
     base[i] = q[i]
   }
+
+  if (qs.stringify(base) === ''){
+    return this
+  }
   
   this.uri = url.parse(this.uri.href.split('?')[0] + '?' + qs.stringify(base))
   this.url = this.uri
