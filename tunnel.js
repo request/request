@@ -147,6 +147,7 @@ TunnelingAgent.prototype.createSocket = function createSocket(options, cb) {
       debug('tunneling socket could not be established, statusCode=%d', res.statusCode)
       var error = new Error('tunneling socket could not be established, ' + 'statusCode=' + res.statusCode)
       error.code = 'ECONNRESET'
+      error.name = 'ConnectionError'
       options.request.emit('error', error)
       self.removeSocket(placeholder)
     }
@@ -158,6 +159,7 @@ TunnelingAgent.prototype.createSocket = function createSocket(options, cb) {
     debug('tunneling socket could not be established, cause=%s\n', cause.message, cause.stack)
     var error = new Error('tunneling socket could not be established, ' + 'cause=' + cause.message)
     error.code = 'ECONNRESET'
+    error.name = 'ConnectionError'
     options.request.emit('error', error)
     self.removeSocket(placeholder)
   }

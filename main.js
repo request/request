@@ -139,7 +139,9 @@ Request.prototype.init = function (options) {
 
   if (!self.uri) {
     // this will throw if unhandled but is handleable when in a redirect
-    return self.emit('error', new Error("options.uri is a required argument"))
+    var error = new Error('options.uri is a required argument')
+    error.name = 'ArgumentError'
+    return self.emit('error', error)
   } else {
     if (typeof self.uri == "string") self.uri = url.parse(self.uri)
   }
@@ -168,14 +170,15 @@ Request.prototype.init = function (options) {
     // Invalid URI: it may generate lot of bad errors, like "TypeError: Cannot call method 'indexOf' of undefined" in CookieJar
     // Detect and reject it as soon as possible
     var faultyUri = url.format(self.uri)
-    var message = 'Invalid URI "' + faultyUri + '"'
+    var error = new Error('Invalid URI "' + faultyUri + '"')
     if (Object.keys(options).length === 0) {
       // No option ? This can be the sign of a redirect
       // As this is a case where the user cannot do anything (he didn't call request directly with this URL)
       // he should be warned that it can be caused by a redirection (can save some hair)
-      message += '. This can be caused by a crappy redirection.'
+      error.message += '. This can be caused by a crappy redirection.'
     }
-    self.emit('error', new Error(message))
+    error.name = 'URIError'
+    self.emit('error', error)
     return // This error was fatal
   }
 
@@ -229,10 +232,12 @@ Request.prototype.init = function (options) {
       clearTimeout(self.timeoutTimer)
       self.timeoutTimer = null
     }
+    error.name = 'ClientError'
     self.emit('error', error)
   }
 
   self._parserErrorHandler = function (error) {
+    error.name = 'ParseError'
     if (this.res) {
       if (this.res.request) {
         this.res.request.emit('error', error)
@@ -310,7 +315,7 @@ Request.prototype.init = function (options) {
       if(!self.headers['content-length'] && !self.headers['Content-Length'])
       self.headers['content-length'] = length
     } else {
-      throw new Error('Argument error, options.body.')
+      throw{name:'ArgumentError', message:'Argument error, options.body.'}
     }
   }
 
@@ -320,7 +325,11 @@ Request.prototype.init = function (options) {
     ;
   self.httpModule = httpModules[protocol] || defaultModules[protocol]
 
-  if (!self.httpModule) return this.emit('error', new Error("Invalid protocol"))
+  if (!self.httpModule){
+    var error = new Error('Invalid protocol')
+    error.name = 'URIError'
+    return this.emit('error', error)
+  }
 
   if (options.ca) self.ca = options.ca
 
@@ -351,7 +360,7 @@ Request.prototype.init = function (options) {
   }
 
   self.once('pipe', function (src) {
-    if (self.ntick && self._started) throw new Error("You cannot pipe to this stream after the outbound request has started.")
+    if (self.ntick && self._started) throw{name:'PipeError', message:'You cannot pipe to this stream after the outbound request has started.'}
     self.src = src
     if (isReadStream(src)) {
       if (!self.headers['content-type'] && !self.headers['Content-Type'])
@@ -879,7 +888,7 @@ Request.prototype.multipart = function (multipart) {
     self.headers['content-type'] = self.headers['content-type'].split(';')[0] + '; boundary=' + self.boundary
   }
 
-  if (!multipart.forEach) throw new Error('Argument error, options.multipart.')
+  if (!multipart.forEach) throw{name:'ArgumentError', message:'Argument error, options.multipart.'}
 
   if (self.preambleCRLF) {
     self.body.push(new Buffer('\r\n'))
@@ -887,7 +896,7 @@ Request.prototype.multipart = function (multipart) {
   
   multipart.forEach(function (part) {
     var body = part.body
-    if(body == null) throw Error('Body attribute missing in multipart.')
+    if(body == null) throw{name:'ArgumentError', message:'Body attribute missing in multipart.'}
     delete part.body
     var preamble = '--' + self.boundary + '\r\n'
     Object.keys(part).forEach(function (key) {
@@ -926,7 +935,7 @@ function getHeader(name, headers) {
 }
 Request.prototype.auth = function (user, pass, sendImmediately) {
   if (typeof user !== 'string' || typeof pass !== 'string') {
-    throw new Error('auth() received invalid user or password')
+    throw{name:'ArgumentError', message:'auth() received invalid user or password'}
   }
   this._user = user
   this._pass = pass
@@ -1053,9 +1062,9 @@ Request.prototype.jar = function (jar) {
 Request.prototype.pipe = function (dest, opts) {
   if (this.response) {
     if (this._destdata) {
-      throw new Error("You cannot pipe after data has been emitted from the response.")
+      throw{name:'PipeError', message:'You cannot pipe after data has been emitted from the response.'}
     } else if (this._ended) {
-      throw new Error("You cannot pipe after the response has been ended.")
+      throw{name:'PipeError', message:'You cannot pipe after the response has been ended.'}
     } else {
       stream.Stream.prototype.pipe.call(this, dest, opts)
       this.pipeDest(dest)
@@ -1103,7 +1112,7 @@ function initParams(uri, options, callback) {
 }
 
 function request (uri, options, callback) {
-  if (typeof uri === 'undefined') throw new Error('undefined is not a valid uri or options object.')
+  if (typeof uri === 'undefined') throw{name:'URIError', message:'undefined is not a valid uri or options object.'}
   if ((typeof options === 'function') && !callback) callback = options
   if (options && typeof options === 'object') {
     options.uri = uri
@@ -1189,7 +1198,7 @@ request.head = function (uri, options, callback) {
       params.options.requestBodyStream || 
       (params.options.json && typeof params.options.json !== 'boolean') || 
       params.options.multipart) {
-    throw new Error("HTTP HEAD requests MUST NOT include a request body.")
+    throw{name:'ArgumentError', message:'HTTP HEAD requests MUST NOT include a request body.'}
   }
   return request(params.uri || null, params.options, params.callback)
 }
@@ -1206,7 +1215,7 @@ request.jar = function () {
 }
 request.cookie = function (str) {
   if (str && str.uri) str = str.uri
-  if (typeof str !== 'string') throw new Error("The cookie function only accepts STRING as param")
+  if (typeof str !== 'string') throw{name:'ArgumentError', message:'The cookie function only accepts STRING as param'}
   return new Cookie(str)
 }
 
