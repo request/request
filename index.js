@@ -565,224 +565,7 @@ Request.prototype.start = function () {
   var reqOptions = copy(self)
   delete reqOptions.auth
 
-  self.req = self.httpModule.request(reqOptions, function (response) {
-    if (response.connection.listeners('error').indexOf(self._parserErrorHandler) === -1) {
-      response.connection.once('error', self._parserErrorHandler)
-    }
-    if (self._aborted) return
-    if (self._paused) response.pause()
-
-    self.response = response
-    response.request = self
-    response.toJSON = toJSON
-
-    if (self.httpModule === https &&
-        self.strictSSL &&
-        !response.client.authorized) {
-      var sslErr = response.client.authorizationError
-      self.emit('error', new Error('SSL Error: '+ sslErr))
-      return
-    }
-
-    if (self.setHost) delete self.headers.host
-    if (self.timeout && self.timeoutTimer) {
-      clearTimeout(self.timeoutTimer)
-      self.timeoutTimer = null
-    }  
-
-    var addCookie = function (cookie) {
-      if (self._jar) self._jar.add(new Cookie(cookie))
-      else cookieJar.add(new Cookie(cookie))
-    }
-
-    if (response.headers['set-cookie'] && (!self._disableCookies)) {
-      if (Array.isArray(response.headers['set-cookie'])) response.headers['set-cookie'].forEach(addCookie)
-      else addCookie(response.headers['set-cookie'])
-    }
-
-    var redirectTo = null
-    if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
-      if (self.followAllRedirects) {
-        redirectTo = response.headers.location
-      } else if (self.followRedirect) {
-        switch (self.method) {
-          case 'PATCH':
-          case 'PUT':
-          case 'POST':
-          case 'DELETE':
-            // Do not follow redirects
-            break
-          default:
-            redirectTo = response.headers.location
-            break
-        }
-      }
-    } else if (response.statusCode == 401 && self._hasAuth && !self._sentAuth) {
-      var authHeader = response.headers['www-authenticate']
-      var authVerb = authHeader && authHeader.split(' ')[0]
-      switch (authVerb) {
-        case 'Basic':
-          self.auth(self._user, self._pass, true)
-          redirectTo = self.uri
-          break
-
-        case 'Digest':
-          // TODO: More complete implementation of RFC 2617.  For reference:
-          // http://tools.ietf.org/html/rfc2617#section-3
-          // https://github.com/bagder/curl/blob/master/lib/http_digest.c
-
-          var matches = authHeader.match(/([a-z0-9_-]+)="([^"]+)"/gi)
-          var challenge = {}
-
-          for (var i = 0; i < matches.length; i++) {
-            var eqPos = matches[i].indexOf('=')
-            var key = matches[i].substring(0, eqPos)
-            var quotedValue = matches[i].substring(eqPos + 1)
-            challenge[key] = quotedValue.substring(1, quotedValue.length - 1)
-          }
-
-          var ha1 = md5(self._user + ':' + challenge.realm + ':' + self._pass)
-          var ha2 = md5(self.method + ':' + self.uri.path)
-          var digestResponse = md5(ha1 + ':' + challenge.nonce + ':1::auth:' + ha2)
-          var authValues = {
-            username: self._user,
-            realm: challenge.realm,
-            nonce: challenge.nonce,
-            uri: self.uri.path,
-            qop: challenge.qop,
-            response: digestResponse,
-            nc: 1,
-            cnonce: ''
-          }
-
-          authHeader = []
-          for (var k in authValues) {
-            authHeader.push(k + '="' + authValues[k] + '"')
-          }
-          authHeader = 'Digest ' + authHeader.join(', ')
-          self.setHeader('authorization', authHeader)
-          self._sentAuth = true
-
-          redirectTo = self.uri
-          break
-      }
-    }
-
-    if (redirectTo) {
-      if (self._redirectsFollowed >= self.maxRedirects) {
-        self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop "+self.uri.href))
-        return
-      }
-      self._redirectsFollowed += 1
-
-      if (!isUrl.test(redirectTo)) {
-        redirectTo = url.resolve(self.uri.href, redirectTo)
-      }
-
-      var uriPrev = self.uri
-      self.uri = url.parse(redirectTo)
-
-      // handle the case where we change protocol from https to http or vice versa
-      if (self.uri.protocol !== uriPrev.protocol) {
-        self._updateProtocol()
-      }
-
-      self.redirects.push(
-        { statusCode : response.statusCode
-        , redirectUri: redirectTo
-        }
-      )
-      if (self.followAllRedirects && response.statusCode != 401) self.method = 'GET'
-      // self.method = 'GET' // Force all redirects to use GET || commented out fixes #215
-      delete self.src
-      delete self.req
-      delete self.agent
-      delete self._started
-      if (response.statusCode != 401) {
-        delete self.body
-        delete self._form
-      }
-      if (self.headers) {
-        delete self.headers.host
-        delete self.headers['content-type']
-        delete self.headers['content-length']
-      }
-      self.init()
-      return // Ignore the rest of the response
-    } else {
-      self._redirectsFollowed = self._redirectsFollowed || 0
-      // Be a good stream and emit end when the response is finished.
-      // Hack to emit end on close because of a core bug that never fires end
-      response.on('close', function () {
-        if (!self._ended) self.response.emit('end')
-      })
-
-      if (self.encoding) {
-        if (self.dests.length !== 0) {
-          console.error("Ingoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.")
-        } else {
-          response.setEncoding(self.encoding)
-        }
-      }
-
-      self.dests.forEach(function (dest) {
-        self.pipeDest(dest)
-      })
-
-      response.on("data", function (chunk) {
-        self._destdata = true
-        self.emit("data", chunk)
-      })
-      response.on("end", function (chunk) {
-        self._ended = true
-        self.emit("end", chunk)
-      })
-      response.on("close", function () {self.emit("close")})
-
-      self.emit('response', response)
-
-      if (self.callback) {
-        var buffer = []
-        var bodyLen = 0
-        self.on("data", function (chunk) {
-          buffer.push(chunk)
-          bodyLen += chunk.length
-        })
-        self.on("end", function () {
-          if (self._aborted) return
-          
-          if (buffer.length && Buffer.isBuffer(buffer[0])) {
-            var body = new Buffer(bodyLen)
-            var i = 0
-            buffer.forEach(function (chunk) {
-              chunk.copy(body, i, 0, chunk.length)
-              i += chunk.length
-            })
-            if (self.encoding === null) {
-              response.body = body
-            } else {
-              response.body = body.toString(self.encoding)
-            }
-          } else if (buffer.length) {
-            // The UTF8 BOM [0xEF,0xBB,0xBF] is converted to [0xFE,0xFF] in the JS UTC16/UCS2 representation.
-            // Strip this value out when the encoding is set to 'utf8', as upstream consumers won't expect it and it breaks JSON.parse().
-            if (self.encoding === 'utf8' && buffer[0].length > 0 && buffer[0][0] === "\uFEFF") {
-              buffer[0] = buffer[0].substring(1)
-            }
-            response.body = buffer.join('')
-          }
-
-          if (self._json) {
-            try {
-              response.body = JSON.parse(response.body)
-            } catch (e) {}
-          }
-          
-          self.emit('complete', response, response.body)
-        })
-      }
-    }
-  })
+  self.req = self.httpModule.request(reqOptions, self.onResponse.bind(self))
 
   if (self.timeout && !self.timeoutTimer) {
     self.timeoutTimer = setTimeout(function () {
@@ -814,6 +597,226 @@ Request.prototype.start = function () {
     if ( self.req.connection ) self.req.connection.removeListener('error', self._parserErrorHandler)
   })
   self.emit('request', self.req)
+}
+Request.prototype.onResponse = function (response) {
+  var self = this
+  
+  if (response.connection.listeners('error').indexOf(self._parserErrorHandler) === -1) {
+    response.connection.once('error', self._parserErrorHandler)
+  }
+  if (self._aborted) return
+  if (self._paused) response.pause()
+
+  self.response = response
+  response.request = self
+  response.toJSON = toJSON
+
+  if (self.httpModule === https &&
+      self.strictSSL &&
+      !response.client.authorized) {
+    var sslErr = response.client.authorizationError
+    self.emit('error', new Error('SSL Error: '+ sslErr))
+    return
+  }
+
+  if (self.setHost) delete self.headers.host
+  if (self.timeout && self.timeoutTimer) {
+    clearTimeout(self.timeoutTimer)
+    self.timeoutTimer = null
+  }  
+
+  var addCookie = function (cookie) {
+    if (self._jar) self._jar.add(new Cookie(cookie))
+    else cookieJar.add(new Cookie(cookie))
+  }
+
+  if (response.headers['set-cookie'] && (!self._disableCookies)) {
+    if (Array.isArray(response.headers['set-cookie'])) response.headers['set-cookie'].forEach(addCookie)
+    else addCookie(response.headers['set-cookie'])
+  }
+
+  var redirectTo = null
+  if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+    if (self.followAllRedirects) {
+      redirectTo = response.headers.location
+    } else if (self.followRedirect) {
+      switch (self.method) {
+        case 'PATCH':
+        case 'PUT':
+        case 'POST':
+        case 'DELETE':
+          // Do not follow redirects
+          break
+        default:
+          redirectTo = response.headers.location
+          break
+      }
+    }
+  } else if (response.statusCode == 401 && self._hasAuth && !self._sentAuth) {
+    var authHeader = response.headers['www-authenticate']
+    var authVerb = authHeader && authHeader.split(' ')[0]
+    switch (authVerb) {
+      case 'Basic':
+        self.auth(self._user, self._pass, true)
+        redirectTo = self.uri
+        break
+
+      case 'Digest':
+        // TODO: More complete implementation of RFC 2617.  For reference:
+        // http://tools.ietf.org/html/rfc2617#section-3
+        // https://github.com/bagder/curl/blob/master/lib/http_digest.c
+
+        var matches = authHeader.match(/([a-z0-9_-]+)="([^"]+)"/gi)
+        var challenge = {}
+
+        for (var i = 0; i < matches.length; i++) {
+          var eqPos = matches[i].indexOf('=')
+          var key = matches[i].substring(0, eqPos)
+          var quotedValue = matches[i].substring(eqPos + 1)
+          challenge[key] = quotedValue.substring(1, quotedValue.length - 1)
+        }
+
+        var ha1 = md5(self._user + ':' + challenge.realm + ':' + self._pass)
+        var ha2 = md5(self.method + ':' + self.uri.path)
+        var digestResponse = md5(ha1 + ':' + challenge.nonce + ':1::auth:' + ha2)
+        var authValues = {
+          username: self._user,
+          realm: challenge.realm,
+          nonce: challenge.nonce,
+          uri: self.uri.path,
+          qop: challenge.qop,
+          response: digestResponse,
+          nc: 1,
+          cnonce: ''
+        }
+
+        authHeader = []
+        for (var k in authValues) {
+          authHeader.push(k + '="' + authValues[k] + '"')
+        }
+        authHeader = 'Digest ' + authHeader.join(', ')
+        self.setHeader('authorization', authHeader)
+        self._sentAuth = true
+
+        redirectTo = self.uri
+        break
+    }
+  }
+
+  if (redirectTo) {
+    if (self._redirectsFollowed >= self.maxRedirects) {
+      self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop "+self.uri.href))
+      return
+    }
+    self._redirectsFollowed += 1
+
+    if (!isUrl.test(redirectTo)) {
+      redirectTo = url.resolve(self.uri.href, redirectTo)
+    }
+
+    var uriPrev = self.uri
+    self.uri = url.parse(redirectTo)
+
+    // handle the case where we change protocol from https to http or vice versa
+    if (self.uri.protocol !== uriPrev.protocol) {
+      self._updateProtocol()
+    }
+
+    self.redirects.push(
+      { statusCode : response.statusCode
+      , redirectUri: redirectTo
+      }
+    )
+    if (self.followAllRedirects && response.statusCode != 401) self.method = 'GET'
+    // self.method = 'GET' // Force all redirects to use GET || commented out fixes #215
+    delete self.src
+    delete self.req
+    delete self.agent
+    delete self._started
+    if (response.statusCode != 401) {
+      delete self.body
+      delete self._form
+    }
+    if (self.headers) {
+      delete self.headers.host
+      delete self.headers['content-type']
+      delete self.headers['content-length']
+    }
+    self.init()
+    return // Ignore the rest of the response
+  } else {
+    self._redirectsFollowed = self._redirectsFollowed || 0
+    // Be a good stream and emit end when the response is finished.
+    // Hack to emit end on close because of a core bug that never fires end
+    response.on('close', function () {
+      if (!self._ended) self.response.emit('end')
+    })
+
+    if (self.encoding) {
+      if (self.dests.length !== 0) {
+        console.error("Ingoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.")
+      } else {
+        response.setEncoding(self.encoding)
+      }
+    }
+
+    self.dests.forEach(function (dest) {
+      self.pipeDest(dest)
+    })
+
+    response.on("data", function (chunk) {
+      self._destdata = true
+      self.emit("data", chunk)
+    })
+    response.on("end", function (chunk) {
+      self._ended = true
+      self.emit("end", chunk)
+    })
+    response.on("close", function () {self.emit("close")})
+
+    self.emit('response', response)
+
+    if (self.callback) {
+      var buffer = []
+      var bodyLen = 0
+      self.on("data", function (chunk) {
+        buffer.push(chunk)
+        bodyLen += chunk.length
+      })
+      self.on("end", function () {
+        if (self._aborted) return
+          
+        if (buffer.length && Buffer.isBuffer(buffer[0])) {
+          var body = new Buffer(bodyLen)
+          var i = 0
+          buffer.forEach(function (chunk) {
+            chunk.copy(body, i, 0, chunk.length)
+            i += chunk.length
+          })
+          if (self.encoding === null) {
+            response.body = body
+          } else {
+            response.body = body.toString(self.encoding)
+          }
+        } else if (buffer.length) {
+          // The UTF8 BOM [0xEF,0xBB,0xBF] is converted to [0xFE,0xFF] in the JS UTC16/UCS2 representation.
+          // Strip this value out when the encoding is set to 'utf8', as upstream consumers won't expect it and it breaks JSON.parse().
+          if (self.encoding === 'utf8' && buffer[0].length > 0 && buffer[0][0] === "\uFEFF") {
+            buffer[0] = buffer[0].substring(1)
+          }
+          response.body = buffer.join('')
+        }
+
+        if (self._json) {
+          try {
+            response.body = JSON.parse(response.body)
+          } catch (e) {}
+        }
+          
+        self.emit('complete', response, response.body)
+      })
+    }
+  }
 }
 
 Request.prototype.abort = function () {
