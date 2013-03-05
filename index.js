@@ -764,6 +764,11 @@ Request.prototype.start = function () {
               response.body = body.toString(self.encoding)
             }
           } else if (buffer.length) {
+            // The UTF8 BOM [0xEF,0xBB,0xBF] is converted to [0xFE,0xFF] in the JS UTC16/UCS2 representation.
+            // Strip this value out when the encoding is set to 'utf8', as upstream consumers won't expect it and it breaks JSON.parse().
+            if (self.encoding === 'utf8' && buffer[0].length > 0 && buffer[0][0] === "\uFEFF") {
+              buffer[0] = buffer[0].substring(1)
+            }
             response.body = buffer.join('')
           }
 
