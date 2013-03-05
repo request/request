@@ -23,7 +23,7 @@
   "dependencies": {
     "form-data": "~0.0.3",
     "mime": "~1.2.7",
-    "hawk": "~0.9.0",
+    "hawk": "~0.10.0",
     "node-uuid": "~1.4.0",
     "cookie-jar": "~0.2.0",
     "aws-sign": "~0.2.0",

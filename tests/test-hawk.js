@@ -16,7 +16,7 @@ var server = createServer(function (req, resp) {
     return callback(null, credentials)
   }
 
-  hawk.authenticate(req, getCred, {}, function (err, credentials, attributes) {
+  hawk.server.authenticate(req, getCred, {}, function (err, credentials, attributes) {
     resp.writeHead(!err ? 200 : 401, { 'Content-Type': 'text/plain' })
     resp.end(!err ? 'Hello ' + credentials.user : 'Shoosh!')
   })
