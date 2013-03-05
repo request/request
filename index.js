@@ -1074,13 +1074,12 @@ Request.prototype.pipe = function (dest, opts) {
     } else {
       Stream.prototype.pipe.call(this, dest, opts)
       this.pipeDest(dest)
-      return dest
     }
   } else {
     this.dests.push(dest)
     Stream.prototype.pipe.call(this, dest, opts)
-    return dest
   }
+  return dest
 }
 Request.prototype.write = function () {
   if (!this._started) this.start()
