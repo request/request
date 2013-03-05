@@ -18,7 +18,7 @@ var http = require('http')
   , zlib = require('zlib')
   , url = require('url')
   , util = require('util')
-  , stream = require('stream')
+  , Stream = require('stream').Stream
   , qs = require('querystring')
   , crypto = require('crypto')
   
@@ -68,7 +68,7 @@ var isUrl = /^https?:/
 var globalPool = {}
 
 function Request (options) {
-  stream.Stream.call(this)
+  Stream.call(this)
   this.readable = true
   this.writable = true
 
@@ -89,7 +89,7 @@ function Request (options) {
   
   this.init(options)
 }
-util.inherits(Request, stream.Stream)
+util.inherits(Request, Stream)
 Request.prototype.init = function (options) {
   // init() contains all the code to setup the request object.
   // the actual outgoing request is not started until start() is called
@@ -1072,13 +1072,13 @@ Request.prototype.pipe = function (dest, opts) {
     } else if (this._ended) {
       throw new Error("You cannot pipe after the response has been ended.")
     } else {
-      stream.Stream.prototype.pipe.call(this, dest, opts)
+      Stream.prototype.pipe.call(this, dest, opts)
       this.pipeDest(dest)
       return dest
     }
   } else {
     this.dests.push(dest)
-    stream.Stream.prototype.pipe.call(this, dest, opts)
+    Stream.prototype.pipe.call(this, dest, opts)
     return dest
   }
 }
