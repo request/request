@@ -981,7 +981,7 @@ Request.prototype.aws = function (opts, now) {
 }
 
 Request.prototype.hawk = function (opts) {
-  this.headers.Authorization = hawk.getAuthorizationHeader(this.uri, this.method, opts)
+  this.headers.Authorization = hawk.client.header(this.uri, this.method, opts).field
 }
 
 Request.prototype.oauth = function (_oauth) {
