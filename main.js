@@ -315,7 +315,9 @@ Request.prototype.init = function (options) {
       if(!self.headers['content-length'] && !self.headers['Content-Length'])
       self.headers['content-length'] = length
     } else {
-      throw{name:'ArgumentError', message:'Argument error, options.body.'}
+      var error = new Error('Argument error, options.body.')
+      error.name = 'ArgumentError'
+      throw error
     }
   }
 
@@ -325,7 +327,7 @@ Request.prototype.init = function (options) {
     ;
   self.httpModule = httpModules[protocol] || defaultModules[protocol]
 
-  if (!self.httpModule){
+  if (!self.httpModule) {
     var error = new Error('Invalid protocol')
     error.name = 'URIError'
     return this.emit('error', error)
@@ -360,7 +362,11 @@ Request.prototype.init = function (options) {
   }
 
   self.once('pipe', function (src) {
-    if (self.ntick && self._started) throw{name:'PipeError', message:'You cannot pipe to this stream after the outbound request has started.'}
+    if (self.ntick && self._started) {
+      var error = new Error('You cannot pipe to this stream after the outbound request has started.')
+      error.name = 'PipeError'
+      throw error
+    }
     self.src = src
     if (isReadStream(src)) {
       if (!self.headers['content-type'] && !self.headers['Content-Type'])
@@ -888,7 +894,10 @@ Request.prototype.multipart = function (multipart) {
     self.headers['content-type'] = self.headers['content-type'].split(';')[0] + '; boundary=' + self.boundary
   }
 
-  if (!multipart.forEach) throw{name:'ArgumentError', message:'Argument error, options.multipart.'}
+  if (!multipart.forEach) {
+    var error = new Error('Argument error, options.multipart.')
+    error.name = 'ArgumentError'
+  }
 
   if (self.preambleCRLF) {
     self.body.push(new Buffer('\r\n'))
@@ -896,7 +905,11 @@ Request.prototype.multipart = function (multipart) {
   
   multipart.forEach(function (part) {
     var body = part.body
-    if(body == null) throw{name:'ArgumentError', message:'Body attribute missing in multipart.'}
+    if(body == null) {
+      var error = new Error('Body attribute missing in multipart.')
+      error.name = 'ArgumentError'
+      throw error
+    }
     delete part.body
     var preamble = '--' + self.boundary + '\r\n'
     Object.keys(part).forEach(function (key) {
@@ -935,7 +948,9 @@ function getHeader(name, headers) {
 }
 Request.prototype.auth = function (user, pass, sendImmediately) {
   if (typeof user !== 'string' || typeof pass !== 'string') {
-    throw{name:'ArgumentError', message:'auth() received invalid user or password'}
+    var error = new Error('auth() received invalid user or password')
+    error.name = 'ArgumentError'
+    throw error
   }
   this._user = user
   this._pass = pass
@@ -1062,9 +1077,13 @@ Request.prototype.jar = function (jar) {
 Request.prototype.pipe = function (dest, opts) {
   if (this.response) {
     if (this._destdata) {
-      throw{name:'PipeError', message:'You cannot pipe after data has been emitted from the response.'}
+      var error = new Error('You cannot pipe after data has been emitted from the response.')
+      error.name = 'PipeError'
+      throw error
     } else if (this._ended) {
-      throw{name:'PipeError', message:'You cannot pipe after the response has been ended.'}
+      var error = new Error('You cannot pipe after the response has been ended.')
+      error.name = 'PipeError'
+      throw error
     } else {
       stream.Stream.prototype.pipe.call(this, dest, opts)
       this.pipeDest(dest)
@@ -1112,7 +1131,11 @@ function initParams(uri, options, callback) {
 }
 
 function request (uri, options, callback) {
-  if (typeof uri === 'undefined') throw{name:'URIError', message:'undefined is not a valid uri or options object.'}
+  if (typeof uri === 'undefined') {
+    var error = new Error('undefined is not a valid uri or options object.')
+    error.name = 'URIError'
+    throw error
+  }
   if ((typeof options === 'function') && !callback) callback = options
   if (options && typeof options === 'object') {
     options.uri = uri
@@ -1198,7 +1221,9 @@ request.head = function (uri, options, callback) {
       params.options.requestBodyStream || 
       (params.options.json && typeof params.options.json !== 'boolean') || 
       params.options.multipart) {
-    throw{name:'ArgumentError', message:'HTTP HEAD requests MUST NOT include a request body.'}
+    var error = new Error('HTTP HEAD requests MUST NOT include a request body.')
+    error.name = 'ArgumentError'
+    throw error
   }
   return request(params.uri || null, params.options, params.callback)
 }
@@ -1215,7 +1240,11 @@ request.jar = function () {
 }
 request.cookie = function (str) {
   if (str && str.uri) str = str.uri
-  if (typeof str !== 'string') throw{name:'ArgumentError', message:'The cookie function only accepts STRING as param'}
+  if (typeof str !== 'string') {
+    var error = new Error('The cookie function only accepts STRING as param')
+    error.name = 'ArgumentError'
+    throw error
+  }
   return new Cookie(str)
 }
 
