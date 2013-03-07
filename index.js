@@ -790,7 +790,7 @@ Request.prototype.onResponse = function (response) {
         'gzip': zlib.gunzip,
         'deflate': zlib.inflate
       }
-      unzip = unzip[ce]
+      unzip = self.gzip && unzip[ce]
 
       self.on("data", function (chunk) {
         buffer.push(chunk)
