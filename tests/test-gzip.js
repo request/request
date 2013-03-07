@@ -4,6 +4,9 @@ var zlib = require('zlib')
 var request = require('../index')
 
 var server = http.createServer(function(req, res) {
+  var accept = req.headers['accept-encoding']
+  assert.equal(accept, 'gzip,deflate')
+
   if (req.url === '/deflate') {
     res.writeHead(200, {'content-encoding': 'deflate'})
     zlib.deflate('deflate', function(err, content) {
@@ -23,12 +26,16 @@ var server = http.createServer(function(req, res) {
 
 server.listen(8081, function() {
 
-  request.get('http://localhost:8081/deflate', function (err, res, body) {
-    console.log(body)
+  request.get({
+    uri: 'http://localhost:8081/deflate',
+    gzip: true
+  } , function (err, res, body) {
     assert.equal(body, 'deflate');
 
-    request.get('http://localhost:8081/gzip', function (err, res, body) {
-      console.log(body)
+    request.get({
+      uri: 'http://localhost:8081/gzip',
+      gzip: true
+    }, function (err, res, body) {
       assert.equal(body, 'gzip');
       server.close()
     });
