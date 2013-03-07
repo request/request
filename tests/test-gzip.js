@@ -42,3 +42,9 @@ server.listen(8081, function() {
   })
 
 });
+
+// test for real world
+request.get({uri: 'http://code.jquery.com/jquery-1.9.1.js', gzip: true}, function(err, res, body) {
+  assert.equal(res.headers['content-encoding'], 'gzip')
+  assert.ok(body.indexOf('jQuery') > 0)
+})
