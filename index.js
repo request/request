@@ -20,6 +20,7 @@ var http = require('http')
   , stream = require('stream')
   , qs = require('querystring')
   , crypto = require('crypto')
+  , zlib = require('zlib')
 
   , oauth = require('oauth-sign')
   , hawk = require('hawk')
@@ -553,6 +554,10 @@ Request.prototype.start = function () {
   self.method = self.method || 'GET'
   self.href = self.uri.href
 
+  if (self.gzip) {
+    self.headers['accept-encoding'] = 'gzip,deflate'
+  }
+
   if (self.src && self.src.stat && self.src.stat.size && !self.headers['content-length'] && !self.headers['Content-Length']) {
     self.headers['content-length'] = self.src.stat.size
   }
@@ -779,6 +784,14 @@ Request.prototype.onResponse = function (response) {
     if (self.callback) {
       var buffer = []
       var bodyLen = 0
+
+      var ce = response.headers['content-encoding'] || 'none'
+      var unzip = {
+        'gzip': zlib.gunzip,
+        'deflate': zlib.inflate
+      }
+      unzip = unzip[ce]
+
       self.on("data", function (chunk) {
         buffer.push(chunk)
         bodyLen += chunk.length
@@ -793,7 +806,7 @@ Request.prototype.onResponse = function (response) {
             chunk.copy(body, i, 0, chunk.length)
             i += chunk.length
           })
-          if (self.encoding === null) {
+          if (self.encoding === null || unzip) {
             response.body = body
           } else {
             response.body = body.toString(self.encoding)
@@ -807,13 +820,36 @@ Request.prototype.onResponse = function (response) {
           response.body = buffer.join('')
         }
 
-        if (self._json) {
-          try {
-            response.body = JSON.parse(response.body)
-          } catch (e) {}
-        }
+        if (unzip) {
+          unzip(response.body, function(err, content) {
+            if (err) {
+              self.emit('error', err);
+              return;
+            }
 
-        self.emit('complete', response, response.body)
+            if (self.encoding === null) {
+              response.body = content
+            } else {
+              response.body = content.toString(self.encoding)
+            }
+
+            if (self._json) {
+              try {
+                response.body = JSON.parse(response.body)
+              } catch (e) {}
+            }
+
+            self.emit('complete', response, response.body)
+          });
+        } else {
+          if (self._json) {
+            try {
+              response.body = JSON.parse(response.body)
+            } catch (e) {}
+          }
+
+          self.emit('complete', response, response.body)
+        }
       })
     }
   }
