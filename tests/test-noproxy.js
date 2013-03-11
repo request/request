@@ -19,7 +19,7 @@
 
 var assert = require("assert")
   , http = require('http')
-  , request = require('../main.js')
+  , request = require('../index.js')
   //We create a server and a proxy.
   , server = http.createServer(function(req, res){
       res.statusCode = 200

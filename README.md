@@ -115,6 +115,26 @@ form.append('my_file', fs.createReadStream(path.join(__dirname, 'doodle.png'))
 form.append('remote_file', request('http://google.com/doodle.png'))
 ```
 
+## HTTP Authentication
+
+```javascript
+request.auth('username', 'password', false).get('http://some.server.com/');
+// or
+request.get('http://some.server.com/', {
+  'auth': {
+    'user': 'username',
+    'pass': 'password',
+    'sendImmediately': false
+  }
+});
+```
+
+If passed as an option, `auth` should be a hash containing values `user` || `username`, `password` || `pass`, and `sendImmediately` (optional).  The method form takes parameters `auth(username, password, sendImmediately)`.
+
+`sendImmediately` defaults to true, which will cause a basic authentication header to be sent.  If `sendImmediately` is `false`, then `request` will retry with a proper authentication header after receiving a 401 response from the server (which must contain a `WWW-Authenticate` header indicating the required authentication method).
+
+Digest authentication is supported, but it only works with `sendImmediately` set to `false` (otherwise `request` will send basic authentication on the initial request, which will probably cause the request to fail).
+
 ## OAuth Signing
 
 ```javascript
@@ -128,14 +148,16 @@ var qs = require('querystring')
   , url = 'https://api.twitter.com/oauth/request_token'
   ;
 request.post({url:url, oauth:oauth}, function (e, r, body) {
-  // Assume by some stretch of magic you aquired the verifier
+  // Ideally, you would take the body in the response
+  // and construct a URL that a user clicks on (like a sign in button).
+  // The verifier is only available in the response after a user has 
+  // verified with twitter that they are authorizing your app.
   var access_token = qs.parse(body)
     , oauth = 
       { consumer_key: CONSUMER_KEY
       , consumer_secret: CONSUMER_SECRET
       , token: access_token.oauth_token
-      , verifier: VERIFIER
-      , token_secret: access_token.oauth_token_secret
+      , verifier: access_token.oauth_verifier
       }
     , url = 'https://api.twitter.com/oauth/access_token'
     ;
@@ -171,8 +193,9 @@ The first argument can be either a url or an options object. The only required o
 * `qs` - object containing querystring values to be appended to the uri
 * `method` - http method, defaults to GET
 * `headers` - http headers, defaults to {}
-* `body` - entity body for POST and PUT requests. Must be buffer or string.
+* `body` - entity body for PATCH, POST and PUT requests. Must be buffer or string.
 * `form` - when passed an object this will set `body` but to a querystring representation of value and adds `Content-type: application/x-www-form-urlencoded; charset=utf-8` header. When passed no option a FormData instance is returned that will be piped to request.
+* `auth` - A hash containing values `user` || `username`, `password` || `pass`, and `sendImmediately` (optional).  See documentation above.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as json.
 * `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
 * `followRedirect` - follow HTTP 3xx responses as redirects. defaults to true.
@@ -185,6 +208,7 @@ The first argument can be either a url or an options object. The only required o
 * `proxy` - An HTTP proxy to be used. Support proxy Auth with Basic Auth the same way it's supported with the `url` parameter by embedding the auth info in the uri.
 * `noproxy` - String of hostnames which won't use proxy when being requested.
 * `oauth` - Options for OAuth HMAC-SHA1 signing, see documentation above.
+* `hawk` - Options for [Hawk signing](https://github.com/hueniverse/hawk). The `credentials` key must contain the necessary signing info, [see hawk docs for details](https://github.com/hueniverse/hawk#usage-example).
 * `strictSSL` - Set to `true` to require that SSL certificates be valid. Note: to use your own certificate authority, you need to specify an agent that was created with that ca as an option.
 * `jar` - Set to `false` if you don't want cookies to be remembered for future use or define your custom cookie jar (see examples section)
 * `aws` - object containing aws signing information, should have the properties `key` and `secret` as well as `bucket` unless you're specifying your bucket as part of the path, or you are making a request that doesn't use a bucket (i.e. GET Services)
@@ -206,6 +230,14 @@ Same as request() but defaults to `method: "PUT"`.
 
 ```javascript
 request.put(url)
+```
+
+### request.patch
+
+Same as request() but defaults to `method: "PATCH"`.
+
+```javascript
+request.patch(url)
 ```
 
 ### request.post

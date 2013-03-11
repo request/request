@@ -2,7 +2,7 @@ var http = require('http')
   , https = require('https')
   , server = require('./server')
   , assert = require('assert')
-  , request = require('../main.js')
+  , request = require('../index')
 
 
 var faux_requests_made = {'http':0, 'https':0}

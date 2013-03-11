@@ -6,7 +6,7 @@
 
 var server = require('./server')
   , assert = require('assert')
-  , request = require('../main.js')
+  , request = require('../index')
   , fs = require('fs')
   , path = require('path')
   , caFile = path.resolve(__dirname, 'ssl/npm-ca.crt')
