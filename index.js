@@ -147,7 +147,15 @@ Request.prototype.init = function (options) {
   } else {
     if (typeof self.uri == "string") self.uri = url.parse(self.uri)
   }
-  
+
+  if(self.noproxy) {
+    if(typeof self.noproxy == 'string') {
+      if(self.noproxy.search(self.uri.hostname) !== -1) {
+        delete self.proxy
+      }
+    }
+  }
+
   if (self.proxy) {
     if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
 
