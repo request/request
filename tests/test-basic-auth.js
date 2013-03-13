@@ -60,7 +60,15 @@ request({
     assert.equal(response.statusCode, 200);
     assert.equal(numBasicRequests, 3);
 
-    console.log('All tests passed');
-    basicServer.close();
+    request({
+      'method': 'GET',
+      'uri': 'http://test:testing2@localhost:6767/test2/'
+    }, function(error, response, body) {
+      assert.equal(response.statusCode, 200);
+      assert.equal(numBasicRequests, 4);
+
+      console.log('All tests passed');
+      basicServer.close();
+    });
   });
 });

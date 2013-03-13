@@ -19,6 +19,7 @@ var http = require('http')
   , util = require('util')
   , stream = require('stream')
   , qs = require('qs')
+  , querystring = require('querystring')
   , crypto = require('crypto')
   
   , oauth = require('oauth-sign')
@@ -293,11 +294,11 @@ Request.prototype.init = function (options) {
   }
 
   if (self.uri.auth && !self.headers.authorization) {
-    var authPieces = self.uri.auth.split(':').map(function(item){ return qs.unescape(item) })
+    var authPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
     self.auth(authPieces[0], authPieces[1], true)
   }
   if (self.proxy && self.proxy.auth && !self.headers['proxy-authorization'] && !self.tunnel) {
-    self.headers['proxy-authorization'] = "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return qs.unescape(item)}).join(':'))
+    self.headers['proxy-authorization'] = "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return querystring.unescape(item)}).join(':'))
   }
 
   
