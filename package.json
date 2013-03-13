@@ -30,7 +30,8 @@
     "oauth-sign": "~0.2.0",
     "forever-agent": "~0.2.0",
     "tunnel-agent": "~0.2.0",
-    "json-stringify-safe": "~3.0.0"
+    "json-stringify-safe": "~3.0.0",
+    "qs": "~0.5.0"
   },
   "scripts": {
     "test": "node tests/run.js"
