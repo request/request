@@ -623,14 +623,17 @@ Request.prototype.onResponse = function (response) {
   }
   if (self._aborted) {
     debug('aborted', self.uri.href)
+    response.resume()
     return
   }
   if (self._paused) response.pause()
+  else response.resume()
 
   self.response = response
   response.request = self
   response.toJSON = toJSON
 
+  // XXX This is different on 0.10, because SSL is strict by default
   if (self.httpModule === https &&
       self.strictSSL &&
       !response.client.authorized) {
@@ -659,6 +662,7 @@ Request.prototype.onResponse = function (response) {
   var redirectTo = null
   if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
     debug('redirect', response.headers.location)
+
     if (self.followAllRedirects) {
       redirectTo = response.headers.location
     } else if (self.followRedirect) {
@@ -678,6 +682,7 @@ Request.prototype.onResponse = function (response) {
     var authHeader = response.headers['www-authenticate']
     var authVerb = authHeader && authHeader.split(' ')[0]
     debug('reauth', authVerb)
+
     switch (authVerb) {
       case 'Basic':
         self.auth(self._user, self._pass, true)
@@ -728,6 +733,11 @@ Request.prototype.onResponse = function (response) {
 
   if (redirectTo) {
     debug('redirect to', redirectTo)
+
+    // ignore any potential response body.  it cannot possibly be useful
+    // to us at this point.
+    if (self._paused) response.resume()
+
     if (self._redirectsFollowed >= self.maxRedirects) {
       self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop "+self.uri.href))
       return
