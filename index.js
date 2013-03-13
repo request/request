@@ -344,6 +344,10 @@ Request.prototype.init = function (options) {
       self.agentClass = self.httpModule.Agent
     }
   }
+  
+  if (self.strictSSL === false) {
+    self.rejectUnauthorized = false
+  }
 
   if (self.pool === false) {
     self.agent = false
@@ -486,8 +490,7 @@ Request.prototype.getAgent = function () {
     }
   }
   if (this.ca) options.ca = this.ca
-  if (typeof this.rejectUnauthorized !== 'undefined')
-    options.rejectUnauthorized = this.rejectUnauthorized;
+  if (typeof this.rejectUnauthorized !== 'undefined') options.rejectUnauthorized = this.rejectUnauthorized
 
   if (this.cert && this.key) {
     options.key = this.key
