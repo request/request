@@ -963,15 +963,21 @@ Request.prototype.multipart = function (multipart) {
   return self
 }
 Request.prototype.json = function (val) {
-  this.setHeader('accept', 'application/json')
+  var self = this;
+  var setAcceptHeader = function() {
+  	if (!self.headers['accept'] && !self.headers['Accept']) {
+			  self.setHeader('accept', 'application/json')
+		}
+	}
+  setAcceptHeader();
   this._json = true
   if (typeof val === 'boolean') {
     if (typeof this.body === 'object') {
-      this.setHeader('content-type', 'application/json')
+      setAcceptHeader();
       this.body = safeStringify(this.body)
     }
   } else {
-    this.setHeader('content-type', 'application/json')
+    setAcceptHeader();
     this.body = safeStringify(val)
   }
   return this
