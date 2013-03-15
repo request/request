@@ -17,7 +17,7 @@
     "url": "http://github.com/mikeal/request/issues"
   },
   "engines": [
-    "node >= 0.3.6"
+    "node >= 0.8.0"
   ],
   "main": "index.js",
   "dependencies": {
