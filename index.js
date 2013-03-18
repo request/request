@@ -975,10 +975,12 @@ Request.prototype.json = function (val) {
     if (typeof this.body === 'object') {
       setAcceptHeader();
       this.body = safeStringify(this.body)
+      self.setHeader('content-type', 'application/json')
     }
   } else {
     setAcceptHeader();
     this.body = safeStringify(val)
+    self.setHeader('content-type', 'application/json')
   }
   return this
 }
