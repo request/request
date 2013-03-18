@@ -897,6 +897,7 @@ Request.prototype.multipart = function (multipart) {
   if (!multipart.forEach) {
     var error = new Error('Argument error, options.multipart.')
     error.name = 'ArgumentError'
+    throw error
   }
 
   if (self.preambleCRLF) {
