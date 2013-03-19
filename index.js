@@ -908,7 +908,9 @@ Request.prototype.qs = function (q, clobber) {
   else base = {}
   
   for (var i in q) {
-    base[i] = q[i]
+    if (q.hasOwnProperty(i)) {
+      base[i] = q[i]
+    }
   }
 
   if (qs.stringify(base) === ''){
