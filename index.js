@@ -36,6 +36,8 @@ var http = require('http')
   , Cookie = require('cookie-jar')
   , CookieJar = Cookie.Jar
   , cookieJar = new CookieJar
+
+  , _ = require('underscore')
   ;
 
 try {
@@ -906,10 +908,11 @@ Request.prototype.qs = function (q, clobber) {
   var base
   if (!clobber && this.uri.query) base = qs.parse(this.uri.query)
   else base = {}
-  
-  for (var i in q) {
-    base[i] = q[i]
-  }
+ 
+  // Sadly _.extend also copies the prototypes
+  _.each(q, function(v, k, l) {
+    base[k] = v;
+  });
 
   if (qs.stringify(base) === ''){
     return this
