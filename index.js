@@ -853,6 +853,9 @@ Request.prototype.onResponse = function (response) {
           } catch (e) {}
         }
         debug('emitting complete', self.uri.href)
+        if(response.body == undefined && !self._json) {
+          response.body = "";
+        }
         self.emit('complete', response, response.body)
       })
     }
