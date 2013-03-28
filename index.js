@@ -132,7 +132,8 @@ Request.prototype.init = function (options) {
   if (!self.pool && self.pool !== false) self.pool = globalPool
   self.dests = self.dests || []
   self.__isRequestRequest = true
-  
+  self.forwardedHeaderBlacklist = self.forwardedHeaderBlacklist || {};
+
   // Protect against double callback
   if (!self._callback && self.callback) {
     self._callback = self.callback
@@ -887,7 +888,9 @@ Request.prototype.pipeDest = function (dest) {
   }
   if (dest.setHeader) {
     for (var i in response.headers) {
-      dest.setHeader(i, response.headers[i])
+      if (!dest.forwardedHeaderBlacklist[i]) {
+        dest.setHeader(i, response.headers[i])
+      }
     }
     dest.statusCode = response.statusCode
   }
