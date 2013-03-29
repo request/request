@@ -795,6 +795,8 @@ Request.prototype.onResponse = function (response) {
       }
     }
 
+    self.emit('response', response)
+
     self.dests.forEach(function (dest) {
       self.pipeDest(dest)
     })
@@ -808,8 +810,6 @@ Request.prototype.onResponse = function (response) {
       self.emit("end", chunk)
     })
     response.on("close", function () {self.emit("close")})
-
-    self.emit('response', response)
 
     if (self.callback) {
       var buffer = []
