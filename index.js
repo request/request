@@ -777,6 +777,9 @@ Request.prototype.onResponse = function (response) {
       delete self.headers['content-type']
       delete self.headers['content-length']
     }
+
+    self.emit('redirect');
+
     self.init()
     return // Ignore the rest of the response
   } else {
