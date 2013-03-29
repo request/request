@@ -200,6 +200,7 @@ The first argument can be either a url or an options object. The only required o
 * `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
 * `followRedirect` - follow HTTP 3xx responses as redirects. defaults to true.
 * `followAllRedirects` - follow non-GET HTTP 3xx responses as redirects. defaults to false.
+* `transformRedirects` - when passed a function, any redirects will have their urls sent as the first parameter into this function and the return value will be used as the new url
 * `maxRedirects` - the maximum number of redirects to follow, defaults to 10.
 * `encoding` - Encoding to be used on `setEncoding` of response data. If set to `null`, the body is returned as a Buffer.
 * `pool` - A hash object containing the agents for these requests. If omitted this request will use the global pool which is set to node's default maxSockets.

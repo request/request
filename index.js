@@ -749,6 +749,10 @@ Request.prototype.onResponse = function (response) {
       redirectTo = url.resolve(self.uri.href, redirectTo)
     }
 
+    if(self.transformRedirects) {
+      redirectTo=self.transformRedirects(redirectTo);
+    }
+
     var uriPrev = self.uri
     self.uri = url.parse(redirectTo)
 
