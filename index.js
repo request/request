@@ -126,7 +126,7 @@ Request.prototype.init = function (options) {
   var self = this
   if (!options) options = {}
   
-  self.method = options.method || 'GET'
+  if (!self.method) self.method = options.method || 'GET'
   
   debug(options)
   if (!self.pool && self.pool !== false) self.pool = globalPool
