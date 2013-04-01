@@ -769,13 +769,15 @@ Request.prototype.onResponse = function (response) {
     delete self.agent
     delete self._started
     if (response.statusCode != 401) {
+      // Remove parameters from the previous response, unless this is the second request
+      // for a server that requires digest authentication.
       delete self.body
       delete self._form
-    }
-    if (self.headers) {
-      delete self.headers.host
-      delete self.headers['content-type']
-      delete self.headers['content-length']
+      if (self.headers) {
+        delete self.headers.host
+        delete self.headers['content-type']
+        delete self.headers['content-length']
+      }
     }
     self.init()
     return // Ignore the rest of the response
