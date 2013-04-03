@@ -295,7 +295,7 @@ Request.prototype.init = function (options) {
 
   if (self.uri.auth && !self.headers.authorization) {
     var authPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
-    self.auth(authPieces[0], authPieces[1], true)
+    self.auth(authPieces[0], authPieces.slice(1).join(':'), true)
   }
   if (self.proxy && self.proxy.auth && !self.headers['proxy-authorization'] && !self.tunnel) {
     self.headers['proxy-authorization'] = "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return querystring.unescape(item)}).join(':'))
