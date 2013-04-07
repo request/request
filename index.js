@@ -977,9 +977,9 @@ Request.prototype.json = function (val) {
   var self = this;
   var setAcceptHeader = function() {
     if (!self.headers['accept'] && !self.headers['Accept']) {
-              self.setHeader('accept', 'application/json')
-        }
+      self.setHeader('accept', 'application/json')
     }
+  }
   setAcceptHeader();
   this._json = true
   if (typeof val === 'boolean') {
