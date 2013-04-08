@@ -158,6 +158,10 @@ Request.prototype.init = function (options) {
     if (typeof self.uri == "string") self.uri = url.parse(self.uri)
   }
 
+  if (self.strictSSL === false) {
+    self.rejectUnauthorized = false
+  }
+
   if (self.proxy) {
     if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
 
@@ -171,6 +175,7 @@ Request.prototype.init = function (options) {
                                    , proxyAuth: self.proxy.auth
                                    , headers: { Host: self.uri.hostname + ':' +
                                         (self.uri.port || self.uri.protocol === 'https:' ? 443 : 80) }}
+                          , rejectUnauthorized: self.rejectUnauthorized
                           , ca: this.ca }
 
       self.agent = tunnelFn(tunnelOptions)
@@ -355,10 +360,6 @@ Request.prototype.init = function (options) {
     }
   }
 
-  if (self.strictSSL === false) {
-    self.rejectUnauthorized = false
-  }
-
   if (self.pool === false) {
     self.agent = false
   } else {
@@ -445,6 +446,7 @@ Request.prototype._updateProtocol = function () {
       var tunnelOptions = { proxy: { host: self.proxy.hostname
                                    , port: +self.proxy.port
                                    , proxyAuth: self.proxy.auth }
+                          , rejectUnauthorized: self.rejectUnauthorized
                           , ca: self.ca }
       self.agent = tunnelFn(tunnelOptions)
       return
