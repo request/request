@@ -28,6 +28,7 @@
     "cookie-jar": "~0.2.0",
     "aws-sign": "~0.2.0",
     "oauth-sign": "~0.2.0",
+    "http-signature": "~0.9.1",
     "forever-agent": "~0.2.0",
     "tunnel-agent": "~0.2.0",
     "json-stringify-safe": "~3.0.0",
