@@ -997,7 +997,7 @@ function getHeader(name, headers) {
     return result
 }
 Request.prototype.auth = function (user, pass, sendImmediately) {
-  if (typeof user !== 'string' || typeof pass !== 'string') {
+  if (typeof user !== 'string' || (pass !== undefined && typeof pass !== 'string')) {
     throw new Error('auth() received invalid user or password')
   }
   this._user = user
