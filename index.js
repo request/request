@@ -127,6 +127,7 @@ Request.prototype.init = function (options) {
   if (!options) options = {}
 
   self.method = options.method || 'GET'
+  self.localAddress = options.localAddress
 
   debug(options)
   if (!self.pool && self.pool !== false) self.pool = globalPool
