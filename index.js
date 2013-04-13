@@ -128,6 +128,7 @@ Request.prototype.init = function (options) {
   if (!options) options = {}
 
   self.method = options.method || 'GET'
+  self.localAddress = options.localAddress
 
   debug(options)
   if (!self.pool && self.pool !== false) self.pool = globalPool
@@ -159,6 +160,10 @@ Request.prototype.init = function (options) {
     if (typeof self.uri == "string") self.uri = url.parse(self.uri)
   }
 
+  if (self.strictSSL === false) {
+    self.rejectUnauthorized = false
+  }
+
   if (self.proxy) {
     if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
 
@@ -172,6 +177,7 @@ Request.prototype.init = function (options) {
                                    , proxyAuth: self.proxy.auth
                                    , headers: { Host: self.uri.hostname + ':' +
                                         (self.uri.port || self.uri.protocol === 'https:' ? 443 : 80) }}
+                          , rejectUnauthorized: self.rejectUnauthorized
                           , ca: this.ca }
 
       self.agent = tunnelFn(tunnelOptions)
@@ -360,10 +366,6 @@ Request.prototype.init = function (options) {
     }
   }
 
-  if (self.strictSSL === false) {
-    self.rejectUnauthorized = false
-  }
-
   if (self.pool === false) {
     self.agent = false
   } else {
@@ -450,6 +452,7 @@ Request.prototype._updateProtocol = function () {
       var tunnelOptions = { proxy: { host: self.proxy.hostname
                                    , port: +self.proxy.port
                                    , proxyAuth: self.proxy.auth }
+                          , rejectUnauthorized: self.rejectUnauthorized
                           , ca: self.ca }
       self.agent = tunnelFn(tunnelOptions)
       return
@@ -1002,7 +1005,7 @@ function getHeader(name, headers) {
     return result
 }
 Request.prototype.auth = function (user, pass, sendImmediately) {
-  if (typeof user !== 'string' || typeof pass !== 'string') {
+  if (typeof user !== 'string' || (pass !== undefined && typeof pass !== 'string')) {
     throw new Error('auth() received invalid user or password')
   }
   this._user = user
