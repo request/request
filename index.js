@@ -25,6 +25,7 @@ var http = require('http')
   , oauth = require('oauth-sign')
   , hawk = require('hawk')
   , aws = require('aws-sign')
+  , httpSignature = require('http-signature')
   , uuid = require('node-uuid')
   , mime = require('mime')
   , tunnel = require('tunnel-agent')
@@ -290,6 +291,10 @@ Request.prototype.init = function (options) {
 
   if (options.hawk) {
     self.hawk(options.hawk)
+  }
+
+  if (options.httpSignature) {
+    self.httpSignature(options.httpSignature)
   }
 
   if (options.auth) {
@@ -1041,6 +1046,22 @@ Request.prototype.aws = function (opts, now) {
   }
   auth.resource = aws.canonicalizeResource(auth.resource)
   this.setHeader('authorization', aws.authorization(auth))
+
+  return this
+}
+Request.prototype.httpSignature = function (opts) {
+  var req = this
+  httpSignature.signRequest({
+    getHeader: function(header) {
+      return getHeader(header, req.headers)
+    },
+    setHeader: function(header, value) {
+      req.setHeader(header, value)
+    },
+    method: this.method,
+    path: this.path
+  }, opts)
+  debug('httpSignature authorization', getHeader('authorization', this.headers))
 
   return this
 }
