@@ -930,6 +930,7 @@ Request.prototype.qs = function (q, clobber) {
 
   this.uri = url.parse(this.uri.href.split('?')[0] + '?' + qs.stringify(base))
   this.url = this.uri
+  this.path = this.uri.path
 
   return this
 }
