@@ -117,6 +117,10 @@ function Request (options) {
     }
   }
 
+  if (options.method) {
+    this.explicitMethod = true
+  }
+
   this.init(options)
 }
 util.inherits(Request, stream.Stream)
@@ -396,7 +400,7 @@ Request.prototype.init = function (options) {
       }
       if (self._json && !self.headers['content-type'] && !self.headers['Content-Type'])
         self.headers['content-type'] = 'application/json'
-      if (src.method && !self.method) {
+      if (src.method && !self.explicitMethod) {
         self.method = src.method
       }
     }
