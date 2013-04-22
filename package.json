@@ -7,7 +7,7 @@
     "util",
     "utility"
   ],
-  "version": "2.16.7",
+  "version": "2.16.8",
   "author": "Mikeal Rogers <mikeal.rogers@gmail.com>",
   "repository": {
     "type": "git",
@@ -25,12 +25,12 @@
     "mime": "~1.2.7",
     "hawk": "~0.10.2",
     "node-uuid": "~1.4.0",
-    "cookie-jar": "~0.2.0",
-    "aws-sign": "~0.2.0",
-    "oauth-sign": "~0.2.0",
+    "cookie-jar": "~0.3.0",
+    "aws-sign": "~0.3.0",
+    "oauth-sign": "~0.3.0",
     "http-signature": "~0.9.1",
-    "forever-agent": "~0.2.0",
-    "tunnel-agent": "~0.2.0",
+    "forever-agent": "~0.3.0",
+    "tunnel-agent": "~0.5.0",
     "json-stringify-safe": "~3.0.0",
     "qs": "~0.5.4"
   },
