@@ -30,7 +30,7 @@
     "oauth-sign": "~0.3.0",
     "http-signature": "~0.9.1",
     "forever-agent": "~0.3.0",
-    "tunnel-agent": "~0.5.0",
+    "tunnel-agent": "~0.3.0",
     "json-stringify-safe": "~3.0.0",
     "qs": "~0.5.4"
   },
