@@ -151,6 +151,10 @@ Request.prototype.init = function (options) {
     self.on('complete', self.callback.bind(self, null))
   }
 
+  if (self.callback) {
+      self.streams2 = false;
+  }
+
   if (self.url) {
     // People use this property instead all the time so why not just support it.
     self.uri = self.url
@@ -636,11 +640,13 @@ Request.prototype.onResponse = function (response) {
   }
   if (self._aborted) {
     debug('aborted', self.uri.href)
-    response.resume()
+    !self.streams2 && response.resume()
     return
   }
-  if (self._paused) response.pause()
-  else response.resume()
+  if (!self.streams2) {
+    if (self._paused) response.pause()
+    else response.resume()
+  }
 
   self.response = response
   response.request = self
@@ -749,7 +755,7 @@ Request.prototype.onResponse = function (response) {
 
     // ignore any potential response body.  it cannot possibly be useful
     // to us at this point.
-    if (self._paused) response.resume()
+    if (self._paused && !self.streams2) response.resume()
 
     if (self._redirectsFollowed >= self.maxRedirects) {
       self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop "+self.uri.href))
@@ -818,10 +824,12 @@ Request.prototype.onResponse = function (response) {
       self.pipeDest(dest)
     })
 
-    response.on("data", function (chunk) {
-      self._destdata = true
-      self.emit("data", chunk)
-    })
+    if (!self.streams2) {
+      response.on("data", function (chunk) {
+        self._destdata = true
+        self.emit("data", chunk)
+      })
+    }
     response.on("end", function (chunk) {
       self._ended = true
       self.emit("end", chunk)
@@ -986,10 +994,10 @@ Request.prototype.multipart = function (multipart) {
 Request.prototype.json = function (val) {
   var self = this;
   var setAcceptHeader = function() {
-  	if (!self.headers['accept'] && !self.headers['Accept']) {
-			  self.setHeader('accept', 'application/json')
-		}
-	}
+    if (!self.headers['accept'] && !self.headers['Accept']) {
+      self.setHeader('accept', 'application/json')
+    }
+  }
   setAcceptHeader();
   this._json = true
   if (typeof val === 'boolean') {
