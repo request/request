@@ -1,4 +1,4 @@
-var request = request = require('../index')
+var request = require('../index')
   , assert = require('assert')
   ;
 
