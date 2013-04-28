@@ -1283,16 +1283,25 @@ request.get = request
 request.post = function (uri, options, callback) {
   var params = initParams(uri, options, callback)
   params.options.method = 'POST'
+  if(typeof params.options._requester === 'function') {
+    request = params.options._requester
+  }
   return request(params.uri || null, params.options, params.callback)
 }
 request.put = function (uri, options, callback) {
   var params = initParams(uri, options, callback)
   params.options.method = 'PUT'
+  if(typeof params.options._requester === 'function') {
+    request = params.options._requester
+  }
   return request(params.uri || null, params.options, params.callback)
 }
 request.patch = function (uri, options, callback) {
   var params = initParams(uri, options, callback)
   params.options.method = 'PATCH'
+  if(typeof params.options._requester === 'function') {
+    request = params.options._requester
+  }
   return request(params.uri || null, params.options, params.callback)
 }
 request.head = function (uri, options, callback) {
@@ -1303,6 +1312,9 @@ request.head = function (uri, options, callback) {
       (params.options.json && typeof params.options.json !== 'boolean') ||
       params.options.multipart) {
     throw new Error("HTTP HEAD requests MUST NOT include a request body.")
+  }
+  if(typeof params.options._requester === 'function') {
+    request = params.options._requester
   }
   return request(params.uri || null, params.options, params.callback)
 }
