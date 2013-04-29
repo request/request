@@ -14,6 +14,8 @@ var basicServer = http.createServer(function (req, res) {
   if (req.headers.authorization) {
     if (req.headers.authorization == 'Basic ' + new Buffer('test:testing2').toString('base64')) {
       ok = true;
+    } else if ( req.headers.authorization == 'Basic ' + new Buffer(':apassword').toString('base64')) {
+      ok = true;
     } else {
       // Bad auth header, don't send back WWW-Authenticate header
       ok = false;
@@ -106,6 +108,24 @@ var tests = [
       assert.equal(numBasicRequests, 6);
       next();
     });
+  },
+
+  function(next) {
+    assert.doesNotThrow( function() {
+      request({
+        'method': 'GET',
+        'uri': 'http://localhost:6767/allow_empty_user/',
+        'auth': {
+          'user': '',
+          'pass': 'apassword',
+          'sendImmediately': false
+        }
+      }, function(error, res, body ) {
+        assert.equal(res.statusCode, 200);
+        assert.equal(numBasicRequests, 8);
+        next();
+      });
+    })
   }
 ];
 
