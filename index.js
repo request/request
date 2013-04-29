@@ -303,7 +303,7 @@ Request.prototype.init = function (options) {
 
   if (options.auth) {
     self.auth(
-      options.auth.user || options.auth.username,
+      (options.auth.user==="") ? options.auth.user : (options.auth.user || options.auth.username ),
       options.auth.pass || options.auth.password,
       options.auth.sendImmediately)
   }
