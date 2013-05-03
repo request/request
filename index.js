@@ -1233,6 +1233,8 @@ function request (uri, options, callback) {
 
 module.exports = request
 
+request.Request = Request;
+
 request.debug = process.env.NODE_DEBUG && /request/.test(process.env.NODE_DEBUG)
 
 request.initParams = initParams
