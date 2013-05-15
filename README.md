@@ -118,7 +118,7 @@ form.append('remote_file', request('http://google.com/doodle.png'))
 ## HTTP Authentication
 
 ```javascript
-request.auth('username', 'password', false).get('http://some.server.com/');
+request.get('http://some.server.com/').auth('username', 'password', false);
 // or
 request.get('http://some.server.com/', {
   'auth': {
