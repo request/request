@@ -183,6 +183,7 @@ Request.prototype.init = function (options) {
             for (var headerName in options.headers) {
                 if (headerName.toLowerCase().indexOf("proxy-") === 0) {
                    proxyHeaders[headerName] = options.headers[headerName];
+                   delete options.headers[headerName];
                 }
             }
       }
