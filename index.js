@@ -179,11 +179,11 @@ Request.prototype.init = function (options) {
       var proxyHeaders = { Host: self.uri.hostname + ':' +
             (self.uri.port || self.uri.protocol === 'https:' ? 443 : 80) }
       
-      if (options.headers) {
-            for (var headerName in options.headers) {
+      if (self.headers) {
+            for (var headerName in self.headers) {
                 if (headerName.toLowerCase().indexOf("proxy-") === 0) {
-                   proxyHeaders[headerName] = options.headers[headerName];
-                   delete options.headers[headerName];
+                   proxyHeaders[headerName] = self.headers[headerName];
+                   delete self.headers[headerName];
                 }
             }
       }
