@@ -151,7 +151,7 @@ Request.prototype.init = function (options) {
     self.on('complete', self.callback.bind(self, null))
   }
 
-  if (self.url) {
+  if (self.url && !self.uri) {
     // People use this property instead all the time so why not just support it.
     self.uri = self.url
     delete self.url
