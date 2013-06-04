@@ -563,6 +563,11 @@ Request.prototype.getAgent = function () {
     }
   }
 
+  if (!poolKey && Object.keys(options).length === 0 && this.httpModule.globalAgent) {
+    // not doing anything special.  Use the globalAgent
+    return this.httpModule.globalAgent
+  }
+
   // we're using a stored agent.  Make sure it's protocol-specific
   poolKey = this.uri.protocol + poolKey
 
