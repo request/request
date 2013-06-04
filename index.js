@@ -551,11 +551,16 @@ Request.prototype.getAgent = function () {
 
     if (options.cert)
       poolKey += options.cert.toString('ascii') + options.key.toString('ascii')
-  }
 
-  if (!poolKey && Agent === this.httpModule.Agent && this.httpModule.globalAgent) {
-    // not doing anything special.  Use the globalAgent
-    return this.httpModule.globalAgent
+    if (options.ciphers) {
+      if (poolKey) poolKey += ':'
+      poolKey += options.ciphers
+    }
+
+    if (options.secureOptions) {
+      if (poolKey) poolKey += ':'
+      poolKey += options.secureOptions
+    }
   }
 
   // we're using a stored agent.  Make sure it's protocol-specific
