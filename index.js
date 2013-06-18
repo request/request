@@ -384,7 +384,7 @@ Request.prototype.init = function (options) {
     }
   }
 
-  self.once('pipe', function (src) {
+  self.on('pipe', function (src) {
     if (self.ntick && self._started) throw new Error("You cannot pipe to this stream after the outbound request has started.")
     self.src = src
     if (isReadStream(src)) {
@@ -405,9 +405,9 @@ Request.prototype.init = function (options) {
       }
     }
 
-    self.on('pipe', function () {
-      console.error("You have already piped to this stream. Pipeing twice is likely to break the request.")
-    })
+    // self.on('pipe', function () {
+    //   console.error("You have already piped to this stream. Pipeing twice is likely to break the request.")
+    // })
   })
 
   process.nextTick(function () {
