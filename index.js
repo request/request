@@ -93,7 +93,7 @@ function copy (obj) {
   return o
 }
 
-var isUrl = /^https?:/
+var isUrl = /^https?:/i
 
 var globalPool = {}
 
