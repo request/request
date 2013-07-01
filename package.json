@@ -25,7 +25,7 @@
     "json-stringify-safe": "~4.0.0",
     "forever-agent": "~0.5.0",
     "tunnel-agent": "~0.3.0",
-    "http-signature": "~0.9.11",
+    "http-signature": "~0.10.0",
     "hawk": "~0.13.0",
     "aws-sign": "~0.3.0",
     "oauth-sign": "~0.3.0",
