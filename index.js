@@ -816,7 +816,7 @@ Request.prototype.onResponse = function (response) {
 
     if (self.encoding) {
       if (self.dests.length !== 0) {
-        console.error("Ingoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.")
+        console.error("Ignoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.")
       } else {
         response.setEncoding(self.encoding)
       }
