@@ -673,8 +673,13 @@ Request.prototype.onResponse = function (response) {
   }
 
   var addCookie = function (cookie) {
-    if (self._jar) self._jar.add(new Cookie(cookie))
-    else cookieJar.add(new Cookie(cookie))
+    if (self._jar){
+      if(self._jar.add){
+        self._jar.add(new Cookie(cookie))  
+      }
+      else cookieJar.add(new Cookie(cookie))      
+    } 
+    
   }
 
   if (response.headers['set-cookie'] && (!self._disableCookies)) {
@@ -1140,11 +1145,11 @@ Request.prototype.jar = function (jar) {
     this.originalCookieHeader = this.headers.cookie
   }
 
-  if (jar === false) {
+  if (!jar) {
     // disable cookies
     cookies = false
     this._disableCookies = true
-  } else if (jar) {
+  } else if (jar && jar.get) {
     // fetch cookie from the user defined cookie jar
     cookies = jar.get({ url: this.uri.href })
   } else {
