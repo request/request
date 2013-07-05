@@ -209,7 +209,7 @@ The first argument can be either a url or an options object. The only required o
 * `oauth` - Options for OAuth HMAC-SHA1 signing, see documentation above.
 * `hawk` - Options for [Hawk signing](https://github.com/hueniverse/hawk). The `credentials` key must contain the necessary signing info, [see hawk docs for details](https://github.com/hueniverse/hawk#usage-example).
 * `strictSSL` - Set to `true` to require that SSL certificates be valid. Note: to use your own certificate authority, you need to specify an agent that was created with that ca as an option.
-* `jar` - Set to `false` if you don't want cookies to be remembered for future use or define your custom cookie jar (see examples section)
+* `jar` - Set to `true` if you want cookies to be remembered for future use, or define your custom cookie jar (see examples section)
 * `aws` - object containing aws signing information, should have the properties `key` and `secret` as well as `bucket` unless you're specifying your bucket as part of the path, or you are making a request that doesn't use a bucket (i.e. GET Services)
 * `httpSignature` - Options for the [HTTP Signature Scheme](https://github.com/joyent/node-http-signature/blob/master/http_signing.md) using [Joyent's library](https://github.com/joyent/node-http-signature). The `keyId` and `key` properties must be specified. See the docs for other options.
 * `localAddress` - Local interface to bind for network connections.
@@ -314,10 +314,10 @@ request.jar()
     }
   )
 ```
-Cookies are enabled by default (so they can be used in subsequent requests). To disable cookies set jar to false (either in defaults or in the options sent).
+Cookies are disabled by default (else, they would be used in subsequent requests). To enable cookies set jar to true (either in defaults or in the options sent).
 
 ```javascript
-var request = request.defaults({jar: false})
+var request = request.defaults({jar: true})
 request('http://www.google.com', function () {
   request('http://images.google.com')
 })
