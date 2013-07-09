@@ -675,11 +675,11 @@ Request.prototype.onResponse = function (response) {
   var addCookie = function (cookie) {
     if (self._jar){
       if(self._jar.add){
-        self._jar.add(new Cookie(cookie))  
+        self._jar.add(new Cookie(cookie))
       }
-      else cookieJar.add(new Cookie(cookie))      
-    } 
-    
+      else cookieJar.add(new Cookie(cookie))
+    }
+
   }
 
   if (response.headers['set-cookie'] && (!self._disableCookies)) {
@@ -917,7 +917,7 @@ Request.prototype.pipeDest = function (dest) {
       dest.headers['content-length'] = response.headers['content-length']
     }
   }
-  if (dest.setHeader) {
+  if (dest.setHeader && !dest.headersSent) {
     for (var i in response.headers) {
       dest.setHeader(i, response.headers[i])
     }
