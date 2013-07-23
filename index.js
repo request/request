@@ -563,7 +563,7 @@ Request.prototype.getAgent = function () {
     }
   }
 
-  if (!poolKey && Object.keys(options).length === 0 && this.httpModule.globalAgent) {
+  if (this.pool === globalPool && !poolKey && Object.keys(options).length === 0 && this.httpModule.globalAgent) {
     // not doing anything special.  Use the globalAgent
     return this.httpModule.globalAgent
   }
