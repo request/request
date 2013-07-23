@@ -215,7 +215,7 @@ The first argument can be either a url or an options object. The only required o
 * `localAddress` - Local interface to bind for network connections.
 
 
-The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second in an http.ClientResponse object. The third is the response body String or Buffer.
+The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second is an http.ClientResponse object. The third is the response body String or Buffer.
 
 ## Convenience methods
 
