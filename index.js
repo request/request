@@ -891,6 +891,16 @@ Request.prototype.onResponse = function (response) {
         self.emit('complete', response, response.body)
       })
     }
+    //if no callback
+    else{
+      self.on("end", function () {
+        if (self._aborted) {
+          debug('aborted', self.uri.href)
+          return
+        }
+        self.emit('complete', response);
+      });
+    }
   }
   debug('finish init function', self.uri.href)
 }
