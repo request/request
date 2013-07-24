@@ -1046,8 +1046,9 @@ Request.prototype.auth = function (user, pass, sendImmediately) {
   this._user = user
   this._pass = pass
   this._hasAuth = true
+  var header = typeof pass !== 'undefined' ? user + ':' + pass : user
   if (sendImmediately || typeof sendImmediately == 'undefined') {
-    this.setHeader('authorization', 'Basic ' + toBase64(user + ':' + pass))
+    this.setHeader('authorization', 'Basic ' + toBase64(header))
     this._sentAuth = true
   }
   return this
