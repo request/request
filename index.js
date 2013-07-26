@@ -188,8 +188,10 @@ Request.prototype.init = function (options) {
       self.tunnel = true
     }
   }
+  
+  if (!self.uri.pathname) {self.uri.pathname = '/'}
 
-  if (!self.uri.host || !self.uri.pathname) {
+  if (!self.uri.host) {
     // Invalid URI: it may generate lot of bad errors, like "TypeError: Cannot call method 'indexOf' of undefined" in CookieJar
     // Detect and reject it as soon as possible
     var faultyUri = url.format(self.uri)
@@ -226,7 +228,6 @@ Request.prototype.init = function (options) {
 
   self.jar(self._jar || options.jar)
 
-  if (!self.uri.pathname) {self.uri.pathname = '/'}
   if (!self.uri.port) {
     if (self.uri.protocol == 'http:') {self.uri.port = 80}
     else if (self.uri.protocol == 'https:') {self.uri.port = 443}
