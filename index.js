@@ -969,7 +969,7 @@ Request.prototype.qs = function (q, clobber) {
 Request.prototype.form = function (form) {
   if (form) {
     if (!this.headers['content-type'] && !this.headers['Content-Type']) {
-      this.headers['content-type'] = 'application/x-www-form-urlencoded; charset=utf-8'
+      this.headers['content-type'] = 'application/x-www-form-urlencoded'
     }
     this.body = qs.stringify(form).toString('utf8')
     return this
