@@ -968,7 +968,9 @@ Request.prototype.qs = function (q, clobber) {
 }
 Request.prototype.form = function (form) {
   if (form) {
-    this.headers['content-type'] = 'application/x-www-form-urlencoded; charset=utf-8'
+    if (!this.headers['content-type'] && !this.headers['Content-Type']) {
+      this.headers['content-type'] = 'application/x-www-form-urlencoded'
+    }
     this.body = qs.stringify(form).toString('utf8')
     return this
   }
@@ -980,7 +982,7 @@ Request.prototype.multipart = function (multipart) {
   var self = this
   self.body = []
 
-  if (!self.headers['content-type']) {
+  if (!self.headers['content-type'] && !self.headers['Content-Type']) {
     self.headers['content-type'] = 'multipart/related; boundary=' + self.boundary
   } else {
     self.headers['content-type'] = self.headers['content-type'].split(';')[0] + '; boundary=' + self.boundary
@@ -1011,10 +1013,10 @@ Request.prototype.multipart = function (multipart) {
 Request.prototype.json = function (val) {
   var self = this;
   var setAcceptHeader = function() {
-  	if (!self.headers['accept'] && !self.headers['Accept']) {
-			  self.setHeader('accept', 'application/json')
-		}
-	}
+    if (!self.headers['accept'] && !self.headers['Accept']) {
+        self.setHeader('accept', 'application/json')
+    }
+  }
   setAcceptHeader();
   this._json = true
   if (typeof val === 'boolean') {
