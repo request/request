@@ -214,12 +214,12 @@ Request.prototype.init = function (options) {
   self.headers = self.headers ? copy(self.headers) : {}
 
   self.setHost = false
-  if (!(self.headers.host || self.headers.Host)) {
-    self.headers.host = self.uri.hostname
+  if (!self.hasHeader('host')) {
+    self.setHeader('host', self.uri.hostname)
     if (self.uri.port) {
       if ( !(self.uri.port === 80 && self.uri.protocol === 'http:') &&
            !(self.uri.port === 443 && self.uri.protocol === 'https:') )
-      self.headers.host += (':'+self.uri.port)
+      self.setHeader('host', self.getHeader('host') + (':'+self.uri.port) )
     }
     self.setHost = true
   }
@@ -308,12 +308,12 @@ Request.prototype.init = function (options) {
       options.auth.sendImmediately)
   }
 
-  if (self.uri.auth && !self.headers.authorization) {
+  if (self.uri.auth && !self.hasHeader('authorization')) {
     var authPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
     self.auth(authPieces[0], authPieces.slice(1).join(':'), true)
   }
-  if (self.proxy && self.proxy.auth && !self.headers['proxy-authorization'] && !self.tunnel) {
-    self.headers['proxy-authorization'] = "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return querystring.unescape(item)}).join(':'))
+  if (self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization') && !self.tunnel) {
+    self.setHeader('proxy-authorization', "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return querystring.unescape(item)}).join(':')))
   }
 
 
@@ -341,8 +341,7 @@ Request.prototype.init = function (options) {
       length = self.body.length
     }
     if (length) {
-      if(!self.headers['content-length'] && !self.headers['Content-Length'])
-      self.headers['content-length'] = length
+      if (!self.hasHeader('content-length')) self.setHeader('content-length', length)
     } else {
       throw new Error('Argument error, options.body.')
     }
@@ -388,18 +387,17 @@ Request.prototype.init = function (options) {
     if (self.ntick && self._started) throw new Error("You cannot pipe to this stream after the outbound request has started.")
     self.src = src
     if (isReadStream(src)) {
-      if (!self.headers['content-type'] && !self.headers['Content-Type'])
-        self.headers['content-type'] = mime.lookup(src.path)
+      if (!self.hasHeader('content-type')) self.setHeader('content-type', mime.lookup(src.path))
     } else {
       if (src.headers) {
         for (var i in src.headers) {
-          if (!self.headers[i]) {
-            self.headers[i] = src.headers[i]
+          if (!self.hasHeader(i)) {
+            self.setHeader(i, src.headers[i])
           }
         }
       }
-      if (self._json && !self.headers['content-type'] && !self.headers['Content-Type'])
-        self.headers['content-type'] = 'application/json'
+      if (self._json && !self.hasHeader('content-type'))
+        self.setHeader('content-type', 'application/json')
       if (src.method && !self.explicitMethod) {
         self.method = src.method
       }
@@ -431,7 +429,7 @@ Request.prototype.init = function (options) {
       self.requestBodyStream.pipe(self)
     } else if (!self.src) {
       if (self.method !== 'GET' && typeof self.method !== 'undefined') {
-        self.headers['content-length'] = 0
+        self.setHeader('content-length', 0)
       }
       self.end()
     }
@@ -588,8 +586,8 @@ Request.prototype.start = function () {
   self.method = self.method || 'GET'
   self.href = self.uri.href
 
-  if (self.src && self.src.stat && self.src.stat.size && !self.headers['content-length'] && !self.headers['Content-Length']) {
-    self.headers['content-length'] = self.src.stat.size
+  if (self.src && self.src.stat && self.src.stat.size && !self.hasHeader('content-length')) {
+    self.setHeader('content-length', self.src.stat.size)
   }
   if (self._aws) {
     self.aws(self._aws, true)
@@ -666,7 +664,7 @@ Request.prototype.onResponse = function (response) {
     return
   }
 
-  if (self.setHost) delete self.headers.host
+  if (self.setHost && self.hasHeader('host')) delete self.headers[self.hasHeader('host')]
   if (self.timeout && self.timeoutTimer) {
     clearTimeout(self.timeoutTimer)
     self.timeoutTimer = null
@@ -682,17 +680,19 @@ Request.prototype.onResponse = function (response) {
 
   }
 
-  if (response.headers['set-cookie'] && (!self._disableCookies)) {
-    if (Array.isArray(response.headers['set-cookie'])) response.headers['set-cookie'].forEach(addCookie)
-    else addCookie(response.headers['set-cookie'])
+  if (hasHeader('set-cookie', response.headers) && (!self._disableCookies)) {
+    var headerName = hasHeader('set-cookie', response.headers)
+    if (Array.isArray(response.headers[headerName])) response.headers[headerName].forEach(addCookie)
+    else addCookie(response.headers[headerName])
   }
 
   var redirectTo = null
-  if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
-    debug('redirect', response.headers.location)
+  if (response.statusCode >= 300 && response.statusCode < 400 && hasHeader('location', response.headers)) {
+    var location = response.headers[hasHeader('location', response.headers)]
+    debug('redirect', location)
 
     if (self.followAllRedirects) {
-      redirectTo = response.headers.location
+      redirectTo = location
     } else if (self.followRedirect) {
       switch (self.method) {
         case 'PATCH':
@@ -702,12 +702,12 @@ Request.prototype.onResponse = function (response) {
           // Do not follow redirects
           break
         default:
-          redirectTo = response.headers.location
+          redirectTo = location
           break
       }
     }
   } else if (response.statusCode == 401 && self._hasAuth && !self._sentAuth) {
-    var authHeader = response.headers['www-authenticate']
+    var authHeader = response.headers[hasHeader('www-authenticate', response.headers)]
     var authVerb = authHeader && authHeader.split(' ')[0]
     debug('reauth', authVerb)
 
@@ -801,9 +801,9 @@ Request.prototype.onResponse = function (response) {
       delete self.body
       delete self._form
       if (self.headers) {
-        delete self.headers.host
-        delete self.headers['content-type']
-        delete self.headers['content-length']
+        if (self.hasHeader('host')) delete self.headers[self.hasHeader('host')]
+        if (self.hasHeader('content-type')) delete self.headers[self.hasHeader('content-type')]
+        if (self.hasHeader('content-length')) delete self.headers[self.hasHeader('content-length')]
       }
     }
 
@@ -921,10 +921,17 @@ Request.prototype.abort = function () {
 Request.prototype.pipeDest = function (dest) {
   var response = this.response
   // Called after the response is received
-  if (dest.headers) {
-    dest.headers['content-type'] = response.headers['content-type']
-    if (response.headers['content-length']) {
-      dest.headers['content-length'] = response.headers['content-length']
+  if (dest.headers && !dest.headersSent) {
+    if (hasHeader('content-type', response.headers)) {
+      var ctname = hasHeader('content-type', response.headers)
+      if (dest.setHeader) dest.setHeader(ctname, response.headers[ctname])
+      else dest.headers[ctname] = response.headers[ctname]
+    }
+
+    if (hasHeader('content-length', response.headers)) {
+      var clname = hasHeader('content-length', response.headers)
+      if (dest.setHeader) dest.setHeader(clname, response.headers[clname])
+      else dest.headers[clname] = response.headers[clname]
     }
   }
   if (dest.setHeader && !dest.headersSent) {
@@ -939,14 +946,27 @@ Request.prototype.pipeDest = function (dest) {
 // Composable API
 Request.prototype.setHeader = function (name, value, clobber) {
   if (clobber === undefined) clobber = true
-  if (clobber || !this.headers.hasOwnProperty(name)) this.headers[name] = value
-  else this.headers[name] += ',' + value
+  if (clobber || !this.hasHeader(name)) this.headers[name] = value
+  else this.headers[this.hasHeader(name)] += ',' + value
   return this
 }
 Request.prototype.setHeaders = function (headers) {
   for (var i in headers) {this.setHeader(i, headers[i])}
   return this
 }
+Request.prototype.hasHeader = function (header, headers) {
+  var headers = Object.keys(headers || this.headers)
+    , lheaders = headers.map(function (h) {return h.toLowerCase()})
+    ;
+  header = header.toLowerCase()
+  for (var i=0;i<lheaders.length;i++) {
+    if (lheaders[i] === header) return headers[i]
+  }
+  return false
+}
+
+var hasHeader = Request.prototype.hasHeader
+
 Request.prototype.qs = function (q, clobber) {
   var base
   if (!clobber && this.uri.query) base = qs.parse(this.uri.query)
@@ -968,7 +988,7 @@ Request.prototype.qs = function (q, clobber) {
 }
 Request.prototype.form = function (form) {
   if (form) {
-    this.headers['content-type'] = 'application/x-www-form-urlencoded; charset=utf-8'
+    this.setHeader('content-type', 'application/x-www-form-urlencoded; charset=utf-8')
     this.body = qs.stringify(form).toString('utf8')
     return this
   }
@@ -980,10 +1000,10 @@ Request.prototype.multipart = function (multipart) {
   var self = this
   self.body = []
 
-  if (!self.headers['content-type']) {
-    self.headers['content-type'] = 'multipart/related; boundary=' + self.boundary
+  if (!self.hasHeader('content-type')) {
+    self.setHeader('content-type', 'multipart/related; boundary=' + self.boundary)
   } else {
-    self.headers['content-type'] = self.headers['content-type'].split(';')[0] + '; boundary=' + self.boundary
+    self.setHeader('content-type', self.headers['content-type'].split(';')[0] + '; boundary=' + self.boundary)
   }
 
   if (!multipart.forEach) throw new Error('Argument error, options.multipart.')
@@ -1009,36 +1029,34 @@ Request.prototype.multipart = function (multipart) {
   return self
 }
 Request.prototype.json = function (val) {
-  var self = this;
-  var setAcceptHeader = function() {
-  	if (!self.headers['accept'] && !self.headers['Accept']) {
-			  self.setHeader('accept', 'application/json')
-		}
-	}
-  setAcceptHeader();
+  var self = this
+
+  if (!self.hasHeader('accept')) self.setHeader('accept', 'application/json')
+
   this._json = true
   if (typeof val === 'boolean') {
     if (typeof this.body === 'object') {
-      setAcceptHeader();
       this.body = safeStringify(this.body)
       self.setHeader('content-type', 'application/json')
     }
   } else {
-    setAcceptHeader();
     this.body = safeStringify(val)
     self.setHeader('content-type', 'application/json')
   }
   return this
 }
-function getHeader(name, headers) {
-    var result, re, match
-    Object.keys(headers).forEach(function (key) {
-        re = new RegExp(name, 'i')
-        match = key.match(re)
-        if (match) result = headers[key]
-    })
-    return result
+Request.prototype.getHeader = function (name, headers) {
+  var result, re, match
+  if (!headers) headers = this.headers
+  Object.keys(headers).forEach(function (key) {
+    re = new RegExp(name, 'i')
+    match = key.match(re)
+    if (match) result = headers[key]
+  })
+  return result
 }
+var getHeader = Request.prototype.getHeader
+
 Request.prototype.auth = function (user, pass, sendImmediately) {
   if (typeof user !== 'string' || (pass !== undefined && typeof pass !== 'string')) {
     throw new Error('auth() received invalid user or password')
@@ -1065,8 +1083,8 @@ Request.prototype.aws = function (opts, now) {
     , secret: opts.secret
     , verb: this.method.toUpperCase()
     , date: date
-    , contentType: getHeader('content-type', this.headers) || ''
-    , md5: getHeader('content-md5', this.headers) || ''
+    , contentType: this.getHeader('content-type') || ''
+    , md5: this.getHeader('content-md5') || ''
     , amazonHeaders: aws.canonicalizeHeaders(this.headers)
     }
   if (opts.bucket && this.path) {
@@ -1095,19 +1113,19 @@ Request.prototype.httpSignature = function (opts) {
     method: this.method,
     path: this.path
   }, opts)
-  debug('httpSignature authorization', getHeader('authorization', this.headers))
+  debug('httpSignature authorization', this.getHeader('authorization'))
 
   return this
 }
 
 Request.prototype.hawk = function (opts) {
-  this.headers.Authorization = hawk.client.header(this.uri, this.method, opts).field
+  this.setHeader('Authorization', hawk.client.header(this.uri, this.method, opts).field)
 }
 
 Request.prototype.oauth = function (_oauth) {
   var form
-  if (this.headers['content-type'] &&
-      this.headers['content-type'].slice(0, 'application/x-www-form-urlencoded'.length) ===
+  if (this.hasHeader('content-type') &&
+      this.getHeader('content-type').slice(0, 'application/x-www-form-urlencoded'.length) ===
         'application/x-www-form-urlencoded'
      ) {
     form = qs.parse(this.body)
@@ -1144,16 +1162,16 @@ Request.prototype.oauth = function (_oauth) {
     }
   }
   oa.oauth_timestamp = timestamp
-  this.headers.Authorization =
-    'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+oauth.rfc3986(oa[i])+'"'}).join(',')
-  this.headers.Authorization += ',oauth_signature="' + oauth.rfc3986(signature) + '"'
+  var authHeader = 'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+oauth.rfc3986(oa[i])+'"'}).join(',')
+  authHeader += ',oauth_signature="' + oauth.rfc3986(signature) + '"'
+  this.setHeader('Authorization', authHeader)
   return this
 }
 Request.prototype.jar = function (jar) {
   var cookies
 
   if (this._redirectsFollowed === 0) {
-    this.originalCookieHeader = this.headers.cookie
+    this.originalCookieHeader = this.getHeader('cookie')
   }
 
   if (!jar) {
@@ -1175,9 +1193,9 @@ Request.prototype.jar = function (jar) {
 
     if (this.originalCookieHeader) {
       // Don't overwrite existing Cookie header
-      this.headers.cookie = this.originalCookieHeader + '; ' + cookieString
+      this.setHeader('cookie', this.originalCookieHeader + '; ' + cookieString)
     } else {
-      this.headers.cookie = cookieString
+      this.setHeader('cookie', cookieString)
     }
   }
   this._jar = jar
