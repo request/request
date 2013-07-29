@@ -176,11 +176,22 @@ Request.prototype.init = function (options) {
       var tunnelFn = self.proxy.protocol === "http:"
                    ? tunnel.httpsOverHttp : tunnel.httpsOverHttps
 
+      var proxyHeaders = { Host: self.uri.hostname + ':' +
+            (self.uri.port || self.uri.protocol === 'https:' ? 443 : 80) }
+      
+      if (self.headers) {
+            for (var headerName in self.headers) {
+                if (headerName.toLowerCase().indexOf("proxy-") === 0) {
+                   proxyHeaders[headerName] = self.headers[headerName];
+                   delete self.headers[headerName];
+                }
+            }
+      }
+      
       var tunnelOptions = { proxy: { host: self.proxy.hostname
                                    , port: +self.proxy.port
                                    , proxyAuth: self.proxy.auth
-                                   , headers: { Host: self.uri.hostname + ':' +
-                                        (self.uri.port || self.uri.protocol === 'https:' ? 443 : 80) }}
+                                   , headers: proxyHeaders }
                           , rejectUnauthorized: self.rejectUnauthorized
                           , ca: this.ca }
 
