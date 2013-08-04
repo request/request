@@ -30,6 +30,7 @@ var http = require('http')
   , mime = require('mime')
   , tunnel = require('tunnel-agent')
   , safeStringify = require('json-stringify-safe')
+  , www_authenticate = require('www-authenticate')
 
   , ForeverAgent = require('forever-agent')
   , FormData = require('form-data')
@@ -188,7 +189,7 @@ Request.prototype.init = function (options) {
       self.tunnel = true
     }
   }
-  
+
   if (!self.uri.pathname) {self.uri.pathname = '/'}
 
   if (!self.uri.host) {
@@ -708,56 +709,17 @@ Request.prototype.onResponse = function (response) {
       }
     }
   } else if (response.statusCode == 401 && self._hasAuth && !self._sentAuth) {
+    var on_www_authenticate= www_authenticate(self._user, self._pass, {cnonce:'', password_optional:true});
     var authHeader = response.headers[hasHeader('www-authenticate', response.headers)]
-    var authVerb = authHeader && authHeader.split(' ')[0]
-    debug('reauth', authVerb)
-
-    switch (authVerb) {
-      case 'Basic':
-        self.auth(self._user, self._pass, true)
-        redirectTo = self.uri
-        break
-
-      case 'Digest':
-        // TODO: More complete implementation of RFC 2617.  For reference:
-        // http://tools.ietf.org/html/rfc2617#section-3
-        // https://github.com/bagder/curl/blob/master/lib/http_digest.c
-
-        var matches = authHeader.match(/([a-z0-9_-]+)="([^"]+)"/gi)
-        var challenge = {}
-
-        for (var i = 0; i < matches.length; i++) {
-          var eqPos = matches[i].indexOf('=')
-          var key = matches[i].substring(0, eqPos)
-          var quotedValue = matches[i].substring(eqPos + 1)
-          challenge[key] = quotedValue.substring(1, quotedValue.length - 1)
-        }
-
-        var ha1 = md5(self._user + ':' + challenge.realm + ':' + self._pass)
-        var ha2 = md5(self.method + ':' + self.uri.path)
-        var digestResponse = md5(ha1 + ':' + challenge.nonce + ':1::auth:' + ha2)
-        var authValues = {
-          username: self._user,
-          realm: challenge.realm,
-          nonce: challenge.nonce,
-          uri: self.uri.path,
-          qop: challenge.qop,
-          response: digestResponse,
-          nc: 1,
-          cnonce: ''
-        }
-
-        authHeader = []
-        for (var k in authValues) {
-          authHeader.push(k + '="' + authValues[k] + '"')
-        }
-        authHeader = 'Digest ' + authHeader.join(', ')
-        self.setHeader('authorization', authHeader)
-        self._sentAuth = true
-
-        redirectTo = self.uri
-        break
+    var authenticator = on_www_authenticate(authHeader? authHeader: 'Basic realm="any"');
+    if (authenticator.err) {
+      self.emit('error', new Error('Authentication error: '+authenticator.err))
+      return
     }
+    self.setHeader('authorization', authenticator.authorize(self.method, self.uri.path))
+    self._sentAuth = true
+
+    redirectTo = self.uri
   }
 
   if (redirectTo) {
