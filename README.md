@@ -1,6 +1,6 @@
 # Request -- Simplified HTTP request method
 
-<a href="https://nodei.co/npm/<package>/"><img src="https://nodei.co/npm/<package>.png"></a>
+[![NPM](https://nodei.co/npm/request.png)](https://nodei.co/npm/request/)
 
 ## Super simple to use
 
