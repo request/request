@@ -1,4 +1,4 @@
-# Request -- Simplified HTTP request method
+# Request -- Simplified HTTP client
 
 [![NPM](https://nodei.co/npm/request.png)](https://nodei.co/npm/request/)
 
