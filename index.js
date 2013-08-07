@@ -17,7 +17,7 @@ var Cookie = require('cookie-jar')
   , cookieJar = new CookieJar
 
   , copy = require('./lib/copy')
-  , Request = require('./Request')
+  , Request = require('./request')
   ;
 
 
