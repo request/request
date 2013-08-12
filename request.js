@@ -232,18 +232,6 @@ Request.prototype.init = function (options) {
     self.emit('error', error)
   }
 
-  self._parserErrorHandler = function (error) {
-    if (this.res) {
-      if (this.res.request) {
-        this.res.request.emit('error', error)
-      } else {
-        this.res.emit('error', error)
-      }
-    } else {
-      this._httpMessage.emit('error', error)
-    }
-  }
-
   if (options.form) {
     self.form(options.form)
   }
@@ -603,10 +591,25 @@ Request.prototype.start = function () {
     self.emit('drain')
   })
   self.on('end', function() {
-    if ( self.req.connection ) self.req.connection.removeListener('error', self._parserErrorHandler)
+    if ( self.req.connection ) self.req.connection.removeListener('error', parserErrorHandler)
   })
   self.emit('request', self.req)
 }
+
+function parserErrorHandler(error) {
+  this.removeListener('error', parserErrorHandler)
+
+  if (this.res) {
+    if (this.res.request) {
+      this.res.request.emit('error', error)
+    } else {
+      this.res.emit('error', error)
+    }
+  } else {
+    this._httpMessage.emit('error', error)
+  }
+}
+
 Request.prototype.onResponse = function (response) {
   var self = this
   debug('onResponse', self.uri.href, response.statusCode, response.headers)
@@ -614,8 +617,10 @@ Request.prototype.onResponse = function (response) {
     debug('response end', self.uri.href, response.statusCode, response.headers)
   });
 
-  if (response.connection.listeners('error').indexOf(self._parserErrorHandler) === -1) {
-    response.connection.once('error', self._parserErrorHandler)
+  if (response.connection.listeners('error').indexOf(parserErrorHandler) === -1) {
+    // This listener will be removed when emitted by parserErrorHandler,
+    // it should be noted that .once can't be used here. See: GH-623
+    response.connection.on('error', parserErrorHandler)
   }
   if (self._aborted) {
     debug('aborted', self.uri.href)
