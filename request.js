@@ -8,10 +8,10 @@ var http = require('http')
   , querystring = require('querystring')
   , crypto = require('crypto')
 
-  , oauth = require('oauth-sign')
-  , hawk = require('hawk')
-  , aws = require('aws-sign')
-  , httpSignature = require('http-signature')
+  , oauth           // lazy load
+  , hawk            // lazy load
+  , aws             // lazy load
+  , httpSignature   // lazy load
   , uuid = require('node-uuid')
   , mime = require('mime')
   , tunnel = require('tunnel-agent')
@@ -261,18 +261,22 @@ Request.prototype.init = function (options) {
 
   // Auth must happen last in case signing is dependent on other headers
   if (options.oauth) {
+    if (!oauth) oauth = require('oauth-sign');
     self.oauth(options.oauth)
   }
 
   if (options.aws) {
+    if (!aws) aws = require('aws-sign');
     self.aws(options.aws)
   }
 
   if (options.hawk) {
+    if (!hawk) hawk = require('hawk');
     self.hawk(options.hawk)
   }
 
   if (options.httpSignature) {
+    if (!httpSignature) httpSignature = require('http-signature');
     self.httpSignature(options.httpSignature)
   }
 
