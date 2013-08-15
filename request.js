@@ -15,7 +15,7 @@ var http = require('http')
   , uuid = require('node-uuid')
   , mime = require('mime')
   , tunnel = require('tunnel-agent')
-  , safeStringify = require('json-stringify-safe')
+  , _safeStringify = require('json-stringify-safe')
 
   , ForeverAgent = require('forever-agent')
   , FormData = require('form-data')
@@ -28,6 +28,13 @@ var http = require('http')
   , debug = require('./lib/debug')
   , getSafe = require('./lib/getSafe')
   ;
+
+function safeStringify (obj) {
+  var ret
+  try { ret = JSON.stringify(obj) }
+  catch (e) { ret = _safeStringify(obj) }
+  return ret
+}
 
 var globalPool = {}
 var isUrl = /^https?:/i
@@ -162,7 +169,7 @@ Request.prototype.init = function (options) {
       self.tunnel = true
     }
   }
-  
+
   if (!self.uri.pathname) {self.uri.pathname = '/'}
 
   if (!self.uri.host) {
