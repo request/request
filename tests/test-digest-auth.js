@@ -15,7 +15,7 @@ var digestServer = http.createServer(function (req, res) {
   var ok;
 
   if (req.headers.authorization) {
-    if (req.headers.authorization == 'Digest username="test", realm="Private", nonce="WpcHS2/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93", uri="/test/", qop="auth", response="54753ce37c10cb20b09b769f0bed730e", nc="1", cnonce=""') {
+    if (/^Digest username="test", realm="Private", nonce="WpcHS2\/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93", uri="\/test\/", qop="auth", response="[a-f0-9]{32}", nc="1", cnonce="[a-f0-9]{32}"$/.exec(req.headers.authorization)) {
       ok = true;
     } else {
       // Bad auth header, don't send back WWW-Authenticate header
