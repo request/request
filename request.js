@@ -725,7 +725,7 @@ Request.prototype.onResponse = function (response) {
           qop: challenge.qop,
           response: digestResponse,
           nc: 1,
-          cnonce: ''
+          cnonce: 'Un Chien Andalou'
         }
 
         authHeader = []
