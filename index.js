@@ -20,6 +20,8 @@ var Cookie = require('cookie-jar')
   , Request = require('./request')
   ;
 
+
+
 // organize params for patch, post, put, head, del
 function initParams(uri, options, callback) {
   if ((typeof options === 'function') && !callback) callback = options
