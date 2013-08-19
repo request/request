@@ -36,5 +36,11 @@
   },
   "scripts": {
     "test": "node tests/run.js"
-  }
+  },
+  "licenses": [
+    {
+      "type": "APL 2.0",
+      "url": "https://raw.github.com/mikeal/request/master/LICENSE"
+    }
+  ]
 }
