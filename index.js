@@ -303,6 +303,13 @@ Request.prototype.init = function (options) {
     self.httpSignature(options.httpSignature)
   }
 
+  if (options.digestAuth) {
+    self.digestAuth(options.digestAuth)
+    self._digestAuth = options.digestAuth
+  }
+  else if (self._digestAuth) {
+    self.digestAuth(self._digestAuth)
+  }
   if (options.auth) {
     self.auth(
       (options.auth.user==="") ? options.auth.user : (options.auth.user || options.auth.username ),
@@ -708,18 +715,23 @@ Request.prototype.onResponse = function (response) {
           break
       }
     }
-  } else if (response.statusCode == 401 && self._hasAuth && !self._sentAuth) {
-    var on_www_authenticate= www_authenticate(self._user, self._pass, {cnonce:'', password_optional:true});
-    var authHeader = response.headers[hasHeader('www-authenticate', response.headers)]
-    var authenticator = on_www_authenticate(authHeader? authHeader: 'Basic realm="any"');
-    if (authenticator.err) {
-      self.emit('error', new Error('Authentication error: '+authenticator.err))
-      return
-    }
-    self.setHeader('authorization', authenticator.authorize(self.method, self.uri.path))
-    self._sentAuth = true
+  } else if (response.statusCode == 401) {
+    if (self._digestAuth) {
+      self._digestAuth.get_challenge(response);
+      redirectTo = self.uri
+    } else if (self._hasAuth && !self._sentAuth) {
+      var on_www_authenticate= www_authenticate(self._user, self._pass, {cnonce:'', password_optional:true});
+      var authHeader = response.headers[hasHeader('www-authenticate', response.headers)]
+      var authenticator = on_www_authenticate(authHeader? authHeader: 'Basic realm="any"');
+      if (authenticator.err) {
+        self.emit('error', new Error('Authentication error: '+authenticator.err))
+        return
+      }
+      self.setHeader('authorization', authenticator.authorize(self.method, self.uri.path))
+      self._sentAuth = true
 
-    redirectTo = self.uri
+      redirectTo = self.uri
+    }
   }
 
   if (redirectTo) {
@@ -1078,6 +1090,14 @@ Request.prototype.httpSignature = function (opts) {
   }, opts)
   debug('httpSignature authorization', this.getHeader('authorization'))
 
+  return this
+}
+
+Request.prototype.digestAuth = function (authenticator) {
+  var value= authenticator.authentication_string(this.method,this.path);
+  if (value) {
+    this.setHeader('authorization', value)
+  }
   return this
 }
 
