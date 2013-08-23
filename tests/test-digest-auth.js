@@ -15,19 +15,10 @@ var digestServer = http.createServer(function (req, res) {
   var ok;
 
   if (req.headers.authorization) {
-    if (req.headers.authorization == 'Digest username="test", realm="Private", nonce="WpcHS2/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93", algorithm="MD5", uri="/test/", qop=auth, nc=00000001, cnonce="", response="f76f206bc0c7f68aaefa7ec14d46cdb3"') {
-      ok = true;
-    } else if (req.headers.authorization == 'Digest username="test", realm="Private", nonce="WpcHS2/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93", algorithm="MD5", uri="/test/", qop=auth, nc=00000002, cnonce="", response="522689e3a90ca5258f99642d844999da"') {
-      ok = true;
-    } else if (req.headers.authorization == 'Digest username="test", realm="Private", nonce="WpcHS2/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93", algorithm="MD5", uri="/test/", qop=auth, nc=00000003, cnonce="", response="3eca98fe20ec42a8a34ff9c0969a3e3e"') {
-      ok = true;
-    } else if (req.headers.authorization == 'Digest username="test", realm="Private", nonce="WpcHS2/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93", algorithm="MD5", uri="/test/", qop=auth, nc=00000004, cnonce="", response="b505b7f0cdabc8ffd6fd939115500857"') {
-      ok = true;
-    } else if (req.headers.authorization == 'Digest username="test", realm="Private", nonce="WpcHS2/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93", algorithm="MD5", uri="/test/", qop=auth, nc=00000005, cnonce="", response="3bf87e38c3d5d44ae8ef7a37dd7453f0"') {
+    if (/^Digest username="test", realm="Private", nonce="WpcHS2\/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93", algorithm="MD5", uri="\/test\/", qop=auth, nc=[0-9]+, cnonce="[a-f0-9]{0,32}", response="[a-f0-9]{32}"$/.exec(req.headers.authorization)) {
       ok = true;
     } else {
       // Bad auth header, don't send back WWW-Authenticate header
-      console.error("Unexpected Authorization header: "+req.headers.authorization)
       ok = false;
     }
   } else {
@@ -73,7 +64,7 @@ request({
     assert.equal(numDigestRequests, 3);
 
     // test digestAuth option
-    digestAuth= request.digestAuth('test','testing',{cnonce:''})
+    digestAuth= request.digestAuth('test','testing')
     request({
       'method': 'GET',
       'uri': 'http://localhost:6767/test/',
