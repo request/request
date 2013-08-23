@@ -303,11 +303,11 @@ Request.prototype.init = function (options) {
     self.httpSignature(options.httpSignature)
   }
 
-  if (options.digestAuth) {
-    self.digestAuth(options.digestAuth)
+  if (options.persistentAuth) {
+    self.persistentAuth(options.persistentAuth)
   }
-  else if (self._digestAuth) {
-    self.digestAuth(self._digestAuth)
+  else if (self._persistentAuth) {
+    self.persistentAuth(self._persistentAuth)
   }
   else if (options.auth) {
     self.auth(
@@ -715,8 +715,8 @@ Request.prototype.onResponse = function (response) {
       }
     }
   } else if (response.statusCode == 401) {
-    if (self._digestAuth) {
-      self._digestAuth.get_challenge(response);
+    if (self._persistentAuth) {
+      self._persistentAuth.get_challenge(response);
       redirectTo = self.uri
     } else if (self._hasAuth && !self._sentAuth) {
       var on_www_authenticate= www_authenticate(self._user, self._pass, {cnonce:'', password_optional:true});
@@ -1043,7 +1043,7 @@ Request.prototype.auth = function (user, pass, sendImmediately) {
   this._pass = pass
   this._hasAuth = true
   var header = typeof pass !== 'undefined' ? user + ':' + pass : user
-  if (!this._digestAuth && (sendImmediately || typeof sendImmediately == 'undefined')) {
+  if (!this._persistentAuth && (sendImmediately || typeof sendImmediately == 'undefined')) {
     this.setHeader('authorization', 'Basic ' + toBase64(header))
     this._sentAuth = true
   }
@@ -1096,10 +1096,10 @@ Request.prototype.httpSignature = function (opts) {
   return this
 }
 
-Request.prototype.digestAuth = function (authenticator) {
-  this._digestAuth = authenticator;
+Request.prototype.persistentAuth = function (authenticator) {
+  this._persistentAuth = authenticator;
   if (this._sentAuth) {
-    // Cancel immediate header from the auth option.  DigestAuth overrides auth.
+    // Cancel immediate header from the auth option.  persistentAuth overrides auth.
     this.removeHeader('authorization')
   }
   var value= authenticator.authentication_string(this.method,this.path);
@@ -1358,7 +1358,7 @@ request.cookie = function (str) {
   if (typeof str !== 'string') throw new Error("The cookie function only accepts STRING as param")
   return new Cookie(str)
 }
-request.digestAuth = function (username,password,options) {
+request.persistentAuth = function (username,password,options) {
   return www_authenticate.authenticator(username,password,options)
 }
 // Safe toJSON

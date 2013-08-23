@@ -63,12 +63,12 @@ request({
     assert.equal(response.statusCode, 401);
     assert.equal(numDigestRequests, 3);
 
-    // test digestAuth option
-    digestAuth= request.digestAuth('test','testing')
+    // test persistentAuth option
+    var persistentAuth= request.persistentAuth('test','testing')
     request({
       'method': 'GET',
       'uri': 'http://localhost:6767/test/',
-      'digestAuth': digestAuth
+      'persistentAuth': persistentAuth
     }, function(error, response, body) {
       assert.equal(response.statusCode, 200);
       assert.equal(numDigestRequests, 5);
@@ -77,30 +77,30 @@ request({
       request({
         'method': 'GET',
         'uri': 'http://localhost:6767/test/',
-        'digestAuth': digestAuth
+        'persistentAuth': persistentAuth
       }, function(error, response, body) {
         assert.equal(response.statusCode, 200);
         assert.equal(numDigestRequests, 6);
 
         // now send another request without needing a new challenge from the server
-        // Also tests chaining digestAuth
-        request.get('http://localhost:6767/test/').digestAuth(digestAuth).on('complete',
+        // Also tests chaining persistentAuth
+        request.get('http://localhost:6767/test/').persistentAuth(persistentAuth).on('complete',
           function(response) {
             assert.equal(response.statusCode, 200);
             assert.equal(numDigestRequests, 7);
 
-            // digestAuth overrides auth
+            // persistentAuth overrides auth
             request.get('http://localhost:6767/test/').
-              digestAuth(digestAuth).auth('a').
+              persistentAuth(persistentAuth).auth('a').
             on('complete',
               function(response) {
                 assert.equal(response.statusCode, 200);
                 assert.equal(numDigestRequests, 8);
 
 
-                // digestAuth overrides auth, even when auth is first
+                // persistentAuth overrides auth, even when auth is first
                 request.get('http://localhost:6767/test/').
-                  auth('a').digestAuth(digestAuth).
+                  auth('a').persistentAuth(persistentAuth).
                 on('complete',
                   function(response) {
                     assert.equal(response.statusCode, 200);
