@@ -118,6 +118,9 @@ form.append('remote_file', request('http://google.com/doodle.png'))
 ## HTTP Authentication
 
 ```javascript
+var authenticator= request.digestAuth('username', 'password');
+request.get('http://some.server.com/').digestAuth(authenticator);
+// or
 request.get('http://some.server.com/').auth('username', 'password', false);
 // or
 request.get('http://some.server.com/', {
@@ -128,6 +131,13 @@ request.get('http://some.server.com/', {
   }
 });
 ```
+
+`DigestAuth` handles both HTTP Basic and Digest Auththentication and allows multiple requests to be authenticated based upon a single challenge.
+The more limited, legacy `auth` option authenticates a single request only and is best suited to Basic Authentication.
+If both forms of authentication are specified, `digestAuth` will take precedence and `auth` will be ignored.
+
+The `request.digestAuth` function takes a username and an optional, perhaps null, password as arguments.  An optional `options` object may be passed as the final argument.  If the `sendImmediately` option tests true, Basic Authentication will be attempted until or unless a 401 response that includes a `WWW-Authenticate` header poses a different challenge.  If a `cnonce` option is not provided, a random cnonce will be generated for Digest Authentication.  The authenticator returned by the `request.digestAuth` function will retain any challenges recieved between requests and may be used with any number of requests.
+A [user-credentials](https://github.com/randymized/www-authenticate#user-credentials) object may replace the username and password arguments to `request.digestAuth`.
 
 If passed as an option, `auth` should be a hash containing values `user` || `username`, `password` || `pass`, and `sendImmediately` (optional).  The method form takes parameters `auth(username, password, sendImmediately)`.
 
@@ -195,6 +205,7 @@ The first argument can be either a url or an options object. The only required o
 * `headers` - http headers, defaults to {}
 * `body` - entity body for PATCH, POST and PUT requests. Must be buffer or string.
 * `form` - when passed an object this will set `body` but to a querystring representation of value and adds `Content-type: application/x-www-form-urlencoded; charset=utf-8` header. When passed no option a FormData instance is returned that will be piped to request.
+* `digestAuth` - An authenticator object returned from the `request.digestAuth` function.  See documentation above.
 * `auth` - A hash containing values `user` || `username`, `password` || `pass`, and `sendImmediately` (optional).  See documentation above.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as json.
 * `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
