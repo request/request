@@ -305,12 +305,11 @@ Request.prototype.init = function (options) {
 
   if (options.digestAuth) {
     self.digestAuth(options.digestAuth)
-    self._digestAuth = options.digestAuth
   }
   else if (self._digestAuth) {
     self.digestAuth(self._digestAuth)
   }
-  if (options.auth) {
+  else if (options.auth) {
     self.auth(
       (options.auth.user==="") ? options.auth.user : (options.auth.user || options.auth.username ),
       options.auth.pass || options.auth.password,
@@ -925,6 +924,10 @@ Request.prototype.setHeader = function (name, value, clobber) {
   else this.headers[this.hasHeader(name)] += ',' + value
   return this
 }
+Request.prototype.removeHeader = function (name) {
+  delete this.headers[name]
+  return this
+}
 Request.prototype.setHeaders = function (headers) {
   for (var i in headers) {this.setHeader(i, headers[i])}
   return this
@@ -1040,7 +1043,7 @@ Request.prototype.auth = function (user, pass, sendImmediately) {
   this._pass = pass
   this._hasAuth = true
   var header = typeof pass !== 'undefined' ? user + ':' + pass : user
-  if (sendImmediately || typeof sendImmediately == 'undefined') {
+  if (!this._digestAuth && (sendImmediately || typeof sendImmediately == 'undefined')) {
     this.setHeader('authorization', 'Basic ' + toBase64(header))
     this._sentAuth = true
   }
@@ -1094,6 +1097,11 @@ Request.prototype.httpSignature = function (opts) {
 }
 
 Request.prototype.digestAuth = function (authenticator) {
+  this._digestAuth = authenticator;
+  if (this._sentAuth) {
+    // Cancel immediate header from the auth option.  DigestAuth overrides auth.
+    this.removeHeader('authorization')
+  }
   var value= authenticator.authentication_string(this.method,this.path);
   if (value) {
     this.setHeader('authorization', value)
@@ -1184,7 +1192,6 @@ Request.prototype.jar = function (jar) {
   this._jar = jar
   return this
 }
-
 
 // Stream API
 Request.prototype.pipe = function (dest, opts) {
@@ -1351,7 +1358,9 @@ request.cookie = function (str) {
   if (typeof str !== 'string') throw new Error("The cookie function only accepts STRING as param")
   return new Cookie(str)
 }
-
+request.digestAuth = function (username,password,options) {
+  return www_authenticate.authenticator(username,password,options)
+}
 // Safe toJSON
 
 function getSafe (self, uuid) {
