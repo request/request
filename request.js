@@ -27,6 +27,8 @@ var http = require('http')
   , copy = require('./lib/copy')
   , debug = require('./lib/debug')
   , getSafe = require('./lib/getSafe')
+  ,socksHttpAgent = require("./lib/socks5-agent-http")
+  ,socksHttpsAgent = require("./lib/socks5-agent-https")
   ;
 
 function safeStringify (obj) {
@@ -168,6 +170,10 @@ Request.prototype.init = function (options) {
       self.agent = tunnelFn(tunnelOptions)
       self.tunnel = true
     }
+  }
+
+  if(self.socks5){
+      self.agent = (self.uri.protocol === "https:")?new socksHttpsAgent(self.socks5):new socksHttpAgent(self.socks5);
   }
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}

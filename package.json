@@ -32,7 +32,9 @@
     "cookie-jar": "~0.3.0",
     "node-uuid": "~1.4.0",
     "mime": "~1.2.9",
-    "form-data": "~0.1.0"
+    "form-data": "~0.1.0",
+    "socks5-client":"~0.3.4",
+    "starttls": "0.x"
   },
   "scripts": {
     "test": "node tests/run.js"
