@@ -714,20 +714,26 @@ Request.prototype.onResponse = function (response) {
           challenge[key] = quotedValue.substring(1, quotedValue.length - 1)
         }
 
+        var qopIsSet = challenge.qop === "auth";
+
         var ha1 = md5(self._user + ':' + challenge.realm + ':' + self._pass)
         var ha2 = md5(self.method + ':' + self.uri.path)
         var cnonce = uuid().replace(/-/g, '')
-        var digestResponse = md5(ha1 + ':' + challenge.nonce + ':1:' + cnonce + ':auth:' + ha2)
+        var digestResponse = md5(ha1 + ':' + challenge.nonce + (qopIsSet ? (':1:' + cnonce + ':auth:') : ':') + ha2)
         var authValues = {
           username: self._user,
           realm: challenge.realm,
           nonce: challenge.nonce,
           uri: self.uri.path,
-          qop: challenge.qop,
           response: digestResponse,
-          nc: 1,
-          cnonce: cnonce
         }
+        
+        if (qopIsSet) { // Send them only if qop is set in challenge.
+        	authValues.qop = "auth";
+        	authValues.nc = 1;
+        	authValues.cnonce = cnonce;        	
+        }
+
 
         authHeader = []
         for (var k in authValues) {
