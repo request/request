@@ -1300,20 +1300,33 @@ Request.prototype.hawk = function (opts) {
 }
 
 Request.prototype.oauth = function (_oauth) {
-  var form
+  var form, params = ''
   if (this.hasHeader('content-type') &&
       this.getHeader('content-type').slice(0, 'application/x-www-form-urlencoded'.length) ===
         'application/x-www-form-urlencoded'
      ) {
-    form = qs.parse(this.body)
+     params = this.body
   }
   if (this.uri.query) {
-    form = qs.parse(this.uri.query)
+    params = params ? params + '&' + this.uri.query : this.uri.query
   }
-  if (!form) form = {}
+
+  form = qs.parse(params)
   var oa = {}
   for (var i in form) oa[i] = form[i]
-  for (var i in _oauth) oa['oauth_'+i] = _oauth[i]
+
+  // logic from node's querystring.parse
+  for (var i in _oauth) {
+    var p = 'oauth_'+i;
+    if (!oa.hasOwnProperty(p)) {
+      oa[p] = _oauth[i]
+    } else if (Array.isArray(oa[p])) {
+      oa[p].push(_oauth[i])
+    } else {
+      oa[p] = [_oauth[i], oa[p]]
+    }
+  }
+
   if (!oa.oauth_version) oa.oauth_version = '1.0'
   if (!oa.oauth_timestamp) oa.oauth_timestamp = Math.floor( Date.now() / 1000 ).toString()
   if (!oa.oauth_nonce) oa.oauth_nonce = uuid().replace(/-/g, '')

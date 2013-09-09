@@ -120,6 +120,28 @@ setTimeout(function () {
   assert.equal(upsign, getsignature(rupsign))
 }, 1)
 
+// example in rfc5849
+var rfc5849 = request.post(
+  { url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b'
+  , oauth:
+    { consumer_key: "9djdj82h48djs9d2"
+    , nonce: "7d8f3e4a"
+    , signature_method: "HMAC-SHA1"
+    , token: "kkk9d7dh3k39sjv7"
+    , timestamp: "137131201"
+    , consumer_secret: "j49sk3j29djd"
+    , token_secret: "dh893hdasih9"
+    }
+  , form: {
+      c2: '',
+      a3: '2 q'
+    }
+  })
 
-
+setTimeout(function () {
+  console.log(getsignature(rfc5849))
+  // different signature in rfc5849 because request sets oauth_version by default
+  assert.equal('0+ZuE+gHTWozhkGpm2vHSdGF/bs=', getsignature(rfc5849))
+  rfc5849.abort()
+}, 1)
 
