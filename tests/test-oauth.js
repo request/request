@@ -131,6 +131,7 @@ var rfc5849 = request.post(
     , timestamp: "137131201"
     , consumer_secret: "j49sk3j29djd"
     , token_secret: "dh893hdasih9"
+    , realm: 'Example'
     }
   , form: {
       c2: '',
@@ -141,7 +142,7 @@ var rfc5849 = request.post(
 setTimeout(function () {
   console.log(getsignature(rfc5849))
   // different signature in rfc5849 because request sets oauth_version by default
-  assert.equal('0+ZuE+gHTWozhkGpm2vHSdGF/bs=', getsignature(rfc5849))
+  assert.equal('OB33pYjWAnf+xtOHN4Gmbdil168=', getsignature(rfc5849))
   rfc5849.abort()
 }, 1)
 
