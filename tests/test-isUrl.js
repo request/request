@@ -1,5 +1,5 @@
 var assert = require('assert')
-  , request = require('../index')
+  , request = require('../lib/index.js')
   , http = require('http')
   ;
 

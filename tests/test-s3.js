@@ -1,4 +1,4 @@
-var request = require('../index')
+var request = require('../lib/index.js')
 
 var r = request.get('https://log.curlybracecast.com.s3.amazonaws.com/', 
   { aws: 

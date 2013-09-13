@@ -3,7 +3,7 @@
 
 var server = require('./server')
   , assert = require('assert')
-  , request = require('../index')
+  , request = require('../lib/index.js')
   , fs = require('fs')
   , path = require('path')
   , opts = { key: path.resolve(__dirname, 'ssl/ca/server.key')

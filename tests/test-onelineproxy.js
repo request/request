@@ -1,6 +1,6 @@
 var http = require('http')
   , assert = require('assert')
-  , request = require('../index')
+  , request = require('../lib/index.js')
   ;
 
 var server = http.createServer(function (req, resp) {

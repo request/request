@@ -2,7 +2,7 @@ var server = require('./server')
   , events = require('events')
   , stream = require('stream')
   , assert = require('assert')
-  , request = require('../index')
+  , request = require('../lib/index.js')
   ;
 
 var s = server.createServer();

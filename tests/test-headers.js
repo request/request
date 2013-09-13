@@ -1,6 +1,6 @@
 var server = require('./server')
   , assert = require('assert')
-  , request = require('../index')
+  , request = require('../lib/index.js')
   , Cookie = require('cookie-jar')
   , Jar = Cookie.Jar
   , s = server.createServer()

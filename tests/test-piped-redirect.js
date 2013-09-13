@@ -1,6 +1,6 @@
 var http = require('http')
   , assert = require('assert')
-  , request = require('../index')
+  , request = require('../lib/index.js')
   ;
 
 var portOne = 8968
