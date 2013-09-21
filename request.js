@@ -102,6 +102,8 @@ function Request (options) {
     this.explicitMethod = true
   }
 
+  this.canTunnel = options.tunnel !== false;
+
   this.init(options)
 }
 util.inherits(Request, stream.Stream)
@@ -153,7 +155,7 @@ Request.prototype.init = function (options) {
     if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
 
     // do the HTTP CONNECT dance using koichik/node-tunnel
-    if (http.globalAgent && self.uri.protocol === "https:") {
+    if (http.globalAgent && self.uri.protocol === "https:" && self.canTunnel) {
       var tunnelFn = self.proxy.protocol === "http:"
                    ? tunnel.httpsOverHttp : tunnel.httpsOverHttps
 
@@ -429,7 +431,7 @@ Request.prototype._updateProtocol = function () {
   if (protocol === 'https:') {
     // previously was doing http, now doing https
     // if it's https, then we might need to tunnel now.
-    if (self.proxy) {
+    if (self.proxy && self.canTunnel) {
       self.tunnel = true
       var tunnelFn = self.proxy.protocol === 'http:'
                    ? tunnel.httpsOverHttp : tunnel.httpsOverHttps
