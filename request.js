@@ -539,9 +539,9 @@ Request.prototype.getAgent = function () {
       poolKey += options.ciphers
     }
 
-    if (options.secureOptions) {
+    if (options.secureProtocol) {
       if (poolKey) poolKey += ':'
-      poolKey += options.secureOptions
+      poolKey += options.secureProtocol
     }
   }
 
