@@ -494,6 +494,8 @@ Request.prototype.getAgent = function () {
     }
   }
   if (this.ca) options.ca = this.ca
+  if (this.ciphers) options.ciphers = this.ciphers
+  if (this.secureProtocol) options.secureProtocol = this.secureProtocol
   if (typeof this.rejectUnauthorized !== 'undefined') options.rejectUnauthorized = this.rejectUnauthorized
 
   if (this.cert && this.key) {
