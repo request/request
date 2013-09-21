@@ -7,7 +7,7 @@ var server = require('./server')
 
 var s = server.createServer();
 var expectedBody = "waited";
-var remainingTests = 5;
+var remainingTests = 6;
 
 s.listen(s.port, function () {
   // Request that waits for 200ms
@@ -31,6 +31,17 @@ s.listen(s.port, function () {
     checkDone();
   })
 
+
+  var shouldTimeoutWithEvents = {
+    url: s.url + "/timeout",
+    timeout:100
+  }
+
+  request(shouldTimeoutWithEvents)
+    .on('error', function (err) {
+      assert.equal(err.code, "ETIMEDOUT");
+      checkDone();
+    })
 
   // Scenario that shouldn't timeout
   var shouldntTimeout = {
