@@ -1,5 +1,5 @@
 var createServer = require('http').createServer
-  , request = require('../index')
+  , request = require('../lib/index.js')
   , httpSignature = require('http-signature')
   , assert = require('assert')
   ;

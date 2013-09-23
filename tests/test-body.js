@@ -2,7 +2,7 @@ var server = require('./server')
   , events = require('events')
   , stream = require('stream')
   , assert = require('assert')
-  , request = require('../index')
+  , request = require('../lib/index.js')
   ;
 
 var s = server.createServer();
@@ -38,7 +38,7 @@ var tests =
   , testGetUTF8:
      { resp: server.createGetResponse(new Buffer([0xEF, 0xBB, 0xBF, 226, 152, 131]))
      , encoding: "utf8"
-     , expectBody: "☃"
+     , expectBody: new Buffer([0xEF, 0xBB, 0xBF, 226, 152, 131]).toString('utf8')
      }
   , testGetJSON :
      { resp : server.createGetResponse('{"test":true}', 'application/json')
@@ -107,9 +107,14 @@ s.listen(s.port, function () {
       request(test, function (err, resp, body) {
         if (err) throw err
         if (test.expectBody) {
-          assert.deepEqual(test.expectBody, body)
+          if (Buffer.isBuffer(test.expectBody)) {
+            assert.equal(test.expectBody.toString('base64'), body.toString('base64'))
+          } else {
+            assert.deepEqual(test.expectBody, body)
+          }
         }
         counter = counter - 1;
+        console.log(test.uri, counter)
         if (counter === 0) {
           console.log(Object.keys(tests).length+" tests passed.")
           s.close()

@@ -1,6 +1,6 @@
 var server = require('./server')
   , assert = require('assert')
-  , request = require('../index')
+  , request = require('../lib/index.js')
 
 var s = server.createSSLServer();
 

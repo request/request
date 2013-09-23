@@ -7,7 +7,7 @@
     "util",
     "utility"
   ],
-  "version": "2.27.1",
+  "version": "3.0.0",
   "author": "Mikeal Rogers <mikeal.rogers@gmail.com>",
   "repository": {
     "type": "git",
@@ -19,20 +19,22 @@
   "engines": [
     "node >= 0.8.0"
   ],
-  "main": "index.js",
+  "main": "lib/index.js",
   "dependencies": {
-    "qs": "~0.6.0",
     "json-stringify-safe": "~5.0.0",
-    "forever-agent": "~0.5.0",
-    "tunnel-agent": "~0.3.0",
     "http-signature": "~0.10.0",
     "hawk": "~1.0.0",
     "aws-sign": "~0.3.0",
     "oauth-sign": "~0.3.0",
     "cookie-jar": "~0.3.0",
-    "node-uuid": "~1.4.0",
     "mime": "~1.2.9",
-    "form-data": "~0.1.0"
+    "form-data": "~0.1.0",
+    "http-duplex-client": "~0.4.0",
+    "http-duplex-gzip-client": "~0.1.0",
+    "bl": "~0.4.1",
+    "once": "~1.2.0",
+    "defaults": "~1.0.0",
+    "caseless": "~0.1.0"
   },
   "scripts": {
     "test": "node tests/run.js"

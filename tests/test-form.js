@@ -2,7 +2,7 @@ var assert = require('assert')
 var http = require('http');
 var path = require('path');
 var mime = require('mime');
-var request = require('../index');
+var request = require('../lib/index.js');
 var fs = require('fs');
 
 var remoteFile = 'http://nodejs.org/images/logo.png';

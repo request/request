@@ -1,7 +1,7 @@
 var server = require('./server')
   , events = require('events')
   , assert = require('assert')
-  , request = require('../index')
+  , request = require('../lib/index.js')
   ;
 
 var local = 'http://localhost:8888/asdf'

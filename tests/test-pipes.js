@@ -3,7 +3,7 @@ var server = require('./server')
   , stream = require('stream')
   , assert = require('assert')
   , fs = require('fs')
-  , request = require('../index')
+  , request = require('../lib/index.js')
   , path = require('path')
   , util = require('util')
   ;
