@@ -200,11 +200,11 @@ Request.prototype.init = function (options) {
 
   self.setHost = false
   if (!self.hasHeader('host')) {
-    self.setHeader('host', self.uri.hostname)
+    self.setHeader('Host', self.uri.hostname)
     if (self.uri.port) {
       if ( !(self.uri.port === 80 && self.uri.protocol === 'http:') &&
            !(self.uri.port === 443 && self.uri.protocol === 'https:') )
-      self.setHeader('host', self.getHeader('host') + (':'+self.uri.port) )
+      self.setHeader('Host', self.getHeader('host') + (':'+self.uri.port) )
     }
     self.setHost = true
   }
@@ -297,7 +297,7 @@ Request.prototype.init = function (options) {
     self.auth(authPieces[0], authPieces.slice(1).join(':'), true)
   }
   if (self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization') && !self.tunnel) {
-    self.setHeader('proxy-authorization', "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return querystring.unescape(item)}).join(':')))
+    self.setHeader('Proxy-Authorization', "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return querystring.unescape(item)}).join(':')))
   }
 
 
@@ -325,7 +325,7 @@ Request.prototype.init = function (options) {
       length = self.body.length
     }
     if (length) {
-      if (!self.hasHeader('content-length')) self.setHeader('content-length', length)
+      if (!self.hasHeader('content-length')) self.setHeader('Content-Length', length)
     } else {
       throw new Error('Argument error, options.body.')
     }
@@ -371,7 +371,7 @@ Request.prototype.init = function (options) {
     if (self.ntick && self._started) throw new Error("You cannot pipe to this stream after the outbound request has started.")
     self.src = src
     if (isReadStream(src)) {
-      if (!self.hasHeader('content-type')) self.setHeader('content-type', mime.lookup(src.path))
+      if (!self.hasHeader('content-type')) self.setHeader('Content-Type', mime.lookup(src.path))
     } else {
       if (src.headers) {
         for (var i in src.headers) {
@@ -381,7 +381,7 @@ Request.prototype.init = function (options) {
         }
       }
       if (self._json && !self.hasHeader('content-type'))
-        self.setHeader('content-type', 'application/json')
+        self.setHeader('Content-Type', 'application/json')
       if (src.method && !self.explicitMethod) {
         self.method = src.method
       }
@@ -413,7 +413,7 @@ Request.prototype.init = function (options) {
       self.requestBodyStream.pipe(self)
     } else if (!self.src) {
       if (self.method !== 'GET' && typeof self.method !== 'undefined') {
-        self.setHeader('content-length', 0)
+        self.setHeader('Content-Length', 0)
       }
       self.end()
     }
@@ -573,7 +573,7 @@ Request.prototype.start = function () {
   self.href = self.uri.href
 
   if (self.src && self.src.stat && self.src.stat.size && !self.hasHeader('content-length')) {
-    self.setHeader('content-length', self.src.stat.size)
+    self.setHeader('Content-Length', self.src.stat.size)
   }
   if (self._aws) {
     self.aws(self._aws, true)
@@ -738,7 +738,7 @@ Request.prototype.onResponse = function (response) {
           authHeader.push(k + '="' + authValues[k] + '"')
         }
         authHeader = 'Digest ' + authHeader.join(', ')
-        self.setHeader('authorization', authHeader)
+        self.setHeader('Authorization', authHeader)
         self._sentAuth = true
 
         redirectTo = self.uri
@@ -975,7 +975,7 @@ Request.prototype.qs = function (q, clobber) {
 }
 Request.prototype.form = function (form) {
   if (form) {
-    this.setHeader('content-type', 'application/x-www-form-urlencoded; charset=utf-8')
+    this.setHeader('Content-Type', 'application/x-www-form-urlencoded; charset=utf-8')
     this.body = qs.stringify(form).toString('utf8')
     return this
   }
@@ -988,9 +988,9 @@ Request.prototype.multipart = function (multipart) {
   self.body = []
 
   if (!self.hasHeader('content-type')) {
-    self.setHeader('content-type', 'multipart/related; boundary=' + self.boundary)
+    self.setHeader('Content-Type', 'multipart/related; boundary=' + self.boundary)
   } else {
-    self.setHeader('content-type', self.headers['content-type'].split(';')[0] + '; boundary=' + self.boundary)
+    self.setHeader('Content-Type', self.headers['content-type'].split(';')[0] + '; boundary=' + self.boundary)
   }
 
   if (!multipart.forEach) throw new Error('Argument error, options.multipart.')
@@ -1018,17 +1018,17 @@ Request.prototype.multipart = function (multipart) {
 Request.prototype.json = function (val) {
   var self = this
 
-  if (!self.hasHeader('accept')) self.setHeader('accept', 'application/json')
+  if (!self.hasHeader('accept')) self.setHeader('Accept', 'application/json')
 
   this._json = true
   if (typeof val === 'boolean') {
     if (typeof this.body === 'object') {
       this.body = safeStringify(this.body)
-      self.setHeader('content-type', 'application/json')
+      self.setHeader('Content-Type', 'application/json')
     }
   } else {
     this.body = safeStringify(val)
-    self.setHeader('content-type', 'application/json')
+    self.setHeader('Content-Type', 'application/json')
   }
   return this
 }
@@ -1053,7 +1053,7 @@ Request.prototype.auth = function (user, pass, sendImmediately) {
   this._hasAuth = true
   var header = typeof pass !== 'undefined' ? user + ':' + pass : user
   if (sendImmediately || typeof sendImmediately == 'undefined') {
-    this.setHeader('authorization', 'Basic ' + toBase64(header))
+    this.setHeader('Authorization', 'Basic ' + toBase64(header))
     this._sentAuth = true
   }
   return this
@@ -1064,7 +1064,7 @@ Request.prototype.aws = function (opts, now) {
     return this
   }
   var date = new Date()
-  this.setHeader('date', date.toUTCString())
+  this.setHeader('Date', date.toUTCString())
   var auth =
     { key: opts.key
     , secret: opts.secret
@@ -1084,7 +1084,7 @@ Request.prototype.aws = function (opts, now) {
     auth.resource = '/'
   }
   auth.resource = aws.canonicalizeResource(auth.resource)
-  this.setHeader('authorization', aws.authorization(auth))
+  this.setHeader('Authorization', aws.authorization(auth))
 
   return this
 }
@@ -1180,9 +1180,9 @@ Request.prototype.jar = function (jar) {
 
     if (this.originalCookieHeader) {
       // Don't overwrite existing Cookie header
-      this.setHeader('cookie', this.originalCookieHeader + '; ' + cookieString)
+      this.setHeader('Cookie', this.originalCookieHeader + '; ' + cookieString)
     } else {
-      this.setHeader('cookie', cookieString)
+      this.setHeader('Cookie', cookieString)
     }
   }
   this._jar = jar
