@@ -20,8 +20,8 @@ var http = require('http')
   , ForeverAgent = require('forever-agent')
   , FormData = require('form-data')
 
-  , Cookie = require('cookie-jar')
-  , CookieJar = Cookie.Jar
+  , toughCookie=require('tough-cookie')
+  , CookieJar=toughCookie.CookieJar
   , cookieJar = new CookieJar
 
   , copy = require('./lib/copy')
@@ -658,10 +658,21 @@ Request.prototype.onResponse = function (response) {
 
   var addCookie = function (cookie) {
     if (self._jar){
+      /*
       if(self._jar.add){
         self._jar.add(new Cookie(cookie))
       }
       else cookieJar.add(new Cookie(cookie))
+      */
+      if(self._jar.setCookie){
+          self._jar.setCookie(cookie, self.uri.href, function(err){
+              if(err)console.log('set cookie err:'+cookie);
+          });
+      }else{
+          cookieJar.setCookie(cookie, self.uri.href, function(err){
+              if(err)console.log('set cookie err:'+cookie);
+          });
+      }
     }
 
   }
@@ -1161,6 +1172,41 @@ Request.prototype.jar = function (jar) {
     this.originalCookieHeader = this.getHeader('cookie')
   }
 
+  if(!jar){
+      cookies = false;
+      this._disableCookies = true;
+  }else if(jar && jar.getCookieString){
+      var urihref = this.uri.href;
+      jar.getCookieString(urihref,function(err,httpCookie){
+          if(err){
+              //err的时候httpCookie为空
+              console.log('get cookieString err:'+urihref);
+          }else{
+              cookies = httpCookie;
+          }
+      });
+  }else{
+      var urihref = this.uri.href;
+      cookieJar.getCookieString(urihref,function(err,httpCookie){
+          if(err){
+              console.log('get cookieString err:'+urihref)
+          }else{
+              cookies = httpCookie;
+          }
+      });
+  }
+
+  //cookies是个string
+  if(cookies && cookies.length){
+      if (this.originalCookieHeader) {
+          // Don't overwrite existing Cookie header
+          this.setHeader('cookie', this.originalCookieHeader + '; ' + cookies)
+      } else {
+          this.setHeader('cookie', cookies)
+      }
+  }
+
+  /*
   if (!jar) {
     // disable cookies
     cookies = false
@@ -1185,6 +1231,7 @@ Request.prototype.jar = function (jar) {
       this.setHeader('cookie', cookieString)
     }
   }
+  */
   this._jar = jar
   return this
 }
