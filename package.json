@@ -1,5 +1,5 @@
 {
-  "name": "request",
+  "name": "request-5291",
   "description": "Simplified HTTP request client.",
   "tags": [
     "http",
@@ -8,10 +8,10 @@
     "utility"
   ],
   "version": "2.27.1",
-  "author": "Mikeal Rogers <mikeal.rogers@gmail.com>",
+  "author": "sxyizhiren <786647787@qq.com>",
   "repository": {
     "type": "git",
-    "url": "http://github.com/mikeal/request.git"
+    "url": "https://github.com/sxyizhiren/request-5291"
   },
   "bugs": {
     "url": "http://github.com/mikeal/request/issues"
