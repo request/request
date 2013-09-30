@@ -1,6 +1,4 @@
-# Request-5291 -- Simplified HTTP client
-
-##--Base on Request
+# Request -- Simplified HTTP client
 
 [![NPM](https://nodei.co/npm/request.png)](https://nodei.co/npm/request/)
 
