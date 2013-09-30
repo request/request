@@ -12,8 +12,8 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-var Cookie = require('cookie-jar')
-  , CookieJar = Cookie.Jar
+var toughCookie=require('tough-cookie')
+  , CookieJar=toughCookie.CookieJar
   , cookieJar = new CookieJar
 
   , copy = require('./lib/copy')

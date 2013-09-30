@@ -1,5 +1,5 @@
 {
-  "name": "request",
+  "name": "request-5291",
   "description": "Simplified HTTP request client.",
   "tags": [
     "http",
@@ -7,11 +7,11 @@
     "util",
     "utility"
   ],
-  "version": "2.27.1",
-  "author": "Mikeal Rogers <mikeal.rogers@gmail.com>",
+  "version": "2.27.2",
+  "author": "sxyizhiren <786647787@qq.com>",
   "repository": {
     "type": "git",
-    "url": "http://github.com/mikeal/request.git"
+    "url": "https://github.com/sxyizhiren/request-5291"
   },
   "bugs": {
     "url": "http://github.com/mikeal/request/issues"
@@ -29,10 +29,10 @@
     "hawk": "~1.0.0",
     "aws-sign": "~0.3.0",
     "oauth-sign": "~0.3.0",
-    "cookie-jar": "~0.3.0",
     "node-uuid": "~1.4.0",
     "mime": "~1.2.9",
-    "form-data": "~0.1.0"
+    "form-data": "~0.1.0",
+    "tough-cookie": "~0.9.15"
   },
   "scripts": {
     "test": "node tests/run.js"

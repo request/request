@@ -20,8 +20,8 @@ var http = require('http')
   , ForeverAgent = require('forever-agent')
   , FormData = require('form-data')
 
-  , Cookie = require('cookie-jar')
-  , CookieJar = Cookie.Jar
+  , toughCookie=require('tough-cookie')
+  , CookieJar=toughCookie.CookieJar
   , cookieJar = new CookieJar
 
   , copy = require('./lib/copy')
@@ -658,10 +658,15 @@ Request.prototype.onResponse = function (response) {
 
   var addCookie = function (cookie) {
     if (self._jar){
-      if(self._jar.add){
-        self._jar.add(new Cookie(cookie))
+      if(self._jar.setCookie){
+          self._jar.setCookie(cookie, self.uri.href, function(err){
+              if(err)console.log('set cookie err:'+cookie)
+          })
+      }else{
+          cookieJar.setCookie(cookie, self.uri.href, function(err){
+              if(err)console.log('set cookie err:'+cookie)
+          })
       }
-      else cookieJar.add(new Cookie(cookie))
     }
 
   }
@@ -1161,30 +1166,40 @@ Request.prototype.jar = function (jar) {
     this.originalCookieHeader = this.getHeader('cookie')
   }
 
-  if (!jar) {
-    // disable cookies
-    cookies = false
-    this._disableCookies = true
-  } else if (jar && jar.get) {
-    // fetch cookie from the user defined cookie jar
-    cookies = jar.get({ url: this.uri.href })
-  } else {
-    // fetch cookie from the global cookie jar
-    cookies = cookieJar.get({ url: this.uri.href })
+  if(!jar){
+      cookies = false
+      this._disableCookies = true
+  }else if(jar && jar.getCookieString){
+      var urihref = this.uri.href
+      jar.getCookieString(urihref,function(err,httpCookie){
+          if(err){
+              //err的时候httpCookie为空
+              console.log('get cookieString err:'+urihref)
+          }else{
+              cookies = httpCookie
+          }
+      })
+  }else{
+      var urihref = this.uri.href
+      cookieJar.getCookieString(urihref,function(err,httpCookie){
+          if(err){
+              console.log('get cookieString err:'+urihref)
+          }else{
+              cookies = httpCookie
+          }
+      })
   }
 
-  if (cookies && cookies.length) {
-    var cookieString = cookies.map(function (c) {
-      return c.name + "=" + c.value
-    }).join("; ")
-
-    if (this.originalCookieHeader) {
-      // Don't overwrite existing Cookie header
-      this.setHeader('cookie', this.originalCookieHeader + '; ' + cookieString)
-    } else {
-      this.setHeader('cookie', cookieString)
-    }
+  //cookies是个string
+  if(cookies && cookies.length){
+      if (this.originalCookieHeader) {
+          // Don't overwrite existing Cookie header
+          this.setHeader('cookie', this.originalCookieHeader + '; ' + cookies)
+      } else {
+          this.setHeader('cookie', cookies)
+      }
   }
+
   this._jar = jar
   return this
 }
