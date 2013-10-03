@@ -642,10 +642,10 @@ Request.prototype.onResponse = function (response) {
 
   // XXX This is different on 0.10, because SSL is strict by default
   if (self.httpModule === https &&
-      self.strictSSL &&
-      !response.client.authorized) {
+      self.strictSSL && (!response.hasOwnProperty('client') ||
+      !response.client.authorized)) {
     debug('strict ssl error', self.uri.href)
-    var sslErr = response.client.authorizationError
+    var sslErr = response.hasOwnProperty('client') ? response.client.authorizationError : self.uri.href + " does not support SSL";
     self.emit('error', new Error('SSL Error: '+ sslErr))
     return
   }
