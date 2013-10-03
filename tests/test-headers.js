@@ -1,8 +1,8 @@
 var server = require('./server')
   , assert = require('assert')
   , request = require('../index')
-  , Cookie = require('cookie-jar')
-  , Jar = Cookie.Jar
+  , Cookie = require('tough-cookie')
+  , Jar = Cookie.CookieJar
   , s = server.createServer()
 
 s.listen(s.port, function () {
@@ -38,8 +38,9 @@ s.listen(s.port, function () {
   })
 
   // Issue #125: headers.cookie + cookie jar
+  //using new cookie module
   var jar = new Jar()
-  jar.add(new Cookie('quux=baz'));
+  jar.setCookie('quux=baz', serverUri, function(){});
   createTest({jar: jar, headers: {cookie: 'foo=bar'}}, function (req, res) {
     assert.ok(req.headers.cookie)
     assert.equal(req.headers.cookie, 'foo=bar; quux=baz')

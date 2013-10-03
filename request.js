@@ -20,8 +20,8 @@ var http = require('http')
   , ForeverAgent = require('forever-agent')
   , FormData = require('form-data')
 
-  , Cookie = require('cookie-jar')
-  , CookieJar = Cookie.Jar
+  , Cookie = require('tough-cookie')
+  , CookieJar = Cookie.CookieJar
   , cookieJar = new CookieJar
 
   , copy = require('./lib/copy')
@@ -226,7 +226,6 @@ Request.prototype.init = function (options) {
 
   self.clientErrorHandler = function (error) {
     if (self._aborted) return
-
     if (self.req && self.req._reusedSocket && error.code === 'ECONNRESET'
         && self.agent.addRequestNoreuse) {
       self.agent = { addRequest: self.agent.addRequestNoreuse.bind(self.agent) }
@@ -658,10 +657,14 @@ Request.prototype.onResponse = function (response) {
 
   var addCookie = function (cookie) {
     if (self._jar){
-      if(self._jar.add){
-        self._jar.add(new Cookie(cookie))
-      }
-      else cookieJar.add(new Cookie(cookie))
+      var targetCookieJar = self._jar.setCookie?self._jar:cookieJar;
+
+      //set the cookie if it's domain in the href's domain.
+      targetCookieJar.setCookie(cookie, self.uri.href, function(err){
+        if (err){
+            console.warn('set cookie failed,'+ err)
+        }
+      })
     }
 
   }
@@ -1165,24 +1168,28 @@ Request.prototype.jar = function (jar) {
     // disable cookies
     cookies = false
     this._disableCookies = true
-  } else if (jar && jar.get) {
-    // fetch cookie from the user defined cookie jar
-    cookies = jar.get({ url: this.uri.href })
   } else {
-    // fetch cookie from the global cookie jar
-    cookies = cookieJar.get({ url: this.uri.href })
+    var targetCookieJar = (jar && jar.getCookieString)?jar:cookieJar;
+    var urihref = this.uri.href
+
+    //fetch cookie in the Specified host
+    targetCookieJar.getCookieString(urihref, function(err, hrefCookie){
+      if (err){
+        console.warn('get cookieString failed,' +err)
+      } else {
+        cookies = hrefCookie
+      }
+    })
+
   }
 
+  //if need cookie and cookie is not empty
   if (cookies && cookies.length) {
-    var cookieString = cookies.map(function (c) {
-      return c.name + "=" + c.value
-    }).join("; ")
-
     if (this.originalCookieHeader) {
       // Don't overwrite existing Cookie header
-      this.setHeader('cookie', this.originalCookieHeader + '; ' + cookieString)
+      this.setHeader('cookie', this.originalCookieHeader + '; ' + cookies)
     } else {
-      this.setHeader('cookie', cookieString)
+      this.setHeader('cookie', cookies)
     }
   }
   this._jar = jar

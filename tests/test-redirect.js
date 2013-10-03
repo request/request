@@ -1,8 +1,8 @@
 var server = require('./server')
   , assert = require('assert')
   , request = require('../index')
-  , Cookie = require('cookie-jar')
-  , Jar = Cookie.Jar
+  , Cookie = require('tough-cookie')
+  , Jar = Cookie.CookieJar
   ;
 
 var s = server.createServer()
@@ -46,7 +46,7 @@ s.listen(s.port, function () {
 
   // Permanent bounce
   var jar = new Jar()
-  jar.add(new Cookie('quux=baz'))
+  jar.setCookie('quux=baz', server, function(){})
   request({uri: server+'/perm', jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     if (er) throw er
     if (res.statusCode !== 200) throw new Error('Status is not 200: '+res.statusCode)
