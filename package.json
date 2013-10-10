@@ -33,8 +33,8 @@
     "node-uuid": "~1.4.0",
     "mime": "~1.2.9",
     "form-data": "~0.1.0",
-	"socks5-http-client": "~0.1.5",
-	"socks5-https-client": "~0.2.1"
+    "socks5-http-client": "~0.1.5",
+    "socks5-https-client": "~0.2.2"
   },
   "scripts": {
     "test": "node tests/run.js"

@@ -176,6 +176,7 @@ Request.prototype.init = function (options) {
   }
 
   if (self.socks5) {
+    if (options.strictSSL) self.socks5.rejectUnauthorized = true;
     self.agent = (self.uri.protocol === 'https:') ? new Socks5ClientHttpsAgent(self.socks5) : new Socks5ClientHttpAgent(self.socks5);
   }
 
