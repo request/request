@@ -70,7 +70,7 @@ s.listen(s.port, function () {
       s.on('/'+i, test.resp)
       test.uri = s.url + '/' + i
       test.rejectUnauthorized = false
-      request(test, function (err, resp, body) {
+        request(test, function (err, resp, body) {
         if (err) throw err
         if (test.expectBody) {
           assert.deepEqual(test.expectBody, body)
