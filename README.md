@@ -201,6 +201,9 @@ The first argument can be either a url or an options object. The only required o
 * `aws` - object containing aws signing information, should have the properties `key` and `secret` as well as `bucket` unless you're specifying your bucket as part of the path, or you are making a request that doesn't use a bucket (i.e. GET Services)
 * `httpSignature` - Options for the [HTTP Signature Scheme](https://github.com/joyent/node-http-signature/blob/master/http_signing.md) using [Joyent's library](https://github.com/joyent/node-http-signature). The `keyId` and `key` properties must be specified. See the docs for other options.
 * `localAddress` - Local interface to bind for network connections.
+* `socks5` - A hash object containing options for proxying the request through a SOCKSv5 server.
+* `socks5.socksHost` - SOCKS server hostname. Defaults to `localhost`.
+* `socks5.socksPort` - SOCKS server port. Defaults to 1080.
 
 
 The callback argument gets 3 arguments. The first is an error when applicable (usually from the http.Client option not the http.ClientRequest object). The second is an http.ClientResponse object. The third is the response body String or Buffer.
