@@ -15,7 +15,7 @@ var optional = require('./lib/optional')
   , httpSignature = optional('http-signature')
   , uuid = require('node-uuid')
   , mime = require('mime')
-  , tunnel = require('tunnel-agent')
+  , tunnel = optional('tunnel-agent')
   , _safeStringify = require('json-stringify-safe')
 
   , ForeverAgent = require('forever-agent')
@@ -94,7 +94,7 @@ function Request (options) {
     this.explicitMethod = true
   }
 
-  this.canTunnel = options.tunnel !== false;
+  this.canTunnel = options.tunnel !== false && tunnel;
 
   this.init(options)
 }
