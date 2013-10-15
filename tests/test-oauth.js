@@ -1,3 +1,11 @@
+try {
+  require('oauth-sign')
+} catch (e) {
+  console.error('oauth-sign must be installed to run this test.')
+  console.error('skipping this test. please install oauth-sign and run again if you need to test this feature.')
+  process.exit(0)
+}
+
 var hmacsign = require('oauth-sign').hmacsign
   , assert = require('assert')
   , qs = require('querystring')

@@ -9,7 +9,7 @@ var optional = require('./lib/optional')
   , querystring = require('querystring')
   , crypto = require('crypto')
 
-  , oauth = require('oauth-sign')
+  , oauth = optional('oauth-sign')
   , hawk = optional('hawk')
   , aws = optional('aws-sign')
   , httpSignature = require('http-signature')
