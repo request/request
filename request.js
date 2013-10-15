@@ -10,7 +10,7 @@ var optional = require('./lib/optional')
   , crypto = require('crypto')
 
   , oauth = require('oauth-sign')
-  , hawk = require('hawk')
+  , hawk = optional('hawk')
   , aws = optional('aws-sign')
   , httpSignature = require('http-signature')
   , uuid = require('node-uuid')

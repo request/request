@@ -1,3 +1,11 @@
+try {
+  require('hawk')
+} catch (e) {
+  console.error('hawk must be installed to run this test.')
+  console.error('skipping this test. please install hawk and run again if you need to test this feature.')
+  process.exit(0)
+}
+
 var createServer = require('http').createServer
   , request = require('../index')
   , hawk = require('hawk')
