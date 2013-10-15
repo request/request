@@ -1,6 +1,7 @@
-var http = require('http')
-  , https = false
-  , tls = false
+var optional = require('./lib/optional')
+  , http = require('http')
+  , https = optional('https')
+  , tls = optional('tls')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
@@ -38,15 +39,6 @@ function safeStringify (obj) {
 
 var globalPool = {}
 var isUrl = /^https?:/i
-
-try {
-  https = require('https')
-} catch (e) {}
-
-try {
-  tls = require('tls')
-} catch (e) {}
-
 
 
 // Hacky fix for pre-0.4.4 https
