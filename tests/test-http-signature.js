@@ -1,3 +1,11 @@
+try {
+  require('http-signature')
+} catch (e) {
+  console.error('http-signature must be installed to run this test.')
+  console.error('skipping this test. please install http-signature and run again if you need to test this feature.')
+  process.exit(0)
+}
+
 var createServer = require('http').createServer
   , request = require('../index')
   , httpSignature = require('http-signature')

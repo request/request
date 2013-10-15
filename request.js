@@ -1,6 +1,7 @@
-var http = require('http')
-  , https = false
-  , tls = false
+var optional = require('./lib/optional')
+  , http = require('http')
+  , https = optional('https')
+  , tls = optional('tls')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
@@ -8,21 +9,21 @@ var http = require('http')
   , querystring = require('querystring')
   , crypto = require('crypto')
 
-  , oauth = require('oauth-sign')
-  , hawk = require('hawk')
-  , aws = require('aws-sign')
-  , httpSignature = require('http-signature')
+  , oauth = optional('oauth-sign')
+  , hawk = optional('hawk')
+  , aws = optional('aws-sign')
+  , httpSignature = optional('http-signature')
   , uuid = require('node-uuid')
   , mime = require('mime')
-  , tunnel = require('tunnel-agent')
+  , tunnel = optional('tunnel-agent')
   , _safeStringify = require('json-stringify-safe')
 
   , ForeverAgent = require('forever-agent')
-  , FormData = require('form-data')
+  , FormData = optional('form-data')
 
-  , Cookie = require('tough-cookie')
-  , CookieJar = Cookie.CookieJar
-  , cookieJar = new CookieJar
+  , Cookie = optional('tough-cookie')
+  , CookieJar = Cookie && Cookie.CookieJar
+  , cookieJar = CookieJar && new CookieJar
 
   , copy = require('./lib/copy')
   , debug = require('./lib/debug')
@@ -38,15 +39,6 @@ function safeStringify (obj) {
 
 var globalPool = {}
 var isUrl = /^https?:/i
-
-try {
-  https = require('https')
-} catch (e) {}
-
-try {
-  tls = require('tls')
-} catch (e) {}
-
 
 
 // Hacky fix for pre-0.4.4 https
@@ -102,7 +94,7 @@ function Request (options) {
     this.explicitMethod = true
   }
 
-  this.canTunnel = options.tunnel !== false;
+  this.canTunnel = options.tunnel !== false && tunnel;
 
   this.init(options)
 }
