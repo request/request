@@ -25,13 +25,13 @@
     "json-stringify-safe": "~5.0.0",
     "forever-agent": "~0.5.0",
     "tunnel-agent": "~0.3.0",
-    "http-signature": "~0.10.0",
     "tough-cookie": "~0.9.15",
     "node-uuid": "~1.4.0",
     "mime": "~1.2.9",
     "form-data": "~0.1.0"
   },
   "optionalDependencies": {
+    "http-signature": "~0.10.0",
     "oauth-sign": "~0.3.0",
     "hawk": "~1.0.0",
     "aws-sign": "~0.3.0"
