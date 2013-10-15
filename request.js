@@ -19,7 +19,7 @@ var optional = require('./lib/optional')
   , _safeStringify = require('json-stringify-safe')
 
   , ForeverAgent = require('forever-agent')
-  , FormData = require('form-data')
+  , FormData = optional('form-data')
 
   , Cookie = require('tough-cookie')
   , CookieJar = Cookie.CookieJar
