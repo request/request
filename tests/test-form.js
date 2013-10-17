@@ -1,3 +1,11 @@
+try {
+  require('form-data')
+} catch (e) {
+  console.error('form-data must be installed to run this test.')
+  console.error('skipping this test. please install form-data and run again if you need to test this feature.')
+  process.exit(0)
+}
+
 var assert = require('assert')
 var http = require('http');
 var path = require('path');

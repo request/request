@@ -12,9 +12,10 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-var Cookie = require('tough-cookie')
-  , CookieJar = Cookie.CookieJar
-  , cookieJar = new CookieJar
+var optional = require('./lib/optional')
+  , Cookie = optional('tough-cookie')
+  , CookieJar = Cookie && Cookie.CookieJar
+  , cookieJar = CookieJar && new CookieJar
 
   , copy = require('./lib/copy')
   , Request = require('./request')
