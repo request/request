@@ -277,9 +277,12 @@ Request.prototype.init = function (options) {
   }
 
   if (options.auth) {
+    if (Object.prototype.hasOwnProperty.call(options.auth, 'username')) options.auth.user = options.auth.username
+    if (Object.prototype.hasOwnProperty.call(options.auth, 'password')) options.auth.pass = options.auth.password
+    
     self.auth(
-      (options.auth.user==="") ? options.auth.user : (options.auth.user || options.auth.username ),
-      (options.auth.pass != null) ? options.auth.pass : options.auth.password,
+      options.auth.user,
+      options.auth.pass,
       options.auth.sendImmediately
     )
   }
