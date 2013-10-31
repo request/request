@@ -1302,8 +1302,7 @@ Request.prototype.oauth = function (_oauth) {
   if (!oa.oauth_version) oa.oauth_version = '1.0'
   if (!oa.oauth_timestamp) oa.oauth_timestamp = Math.floor( Date.now() / 1000 ).toString()
   if (!oa.oauth_nonce) oa.oauth_nonce = uuid().replace(/-/g, '')
-
-  oa.oauth_signature_method = 'HMAC-SHA1'
+  if (!oa.oauth_signature_method) oa.oauth_signature_method = 'HMAC-SHA1'
 
   var consumer_secret = oa.oauth_consumer_secret
   delete oa.oauth_consumer_secret
@@ -1312,7 +1311,7 @@ Request.prototype.oauth = function (_oauth) {
 
   var baseurl = this.uri.protocol + '//' + this.uri.host + this.uri.pathname
   var params = qs.parse([].concat(query, form, qs.stringify(oa)).join('&'))
-  var signature = oauth.hmacsign(this.method, baseurl, params, consumer_secret, token_secret)
+  var signature = oauth.sign(oa.oauth_signature_method, this.method, baseurl, params, consumer_secret, token_secret)
 
   var realm = _oauth.realm ? 'realm="' + _oauth.realm + '",' : '';
   var authHeader = 'OAuth ' + realm +
