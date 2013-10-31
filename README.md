@@ -311,7 +311,7 @@ request('http://www.google.com', function () {
 })
 ```
 
-If you to use a custom cookie jar (instead of letting request use its own global cookie jar) you do so by setting the jar default or by specifying it as an option:
+If you wish to use a custom cookie jar (instead of letting request use its own global cookie jar) you do so by setting the jar default or by specifying it as an option:
 
 ```javascript
 var j = request.jar()
