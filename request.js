@@ -264,6 +264,10 @@ Request.prototype.init = function (options) {
     self.oauth(options.oauth)
   }
 
+  if (options.customSigner) {
+    self.customSigner( options.customSigner );
+  }
+
   if (options.aws) {
     self.aws(options.aws)
   }
@@ -570,6 +574,11 @@ Request.prototype.start = function () {
   if (self.src && self.src.stat && self.src.stat.size && !self.hasHeader('content-length')) {
     self.setHeader('content-length', self.src.stat.size)
   }
+
+  if (self._customSigner) {
+    self.customSigner(self._customSigner, true);
+  }
+
   if (self._aws) {
     self.aws(self._aws, true)
   }
@@ -1055,6 +1064,15 @@ Request.prototype.auth = function (user, pass, sendImmediately) {
     this.setHeader('authorization', 'Basic ' + toBase64(header))
     this._sentAuth = true
   }
+  return this
+}
+
+Request.prototype.customSigner = function (customSigner, now) {
+  if (!now) {
+    this._customSigner = customSigner;
+    return this;
+  }
+  this._customSigner.sign(this);
   return this
 }
 Request.prototype.aws = function (opts, now) {
