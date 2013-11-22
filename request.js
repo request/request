@@ -139,6 +139,11 @@ Request.prototype.init = function (options) {
     if (typeof self.uri == "string") self.uri = url.parse(self.uri)
   }
 
+  // set the initial uri on the first init() call
+  if (typeof (self.initialUri) === 'undefined') {
+    self.initialUri = self.uri;
+  }
+
   if (self.strictSSL === false) {
     self.rejectUnauthorized = false
   }
