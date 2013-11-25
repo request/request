@@ -202,6 +202,9 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `aws` - `object` containing AWS signing information. Should have the properties `key`, `secret`. Also requires the property `bucket`, unless you’re specifying your `bucket` as part of the path, or the request doesn’t use a bucket (i.e. GET Services)
 * `httpSignature` - Options for the [HTTP Signature Scheme](https://github.com/joyent/node-http-signature/blob/master/http_signing.md) using [Joyent's library](https://github.com/joyent/node-http-signature). The `keyId` and `key` properties must be specified. See the docs for other options.
 * `localAddress` - Local interface to bind for network connections.
+* `socks5` - A hash object containing options for proxying the request through a SOCKSv5 server.
+* `socks5.socksHost` - SOCKS server hostname. Defaults to `localhost`.
+* `socks5.socksPort` - SOCKS server port. Defaults to 1080.
 
 
 The callback argument gets 3 arguments: 

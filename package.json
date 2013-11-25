@@ -34,7 +34,9 @@
     "http-signature": "~0.10.0",
     "oauth-sign": "~0.3.0",
     "hawk": "~1.0.0",
-    "aws-sign": "~0.3.0"
+    "aws-sign": "~0.3.0",
+	"socks5-http-client": "~0.1.5",
+	"socks5-https-client": "~0.2.2"
   },
   "scripts": {
     "test": "node tests/run.js"

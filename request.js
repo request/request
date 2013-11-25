@@ -25,6 +25,9 @@ var optional = require('./lib/optional')
   , CookieJar = Cookie && Cookie.CookieJar
   , cookieJar = CookieJar && new CookieJar
 
+  , Socks5ClientHttpAgent = require('socks5-http-client/lib/Agent')
+  , Socks5ClientHttpsAgent = require('socks5-https-client/lib/Agent')
+
   , copy = require('./lib/copy')
   , debug = require('./lib/debug')
   , getSafe = require('./lib/getSafe')
@@ -162,6 +165,11 @@ Request.prototype.init = function (options) {
       self.agent = tunnelFn(tunnelOptions)
       self.tunnel = true
     }
+  }
+
+  if (self.socks5) {
+    if (options.strictSSL) self.socks5.rejectUnauthorized = true;
+    self.agent = (self.uri.protocol === 'https:') ? new Socks5ClientHttpsAgent(self.socks5) : new Socks5ClientHttpAgent(self.socks5);
   }
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
