@@ -989,7 +989,8 @@ Request.prototype.multipart = function (multipart) {
   if (!self.hasHeader('content-type')) {
     self.setHeader('content-type', 'multipart/related; boundary=' + self.boundary)
   } else {
-    self.setHeader('content-type', self.headers['content-type'].split(';')[0] + '; boundary=' + self.boundary)
+    var headerName = self.hasHeader('content-type');
+    self.setHeader(headerName, self.headers[headerName].split(';')[0] + '; boundary=' + self.boundary)
   }
 
   if (!multipart.forEach) throw new Error('Argument error, options.multipart.')
