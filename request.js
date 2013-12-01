@@ -173,8 +173,8 @@ Request.prototype.init = function (options) {
     var message = 'Invalid URI "' + faultyUri + '"'
     if (Object.keys(options).length === 0) {
       // No option ? This can be the sign of a redirect
-      // As this is a case where the user cannot do anything (he didn't call request directly with this URL)
-      // he should be warned that it can be caused by a redirection (can save some hair)
+      // As this is a case where the user cannot do anything (they didn't call request directly with this URL)
+      // they should be warned that it can be caused by a redirection (can save some hair)
       message += '. This can be caused by a crappy redirection.'
     }
     self.emit('error', new Error(message))
