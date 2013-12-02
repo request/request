@@ -210,6 +210,45 @@ The callback argument gets 3 arguments:
 2. An `http.ClientResponse` object
 3. The third is the `response` body (`String` or `Buffer`)
 
+* here is a simple list of the ClientResponse object (parameter 2) as captured during a debug session:
+
+```javascript
+  response: IncomingMessage {
+    _consuming:         true
+    _dumped:            false
+    _events:            Object
+    _maxListeners:      10
+    _pendingIndex:      0
+    _pendings:          Array[0]
+    _readableState:     ReadableState
+    addListener:        function (type, listener) {
+    body:               '<!DOCTYPE html>the... (length: 14943)'
+    client:             Socket
+    complete:           true
+    connection:         Socket
+    domain:             null
+    headers:            Object
+    httpVersion:        "1.1"
+    httpVersionMajor:   1
+    httpVersionMinor:   1
+    method:             null
+    on:                 function (type, listener) {
+    pause:              function () {
+    pipe:               function (dest, options) {
+    read:               function (n) {
+    readable:           false
+    req:                ClientRequest
+    request:            Request
+    resume:             function () {
+    socket:             Socket
+    statusCode:         200
+    toJSON:             function toJSON() {
+    trailers:           Object
+    upgrade:            false
+    url:                ""
+  }
+
+
 ## Convenience methods
 
 There are also shorthand methods for different HTTP METHODs and some other conveniences.
