@@ -13,8 +13,9 @@
 //    limitations under the License.
 
 var optional = require('./lib/optional')
-  , Cookie = optional('tough-cookie')
-  , CookieJar = Cookie && Cookie.CookieJar
+  , cookie = optional('tough-cookie')
+  , Cookie = cookie && cookie.Cookie
+  , CookieJar = cookie && cookie.CookieJar
   , cookieJar = CookieJar && new CookieJar
 
   , copy = require('./lib/copy')
