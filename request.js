@@ -719,22 +719,28 @@ Request.prototype.onResponse = function (response) {
 
         var ha1 = md5(self._user + ':' + challenge.realm + ':' + self._pass)
         var ha2 = md5(self.method + ':' + self.uri.path)
-        var cnonce = uuid().replace(/-/g, '')
-        var digestResponse = md5(ha1 + ':' + challenge.nonce + ':1:' + cnonce + ':auth:' + ha2)
+        var qop = /(^|,)auth($|,)/.test(challenge.qop) && 'auth'
+        var nc = qop && '00000001'
+        var cnonce = qop && uuid().replace(/-/g, '')
+        var digestResponse = qop ? md5(ha1 + ':' + challenge.nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2) : md5(ha1 + ':' + challenge.nonce + ':' + ha2)
         var authValues = {
           username: self._user,
           realm: challenge.realm,
           nonce: challenge.nonce,
           uri: self.uri.path,
-          qop: challenge.qop,
+          qop: qop,
           response: digestResponse,
-          nc: 1,
+          nc: nc,
           cnonce: cnonce
         }
 
         authHeader = []
         for (var k in authValues) {
-          authHeader.push(k + '="' + authValues[k] + '"')
+          if (k === 'qop' || k === 'nc') {
+            authHeader.push(k + '=' + authValues[k])
+          } else {
+            authHeader.push(k + '="' + authValues[k] + '"')
+          }
         }
         authHeader = 'Digest ' + authHeader.join(', ')
         self.setHeader('authorization', authHeader)
