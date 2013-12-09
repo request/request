@@ -703,18 +703,24 @@ Request.prototype.onResponse = function (response) {
         break
 
       case 'Digest':
-        // TODO: More complete implementation of RFC 2617.  For reference:
+        // TODO: More complete implementation of RFC 2617.
+        //   - check challenge.algorithm
+        //   - support algorithm="MD5-sess"
+        //   - handle challenge.domain
+        //   - support qop="auth-int" only
+        //   - handle Authentication-Info (not necessarily?)
+        //   - check challenge.stale (not necessarily?)
+        //   - increase nc (not necessarily?)
+        // For reference:
         // http://tools.ietf.org/html/rfc2617#section-3
         // https://github.com/bagder/curl/blob/master/lib/http_digest.c
 
-        var matches = authHeader.match(/([a-z0-9_-]+)="([^"]+)"/gi)
         var challenge = {}
-
-        for (var i = 0; i < matches.length; i++) {
-          var eqPos = matches[i].indexOf('=')
-          var key = matches[i].substring(0, eqPos)
-          var quotedValue = matches[i].substring(eqPos + 1)
-          challenge[key] = quotedValue.substring(1, quotedValue.length - 1)
+        var re = /([a-z0-9_-]+)=(?:"([^"]+)"|([a-z0-9_-]+))/gi
+        for (;;) {
+          var match = re.exec(authHeader)
+          if (!match) break
+          challenge[match[1]] = match[2] || match[3];
         }
 
         var ha1 = md5(self._user + ':' + challenge.realm + ':' + self._pass)
@@ -731,14 +737,16 @@ Request.prototype.onResponse = function (response) {
           qop: qop,
           response: digestResponse,
           nc: nc,
-          cnonce: cnonce
+          cnonce: cnonce,
+          algorithm: challenge.algorithm,
+          opaque: challenge.opaque
         }
 
         authHeader = []
         for (var k in authValues) {
           if (!authValues[k]) {
             //ignore
-          } else if (k === 'qop' || k === 'nc') {
+          } else if (k === 'qop' || k === 'nc' || k === 'algorithm') {
             authHeader.push(k + '=' + authValues[k])
           } else {
             authHeader.push(k + '="' + authValues[k] + '"')
