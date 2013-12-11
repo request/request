@@ -105,7 +105,7 @@ function requester(params) {
 request.forever = function (agentOptions, optionsArg) {
   var options = {}
   if (optionsArg) {
-    for (option in optionsArg) {
+    for (var option in optionsArg) {
       options[option] = optionsArg[option]
     }
   }
