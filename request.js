@@ -725,7 +725,7 @@ Request.prototype.onResponse = function (response) {
 
         var ha1 = md5(self._user + ':' + challenge.realm + ':' + self._pass)
         var ha2 = md5(self.method + ':' + self.uri.path)
-        var qop = /(^|,)auth($|,)/.test(challenge.qop) && 'auth'
+        var qop = /(^|,)\s*auth\s*($|,)/.test(challenge.qop) && 'auth'
         var nc = qop && '00000001'
         var cnonce = qop && uuid().replace(/-/g, '')
         var digestResponse = qop ? md5(ha1 + ':' + challenge.nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2) : md5(ha1 + ':' + challenge.nonce + ':' + ha2)
