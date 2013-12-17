@@ -232,8 +232,8 @@ The first argument can be either a `url` or an `options` object. The only requir
 
 The callback argument gets 3 arguments: 
 
-1. An `error` when applicable (usually from the `http.Client` option, not the `http.ClientRequest` object)
-2. An `http.ClientResponse` object
+1. An `error` when applicable (usually from [`http.ClientRequest`](http://nodejs.org/api/http.html#http_class_http_clientrequest) object)
+2. An [`http.IncomingMessage`](http://nodejs.org/api/http.html#http_http_incomingmessage) object
 3. The third is the `response` body (`String` or `Buffer`)
 
 ## Convenience methods
