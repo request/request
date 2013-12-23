@@ -153,5 +153,5 @@ request.jar = function () {
 request.cookie = function (str) {
   if (str && str.uri) str = str.uri
   if (typeof str !== 'string') throw new Error("The cookie function only accepts STRING as param")
-  return new Cookie(str)
+  return Cookie.parse(str)
 }
