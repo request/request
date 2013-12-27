@@ -179,7 +179,7 @@ In the example below, we call the github API to find out the number
 of stars and forks for the request repository. This requires a
 custom `User-Agent` header as well as https.
 
-```
+```javascript
 var request = require('request');
 
 var options = {
