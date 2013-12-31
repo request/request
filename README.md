@@ -137,10 +137,14 @@ var qs = require('querystring')
   , url = 'https://api.twitter.com/oauth/request_token'
   ;
 request.post({url:url, oauth:oauth}, function (e, r, body) {
-  // Ideally, you would take the body in the response
-  // and construct a URL that a user clicks on (like a sign in button).
-  // The verifier is only available in the response after a user has
-  // verified with twitter that they are authorizing your app.
+  // Ideally, you would take the body in the response and 
+  // construct the querystring for  
+  // http://api.twitter.com/oauth/authorize . There the user 
+  // will have the faculty to authorise the application 
+  // (like a sign in button).
+  // The token and verifier values below will be part of the
+  // querystring of the "callback URL" the user is then 
+  // redirected to.
   var access_token = qs.parse(body)
     , oauth =
       { consumer_key: CONSUMER_KEY
@@ -155,14 +159,11 @@ request.post({url:url, oauth:oauth}, function (e, r, body) {
       , oauth =
         { consumer_key: CONSUMER_KEY
         , consumer_secret: CONSUMER_SECRET
-        , token: perm_token.oauth_token
-        , token_secret: perm_token.oauth_token_secret
+        , oauth_token: perm_token.oauth_token
+        , oauth_verifier: perm_token.oauth_verifier
         }
-      , url = 'https://api.twitter.com/1/users/show.json?'
-      , params =
-        { screen_name: perm_token.screen_name
-        , user_id: perm_token.user_id
-        }
+      , url = 'https://api.twitter.com/1.1/statuses/user_timeline.json?'
+      , params = { screen_name: perm_token.screen_name }
       ;
     url += qs.stringify(params)
     request.get({url:url, oauth:oauth, json:true}, function (e, r, user) {
