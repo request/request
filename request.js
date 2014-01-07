@@ -11,7 +11,7 @@ var optional = require('./lib/optional')
 
   , oauth = optional('oauth-sign')
   , hawk = optional('hawk')
-  , aws = optional('aws-sign')
+  , aws = optional('aws-sign2')
   , httpSignature = optional('http-signature')
   , uuid = require('node-uuid')
   , mime = require('mime')
