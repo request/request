@@ -150,8 +150,6 @@ request.del = function (uri, options, callback) {
 request.jar = function () {
   return new CookieJar
 }
-request.cookie = function (str) {
-  if (str && str.uri) str = str.uri
-  if (typeof str !== 'string') throw new Error("The cookie function only accepts STRING as param")
-  return new Cookie(str)
+request.cookie = function (options) {
+  return new Cookie(options)
 }
