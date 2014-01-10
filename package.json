@@ -28,7 +28,7 @@
     "mime": "~1.2.9"
   },
   "optionalDependencies": {
-    "tough-cookie": "~0.9.15",
+    "tough-cookie": "~0.10.0",
     "form-data": "~0.1.0",
     "tunnel-agent": "~0.3.0",
     "http-signature": "~0.10.0",
