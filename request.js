@@ -693,16 +693,16 @@ Request.prototype.onResponse = function (response) {
     }
   } else if (response.statusCode == 401 && self._hasAuth && !self._sentAuth) {
     var authHeader = response.headers[hasHeader('www-authenticate', response.headers)]
-    var authVerb = authHeader && authHeader.split(' ')[0]
+    var authVerb = authHeader && authHeader.split(' ')[0].toLowerCase()
     debug('reauth', authVerb)
 
     switch (authVerb) {
-      case 'Basic':
+      case 'basic':
         self.auth(self._user, self._pass, true)
         redirectTo = self.uri
         break
 
-      case 'Digest':
+      case 'digest':
         // TODO: More complete implementation of RFC 2617.
         //   - check challenge.algorithm
         //   - support algorithm="MD5-sess"
