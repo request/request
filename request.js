@@ -656,7 +656,7 @@ Request.prototype.onResponse = function (response) {
     try {
       targetCookieJar.setCookie(cookie, self.uri.href);
     } catch (e) {
-      self.emit('cookieError', e);
+      self.emit('error', e);
     }
   }
 
