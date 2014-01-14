@@ -352,14 +352,13 @@ request('http://www.google.com', function () {
   request('http://images.google.com')
 })
 ```
-OR
 
-Note that `setCookie` requires at least three parameters, and the last is required to be a callback.
+OR
 
 ```javascript
 var j = request.jar()
 var cookie = request.cookie('your_cookie_here')
-j.setCookie(cookie, uri, function (err, cookie){})
+j.setCookie(cookie, uri);
 request({url: 'http://www.google.com', jar: j}, function () {
   request('http://images.google.com')
 })
