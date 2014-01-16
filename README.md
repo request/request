@@ -1,4 +1,3 @@
-TEST
 # Request -- Simplified HTTP client
 
 [![NPM](https://nodei.co/npm/request.png)](https://nodei.co/npm/request/)
@@ -307,6 +306,18 @@ Function that creates a new cookie jar.
 request.jar()
 ```
 
+## Request Instance Methods
+
+When creating a new request it return an request instance with the following methods:
+
+### requestInstance.abort()
+
+Aborts the current request.
+
+```javascript
+var myRequest = request.get(url);
+myRequest.abort();
+```
 
 ## Examples:
 
