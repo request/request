@@ -12,12 +12,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-var optional = require('./lib/optional')
-  , cookie = optional('tough-cookie')
-  , Cookie = cookie && cookie.Cookie
-  , CookieJar = cookie && cookie.CookieJar
-  , cookieJar = CookieJar && new CookieJar
-
+var cookies = require('./lib/cookies')
   , copy = require('./lib/copy')
   , Request = require('./request')
   ;
@@ -148,10 +143,8 @@ request.del = function (uri, options, callback) {
   return requester(params)(params.uri || null, params.options, params.callback)
 }
 request.jar = function () {
-  return new CookieJar
+  return cookies.jar();
 }
 request.cookie = function (str) {
-  if (str && str.uri) str = str.uri
-  if (typeof str !== 'string') throw new Error("The cookie function only accepts STRING as param")
-  return new Cookie(str)
+  return cookies.parse(str);
 }

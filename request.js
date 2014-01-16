@@ -11,7 +11,7 @@ var optional = require('./lib/optional')
 
   , oauth = optional('oauth-sign')
   , hawk = optional('hawk')
-  , aws = optional('aws-sign')
+  , aws = optional('aws-sign2')
   , httpSignature = optional('http-signature')
   , uuid = require('node-uuid')
   , mime = require('mime')
@@ -21,9 +21,8 @@ var optional = require('./lib/optional')
   , ForeverAgent = require('forever-agent')
   , FormData = optional('form-data')
 
-  , Cookie = optional('tough-cookie')
-  , CookieJar = Cookie && Cookie.CookieJar
-  , cookieJar = CookieJar && new CookieJar
+  , cookies = require('./lib/cookies')
+  , globalCookieJar = cookies.jar()
 
   , copy = require('./lib/copy')
   , debug = require('./lib/debug')
@@ -279,7 +278,7 @@ Request.prototype.init = function (options) {
   if (options.auth) {
     if (Object.prototype.hasOwnProperty.call(options.auth, 'username')) options.auth.user = options.auth.username
     if (Object.prototype.hasOwnProperty.call(options.auth, 'password')) options.auth.pass = options.auth.password
-    
+
     self.auth(
       options.auth.user,
       options.auth.pass,
@@ -651,18 +650,14 @@ Request.prototype.onResponse = function (response) {
     self.timeoutTimer = null
   }
 
+  var targetCookieJar = (self._jar && self._jar.setCookie)?self._jar:globalCookieJar;
   var addCookie = function (cookie) {
-    if (self._jar){
-      var targetCookieJar = self._jar.setCookie?self._jar:cookieJar;
-
-      //set the cookie if it's domain in the href's domain.
-      targetCookieJar.setCookie(cookie, self.uri.href, function(err){
-        if (err){
-            console.warn('set cookie failed,'+ err)
-        }
-      })
+    //set the cookie if it's domain in the href's domain.
+    try {
+      targetCookieJar.setCookie(cookie, self.uri.href);
+    } catch (e) {
+      self.emit('error', e);
     }
-
   }
 
   if (hasHeader('set-cookie', response.headers) && (!self._disableCookies)) {
@@ -693,16 +688,16 @@ Request.prototype.onResponse = function (response) {
     }
   } else if (response.statusCode == 401 && self._hasAuth && !self._sentAuth) {
     var authHeader = response.headers[hasHeader('www-authenticate', response.headers)]
-    var authVerb = authHeader && authHeader.split(' ')[0]
+    var authVerb = authHeader && authHeader.split(' ')[0].toLowerCase()
     debug('reauth', authVerb)
 
     switch (authVerb) {
-      case 'Basic':
+      case 'basic':
         self.auth(self._user, self._pass, true)
         redirectTo = self.uri
         break
 
-      case 'Digest':
+      case 'digest':
         // TODO: More complete implementation of RFC 2617.
         //   - check challenge.algorithm
         //   - support algorithm="MD5-sess"
@@ -1182,18 +1177,12 @@ Request.prototype.jar = function (jar) {
     cookies = false
     this._disableCookies = true
   } else {
-    var targetCookieJar = (jar && jar.getCookieString)?jar:cookieJar;
+    var targetCookieJar = (jar && jar.getCookieString)?jar:globalCookieJar;
     var urihref = this.uri.href
-
     //fetch cookie in the Specified host
-    targetCookieJar.getCookieString(urihref, function(err, hrefCookie){
-      if (err){
-        console.warn('get cookieString failed,' +err)
-      } else {
-        cookies = hrefCookie
-      }
-    })
-
+    if (targetCookieJar) {
+      cookies = targetCookieJar.getCookieString(urihref);
+    }
   }
 
   //if need cookie and cookie is not empty
