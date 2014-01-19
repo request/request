@@ -12,7 +12,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-var cookies = require('./lib/cookies')
+var cookies = require('request-cookies')
   , copy = require('./lib/copy')
   , Request = require('./request')
   ;
@@ -143,8 +143,14 @@ request.del = function (uri, options, callback) {
   return requester(params)(params.uri || null, params.options, params.callback)
 }
 request.jar = function () {
-  return cookies.jar();
+  return new cookies.CookieJar();
 }
-request.cookie = function (str) {
-  return cookies.parse(str);
+
+/**
+ * [cookie description]
+ * @param {String|Object} data can be a cookie header string or a json object
+ * @return {Object}        Cookie Object
+ */
+request.cookie = function (data) {
+  return new cookies.Cookie(data);
 }
