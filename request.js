@@ -56,9 +56,7 @@ if (https && !https.Agent) {
 }
 
 function isReadStream (rs) {
-  if (rs.readable && rs.path && rs.mode) {
-    return true
-  }
+  return rs.readable && rs.path && rs.mode;
 }
 
 function toBase64 (str) {
