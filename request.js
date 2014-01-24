@@ -1033,12 +1033,15 @@ Request.prototype.json = function (val) {
   if (typeof val === 'boolean') {
     if (typeof this.body === 'object') {
       this.body = safeStringify(this.body)
-      self.setHeader('content-type', 'application/json')
+      if (!self.hasHeader('content-type'))
+        self.setHeader('content-type', 'application/json')
     }
   } else {
     this.body = safeStringify(val)
-    self.setHeader('content-type', 'application/json')
+    if (!self.hasHeader('content-type'))
+      self.setHeader('content-type', 'application/json')
   }
+
   return this
 }
 Request.prototype.getHeader = function (name, headers) {

@@ -52,6 +52,18 @@ s.listen(s.port, function () {
     assert.equal(req.headers.cookie, 'foo=bar; quux=baz')
   })
 
+  // Issue #784: override content-type when json is used
+  // https://github.com/mikeal/request/issues/784
+  createTest({
+    json: true,
+    method: 'POST',
+    headers: {'content-type': 'application/json; charset=UTF-8'},
+    body: {hello: 'my friend'}},function(req, res) {
+      assert.ok(req.headers['content-type']);
+      assert.equal(req.headers['content-type'], 'application/json; charset=UTF-8');
+    }
+  )
+
   // There should be no cookie header when neither headers.cookie nor a cookie jar is specified
   createTest({}, function (req, res) {
     assert.ok(!req.headers.cookie)
