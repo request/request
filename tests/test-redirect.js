@@ -2,7 +2,7 @@ try {
   require('request-cookies')
 } catch (e) {
   console.error('request-cookies must be installed to run this test.')
-  console.error('skipping this test. please install tough-cookie and run again if you need to test this feature.')
+  console.error('skipping this test. please install request-cookies and run again if you need to test this feature.')
   process.exit(0)
 }
 
