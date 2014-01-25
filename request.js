@@ -21,7 +21,7 @@ var optional = require('./lib/optional')
   , ForeverAgent = require('forever-agent')
   , FormData = optional('form-data')
 
-  , cookies = require('request-cookies')
+  , cookies = require('./lib/cookies')
   , globalCookieJar = new cookies.CookieJar()
 
   , copy = require('./lib/copy')

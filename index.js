@@ -12,7 +12,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-var cookies = require('request-cookies')
+ var cookies = require('./lib/cookies')
   , copy = require('./lib/copy')
   , Request = require('./request')
   ;
