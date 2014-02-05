@@ -1,8 +1,8 @@
 try {
-  require('tough-cookie')
+  require('request-cookies')
 } catch (e) {
-  console.error('tough-cookie must be installed to run this test.')
-  console.error('skipping this test. please install tough-cookie and run again if you need to test this feature.')
+  console.error('request-cookies must be installed to run this test.')
+  console.error('skipping this test. please install request-cookies and run again if you need to test this feature.')
   process.exit(0)
 }
 
@@ -46,7 +46,7 @@ s.listen(s.port, function () {
   // Issue #125: headers.cookie + cookie jar
   //using new cookie module
   var jar = request.jar()
-  jar.setCookie('quux=baz', serverUri);
+  jar.add('quux=baz', serverUri);
   createTest({jar: jar, headers: {cookie: 'foo=bar'}}, function (req, res) {
     assert.ok(req.headers.cookie)
     assert.equal(req.headers.cookie, 'foo=bar; quux=baz')

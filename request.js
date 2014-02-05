@@ -22,7 +22,7 @@ var optional = require('./lib/optional')
   , FormData = optional('form-data')
 
   , cookies = require('./lib/cookies')
-  , globalCookieJar = cookies.jar()
+  , globalCookieJar = new cookies.CookieJar()
 
   , copy = require('./lib/copy')
   , debug = require('./lib/debug')
@@ -652,11 +652,11 @@ Request.prototype.onResponse = function (response) {
     self.timeoutTimer = null
   }
 
-  var targetCookieJar = (self._jar && self._jar.setCookie)?self._jar:globalCookieJar;
+  var targetCookieJar = (self._jar && self._jar.add)?self._jar:globalCookieJar;
   var addCookie = function (cookie) {
     //set the cookie if it's domain in the href's domain.
     try {
-      targetCookieJar.setCookie(cookie, self.uri.href);
+      targetCookieJar.add(cookie, self.uri.href);
     } catch (e) {
       self.emit('error', e);
     }
@@ -1182,11 +1182,11 @@ Request.prototype.jar = function (jar) {
     cookies = false
     this._disableCookies = true
   } else {
-    var targetCookieJar = (jar && jar.getCookieString)?jar:globalCookieJar;
+    var targetCookieJar = (jar && jar.getCookieHeaderString)?jar:globalCookieJar;
     var urihref = this.uri.href
     //fetch cookie in the Specified host
     if (targetCookieJar) {
-      cookies = targetCookieJar.getCookieString(urihref);
+      cookies = targetCookieJar.getCookieHeaderString(urihref);
     }
   }
 

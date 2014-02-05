@@ -230,7 +230,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `localAddress` - Local interface to bind for network connections.
 
 
-The callback argument gets 3 arguments: 
+The callback argument gets 3 arguments:
 
 1. An `error` when applicable (usually from [`http.ClientRequest`](http://nodejs.org/api/http.html#http_class_http_clientrequest) object)
 2. An [`http.IncomingMessage`](http://nodejs.org/api/http.html#http_http_incomingmessage) object
@@ -358,7 +358,7 @@ OR
 ```javascript
 var j = request.jar()
 var cookie = request.cookie('your_cookie_here')
-j.setCookie(cookie, uri);
+j.add(cookie, uri);
 request({url: 'http://www.google.com', jar: j}, function () {
   request('http://images.google.com')
 })

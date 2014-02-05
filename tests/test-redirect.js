@@ -1,8 +1,8 @@
 try {
-  require('tough-cookie')
+  require('request-cookies')
 } catch (e) {
-  console.error('tough-cookie must be installed to run this test.')
-  console.error('skipping this test. please install tough-cookie and run again if you need to test this feature.')
+  console.error('request-cookies must be installed to run this test.')
+  console.error('skipping this test. please install request-cookies and run again if you need to test this feature.')
   process.exit(0)
 }
 
@@ -52,7 +52,7 @@ s.listen(s.port, function () {
 
   // Permanent bounce
   var jar = request.jar()
-  jar.setCookie('quux=baz', server);
+  jar.add('quux=baz', server);
   request({uri: server+'/perm', jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     if (er) throw er
     if (res.statusCode !== 200) throw new Error('Status is not 200: '+res.statusCode)
@@ -62,7 +62,7 @@ s.listen(s.port, function () {
     passed += 1
     done()
   })
-  
+
   // Temporary bounce
   request({uri: server+'/temp', jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     if (er) throw er
@@ -73,7 +73,7 @@ s.listen(s.port, function () {
     passed += 1
     done()
   })
-  
+
   // Prevent bouncing.
   request({uri:server+'/nope', jar: jar, headers: {cookie: 'foo=bar'}, followRedirect:false}, function (er, res, body) {
     if (er) throw er
@@ -84,7 +84,7 @@ s.listen(s.port, function () {
     passed += 1
     done()
   })
-  
+
   // Should not follow post redirects by default
   request.post(server+'/temp', { jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     if (er) throw er
@@ -95,7 +95,7 @@ s.listen(s.port, function () {
     passed += 1
     done()
   })
-  
+
   // Should follow post redirects when followAllRedirects true
   request.post({uri:server+'/temp', followAllRedirects:true, jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     if (er) throw er
@@ -106,7 +106,7 @@ s.listen(s.port, function () {
     passed += 1
     done()
   })
-  
+
   request.post({uri:server+'/temp', followAllRedirects:false, jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     if (er) throw er
     if (res.statusCode !== 301) throw new Error('Status is not 301: '+res.statusCode)
@@ -127,7 +127,7 @@ s.listen(s.port, function () {
     passed += 1
     done()
   })
-  
+
   // Should not follow delete redirects even if followRedirect is set to true
   request.del(server+'/temp', { followRedirect: true, jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     if (er) throw er
@@ -138,7 +138,7 @@ s.listen(s.port, function () {
     passed += 1
     done()
   })
-  
+
   // Should follow delete redirects when followAllRedirects true
   request.del(server+'/temp', {followAllRedirects:true, jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     if (er) throw er
