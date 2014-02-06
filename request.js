@@ -656,7 +656,7 @@ Request.prototype.onResponse = function (response) {
   var addCookie = function (cookie) {
     //set the cookie if it's domain in the href's domain.
     try {
-      targetCookieJar.setCookie(cookie, self.uri.href);
+      targetCookieJar.setCookie(cookie, self.uri.href, {ignoreError: true});
     } catch (e) {
       self.emit('error', e);
     }
