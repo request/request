@@ -52,6 +52,14 @@ s.listen(s.port, function () {
     assert.equal(req.headers.cookie, 'foo=bar; quux=baz')
   })
 
+  // Issue #794 add ability to ignore cookie parsing and domain errors
+  var jar2 = request.jar()
+  jar2.setCookie('quux=baz; Domain=foo.bar.com', serverUri, {ignoreError: true});
+  createTest({jar: jar2, headers: {cookie: 'foo=bar'}}, function (req, res) {
+    assert.ok(req.headers.cookie)
+    assert.equal(req.headers.cookie, 'foo=bar')
+  })
+
   // Issue #784: override content-type when json is used
   // https://github.com/mikeal/request/issues/784
   createTest({

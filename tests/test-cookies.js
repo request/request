@@ -7,6 +7,7 @@ try {
 }
 
 var assert = require('assert')
+  , http = require('http')
   , request = require('../index')
 
 
@@ -17,3 +18,43 @@ function simpleCookieCreationTest() {
 }
 
 simpleCookieCreationTest()
+
+var requests = 0;
+var validUrl = 'http://localhost:6767/valid';
+var invalidUrl = 'http://localhost:6767/invalid';
+
+var server = http.createServer(function (req, res) {
+  requests++;
+  if (req.url === '/valid')
+    res.setHeader('set-cookie', 'foo=bar');
+  else if (req.url === '/invalid')
+    res.setHeader('set-cookie', 'foo=bar; Domain=foo.com');
+  res.end('okay');
+  if (requests === 2) server.close();
+});
+server.listen(6767);
+
+var jar1 = request.jar();
+request({
+  method: 'GET',
+  url: validUrl,
+  jar: jar1
+},
+function (error, response, body) {
+  if (error) throw error;
+  assert.equal(jar1.getCookieString(validUrl), 'foo=bar');
+  assert.equal(body, 'okay');
+});
+
+
+var jar2 = request.jar();
+request({
+  method: 'GET',
+  url: invalidUrl,
+  jar: jar2
+},
+function (error, response, body) {
+  if (error) throw error;
+  assert.equal(jar2.getCookieString(validUrl), '');
+  assert.equal(body, 'okay');
+});
