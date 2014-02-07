@@ -284,7 +284,7 @@ Request.prototype.init = function (options) {
     )
   }
 
-  if (self.uri.auth && !self.hasHeader('authorization')) {
+  if (self.uri.auth && !self.hasHeader('Authorization')) {
     var authPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
     self.auth(authPieces[0], authPieces.slice(1).join(':'), true)
   }
@@ -750,7 +750,7 @@ Request.prototype.onResponse = function (response) {
           }
         }
         authHeader = 'Digest ' + authHeader.join(', ')
-        self.setHeader('authorization', authHeader)
+        self.setHeader('Authorization', authHeader)
         self._sentAuth = true
 
         redirectTo = self.uri
@@ -1069,7 +1069,7 @@ Request.prototype.auth = function (user, pass, sendImmediately) {
   this._hasAuth = true
   var header = typeof pass !== 'undefined' ? user + ':' + pass : user
   if (sendImmediately || typeof sendImmediately == 'undefined') {
-    this.setHeader('authorization', 'Basic ' + toBase64(header))
+    this.setHeader('Authorization', 'Basic ' + toBase64(header))
     this._sentAuth = true
   }
   return this
@@ -1100,7 +1100,7 @@ Request.prototype.aws = function (opts, now) {
     auth.resource = '/'
   }
   auth.resource = aws.canonicalizeResource(auth.resource)
-  this.setHeader('authorization', aws.authorization(auth))
+  this.setHeader('Authorization', aws.authorization(auth))
 
   return this
 }
@@ -1116,7 +1116,7 @@ Request.prototype.httpSignature = function (opts) {
     method: this.method,
     path: this.path
   }, opts)
-  debug('httpSignature authorization', this.getHeader('authorization'))
+  debug('httpSignature authorization', this.getHeader('Authorization'))
 
   return this
 }
