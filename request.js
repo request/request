@@ -27,6 +27,7 @@ var optional = require('./lib/optional')
   , copy = require('./lib/copy')
   , debug = require('./lib/debug')
   , getSafe = require('./lib/getSafe')
+  , net = require('net')
   ;
 
 function safeStringify (obj) {
@@ -37,7 +38,7 @@ function safeStringify (obj) {
 }
 
 var globalPool = {}
-var isUrl = /^https?:/i
+var isUrl = /^https?:|^unix:/
 
 
 // Hacky fix for pre-0.4.4 https
@@ -163,7 +164,7 @@ Request.prototype.init = function (options) {
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
 
-  if (!self.uri.host) {
+  if (!self.uri.host && !self.protocol=='unix:') {
     // Invalid URI: it may generate lot of bad errors, like "TypeError: Cannot call method 'indexOf' of undefined" in CookieJar
     // Detect and reject it as soon as possible
     var faultyUri = url.format(self.uri)
@@ -240,6 +241,9 @@ Request.prototype.init = function (options) {
       this._httpMessage.emit('error', error)
     }
   }
+
+  self._buildRequest = function(){
+  var self = this;
 
   if (options.form) {
     self.form(options.form)
@@ -324,7 +328,7 @@ Request.prototype.init = function (options) {
   }
 
   var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
-    , defaultModules = {'http:':http, 'https:':https}
+    , defaultModules = {'http:':http, 'https:':https, 'unix:':http}
     , httpModules = self.httpModules || {}
     ;
   self.httpModule = httpModules[protocol] || defaultModules[protocol]
@@ -415,6 +419,87 @@ Request.prototype.init = function (options) {
     }
     self.ntick = true
   })
+  
+  } // End _buildRequest
+  
+  self._handleUnixSocketURI = function(self){
+    // Parse URI and extract a socket path (tested as a valid socket using net.connect), and a http style path suffix
+    // Thus http requests can be made to a socket using the uri unix://tmp/my.socket/urlpath
+    // and a request for '/urlpath' will be sent to the unix socket at /tmp/my.socket
+    
+    self.unixsocket = true;
+    
+    var full_path = self.uri.href.replace(self.uri.protocol+'/', '');
+    
+    var lookup = full_path.split('/');
+    var error_connecting = true;
+    
+    var lookup_table = {}; 
+    do { lookup_table[lookup.join('/')]={} } while(lookup.pop())
+    for (r in lookup_table){
+      try_next(r);
+    }
+    
+    function try_next(table_row){
+      var client = net.connect( table_row );
+      client.path = table_row
+      client.on('error', function(){ lookup_table[this.path].error_connecting=true; this.end(); });
+      client.on('connect', function(){ lookup_table[this.path].error_connecting=false; this.end(); });
+      table_row.client = client;
+    }
+    
+    wait_for_socket_response();
+    
+    response_counter = 0;
+
+    function wait_for_socket_response(){
+      setImmediate(function(){
+        // counter to prevent infinite blocking waiting for an open socket to be found.
+        response_counter++;
+        var trying = false;
+        for (r in lookup_table){
+          //console.log(r, lookup_table[r], lookup_table[r].error_connecting)
+          if('undefined' == typeof lookup_table[r].error_connecting)
+            trying = true;
+        }
+        if(trying && response_counter<1000)
+          wait_for_socket_response()
+        else 
+          set_socket_properties();
+      })
+    }
+    
+    function set_socket_properties(){
+      var host;
+      for (r in lookup_table){
+        if(lookup_table[r].error_connecting === false){
+          host = r
+        }
+      }
+      if(!host){
+        self.emit('error', new Error("Failed to connect to any socket in "+full_path))
+      }
+      var path = full_path.replace(host, '')
+      
+      self.socketPath = host
+      self.uri.pathname = path
+      self.uri.href = path
+      self.uri.path = path
+      self.host = ''
+      self.hostname = ''
+      delete self.host
+      delete self.hostname
+      self._buildRequest();
+    }
+  }
+  
+  // Intercept UNIX protocol requests to change properties to match socket
+  if(/^unix:/.test(self.uri.protocol)){
+    self._handleUnixSocketURI(self);
+  } else {
+    self._buildRequest();
+  }
+  
 }
 
 // Must call this when following a redirect from https to http or vice versa

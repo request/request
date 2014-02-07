@@ -81,6 +81,18 @@ http.createServer(function (req, resp) {
 
 You can still use intermediate proxies, the requests will still follow HTTP forwards, etc.
 
+## UNIX Socket 
+
+`request` supports the `unix://` protocol for all requests. The path is assumed to be absolute to the root of the host file system. 
+
+HTTP paths are extracted from the supplied URL by testing each level of the full URL against net.connect for a socket response.
+
+Thus the following request will GET `/httppath` from the HTTP server listening on `/tmp/unix.socket`
+
+```javascript
+request.get('unix://tmp/unix.socket/httppath')
+```
+
 ## Forms
 
 `request` supports `application/x-www-form-urlencoded` and `multipart/form-data` form uploads. For `multipart/related` refer to the `multipart` API.
