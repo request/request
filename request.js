@@ -453,7 +453,10 @@ Request.prototype.init = function (options) {
     response_counter = 0;
 
     function wait_for_socket_response(){
-      setImmediate(function(){
+      var detach;
+      if('undefined' == typeof setImmediate ) detach = process.nextTick
+      else detach = setImmediate;
+      detach(function(){
         // counter to prevent infinite blocking waiting for an open socket to be found.
         response_counter++;
         var trying = false;
