@@ -243,183 +243,183 @@ Request.prototype.init = function (options) {
   }
 
   self._buildRequest = function(){
-  var self = this;
-
-  if (options.form) {
-    self.form(options.form)
-  }
-
-  if (options.qs) self.qs(options.qs)
-
-  if (self.uri.path) {
-    self.path = self.uri.path
-  } else {
-    self.path = self.uri.pathname + (self.uri.search || "")
-  }
-
-  if (self.path.length === 0) self.path = '/'
-
-
-  // Auth must happen last in case signing is dependent on other headers
-  if (options.oauth) {
-    self.oauth(options.oauth)
-  }
-
-  if (options.aws) {
-    self.aws(options.aws)
-  }
-
-  if (options.hawk) {
-    self.hawk(options.hawk)
-  }
-
-  if (options.httpSignature) {
-    self.httpSignature(options.httpSignature)
-  }
-
-  if (options.auth) {
-    if (Object.prototype.hasOwnProperty.call(options.auth, 'username')) options.auth.user = options.auth.username
-    if (Object.prototype.hasOwnProperty.call(options.auth, 'password')) options.auth.pass = options.auth.password
-
-    self.auth(
-      options.auth.user,
-      options.auth.pass,
-      options.auth.sendImmediately
-    )
-  }
-
-  if (self.uri.auth && !self.hasHeader('authorization')) {
-    var authPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
-    self.auth(authPieces[0], authPieces.slice(1).join(':'), true)
-  }
-  if (self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization') && !self.tunnel) {
-    self.setHeader('proxy-authorization', "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return querystring.unescape(item)}).join(':')))
-  }
-
-
-  if (self.proxy && !self.tunnel) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
-
-  if (options.json) {
-    self.json(options.json)
-  } else if (options.multipart) {
-    self.boundary = uuid()
-    self.multipart(options.multipart)
-  }
-
-  if (self.body) {
-    var length = 0
-    if (!Buffer.isBuffer(self.body)) {
-      if (Array.isArray(self.body)) {
-        for (var i = 0; i < self.body.length; i++) {
-          length += self.body[i].length
+    var self = this;
+    
+    if (options.form) {
+      self.form(options.form)
+    }
+    
+    if (options.qs) self.qs(options.qs)
+    
+    if (self.uri.path) {
+      self.path = self.uri.path
+    } else {
+      self.path = self.uri.pathname + (self.uri.search || "")
+    }
+    
+    if (self.path.length === 0) self.path = '/'
+    
+    
+    // Auth must happen last in case signing is dependent on other headers
+    if (options.oauth) {
+      self.oauth(options.oauth)
+    }
+    
+    if (options.aws) {
+      self.aws(options.aws)
+    }
+    
+    if (options.hawk) {
+      self.hawk(options.hawk)
+    }
+    
+    if (options.httpSignature) {
+      self.httpSignature(options.httpSignature)
+    }
+    
+    if (options.auth) {
+      if (Object.prototype.hasOwnProperty.call(options.auth, 'username')) options.auth.user = options.auth.username
+      if (Object.prototype.hasOwnProperty.call(options.auth, 'password')) options.auth.pass = options.auth.password
+    
+      self.auth(
+        options.auth.user,
+        options.auth.pass,
+        options.auth.sendImmediately
+      )
+    }
+    
+    if (self.uri.auth && !self.hasHeader('authorization')) {
+      var authPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
+      self.auth(authPieces[0], authPieces.slice(1).join(':'), true)
+    }
+    if (self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization') && !self.tunnel) {
+      self.setHeader('proxy-authorization', "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return querystring.unescape(item)}).join(':')))
+    }
+    
+    
+    if (self.proxy && !self.tunnel) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
+    
+    if (options.json) {
+      self.json(options.json)
+    } else if (options.multipart) {
+      self.boundary = uuid()
+      self.multipart(options.multipart)
+    }
+    
+    if (self.body) {
+      var length = 0
+      if (!Buffer.isBuffer(self.body)) {
+        if (Array.isArray(self.body)) {
+          for (var i = 0; i < self.body.length; i++) {
+            length += self.body[i].length
+          }
+        } else {
+          self.body = new Buffer(self.body)
+          length = self.body.length
         }
       } else {
-        self.body = new Buffer(self.body)
         length = self.body.length
       }
+      if (length) {
+        if (!self.hasHeader('content-length')) self.setHeader('content-length', length)
+      } else {
+        throw new Error('Argument error, options.body.')
+      }
+    }
+    
+    var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
+      , defaultModules = {'http:':http, 'https:':https, 'unix:':http}
+      , httpModules = self.httpModules || {}
+      ;
+    self.httpModule = httpModules[protocol] || defaultModules[protocol]
+    
+    if (!self.httpModule) return this.emit('error', new Error("Invalid protocol"))
+    
+    if (options.ca) self.ca = options.ca
+    
+    if (!self.agent) {
+      if (options.agentOptions) self.agentOptions = options.agentOptions
+    
+      if (options.agentClass) {
+        self.agentClass = options.agentClass
+      } else if (options.forever) {
+        self.agentClass = protocol === 'http:' ? ForeverAgent : ForeverAgent.SSL
+      } else {
+        self.agentClass = self.httpModule.Agent
+      }
+    }
+    
+    if (self.pool === false) {
+      self.agent = false
     } else {
-      length = self.body.length
+      self.agent = self.agent || self.getAgent()
+      if (self.maxSockets) {
+        // Don't use our pooling if node has the refactored client
+        self.agent.maxSockets = self.maxSockets
+      }
+      if (self.pool.maxSockets) {
+        // Don't use our pooling if node has the refactored client
+        self.agent.maxSockets = self.pool.maxSockets
+      }
     }
-    if (length) {
-      if (!self.hasHeader('content-length')) self.setHeader('content-length', length)
-    } else {
-      throw new Error('Argument error, options.body.')
-    }
-  }
-
-  var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
-    , defaultModules = {'http:':http, 'https:':https, 'unix:':http}
-    , httpModules = self.httpModules || {}
-    ;
-  self.httpModule = httpModules[protocol] || defaultModules[protocol]
-
-  if (!self.httpModule) return this.emit('error', new Error("Invalid protocol"))
-
-  if (options.ca) self.ca = options.ca
-
-  if (!self.agent) {
-    if (options.agentOptions) self.agentOptions = options.agentOptions
-
-    if (options.agentClass) {
-      self.agentClass = options.agentClass
-    } else if (options.forever) {
-      self.agentClass = protocol === 'http:' ? ForeverAgent : ForeverAgent.SSL
-    } else {
-      self.agentClass = self.httpModule.Agent
-    }
-  }
-
-  if (self.pool === false) {
-    self.agent = false
-  } else {
-    self.agent = self.agent || self.getAgent()
-    if (self.maxSockets) {
-      // Don't use our pooling if node has the refactored client
-      self.agent.maxSockets = self.maxSockets
-    }
-    if (self.pool.maxSockets) {
-      // Don't use our pooling if node has the refactored client
-      self.agent.maxSockets = self.pool.maxSockets
-    }
-  }
-
-  self.on('pipe', function (src) {
-    if (self.ntick && self._started) throw new Error("You cannot pipe to this stream after the outbound request has started.")
-    self.src = src
-    if (isReadStream(src)) {
-      if (!self.hasHeader('content-type')) self.setHeader('content-type', mime.lookup(src.path))
-    } else {
-      if (src.headers) {
-        for (var i in src.headers) {
-          if (!self.hasHeader(i)) {
-            self.setHeader(i, src.headers[i])
+    
+    self.on('pipe', function (src) {
+      if (self.ntick && self._started) throw new Error("You cannot pipe to this stream after the outbound request has started.")
+      self.src = src
+      if (isReadStream(src)) {
+        if (!self.hasHeader('content-type')) self.setHeader('content-type', mime.lookup(src.path))
+      } else {
+        if (src.headers) {
+          for (var i in src.headers) {
+            if (!self.hasHeader(i)) {
+              self.setHeader(i, src.headers[i])
+            }
           }
         }
+        if (self._json && !self.hasHeader('content-type'))
+          self.setHeader('content-type', 'application/json')
+        if (src.method && !self.explicitMethod) {
+          self.method = src.method
+        }
       }
-      if (self._json && !self.hasHeader('content-type'))
-        self.setHeader('content-type', 'application/json')
-      if (src.method && !self.explicitMethod) {
-        self.method = src.method
+    
+      // self.on('pipe', function () {
+      //   console.error("You have already piped to this stream. Pipeing twice is likely to break the request.")
+      // })
+    })
+    
+    process.nextTick(function () {
+      if (self._aborted) return
+    
+      if (self._form) {
+        self.setHeaders(self._form.getHeaders())
+        try {
+          var length = self._form.getLengthSync()
+          self.setHeader('content-length', length)
+        } catch(e){}
+        self._form.pipe(self)
       }
-    }
-
-    // self.on('pipe', function () {
-    //   console.error("You have already piped to this stream. Pipeing twice is likely to break the request.")
-    // })
-  })
-
-  process.nextTick(function () {
-    if (self._aborted) return
-
-    if (self._form) {
-      self.setHeaders(self._form.getHeaders())
-      try {
-        var length = self._form.getLengthSync()
-        self.setHeader('content-length', length)
-      } catch(e){}
-      self._form.pipe(self)
-    }
-    if (self.body) {
-      if (Array.isArray(self.body)) {
-        self.body.forEach(function (part) {
-          self.write(part)
-        })
-      } else {
-        self.write(self.body)
+      if (self.body) {
+        if (Array.isArray(self.body)) {
+          self.body.forEach(function (part) {
+            self.write(part)
+          })
+        } else {
+          self.write(self.body)
+        }
+        self.end()
+      } else if (self.requestBodyStream) {
+        console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
+        self.requestBodyStream.pipe(self)
+      } else if (!self.src) {
+        if (self.method !== 'GET' && typeof self.method !== 'undefined') {
+          self.setHeader('content-length', 0)
+        }
+        self.end()
       }
-      self.end()
-    } else if (self.requestBodyStream) {
-      console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
-      self.requestBodyStream.pipe(self)
-    } else if (!self.src) {
-      if (self.method !== 'GET' && typeof self.method !== 'undefined') {
-        self.setHeader('content-length', 0)
-      }
-      self.end()
-    }
-    self.ntick = true
-  })
-  
+      self.ntick = true
+    })
+    
   } // End _buildRequest
   
   self._handleUnixSocketURI = function(self){
