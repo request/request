@@ -244,50 +244,50 @@ Request.prototype.init = function (options) {
 
   self._buildRequest = function(){
     var self = this;
-    
+
     if (options.form) {
       self.form(options.form)
     }
-    
+
     if (options.qs) self.qs(options.qs)
-    
+
     if (self.uri.path) {
       self.path = self.uri.path
     } else {
       self.path = self.uri.pathname + (self.uri.search || "")
     }
-    
+
     if (self.path.length === 0) self.path = '/'
-    
-    
+
+
     // Auth must happen last in case signing is dependent on other headers
     if (options.oauth) {
       self.oauth(options.oauth)
     }
-    
+
     if (options.aws) {
       self.aws(options.aws)
     }
-    
+
     if (options.hawk) {
       self.hawk(options.hawk)
     }
-    
+
     if (options.httpSignature) {
       self.httpSignature(options.httpSignature)
     }
-    
+
     if (options.auth) {
       if (Object.prototype.hasOwnProperty.call(options.auth, 'username')) options.auth.user = options.auth.username
       if (Object.prototype.hasOwnProperty.call(options.auth, 'password')) options.auth.pass = options.auth.password
-    
+
       self.auth(
         options.auth.user,
         options.auth.pass,
         options.auth.sendImmediately
       )
     }
-    
+
     if (self.uri.auth && !self.hasHeader('authorization')) {
       var authPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
       self.auth(authPieces[0], authPieces.slice(1).join(':'), true)
@@ -295,17 +295,17 @@ Request.prototype.init = function (options) {
     if (self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization') && !self.tunnel) {
       self.setHeader('proxy-authorization', "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return querystring.unescape(item)}).join(':')))
     }
-    
-    
+
+
     if (self.proxy && !self.tunnel) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
-    
+
     if (options.json) {
       self.json(options.json)
     } else if (options.multipart) {
       self.boundary = uuid()
       self.multipart(options.multipart)
     }
-    
+
     if (self.body) {
       var length = 0
       if (!Buffer.isBuffer(self.body)) {
@@ -326,20 +326,20 @@ Request.prototype.init = function (options) {
         throw new Error('Argument error, options.body.')
       }
     }
-    
+
     var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
       , defaultModules = {'http:':http, 'https:':https, 'unix:':http}
       , httpModules = self.httpModules || {}
       ;
     self.httpModule = httpModules[protocol] || defaultModules[protocol]
-    
+
     if (!self.httpModule) return this.emit('error', new Error("Invalid protocol"))
-    
+
     if (options.ca) self.ca = options.ca
-    
+
     if (!self.agent) {
       if (options.agentOptions) self.agentOptions = options.agentOptions
-    
+
       if (options.agentClass) {
         self.agentClass = options.agentClass
       } else if (options.forever) {
@@ -348,7 +348,7 @@ Request.prototype.init = function (options) {
         self.agentClass = self.httpModule.Agent
       }
     }
-    
+
     if (self.pool === false) {
       self.agent = false
     } else {
@@ -362,7 +362,7 @@ Request.prototype.init = function (options) {
         self.agent.maxSockets = self.pool.maxSockets
       }
     }
-    
+
     self.on('pipe', function (src) {
       if (self.ntick && self._started) throw new Error("You cannot pipe to this stream after the outbound request has started.")
       self.src = src
@@ -382,15 +382,15 @@ Request.prototype.init = function (options) {
           self.method = src.method
         }
       }
-    
+
       // self.on('pipe', function () {
       //   console.error("You have already piped to this stream. Pipeing twice is likely to break the request.")
       // })
     })
-    
+
     process.nextTick(function () {
       if (self._aborted) return
-    
+
       if (self._form) {
         self.setHeaders(self._form.getHeaders())
         try {
@@ -419,27 +419,27 @@ Request.prototype.init = function (options) {
       }
       self.ntick = true
     })
-    
+
   } // End _buildRequest
-  
+
   self._handleUnixSocketURI = function(self){
     // Parse URI and extract a socket path (tested as a valid socket using net.connect), and a http style path suffix
     // Thus http requests can be made to a socket using the uri unix://tmp/my.socket/urlpath
     // and a request for '/urlpath' will be sent to the unix socket at /tmp/my.socket
-    
+
     self.unixsocket = true;
-    
+
     var full_path = self.uri.href.replace(self.uri.protocol+'/', '');
-    
+
     var lookup = full_path.split('/');
     var error_connecting = true;
-    
-    var lookup_table = {}; 
+
+    var lookup_table = {};
     do { lookup_table[lookup.join('/')]={} } while(lookup.pop())
     for (r in lookup_table){
       try_next(r);
     }
-    
+
     function try_next(table_row){
       var client = net.connect( table_row );
       client.path = table_row
@@ -447,9 +447,9 @@ Request.prototype.init = function (options) {
       client.on('connect', function(){ lookup_table[this.path].error_connecting=false; this.end(); });
       table_row.client = client;
     }
-    
+
     wait_for_socket_response();
-    
+
     response_counter = 0;
 
     function wait_for_socket_response(){
@@ -467,11 +467,11 @@ Request.prototype.init = function (options) {
         }
         if(trying && response_counter<1000)
           wait_for_socket_response()
-        else 
+        else
           set_socket_properties();
       })
     }
-    
+
     function set_socket_properties(){
       var host;
       for (r in lookup_table){
@@ -483,7 +483,7 @@ Request.prototype.init = function (options) {
         self.emit('error', new Error("Failed to connect to any socket in "+full_path))
       }
       var path = full_path.replace(host, '')
-      
+
       self.socketPath = host
       self.uri.pathname = path
       self.uri.href = path
@@ -495,14 +495,14 @@ Request.prototype.init = function (options) {
       self._buildRequest();
     }
   }
-  
+
   // Intercept UNIX protocol requests to change properties to match socket
   if(/^unix:/.test(self.uri.protocol)){
     self._handleUnixSocketURI(self);
   } else {
     self._buildRequest();
   }
-  
+
 }
 
 // Must call this when following a redirect from https to http or vice versa
@@ -1141,6 +1141,7 @@ Request.prototype.getHeader = function (name, headers) {
   var result, re, match
   if (!headers) headers = this.headers
   Object.keys(headers).forEach(function (key) {
+    if (key.length !== name.length) return
     re = new RegExp(name, 'i')
     match = key.match(re)
     if (match) result = headers[key]
