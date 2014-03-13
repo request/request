@@ -672,6 +672,28 @@ Request.prototype.start = function () {
   debug('make request', self.uri.href)
   self.req = self.httpModule.request(reqOptions, self.onResponse.bind(self))
 
+  // Connection timeout support (time to open a socket)
+  if (self.connectTimeout && !self.connectTimeoutTimer) {
+    self._connected = false;
+    // Set up a timer
+    self.connectTimeoutTimer = setTimeout(function () {
+      self.req.abort()
+      if (self.timeoutTimer) {
+        clearTimeout(self.timeoutTimer);
+      }
+      var e = new Error("ETIMEDOUT")
+      e.code = "ETIMEDOUT"
+      self.emit("error", e)
+    }, self.connectTimeout);
+    // And listen for socket creation
+    self.req.on('socket', function() {
+      self._connected = true;
+      if (self.connectTimeoutTimer) {
+        clearTimeout(self.connectTimeoutTimer);
+      }
+    });
+  }
+
   if (self.timeout && !self.timeoutTimer) {
     self.timeoutTimer = setTimeout(function () {
       self.req.abort()
