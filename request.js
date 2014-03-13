@@ -674,7 +674,6 @@ Request.prototype.start = function () {
 
   // Connection timeout support (time to open a socket)
   if (self.connectTimeout && !self.connectTimeoutTimer) {
-    self._connected = false;
     // Set up a timer
     self.connectTimeoutTimer = setTimeout(function () {
       self.req.abort()
@@ -687,7 +686,6 @@ Request.prototype.start = function () {
     }, self.connectTimeout);
     // And listen for socket creation
     self.req.on('socket', function() {
-      self._connected = true;
       if (self.connectTimeoutTimer) {
         clearTimeout(self.connectTimeoutTimer);
       }
