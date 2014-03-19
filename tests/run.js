@@ -4,6 +4,12 @@ var spawn = require('child_process').spawn
   , fs = require('fs')
   ;
 
+// clear proxy releated environment variables
+delete process.env.HTTP_PROXY
+delete process.env.http_proxy
+delete process.env.HTTPS_PROXY
+delete process.env.https_proxy
+  
 fs.readdir(__dirname, function (e, files) {
   if (e) throw e
 
