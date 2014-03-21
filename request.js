@@ -102,6 +102,7 @@ Request.prototype.init = function (options) {
   // the actual outgoing request is not started until start() is called
   // this function is called from both the constructor and on redirect.
   var self = this
+  var onCompleteError = null
   if (!options) options = {}
 
   if (!self.method) self.method = options.method || 'GET'
@@ -116,12 +117,16 @@ Request.prototype.init = function (options) {
   if (!self._callback && self.callback) {
     self._callback = self.callback
     self.callback = function () {
+      var args = Array.prototype.slice.call(arguments)
+      args.unshift(onCompleteError)
       if (self._callbackCalled) return // Print a warning maybe?
       self._callbackCalled = true
-      self._callback.apply(self, arguments)
+      self._callback.apply(self, args)
     }
-    self.on('error', self.callback.bind())
-    self.on('complete', self.callback.bind(self, null))
+    self.on('error', function (error) {
+      onCompleteError = error
+    })
+    self.on('complete', self.callback.bind(self))
   }
 
   if (self.url && !self.uri) {
