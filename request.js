@@ -107,6 +107,8 @@ Request.prototype.init = function (options) {
   if (!self.method) self.method = options.method || 'GET'
   self.localAddress = options.localAddress
 
+  if (!self.qsLib) self.qsLib = options.useQs ? qs: querystring
+
   debug(options)
   if (!self.pool && self.pool !== false) self.pool = globalPool
   self.dests = self.dests || []
@@ -1063,18 +1065,18 @@ var hasHeader = Request.prototype.hasHeader
 
 Request.prototype.qs = function (q, clobber) {
   var base
-  if (!clobber && this.uri.query) base = qs.parse(this.uri.query)
+  if (!clobber && this.uri.query) base = this.qsLib.parse(this.uri.query)
   else base = {}
 
   for (var i in q) {
     base[i] = q[i]
   }
 
-  if (qs.stringify(base) === ''){
+  if (this.qsLib.stringify(base) === ''){
     return this
   }
 
-  this.uri = url.parse(this.uri.href.split('?')[0] + '?' + qs.stringify(base))
+  this.uri = url.parse(this.uri.href.split('?')[0] + '?' + this.qsLib.stringify(base))
   this.url = this.uri
   this.path = this.uri.path
 
@@ -1083,7 +1085,7 @@ Request.prototype.qs = function (q, clobber) {
 Request.prototype.form = function (form) {
   if (form) {
     this.setHeader('content-type', 'application/x-www-form-urlencoded; charset=utf-8')
-    this.body = qs.stringify(form).toString('utf8')
+    this.body = this.qsLib.stringify(form).toString('utf8')
     return this
   }
   // create form-data object
@@ -1239,10 +1241,10 @@ Request.prototype.oauth = function (_oauth) {
       this.getHeader('content-type').slice(0, 'application/x-www-form-urlencoded'.length) ===
         'application/x-www-form-urlencoded'
      ) {
-    form = qs.parse(this.body)
+    form = this.qsLib.parse(this.body)
   }
   if (this.uri.query) {
-    form = qs.parse(this.uri.query)
+    form = this.qsLib.parse(this.uri.query)
   }
   if (!form) form = {}
   var oa = {}
