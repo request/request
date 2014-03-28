@@ -138,7 +138,7 @@ request.get('http://some.server.com/', {
 });
 ```
 
-If passed as an option, `auth` should be a hash containing values `user` || `username`, `password` || `pass`, and `sendImmediately` (optional).  The method form takes parameters `auth(username, password, sendImmediately)`.
+If passed as an option, `auth` should be a hash containing values `user` || `username`, `pass` || `password`, and `sendImmediately` (optional).  The method form takes parameters `auth(username, password, sendImmediately)`.
 
 `sendImmediately` defaults to `true`, which causes a basic authentication header to be sent.  If `sendImmediately` is `false`, then `request` will retry with a proper authentication header after receiving a `401` response from the server (which must contain a `WWW-Authenticate` header indicating the required authentication method).
 
@@ -230,7 +230,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `headers` - http headers (default: `{}`)
 * `body` - entity body for PATCH, POST and PUT requests. Must be a `Buffer` or `String`.
 * `form` - when passed an object, this sets `body` to a querystring representation of value, and adds `Content-type: application/x-www-form-urlencoded; charset=utf-8` header. When passed no options, a `FormData` instance is returned (and is piped to request).
-* `auth` - A hash containing values `user` || `username`, `password` || `pass`, and `sendImmediately` (optional).  See documentation above.
+* `auth` - A hash containing values `user` || `username`, `pass` || `password`, and `sendImmediately` (optional).  See documentation above.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
 * `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
 * `followRedirect` - follow HTTP 3xx responses as redirects (default: `true`)
