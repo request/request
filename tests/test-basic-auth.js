@@ -14,6 +14,8 @@ var basicServer = http.createServer(function (req, res) {
   if (req.headers.authorization) {
     if (req.headers.authorization == 'Basic ' + new Buffer('test:testing2').toString('base64')) {
       ok = true;
+    } else if ( req.headers.authorization == 'Basic ' + new Buffer('test:').toString('base64')) {
+      ok = true;
     } else if ( req.headers.authorization == 'Basic ' + new Buffer(':apassword').toString('base64')) {
       ok = true;
     } else if ( req.headers.authorization == 'Basic ' + new Buffer('justauser').toString('base64')) {
@@ -146,6 +148,32 @@ var tests = [
         next();
       });
     })
+  },
+
+  function (next) {
+    request
+      .get('http://localhost:6767/test/')
+      .auth("test","",false)
+      .on('response', function (res) {
+        assert.equal(res.statusCode, 200);
+        assert.equal(numBasicRequests, 12);
+        next();
+      })
+  },
+
+  function (next) {
+    request.get('http://localhost:6767/test/',
+      {
+        auth: {
+          user: "test",
+          pass: "",
+          sendImmediately: false
+        }
+      }, function (err, res) {
+        assert.equal(res.statusCode, 200);
+        assert.equal(numBasicRequests, 14);
+        next();
+      })
   }
 ];
 
