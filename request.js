@@ -155,6 +155,9 @@ Request.prototype.init = function (options) {
                                    , headers: { Host: self.uri.hostname + ':' +
                                         (self.uri.port || self.uri.protocol === 'https:' ? 443 : 80) }}
                           , rejectUnauthorized: self.rejectUnauthorized
+                          , key: self.key
+                          , cert: self.cert
+                          , pfx: self.pfx
                           , ca: this.ca }
 
       self.agent = tunnelFn(tunnelOptions)
