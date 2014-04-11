@@ -284,7 +284,8 @@ Request.prototype.init = function (options) {
       self.auth(
         options.auth.user,
         options.auth.pass,
-        options.auth.sendImmediately
+        options.auth.sendImmediately,
+        options.auth.bearer
       )
     }
 
@@ -788,6 +789,11 @@ Request.prototype.onResponse = function (response) {
         redirectTo = self.uri
         break
 
+      case 'bearer':
+        self.auth(null, null, true, self._bearer)
+        redirectTo = self.uri
+        break
+
       case 'digest':
         // TODO: More complete implementation of RFC 2617.
         //   - check challenge.algorithm
@@ -1150,7 +1156,19 @@ Request.prototype.getHeader = function (name, headers) {
 }
 var getHeader = Request.prototype.getHeader
 
-Request.prototype.auth = function (user, pass, sendImmediately) {
+Request.prototype.auth = function (user, pass, sendImmediately, bearer) {
+  if (bearer !== undefined) {
+    this._bearer = bearer
+    this._hasAuth = true
+    if (sendImmediately || typeof sendImmediately == 'undefined') {
+      if (typeof bearer === 'function') {
+        bearer = bearer()
+      }
+      this.setHeader('authorization', 'Bearer ' + bearer)
+      this._sentAuth = true
+    }
+    return this
+  }
   if (typeof user !== 'string' || (pass !== undefined && typeof pass !== 'string')) {
     throw new Error('auth() received invalid user or password')
   }
