@@ -373,7 +373,7 @@ request('http://www.google.com', function () {
 })
 ```
 
-To use a custom cookie jar (instead `request`’s global cookie jar), set `jar` to an instance of `request.jar()` (either in `defaults` or `options`)
+To use a custom cookie jar (instead of `request`’s global cookie jar), set `jar` to an instance of `request.jar()` (either in `defaults` or `options`)
 
 ```javascript
 var j = request.jar()
