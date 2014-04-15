@@ -213,4 +213,19 @@ s.listen(s.port, function () {
 
   counter++
   request({url:'http://localhost:3453/opts'}).pipe(optsStream, { end : false })
+
+  // test request.pipefilter is called correctly
+  counter++
+  s.on('/pipefilter', function(req, resp) {
+    resp.end('d')
+  })
+  var validatePipeFilter = new ValidationStream('d')
+
+  var r3 = request.get('http://localhost:3453/pipefilter')
+  r3.pipe(validatePipeFilter)
+  r3.pipefilter = function(resp, dest) {
+    assert.equal(resp, r3.response)
+    assert.equal(dest, validatePipeFilter)
+    check()
+  }
 })
