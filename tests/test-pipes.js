@@ -26,12 +26,12 @@ ValidationStream.prototype.write = function (chunk) {
   this.emit('data', chunk)
 }
 ValidationStream.prototype.end = function (chunk) {
-  if (chunk) emit('data', chunk)
+  if (chunk) this.emit('data', chunk)
   this.emit('end')
 }
 
 s.listen(s.port, function () {
-  counter = 0;
+  var counter = 0;
 
   var check = function () {
     counter = counter - 1
@@ -177,7 +177,7 @@ s.listen(s.port, function () {
     afterresp.pipe(v)
     v.on('end', check)
   })
-  
+
   s.on('/forward1', function (req, resp) {
    resp.writeHead(302, {location:'/forward2'})
     resp.end()
@@ -187,7 +187,7 @@ s.listen(s.port, function () {
     resp.write('d')
     resp.end()
   })
-  
+
   counter++
   var validateForward = new ValidationStream('d')
   validateForward.on('end', check)
@@ -198,7 +198,7 @@ s.listen(s.port, function () {
 
   var optsStream = new stream.Stream();
   optsStream.writable = true
-  
+
   var optsData = '';
   optsStream.write = function (buf) {
     optsData += buf;
