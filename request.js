@@ -38,6 +38,7 @@ function safeStringify (obj) {
 }
 
 var globalPool = {}
+var proxyPool = {}
 var isUrl = /^https?:|^unix:/
 
 
@@ -146,18 +147,23 @@ Request.prototype.init = function (options) {
 
     // do the HTTP CONNECT dance using koichik/node-tunnel
     if (http.globalAgent && self.uri.protocol === "https:" && self.canTunnel) {
-      var tunnelFn = self.proxy.protocol === "http:"
-                   ? tunnel.httpsOverHttp : tunnel.httpsOverHttps
+      poolKey = self.proxy.protocol + ':' + self.proxy.host + ':' + self.proxy.port + ':' + self.uri.hostname + ':' + self.uri.port || 443
+      if (!proxyPool[poolKey]) {
+        var tunnelFn = self.proxy.protocol === "http:"
+                     ? tunnel.httpsOverHttp : tunnel.httpsOverHttps
 
-      var tunnelOptions = { proxy: { host: self.proxy.hostname
-                                   , port: +self.proxy.port
-                                   , proxyAuth: self.proxy.auth
-                                   , headers: { Host: self.uri.hostname + ':' +
-                                        (self.uri.port || self.uri.protocol === 'https:' ? 443 : 80) }}
-                          , rejectUnauthorized: self.rejectUnauthorized
-                          , ca: this.ca }
+        var tunnelOptions = { proxy: { host: self.proxy.hostname
+                                     , port: +self.proxy.port
+                                     , proxyAuth: self.proxy.auth
+                                     , headers: { Host: self.uri.hostname + ':' +
+                                          (self.uri.port || self.uri.protocol === 'https:' ? 443 : 80) }}
+                            , rejectUnauthorized: self.rejectUnauthorized
+                            , ca: this.ca }
 
-      self.agent = tunnelFn(tunnelOptions)
+        proxyPool[poolKey] = tunnelFn(tunnelOptions)
+      }
+
+      self.agent = proxyPool[poolKey]
       self.tunnel = true
     }
   }
