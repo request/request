@@ -117,7 +117,7 @@ var r = request.post('http://service.com/upload', function optionalCallback (err
 var form = r.form()
 form.append('my_field', 'my_value')
 form.append('my_buffer', new Buffer([1, 2, 3]))
-form.append('my_file', fs.createReadStream(path.join(__dirname, 'doodle.png'))
+form.append('my_file', fs.createReadStream(path.join(__dirname, 'doodle.png')))
 form.append('remote_file', request('http://google.com/doodle.png'))
 
 // Just like always, `r` is a writable stream, and can be used as such (you have until nextTick to pipe it, etc.)
