@@ -35,17 +35,11 @@ function initParams(uri, options, callback) {
 
 function request (uri, options, callback) {
   if (typeof uri === 'undefined') throw new Error('undefined is not a valid uri or options object.')
-  if ((typeof options === 'function') && !callback) callback = options
-  if (options && typeof options === 'object') {
-    options.uri = uri
-  } else if (typeof uri === 'string') {
-    options = {uri:uri}
-  } else {
-    options = uri
-  }
 
-  options = copy(options)
-
+  var params = initParams(uri, options, callback)
+  options = copy(params.options)
+  callback = params.callback
+  
   if (callback) options.callback = callback
   var r = new Request(options)
   return r
