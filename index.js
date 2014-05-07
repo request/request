@@ -15,39 +15,43 @@
 var cookies = require('./lib/cookies')
   , copy = require('./lib/copy')
   , Request = require('./request')
+  , util = require('util')
   ;
 
 
 
 // organize params for patch, post, put, head, del
 function initParams(uri, options, callback) {
+  var opts;
   if ((typeof options === 'function') && !callback) callback = options
   if (options && typeof options === 'object') {
-    options.uri = uri
+    opts = util._extend({}, options);
+    opts.uri = uri
   } else if (typeof uri === 'string') {
-    options = {uri:uri}
+    opts = {uri:uri}
   } else {
-    options = uri
-    uri = options.uri
+    opts = util._extend({}, uri);
+    uri = opts.uri
   }
-  return { uri: uri, options: options, callback: callback }
+
+  return { uri: uri, options: opts, callback: callback }
 }
 
 function request (uri, options, callback) {
+  var opts;
   if (typeof uri === 'undefined') throw new Error('undefined is not a valid uri or options object.')
   if ((typeof options === 'function') && !callback) callback = options
   if (options && typeof options === 'object') {
-    options.uri = uri
+    opts = util._extend({}, options);
+    opts.uri = uri
   } else if (typeof uri === 'string') {
-    options = {uri:uri}
+    opts = {uri:uri}
   } else {
-    options = uri
+    opts = util._extend({}, uri);
   }
 
-  options = copy(options)
-
-  if (callback) options.callback = callback
-  var r = new Request(options)
+  if (callback) opts.callback = callback
+  var r = new Request(opts)
   return r
 }
 
@@ -109,7 +113,11 @@ request.forever = function (agentOptions, optionsArg) {
   return request.defaults(options)
 }
 
-request.get = request
+request.get = function (uri, options, callback) {
+  var params = initParams(uri, options, callback)
+  params.options.method = 'GET'
+  return requester(params)(params.uri || null, params.options, params.callback)
+}
 request.post = function (uri, options, callback) {
   var params = initParams(uri, options, callback)
   params.options.method = 'POST'
