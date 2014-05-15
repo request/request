@@ -16,6 +16,7 @@ var cookies = require('./lib/cookies')
   , copy = require('./lib/copy')
   , Request = require('./request')
   , util = require('util')
+  , _merge = require('lodash.merge')
   ;
 
 
@@ -67,9 +68,7 @@ request.defaults = function (options, requester) {
   var def = function (method) {
     var d = function (uri, opts, callback) {
       var params = initParams(uri, opts, callback)
-      for (var i in options) {
-        if (params.options[i] === undefined) params.options[i] = options[i]
-      }
+      params.options = _merge(options, params.options)
       if(typeof requester === 'function') {
         if(method === request) {
           method = requester
