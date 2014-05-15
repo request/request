@@ -24,7 +24,7 @@
   "dependencies": {
     "forever-agent": "~0.5.0",
     "json-stringify-safe": "~5.0.0",
-    "lodash.merge": "^2.4.1",
+    "lodash.merge": "~2.4.1",
     "mime": "~1.2.9",
     "node-uuid": "~1.4.0",
     "qs": "~0.6.0"
