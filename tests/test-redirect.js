@@ -21,6 +21,7 @@ s.listen(s.port, function () {
   bouncer(301, 'temp')
   bouncer(302, 'perm')
   bouncer(302, 'nope')
+  bouncer(307, 'fwd')
 
   function bouncer(code, label) {
     var landing = label+'_landing';
@@ -35,18 +36,12 @@ s.listen(s.port, function () {
     })
 
     s.on('/'+landing, function (req, res) {
-      if (req.method !== 'GET') { // We should only accept GET redirects
-        console.error("Got a non-GET request to the redirect destination URL");
-        res.writeHead(400);
-        res.end();
-        return;
-      }
       // Make sure the cookie doesn't get included twice, see #139:
       // Make sure cookies are set properly after redirect
       assert.equal(req.headers.cookie, 'foo=bar; quux=baz; ham=eggs');
       hits[landing] = true;
       res.writeHead(200)
-      res.end(landing)
+      res.end(req.method.toUpperCase() + ' ' + landing)
     })
   }
 
@@ -58,7 +53,7 @@ s.listen(s.port, function () {
     if (res.statusCode !== 200) throw new Error('Status is not 200: '+res.statusCode)
     assert.ok(hits.perm, 'Original request is to /perm')
     assert.ok(hits.perm_landing, 'Forward to permanent landing URL')
-    assert.equal(body, 'perm_landing', 'Got permanent landing content')
+    assert.equal(body, 'GET perm_landing', 'Got permanent landing content')
     passed += 1
     done()
   })
@@ -69,7 +64,7 @@ s.listen(s.port, function () {
     if (res.statusCode !== 200) throw new Error('Status is not 200: '+res.statusCode)
     assert.ok(hits.temp, 'Original request is to /temp')
     assert.ok(hits.temp_landing, 'Forward to temporary landing URL')
-    assert.equal(body, 'temp_landing', 'Got temporary landing content')
+    assert.equal(body, 'GET temp_landing', 'Got temporary landing content')
     passed += 1
     done()
   })
@@ -102,7 +97,7 @@ s.listen(s.port, function () {
     if (res.statusCode !== 200) throw new Error('Status is not 200: '+res.statusCode)
     assert.ok(hits.temp, 'Original request is to /temp')
     assert.ok(hits.temp_landing, 'Forward to temporary landing URL')
-    assert.equal(body, 'temp_landing', 'Got temporary landing content')
+    assert.equal(body, 'GET temp_landing', 'Got temporary landing content')
     passed += 1
     done()
   })
@@ -145,7 +140,17 @@ s.listen(s.port, function () {
     if (res.statusCode !== 200) throw new Error('Status is not 200: '+res.statusCode)
     assert.ok(hits.temp, 'Original request is to /temp')
     assert.ok(hits.temp_landing, 'Forward to temporary landing URL')
-    assert.equal(body, 'temp_landing', 'Got temporary landing content')
+    assert.equal(body, 'GET temp_landing', 'Got temporary landing content')
+    passed += 1
+    done()
+  })  
+    
+  request.del(server+'/fwd', {followAllRedirects:true, jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
+    if (er) throw er
+    if (res.statusCode !== 200) throw new Error('Status is not 200: '+res.statusCode)
+    assert.ok(hits.fwd, 'Original request is to /fwd')
+    assert.ok(hits.fwd_landing, 'Forward to temporary landing URL')
+    assert.equal(body, 'DELETE fwd_landing', 'Got temporary landing content')
     passed += 1
     done()
   })
@@ -153,7 +158,7 @@ s.listen(s.port, function () {
   var reqs_done = 0;
   function done() {
     reqs_done += 1;
-    if(reqs_done == 9) {
+    if(reqs_done == 10) {
       console.log(passed + ' tests passed.')
       s.close()
     }
