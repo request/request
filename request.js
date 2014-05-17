@@ -883,13 +883,13 @@ Request.prototype.onResponse = function (response) {
       , redirectUri: redirectTo
       }
     )
-    if (self.followAllRedirects && response.statusCode != 401) self.method = 'GET'
+    if (self.followAllRedirects && response.statusCode != 401 && response.statusCode != 307) self.method = 'GET'
     // self.method = 'GET' // Force all redirects to use GET || commented out fixes #215
     delete self.src
     delete self.req
     delete self.agent
     delete self._started
-    if (response.statusCode != 401) {
+    if (response.statusCode != 401 && response.statusCode != 307) {
       // Remove parameters from the previous response, unless this is the second request
       // for a server that requires digest authentication.
       delete self.body
