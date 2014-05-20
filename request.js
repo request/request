@@ -631,6 +631,11 @@ Request.prototype.getAgent = function () {
       if (poolKey) poolKey += ':'
       poolKey += options.secureProtocol
     }
+    
+    if (options.secureOptions) {
+      if (poolKey) poolKey += ':'
+      poolKey += options.secureOptions
+    }
   }
 
   if (this.pool === globalPool && !poolKey && Object.keys(options).length === 0 && this.httpModule.globalAgent) {
