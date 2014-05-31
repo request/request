@@ -334,7 +334,8 @@ Request.prototype.init = function (options) {
       ;
     self.httpModule = httpModules[protocol] || defaultModules[protocol]
 
-    if (!self.httpModule) return this.emit('error', new Error("Invalid protocol: " + protocol))
+    if (!self.httpModule) 
+      return process.nextTick(this.emit.bind(this, 'error', new Error("Invalid protocol: " + protocol)));
 
     if (options.ca) self.ca = options.ca
 
