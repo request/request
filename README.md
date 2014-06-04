@@ -403,3 +403,4 @@ request({url: 'http://www.google.com', jar:j}, function () {
   var cookies = j.getCookies(uri); 
   // [{key: 'key1', value: 'value1', domain: "www.google.com", ...}, ...]
 })
+```
