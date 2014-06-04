@@ -393,3 +393,14 @@ request({url: 'http://www.google.com', jar: j}, function () {
   request('http://images.google.com')
 })
 ```
+
+To inspect your cookie jar after a request
+
+```javascript
+var j = request.jar() 
+request({url: 'http://www.google.com', jar: j}, function () {
+  var cookie_string = j.getCookieString(uri); // "key1=value1; key2=value2; ..."
+  var cookies = j.getCookies(uri); 
+  // [{key: 'key1', value: 'value1', domain: "www.google.com", ...}, ...]
+})
+```
