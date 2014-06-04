@@ -44,8 +44,12 @@ function (error, response, body) {
   if (error) throw error;
   assert.equal(jar1.getCookieString(validUrl), 'foo=bar');
   assert.equal(body, 'okay');
-});
 
+  var cookies = jar1.getCookies(validUrl);
+  assert(cookies.length == 1);
+  assert(cookies[0].key === 'foo');
+  assert(cookies[0].value === 'bar');
+});
 
 var jar2 = request.jar();
 request({
@@ -56,5 +60,7 @@ request({
 function (error, response, body) {
   if (error) throw error;
   assert.equal(jar2.getCookieString(validUrl), '');
+  assert.deepEqual(jar2.getCookies(validUrl), []);
   assert.equal(body, 'okay');
 });
+
