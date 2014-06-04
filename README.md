@@ -396,7 +396,7 @@ request({url: 'http://www.google.com', jar: j}, function () {
 
 To inspect your cookie jar after a request
 
-```
+```javascript
 var j = request.jar() 
 request({url: 'http://www.google.com', jar:j}, function () {
   var cookie_string = j.getCookieString(uri); // "key1=value1; key2=value2; ..."
