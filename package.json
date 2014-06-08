@@ -34,7 +34,7 @@
     "tunnel-agent": "~0.4.0",
     "http-signature": "~0.10.0",
     "oauth-sign": "~0.3.0",
-    "hawk": "~1.0.0",
+    "hawk": "1.1.1",
     "aws-sign2": "~0.5.0"
   },
   "scripts": {
