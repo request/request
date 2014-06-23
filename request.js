@@ -751,7 +751,16 @@ Request.prototype.onResponse = function (response) {
   var addCookie = function (cookie) {
     //set the cookie if it's domain in the href's domain.
     try {
-      targetCookieJar.setCookie(cookie, self.uri.href, {ignoreError: true});
+      // added call to setCookieSync directly --> is required, if external tough-cookie jar was provided
+      if (targetCookieJar && targetCookieJar.setCookieSync) {
+        targetCookieJar.setCookieSync(cookie, self.uri.href, {
+          ignoreError: true
+        });
+      } else {
+        targetCookieJar.setCookie(cookie, self.uri.href, {
+          ignoreError: true
+        });
+      }
     } catch (e) {
       self.emit('error', e);
     }
@@ -1298,7 +1307,10 @@ Request.prototype.jar = function (jar) {
     var targetCookieJar = (jar && jar.getCookieString)?jar:globalCookieJar;
     var urihref = this.uri.href
     //fetch cookie in the Specified host
-    if (targetCookieJar) {
+      // added call to getCookieStringSync directly --> is required, if external tough-cookie jar was provided
+    if (targetCookieJar && targetCookieJar.getCookieStringSync) {
+      cookies = targetCookieJar.getCookieStringSync(urihref);
+    } else {
       cookies = targetCookieJar.getCookieString(urihref);
     }
   }
