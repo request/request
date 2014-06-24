@@ -92,7 +92,7 @@ function Request (options) {
     this.explicitMethod = true
   }
 
-  this.canTunnel = options.tunnel !== false && tunnel;
+  this.canTunnel = options.tunnel && tunnel;
 
   this.init(options)
 }
