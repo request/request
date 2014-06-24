@@ -145,22 +145,7 @@ Request.prototype.init = function (options) {
     if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
 
     // do the HTTP CONNECT dance using koichik/node-tunnel
-    if (http.globalAgent && self.canTunnel) {
-      var tunnelFn = self.proxy.protocol === 'http:'
-        ? (self.uri.protocol === 'http:' ? tunnel.httpOverHttp : tunnel.httpsOverHttp)
-        : (self.uri.protocol === 'https:' ? tunnel.httpsOverHttps : tunnel.httpOverHttps);
-
-      var tunnelOptions = { proxy: { host: self.proxy.hostname
-                                   , port: +self.proxy.port
-                                   , proxyAuth: self.proxy.auth
-                                   , headers: { Host: self.uri.hostname + ':' +
-                                        (self.uri.port || self.uri.protocol === 'https:' ? 443 : 80) }}
-                          , rejectUnauthorized: self.rejectUnauthorized
-                          , ca: this.ca }
-
-      self.agent = tunnelFn(tunnelOptions)
-      self.tunnel = true
-    }
+    if (http.globalAgent && self.canTunnel) self._setTunnel();
   }
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
@@ -507,6 +492,25 @@ Request.prototype.init = function (options) {
 
 }
 
+Request.prototype._setTunnel = function () {
+  var self = this;
+
+  var tunnelFn = self.proxy.protocol === 'http:'
+    ? (self.uri.protocol === 'http:' ? tunnel.httpOverHttp : tunnel.httpsOverHttp)
+    : (self.uri.protocol === 'https:' ? tunnel.httpsOverHttps : tunnel.httpOverHttps);
+
+  var tunnelOptions = { proxy: { host: self.proxy.hostname
+                                , port: +self.proxy.port
+                                , proxyAuth: self.proxy.auth
+                                , headers: { Host: self.uri.hostname + ':' +
+                                    (self.uri.port || self.uri.protocol === 'https:' ? 443 : 80) }}
+                      , rejectUnauthorized: self.rejectUnauthorized
+                      , ca: this.ca }
+
+  self.agent = tunnelFn(tunnelOptions)
+  self.tunnel = true
+}
+
 // Must call this when following a redirect from https to http or vice versa
 // Attempts to keep everything as identical as possible, but update the
 // httpModule, Tunneling agent, and/or Forever Agent in use.
@@ -514,22 +518,14 @@ Request.prototype._updateProtocol = function () {
   var self = this
   var protocol = self.uri.protocol
 
-  if (protocol === 'https:') {
-    // previously was doing http, now doing https
-    // if it's https, then we might need to tunnel now.
-    if (self.proxy && self.canTunnel) {
-      self.tunnel = true
-      var tunnelFn = self.proxy.protocol === 'http:'
-                   ? tunnel.httpsOverHttp : tunnel.httpsOverHttps
-      var tunnelOptions = { proxy: { host: self.proxy.hostname
-                                   , port: +self.proxy.port
-                                   , proxyAuth: self.proxy.auth }
-                          , rejectUnauthorized: self.rejectUnauthorized
-                          , ca: self.ca }
-      self.agent = tunnelFn(tunnelOptions)
-      return
-    }
+  // If we are proxying through something still
+  // we need to set and update the agent appropriately
+  if (self.proxy && self.canTunnel) {
+    self._setTunnel();
+    return;
+  }
 
+  if (protocol === 'https:') {
     self.httpModule = https
     switch (self.agentClass) {
       case ForeverAgent:
@@ -547,9 +543,6 @@ Request.prototype._updateProtocol = function () {
     if (self.agent) self.agent = self.getAgent()
 
   } else {
-    // previously was doing https, now doing http
-    // stop any tunneling.
-    if (self.tunnel) self.tunnel = false
     self.httpModule = http
     switch (self.agentClass) {
       case ForeverAgent.SSL:
