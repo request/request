@@ -14,7 +14,7 @@ var optional = require('./lib/optional')
   , aws = optional('aws-sign2')
   , httpSignature = optional('http-signature')
   , uuid = require('node-uuid')
-  , mime = require('mime')
+  , mime = require('mime-types')
   , tunnel = optional('tunnel-agent')
   , _safeStringify = require('json-stringify-safe')
 

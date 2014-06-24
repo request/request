@@ -24,7 +24,7 @@
   "dependencies": {
     "qs": "~0.6.0",
     "json-stringify-safe": "~5.0.0",
-    "mime": "~1.2.9",
+    "mime-types": "^1.0.0",
     "forever-agent": "~0.5.0",
     "node-uuid": "~1.4.0"
   },
