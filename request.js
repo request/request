@@ -716,7 +716,8 @@ Request.prototype.onResponse = function (response) {
     debug('response end', self.uri.href, response.statusCode, response.headers)
   });
 
-  if (response.connection.listeners('error').indexOf(self._parserErrorHandler) === -1) {
+  // The check on response.connection is a workaround for browserify.
+  if (response.connection && response.connection.listeners('error').indexOf(self._parserErrorHandler) === -1) {
     response.connection.once('error', self._parserErrorHandler)
   }
   if (self._aborted) {
@@ -725,7 +726,8 @@ Request.prototype.onResponse = function (response) {
     return
   }
   if (self._paused) response.pause()
-  else response.resume()
+  // Check that response.resume is defined. Workaround for browserify.
+  else response.resume && response.resume()
 
   self.response = response
   response.request = self
