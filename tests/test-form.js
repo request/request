@@ -9,7 +9,7 @@ try {
 var assert = require('assert')
 var http = require('http');
 var path = require('path');
-var mime = require('mime');
+var mime = require('mime-types');
 var request = require('../index');
 var fs = require('fs');
 
