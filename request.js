@@ -245,6 +245,10 @@ Request.prototype.init = function (options) {
   self._buildRequest = function(){
     var self = this;
 
+    if (options.noDelay) {
+       self.noDelay = true;
+    }
+
     if (options.form) {
       self.form(options.form)
     }
@@ -698,6 +702,10 @@ Request.prototype.start = function () {
         }
       })
     }
+  }
+
+  if (self.noDelay && self.req.setNoDelay) {
+     self.req.setNoDelay();
   }
 
   self.req.on('error', self.clientErrorHandler)
