@@ -16,7 +16,7 @@
   "bugs": {
     "url": "http://github.com/mikeal/request/issues"
   },
-  "license": "Apache, Version 2.0",
+  "license": "Apache-2.0",
   "engines": [
     "node >= 0.8.0"
   ],
