@@ -21,6 +21,23 @@ s.listen(s.port, function () {
     counter += 1;
   });
 
+  s.on('/merge-headers', function (req, resp) {
+    assert.equal(req.headers.foo, 'bar')
+    assert.equal(req.headers.merged, 'yes')
+    resp.writeHead(200)
+    resp.end()
+  });
+
+  request.defaults({
+    headers:{foo:"bar", merged:"no"}
+  })(s.url + '/merge-headers', {
+    headers:{merged:"yes"}
+  }, function (e, r, b){
+    if (e) throw e
+    assert.equal(r.statusCode, 200)
+    counter += 1
+  });
+
   s.on('/post', function (req, resp) {
     assert.equal(req.headers.foo, 'bar');
     assert.equal(req.headers['content-type'], null);
