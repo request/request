@@ -65,7 +65,7 @@ request.initParams = initParams
 
 request.defaults = function (options, requester) {
   var def = function (method) {
-    return function (uri, opts, callback) {
+    var d = function (uri, opts, callback) {
       var params = initParams(uri, opts, callback)
       Object.keys(options).forEach(function (key) {
         if (key !== 'headers' && params.options[key] === undefined) {
@@ -87,6 +87,7 @@ request.defaults = function (options, requester) {
       }
       return method(params.options, params.callback)
     }
+    return d
   }
   var de = def(request)
   de.get = def(request.get)
