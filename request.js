@@ -1090,7 +1090,7 @@ Request.prototype.qs = function (q, clobber) {
 Request.prototype.form = function (form) {
   if (form) {
     this.setHeader('content-type', 'application/x-www-form-urlencoded; charset=utf-8')
-    this.body = qs.stringify(form).toString('utf8')
+    this.body = (typeof form === 'string') ? form.toString('utf8') : qs.stringify(form).toString('utf8')
     return this
   }
   // create form-data object

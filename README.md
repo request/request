@@ -239,7 +239,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `method` - http method (default: `"GET"`)
 * `headers` - http headers (default: `{}`)
 * `body` - entity body for PATCH, POST and PUT requests. Must be a `Buffer` or `String`.
-* `form` - when passed an object, this sets `body` to a querystring representation of value, and adds `Content-type: application/x-www-form-urlencoded; charset=utf-8` header. When passed no options, a `FormData` instance is returned (and is piped to request).
+* `form` - when passed an object or a querystring, this sets `body` to a querystring representation of value, and adds `Content-type: application/x-www-form-urlencoded; charset=utf-8` header. When passed no options, a `FormData` instance is returned (and is piped to request).
 * `auth` - A hash containing values `user` || `username`, `pass` || `password`, and `sendImmediately` (optional).  See documentation above.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
 * `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
