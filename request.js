@@ -8,6 +8,7 @@ var optional = require('./lib/optional')
   , qs = require('qs')
   , querystring = require('querystring')
   , crypto = require('crypto')
+  , zlib = require('zlib')
 
   , oauth = optional('oauth-sign')
   , hawk = optional('hawk')
@@ -287,6 +288,10 @@ Request.prototype.init = function (options) {
         options.auth.sendImmediately,
         options.auth.bearer
       )
+    }
+
+    if (self.gzip && !self.hasHeader('accept-encoding')) {
+      self.setHeader('accept-encoding', 'gzip')
     }
 
     if (self.uri.auth && !self.hasHeader('authorization')) {
@@ -920,11 +925,31 @@ Request.prototype.onResponse = function (response) {
       if (!self._ended) self.response.emit('end')
     })
 
+    var dataStream
+    if (self.gzip) {
+      var contentEncoding = response.headers["content-encoding"] || "identity"
+      contentEncoding = contentEncoding.trim().toLowerCase()
+
+      if (contentEncoding === "gzip") {
+        dataStream = zlib.createGunzip()
+        response.pipe(dataStream)
+      } else {
+        // Since previous versions didn't check for Content-Encoding header,
+        // ignore any invalid values to preserve backwards-compatibility
+        if (contentEncoding !== "identity") {
+          debug("ignoring unrecognized Content-Encoding " + contentEncoding)
+        }
+        dataStream = response
+      }
+    } else {
+      dataStream = response
+    }
+
     if (self.encoding) {
       if (self.dests.length !== 0) {
         console.error("Ignoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.")
       } else {
-        response.setEncoding(self.encoding)
+        dataStream.setEncoding(self.encoding)
       }
     }
 
@@ -934,15 +959,15 @@ Request.prototype.onResponse = function (response) {
       self.pipeDest(dest)
     })
 
-    response.on("data", function (chunk) {
+    dataStream.on("data", function (chunk) {
       self._destdata = true
       self.emit("data", chunk)
     })
-    response.on("end", function (chunk) {
+    dataStream.on("end", function (chunk) {
       self._ended = true
       self.emit("end", chunk)
     })
-    response.on("close", function () {self.emit("close")})
+    dataStream.on("close", function () {self.emit("close")})
 
     if (self.callback) {
       var buffer = []
@@ -1037,7 +1062,11 @@ Request.prototype.pipeDest = function (dest) {
   }
   if (dest.setHeader && !dest.headersSent) {
     for (var i in response.headers) {
-      dest.setHeader(i, response.headers[i])
+      // If the response content is being decoded, the Content-Encoding header
+      // of the response doesn't represent the piped content, so don't pass it.
+      if (!this.gzip || i !== 'content-encoding') {
+        dest.setHeader(i, response.headers[i])
+      }
     }
     dest.statusCode = response.statusCode
   }
