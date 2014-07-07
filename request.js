@@ -1003,7 +1003,7 @@ Request.prototype.onResponse = function (response) {
             chunk.copy(body, i, 0, chunk.length)
             i += chunk.length
           })
-          if (self.encoding === null) {
+          if (self.encoding == null) {
             response.body = body
           } else {
             response.body = body.toString(self.encoding)
