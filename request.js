@@ -636,7 +636,7 @@ Request.prototype.getAgent = function () {
       if (poolKey) poolKey += ':'
       poolKey += options.secureProtocol
     }
-    
+
     if (options.secureOptions) {
       if (poolKey) poolKey += ':'
       poolKey += options.secureOptions
@@ -950,7 +950,8 @@ Request.prototype.onResponse = function (response) {
       if (self.dests.length !== 0) {
         console.error("Ignoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.")
       } else {
-        dataStream.setEncoding(self.encoding)
+        // gz streams don't have setEncoding in v0.8
+        if (dataStream.setEncoding) dataStream.setEncoding(self.encoding)
       }
     }
 
