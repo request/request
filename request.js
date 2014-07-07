@@ -142,6 +142,16 @@ Request.prototype.init = function (options) {
     self.rejectUnauthorized = false
   }
 
+  if(!self.hasOwnProperty('proxy')) {
+    // check for HTTP(S)_PROXY environment variables
+    if(self.uri.protocol == "http:") {
+        self.proxy = process.env.HTTP_PROXY || process.env.http_proxy || null;
+    } else if(self.uri.protocol == "https:") {
+        self.proxy = process.env.HTTPS_PROXY || process.env.https_proxy || 
+                     process.env.HTTP_PROXY || process.env.http_proxy || null;
+    }
+  }
+  
   if (self.proxy) {
     if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
 
