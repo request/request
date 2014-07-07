@@ -723,6 +723,7 @@ Request.prototype.onResponse = function (response) {
 
   // The check on response.connection is a workaround for browserify.
   if (response.connection && response.connection.listeners('error').indexOf(self._parserErrorHandler) === -1) {
+    response.connection.setMaxListeners(0)
     response.connection.once('error', self._parserErrorHandler)
   }
   if (self._aborted) {
