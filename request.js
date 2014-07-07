@@ -401,7 +401,7 @@ Request.prototype.init = function (options) {
         self.setHeaders(self._form.getHeaders())
         try {
           var length = self._form.getLengthSync()
-          self.setHeader('content-length', length)
+          if (!self.hasHeader('content-length')) self.setHeader('content-length', length)
         } catch(e){}
         self._form.pipe(self)
       }
