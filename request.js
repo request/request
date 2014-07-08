@@ -1132,6 +1132,7 @@ Request.prototype.form = function (form) {
   if (form) {
     this.setHeader('content-type', 'application/x-www-form-urlencoded; charset=utf-8')
     this.body = (typeof form === 'string') ? form.toString('utf8') : qs.stringify(form).toString('utf8')
+    this.setHeader('content-length', this.body.length)
     return this
   }
   // create form-data object
