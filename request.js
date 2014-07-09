@@ -407,32 +407,43 @@ Request.prototype.init = function (options) {
     process.nextTick(function () {
       if (self._aborted) return
 
-      if (self._form) {
+      var end = function () {
+        if (self._form) {
+          self._form.pipe(self)
+        }
+        if (self.body) {
+          if (Array.isArray(self.body)) {
+            self.body.forEach(function (part) {
+              self.write(part)
+            })
+          } else {
+            self.write(self.body)
+          }
+          self.end()
+        } else if (self.requestBodyStream) {
+          console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
+          self.requestBodyStream.pipe(self)
+        } else if (!self.src) {
+          if (self.method !== 'GET' && typeof self.method !== 'undefined') {
+            self.setHeader('content-length', 0)
+          }
+          self.end()
+        }
+      }
+
+      if (self._form && !self.hasHeader('content-length')) {
+        // Before ending the request, we had to compute the length of the whole form, asyncly
         self.setHeaders(self._form.getHeaders())
-        try {
-          var length = self._form.getLengthSync()
-          if (!self.hasHeader('content-length')) self.setHeader('content-length', length)
-        } catch(e){}
-        self._form.pipe(self)
+        self._form.getLength(function (err, length) {
+          if (!err) {
+            self.setHeader('content-length', length)
+          }
+          end()
+        })
+      } else {
+        end()
       }
-      if (self.body) {
-        if (Array.isArray(self.body)) {
-          self.body.forEach(function (part) {
-            self.write(part)
-          })
-        } else {
-          self.write(self.body)
-        }
-        self.end()
-      } else if (self.requestBodyStream) {
-        console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
-        self.requestBodyStream.pipe(self)
-      } else if (!self.src) {
-        if (self.method !== 'GET' && typeof self.method !== 'undefined') {
-          self.setHeader('content-length', 0)
-        }
-        self.end()
-      }
+
       self.ntick = true
     })
 

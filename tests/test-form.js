@@ -15,6 +15,8 @@ var fs = require('fs');
 
 var remoteFile = 'http://nodejs.org/images/logo.png';
 
+var totalLength = null;
+
 var FIELDS = [
   {name: 'my_field', value: 'my_value'},
   {name: 'my_buffer', value: new Buffer([1, 2, 3])},
@@ -61,6 +63,9 @@ var server = http.createServer(function(req, res) {
     assert.ok( data.indexOf('ImageReady') != -1 );
     assert.ok( data.indexOf('Content-Type: '+mime.lookup(remoteFile) ) != -1 );
 
+    assert.ok( req.headers['content-length'] == totalLength );
+
+
     res.writeHead(200);
     res.end('done');
 
@@ -78,6 +83,10 @@ server.listen(8080, function() {
   
   FIELDS.forEach(function(field) {
     form.append(field.name, field.value);
+  });
+
+  form.getLength(function (err, length) {
+    totalLength = length;
   });
 
 });
