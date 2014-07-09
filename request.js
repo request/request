@@ -18,6 +18,7 @@ var optional = require('./lib/optional')
   , mime = require('mime-types')
   , tunnel = optional('tunnel-agent')
   , _safeStringify = require('json-stringify-safe')
+  , stringstream = optional('stringstream')
 
   , ForeverAgent = require('forever-agent')
   , FormData = optional('form-data')
@@ -970,9 +971,13 @@ Request.prototype.onResponse = function (response) {
     if (self.encoding) {
       if (self.dests.length !== 0) {
         console.error("Ignoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.")
+      } else if (dataStream.setEncoding) {
+        dataStream.setEncoding(self.encoding)
       } else {
-        // gz streams don't have setEncoding in v0.8
-        if (dataStream.setEncoding) dataStream.setEncoding(self.encoding)
+        // Should only occur on node pre-v0.9.4 (joyent/node@9b5abe5) with
+        // zlib streams.
+        // If/When support for 0.9.4 is dropped, this should be unnecessary.
+        dataStream = dataStream.pipe(stringstream(self.encoding))
       }
     }
 
