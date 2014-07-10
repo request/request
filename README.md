@@ -254,7 +254,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `oauth` - Options for OAuth HMAC-SHA1 signing. See documentation above.
 * `hawk` - Options for [Hawk signing](https://github.com/hueniverse/hawk). The `credentials` key must contain the necessary signing info, [see hawk docs for details](https://github.com/hueniverse/hawk#usage-example).
 * `strictSSL` - If `true`, requires SSL certificates be valid. **Note:** to use your own certificate authority, you need to specify an agent that was created with that CA as an option.
-* `jar` - If `true`, remember cookies for future use (or define your custom cookie jar; see examples section)
+* `jar` - If `true` and `tough-cookie` is installed, remember cookies for future use (or define your custom cookie jar; see examples section)
 * `aws` - `object` containing AWS signing information. Should have the properties `key`, `secret`. Also requires the property `bucket`, unless you’re specifying your `bucket` as part of the path, or the request doesn’t use a bucket (i.e. GET Services)
 * `httpSignature` - Options for the [HTTP Signature Scheme](https://github.com/joyent/node-http-signature/blob/master/http_signing.md) using [Joyent's library](https://github.com/joyent/node-http-signature). The `keyId` and `key` properties must be specified. See the docs for other options.
 * `localAddress` - Local interface to bind for network connections.
@@ -365,7 +365,7 @@ request.jar()
   )
 ```
 
-Cookies are disabled by default (else, they would be used in subsequent requests). To enable cookies, set `jar` to `true` (either in `defaults` or `options`).
+Cookies are disabled by default (else, they would be used in subsequent requests). To enable cookies, set `jar` to `true` (either in `defaults` or `options`) and install `tough-cookie`.
 
 ```javascript
 var request = request.defaults({jar: true})
@@ -387,6 +387,7 @@ request('http://www.google.com', function () {
 OR
 
 ```javascript
+// `npm install --save tough-cookie` before this works
 var j = request.jar()
 var cookie = request.cookie('your_cookie_here')
 j.setCookie(cookie, uri);
