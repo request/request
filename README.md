@@ -154,6 +154,20 @@ Digest authentication is supported, but it only works with `sendImmediately` set
 
 Bearer authentication is supported, and is activated when the `bearer` value is available. The value may be either a `String` or a `Function` returning a `String`. Using a function to supply the bearer token is particularly useful if used in conjuction with `defaults` to allow a single function to supply the last known token at the time or sending a request or to compute one on the fly.
 
+Note that you can also use a trick using the URL itself, as specified in [RFC 1738](http://www.ietf.org/rfc/rfc1738.txt). 
+Simply pass the `user:password` before the host with an `@` sign.
+
+```javascript
+
+var username = "username",
+    password = "password",
+    url = "http://" + username + ":" + password + "@example.com";
+
+request({url: url}, function (error, response, body) {
+   // Do more stuff with 'body' here
+});
+```
+
 ## OAuth Signing
 
 ```javascript
