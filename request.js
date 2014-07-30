@@ -148,11 +148,11 @@ Request.prototype.init = function (options) {
     if(self.uri.protocol == "http:") {
         self.proxy = process.env.HTTP_PROXY || process.env.http_proxy || null;
     } else if(self.uri.protocol == "https:") {
-        self.proxy = process.env.HTTPS_PROXY || process.env.https_proxy || 
+        self.proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
                      process.env.HTTP_PROXY || process.env.http_proxy || null;
     }
   }
-  
+
   if (self.proxy) {
     if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
 
@@ -1000,11 +1000,11 @@ Request.prototype.onResponse = function (response) {
     dataStream.on("close", function () {self.emit("close")})
 
     if (self.callback) {
-      var buffer = []
-      var bodyLen = 0
+      var bodyDataChunks = []
+      var bodyTotalSize = 0
       self.on("data", function (chunk) {
-        buffer.push(chunk)
-        bodyLen += chunk.length
+        bodyDataChunks.push(chunk)
+        bodyTotalSize += chunk.length
       })
       self.on("end", function () {
         debug('end event', self.uri.href)
@@ -1013,26 +1013,22 @@ Request.prototype.onResponse = function (response) {
           return
         }
 
-        if (buffer.length && Buffer.isBuffer(buffer[0])) {
-          debug('has body', self.uri.href, bodyLen)
-          var body = new Buffer(bodyLen)
-          var i = 0
-          buffer.forEach(function (chunk) {
-            chunk.copy(body, i, 0, chunk.length)
-            i += chunk.length
-          })
+        if (bodyDataChunks.length && Buffer.isBuffer(bodyDataChunks[0])) {
+          debug('has body', self.uri.href, bodyTotalSize)
+          // Concatonate all chunks of data into a single buffer
+          var bodyData = Buffer.concat(bodyDataChunks, bodyTotalSize)
           if (self.encoding === null) {
-            response.body = body
+            response.body = bodyData
           } else {
-            response.body = body.toString(self.encoding)
+            response.body = bodyData.toString(self.encoding)
           }
-        } else if (buffer.length) {
+        } else if (bodyDataChunks.length) {
           // The UTF8 BOM [0xEF,0xBB,0xBF] is converted to [0xFE,0xFF] in the JS UTC16/UCS2 representation.
           // Strip this value out when the encoding is set to 'utf8', as upstream consumers won't expect it and it breaks JSON.parse().
-          if (self.encoding === 'utf8' && buffer[0].length > 0 && buffer[0][0] === "\uFEFF") {
-            buffer[0] = buffer[0].substring(1)
+          if (self.encoding === 'utf8' && bodyDataChunks[0].length > 0 && bodyDataChunks[0][0] === "\uFEFF") {
+            bodyDataChunks[0] = bodyDataChunks[0].substring(1)
           }
-          response.body = buffer.join('')
+          response.body = bodyDataChunks.join('')
         }
 
         if (self._json) {
