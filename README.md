@@ -1,4 +1,4 @@
-# Request -- Simplified HTTP client
+# Request — Simplified HTTP client
 
 [![NPM](https://nodei.co/npm/request.png)](https://nodei.co/npm/request/)
 
@@ -121,7 +121,7 @@ form.append('my_file', fs.createReadStream(path.join(__dirname, 'doodle.png')))
 form.append('remote_file', request('http://google.com/doodle.png'))
 
 // Just like always, `r` is a writable stream, and can be used as such (you have until nextTick to pipe it, etc.)
-// Alternatively, you can provide a callback (that's what this example does-- see `optionalCallback` above).
+// Alternatively, you can provide a callback (that's what this example does — see `optionalCallback` above).
 ```
 
 ## HTTP Authentication
