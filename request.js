@@ -200,6 +200,10 @@ Request.prototype.init = function (options) {
   if (self.followRedirect || self.followAllRedirects)
     self.redirects = self.redirects || []
 
+  self.allowRedirect = (self.allowRedirect !== undefined) ? self.allowRedirect : function(response) {
+    return true;
+  };
+
   self.headers = self.headers ? copy(self.headers) : {}
 
   self.setHost = false
@@ -890,7 +894,7 @@ Request.prototype.onResponse = function (response) {
     }
   }
 
-  if (redirectTo) {
+  if (redirectTo && self.allowRedirect.call(self, response)) {
     debug('redirect to', redirectTo)
 
     // ignore any potential response body.  it cannot possibly be useful
