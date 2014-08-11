@@ -1300,20 +1300,21 @@ Request.prototype.hawk = function (opts) {
 }
 
 Request.prototype.oauth = function (_oauth) {
-  var form
+  var form, query
   if (this.hasHeader('content-type') &&
       this.getHeader('content-type').slice(0, 'application/x-www-form-urlencoded'.length) ===
         'application/x-www-form-urlencoded'
      ) {
-    form = qs.parse(this.body)
+    form = this.body
   }
   if (this.uri.query) {
-    form = qs.parse(this.uri.query)
+    query = this.uri.query
   }
-  if (!form) form = {}
+
   var oa = {}
-  for (var i in form) oa[i] = form[i]
   for (var i in _oauth) oa['oauth_'+i] = _oauth[i]
+  if ('oauth_realm' in oa) delete oa.oauth_realm
+
   if (!oa.oauth_version) oa.oauth_version = '1.0'
   if (!oa.oauth_timestamp) oa.oauth_timestamp = Math.floor( Date.now() / 1000 ).toString()
   if (!oa.oauth_nonce) oa.oauth_nonce = uuid().replace(/-/g, '')
@@ -1324,22 +1325,14 @@ Request.prototype.oauth = function (_oauth) {
   delete oa.oauth_consumer_secret
   var token_secret = oa.oauth_token_secret
   delete oa.oauth_token_secret
-  var timestamp = oa.oauth_timestamp
 
   var baseurl = this.uri.protocol + '//' + this.uri.host + this.uri.pathname
-  var signature = oauth.hmacsign(this.method, baseurl, oa, consumer_secret, token_secret)
+  var params = qs.parse([].concat(query, form, qs.stringify(oa)).join('&'))
+  var signature = oauth.hmacsign(this.method, baseurl, params, consumer_secret, token_secret)
 
-  // oa.oauth_signature = signature
-  for (var i in form) {
-    if ( i.slice(0, 'oauth_') in _oauth) {
-      // skip
-    } else {
-      delete oa['oauth_'+i]
-      if (i !== 'x_auth_mode') delete oa[i]
-    }
-  }
-  oa.oauth_timestamp = timestamp
-  var authHeader = 'OAuth '+Object.keys(oa).sort().map(function (i) {return i+'="'+oauth.rfc3986(oa[i])+'"'}).join(',')
+  var realm = _oauth.realm ? 'realm="' + _oauth.realm + '",' : '';
+  var authHeader = 'OAuth ' + realm +
+    Object.keys(oa).sort().map(function (i) {return i+'="'+oauth.rfc3986(oa[i])+'"'}).join(',')
   authHeader += ',oauth_signature="' + oauth.rfc3986(signature) + '"'
   this.setHeader('Authorization', authHeader)
   return this
