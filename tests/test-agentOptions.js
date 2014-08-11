@@ -15,7 +15,7 @@ var s = http.createServer(function (req, resp) {
 
     // requests with agentOptions should apply agentOptions to new agent in pool
     var r2 = request('http://localhost:6767', { agentOptions: { foo: 'bar' } }, function (e, resp, body) {
-      assert.deepEqual(r2.agent.options, { foo: 'bar' });
+      assert.equal(r2.agent.options.foo, 'bar');
       assert.equal(Object.keys(r2.pool).length, 1);
 	    s.close()
  	 });
