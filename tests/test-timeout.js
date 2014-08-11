@@ -48,7 +48,7 @@ s.listen(s.port, function () {
   // Scenario that shouldn't timeout
   var shouldntTimeout = {
     url: s.url + "/timeout",
-    timeout:300
+    timeout:600
   }
 
   request(shouldntTimeout, function (err, resp, body) {
