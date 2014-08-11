@@ -22,7 +22,7 @@
   ],
   "main": "index.js",
   "dependencies": {
-    "qs": "~1.0.0",
+    "qs": "~1.2.0",
     "json-stringify-safe": "~5.0.0",
     "mime-types": "~1.0.1",
     "forever-agent": "~0.5.0",
