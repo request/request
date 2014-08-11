@@ -22,11 +22,12 @@
   ],
   "main": "index.js",
   "dependencies": {
-    "qs": "~1.2.0",
+    "bl": "^0.9.0",
+    "forever-agent": "~0.5.0",
     "json-stringify-safe": "~5.0.0",
     "mime-types": "~1.0.1",
-    "forever-agent": "~0.5.0",
-    "node-uuid": "~1.4.0"
+    "node-uuid": "~1.4.0",
+    "qs": "~1.2.0"
   },
   "optionalDependencies": {
     "tough-cookie": ">=0.12.0",
@@ -40,5 +41,8 @@
   },
   "scripts": {
     "test": "node tests/run.js"
+  },
+  "devDependencies": {
+    "rimraf": "^2.2.8"
   }
 }

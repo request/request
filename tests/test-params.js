@@ -78,6 +78,7 @@ s.listen(s.port, function () {
       request(s.url + '/' + i, test, function (err, resp, body) {
         if (err) throw err
         if (test.expectBody) {
+          if (body.slice) body = body.slice()
           assert.deepEqual(test.expectBody, body)
         }
         counter = counter - 1;

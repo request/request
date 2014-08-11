@@ -107,6 +107,7 @@ s.listen(s.port, function () {
       request(test, function (err, resp, body) {
         if (err) throw err
         if (test.expectBody) {
+          if (body.slice) body = body.slice()
           assert.deepEqual(test.expectBody, body)
         }
         counter = counter - 1;
@@ -119,4 +120,3 @@ s.listen(s.port, function () {
     })()
   }
 })
-

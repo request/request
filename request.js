@@ -10,6 +10,7 @@ var optional = require('./lib/optional')
   , crypto = require('crypto')
   , zlib = require('zlib')
 
+  , bl = require('bl')
   , oauth = optional('oauth-sign')
   , hawk = optional('hawk')
   , aws = optional('aws-sign2')
@@ -148,11 +149,11 @@ Request.prototype.init = function (options) {
     if(self.uri.protocol == "http:") {
         self.proxy = process.env.HTTP_PROXY || process.env.http_proxy || null;
     } else if(self.uri.protocol == "https:") {
-        self.proxy = process.env.HTTPS_PROXY || process.env.https_proxy || 
+        self.proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
                      process.env.HTTP_PROXY || process.env.http_proxy || null;
     }
   }
-  
+
   if (self.proxy) {
     if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
 
@@ -1000,11 +1001,12 @@ Request.prototype.onResponse = function (response) {
     dataStream.on("close", function () {self.emit("close")})
 
     if (self.callback) {
-      var buffer = []
-      var bodyLen = 0
+      var buffer = bl()
+        , strings = []
+        ;
       self.on("data", function (chunk) {
-        buffer.push(chunk)
-        bodyLen += chunk.length
+        if (Buffer.isBuffer(chunk)) buffer.append(chunk)
+        else strings.push(chunk)
       })
       self.on("end", function () {
         debug('end event', self.uri.href)
@@ -1013,26 +1015,22 @@ Request.prototype.onResponse = function (response) {
           return
         }
 
-        if (buffer.length && Buffer.isBuffer(buffer[0])) {
-          debug('has body', self.uri.href, bodyLen)
-          var body = new Buffer(bodyLen)
-          var i = 0
-          buffer.forEach(function (chunk) {
-            chunk.copy(body, i, 0, chunk.length)
-            i += chunk.length
-          })
+        if (buffer.length) {
+          debug('has body', self.uri.href)
           if (self.encoding === null) {
-            response.body = body
+            // response.body = buffer
+            // can't move to this until https://github.com/rvagg/bl/issues/13
+            response.body = buffer.slice()
           } else {
-            response.body = body.toString(self.encoding)
+            response.body = buffer.toString(self.encoding)
           }
-        } else if (buffer.length) {
+        } else if (strings.length) {
           // The UTF8 BOM [0xEF,0xBB,0xBF] is converted to [0xFE,0xFF] in the JS UTC16/UCS2 representation.
           // Strip this value out when the encoding is set to 'utf8', as upstream consumers won't expect it and it breaks JSON.parse().
-          if (self.encoding === 'utf8' && buffer[0].length > 0 && buffer[0][0] === "\uFEFF") {
-            buffer[0] = buffer[0].substring(1)
+          if (self.encoding === 'utf8' && strings[0].length > 0 && strings[0][0] === "\uFEFF") {
+            strings[0] = strings[0].substring(1)
           }
-          response.body = buffer.join('')
+          response.body = strings.join('')
         }
 
         if (self._json) {
