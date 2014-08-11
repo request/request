@@ -203,12 +203,12 @@ Request.prototype.init = function (options) {
   self.headers = self.headers ? copy(self.headers) : {}
 
   self.setHost = false
-  if (!self.hasHeader('host')) {
-    self.setHeader('host', self.uri.hostname)
+  if (!self.hasHeader('Host')) {
+    self.setHeader('Host', self.uri.hostname)
     if (self.uri.port) {
       if ( !(self.uri.port === 80 && self.uri.protocol === 'http:') &&
            !(self.uri.port === 443 && self.uri.protocol === 'https:') )
-      self.setHeader('host', self.getHeader('host') + (':'+self.uri.port) )
+      self.setHeader('Host', self.getHeader('Host') + (':'+self.uri.port) )
     }
     self.setHost = true
   }
@@ -773,7 +773,7 @@ Request.prototype.onResponse = function (response) {
     return
   }
 
-  if (self.setHost && self.hasHeader('host')) delete self.headers[self.hasHeader('host')]
+  if (self.setHost && self.hasHeader('Host')) delete self.headers[self.hasHeader('Host')]
   if (self.timeout && self.timeoutTimer) {
     clearTimeout(self.timeoutTimer)
     self.timeoutTimer = null
@@ -932,7 +932,7 @@ Request.prototype.onResponse = function (response) {
       delete self.body
       delete self._form
       if (self.headers) {
-        if (self.hasHeader('host')) delete self.headers[self.hasHeader('host')]
+        if (self.hasHeader('Host')) delete self.headers[self.hasHeader('Host')]
         if (self.hasHeader('content-type')) delete self.headers[self.hasHeader('content-type')]
         if (self.hasHeader('content-length')) delete self.headers[self.hasHeader('content-length')]
       }
