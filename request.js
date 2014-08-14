@@ -195,14 +195,13 @@ Request.prototype.init = function (options) {
 
   self._redirectsFollowed = self._redirectsFollowed || 0
   self.maxRedirects = (self.maxRedirects !== undefined) ? self.maxRedirects : 10
-  self.followRedirect = (self.followRedirect !== undefined) ? self.followRedirect : true
+  self.allowRedirect = (typeof self.followRedirect === 'function') ? self.followRedirect : function(response) {
+    return true;
+  };
+  self.followRedirect = (self.followRedirect !== undefined) ? !!self.followRedirect : true
   self.followAllRedirects = (self.followAllRedirects !== undefined) ? self.followAllRedirects : false
   if (self.followRedirect || self.followAllRedirects)
     self.redirects = self.redirects || []
-
-  self.allowRedirect = (self.allowRedirect !== undefined) ? self.allowRedirect : function(response) {
-    return true;
-  };
 
   self.headers = self.headers ? copy(self.headers) : {}
 

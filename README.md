@@ -256,7 +256,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `auth` - A hash containing values `user` || `username`, `pass` || `password`, and `sendImmediately` (optional).  See documentation above.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
 * `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
-* `followRedirect` - follow HTTP 3xx responses as redirects (default: `true`)
+* `followRedirect` - follow HTTP 3xx responses as redirects (default: `true`). This property can also be implemented as function which gets `response` object as a single argument and should return `true` if redirects should continue or `false` otherwise.
 * `followAllRedirects` - follow non-GET HTTP 3xx responses as redirects (default: `false`)
 * `maxRedirects` - the maximum number of redirects to follow (default: `10`)
 * `encoding` - Encoding to be used on `setEncoding` of response data. If `null`, the `body` is returned as a `Buffer`.
