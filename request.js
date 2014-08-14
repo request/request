@@ -19,6 +19,7 @@ var optional = require('./lib/optional')
   , tunnel = optional('tunnel-agent')
   , _safeStringify = require('json-stringify-safe')
   , stringstream = optional('stringstream')
+  , caseless = require('caseless')
 
   , ForeverAgent = require('forever-agent')
   , FormData = optional('form-data')
@@ -106,6 +107,8 @@ Request.prototype.init = function (options) {
   var self = this
   if (!options) options = {}
 
+  caseless.httpify(self, self.headers || {})
+
   if (!self.method) self.method = options.method || 'GET'
   self.localAddress = options.localAddress
 
@@ -148,11 +151,11 @@ Request.prototype.init = function (options) {
     if(self.uri.protocol == "http:") {
         self.proxy = process.env.HTTP_PROXY || process.env.http_proxy || null;
     } else if(self.uri.protocol == "https:") {
-        self.proxy = process.env.HTTPS_PROXY || process.env.https_proxy || 
+        self.proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
                      process.env.HTTP_PROXY || process.env.http_proxy || null;
     }
   }
-  
+
   if (self.proxy) {
     if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
 
@@ -199,8 +202,6 @@ Request.prototype.init = function (options) {
   self.followAllRedirects = (self.followAllRedirects !== undefined) ? self.followAllRedirects : false
   if (self.followRedirect || self.followAllRedirects)
     self.redirects = self.redirects || []
-
-  self.headers = self.headers ? copy(self.headers) : {}
 
   self.setHost = false
   if (!self.hasHeader('host')) {
@@ -436,7 +437,7 @@ Request.prototype.init = function (options) {
 
       if (self._form && !self.hasHeader('content-length')) {
         // Before ending the request, we had to compute the length of the whole form, asyncly
-        self.setHeaders(self._form.getHeaders())
+        self.setHeader(self._form.getHeaders())
         self._form.getLength(function (err, length) {
           if (!err) {
             self.setHeader('content-length', length)
@@ -491,7 +492,6 @@ Request.prototype.init = function (options) {
         response_counter++;
         var trying = false;
         for (r in lookup_table){
-          //console.log(r, lookup_table[r], lookup_table[r].error_connecting)
           if('undefined' == typeof lookup_table[r].error_connecting)
             trying = true;
         }
@@ -773,7 +773,7 @@ Request.prototype.onResponse = function (response) {
     return
   }
 
-  if (self.setHost && self.hasHeader('host')) delete self.headers[self.hasHeader('host')]
+  if (self.setHost) self.removeHeader('host')
   if (self.timeout && self.timeoutTimer) {
     clearTimeout(self.timeoutTimer)
     self.timeoutTimer = null
@@ -789,15 +789,17 @@ Request.prototype.onResponse = function (response) {
     }
   }
 
-  if (hasHeader('set-cookie', response.headers) && (!self._disableCookies)) {
-    var headerName = hasHeader('set-cookie', response.headers)
+  response.caseless = caseless(response.headers)
+
+  if (response.caseless.has('set-cookie') && (!self._disableCookies)) {
+    var headerName = response.caseless.has('set-cookie')
     if (Array.isArray(response.headers[headerName])) response.headers[headerName].forEach(addCookie)
     else addCookie(response.headers[headerName])
   }
 
   var redirectTo = null
-  if (response.statusCode >= 300 && response.statusCode < 400 && hasHeader('location', response.headers)) {
-    var location = response.headers[hasHeader('location', response.headers)]
+  if (response.statusCode >= 300 && response.statusCode < 400 && response.caseless.has('location')) {
+    var location = response.caseless.get('location')
     debug('redirect', location)
 
     if (self.followAllRedirects) {
@@ -816,7 +818,7 @@ Request.prototype.onResponse = function (response) {
       }
     }
   } else if (response.statusCode == 401 && self._hasAuth && !self._sentAuth) {
-    var authHeader = response.headers[hasHeader('www-authenticate', response.headers)]
+    var authHeader = response.caseless.get('www-authenticate')
     var authVerb = authHeader && authHeader.split(' ')[0].toLowerCase()
     debug('reauth', authVerb)
 
@@ -932,9 +934,9 @@ Request.prototype.onResponse = function (response) {
       delete self.body
       delete self._form
       if (self.headers) {
-        if (self.hasHeader('host')) delete self.headers[self.hasHeader('host')]
-        if (self.hasHeader('content-type')) delete self.headers[self.hasHeader('content-type')]
-        if (self.hasHeader('content-length')) delete self.headers[self.hasHeader('content-length')]
+        self.removeHeader('host')
+        self.removeHeader('content-type')
+        self.removeHeader('content-length')
       }
     }
 
@@ -1078,14 +1080,14 @@ Request.prototype.pipeDest = function (dest) {
   var response = this.response
   // Called after the response is received
   if (dest.headers && !dest.headersSent) {
-    if (hasHeader('content-type', response.headers)) {
-      var ctname = hasHeader('content-type', response.headers)
+    if (response.caseless.has('content-type')) {
+      var ctname = response.caseless.has('content-type')
       if (dest.setHeader) dest.setHeader(ctname, response.headers[ctname])
       else dest.headers[ctname] = response.headers[ctname]
     }
 
-    if (hasHeader('content-length', response.headers)) {
-      var clname = hasHeader('content-length', response.headers)
+    if (response.caseless.has('content-length')) {
+      var clname = response.caseless.has('content-length')
       if (dest.setHeader) dest.setHeader(clname, response.headers[clname])
       else dest.headers[clname] = response.headers[clname]
     }
@@ -1102,30 +1104,6 @@ Request.prototype.pipeDest = function (dest) {
   }
   if (this.pipefilter) this.pipefilter(response, dest)
 }
-
-// Composable API
-Request.prototype.setHeader = function (name, value, clobber) {
-  if (clobber === undefined) clobber = true
-  if (clobber || !this.hasHeader(name)) this.headers[name] = value
-  else this.headers[this.hasHeader(name)] += ',' + value
-  return this
-}
-Request.prototype.setHeaders = function (headers) {
-  for (var i in headers) {this.setHeader(i, headers[i])}
-  return this
-}
-Request.prototype.hasHeader = function (header, headers) {
-  var headers = Object.keys(headers || this.headers)
-    , lheaders = headers.map(function (h) {return h.toLowerCase()})
-    ;
-  header = header.toLowerCase()
-  for (var i=0;i<lheaders.length;i++) {
-    if (lheaders[i] === header) return headers[i]
-  }
-  return false
-}
-
-var hasHeader = Request.prototype.hasHeader
 
 Request.prototype.qs = function (q, clobber) {
   var base
