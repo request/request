@@ -1,6 +1,6 @@
 # Request — Simplified HTTP client
 
-[![NPM](https://nodei.co/npm/request.png)](https://nodei.co/npm/request/)[![Dependency Status](https://www.versioneye.com/nodejs/request/2.31.0/badge.png)](https://www.versioneye.com/nodejs/request/2.31.0)
+[![NPM](https://nodei.co/npm/request.png)](https://nodei.co/npm/request/)
 
 ## Super simple to use
 
