@@ -29,7 +29,6 @@ var optional = require('./lib/optional')
 
   , copy = require('./lib/copy')
   , debug = require('./lib/debug')
-  , getSafe = require('./lib/getSafe')
   , net = require('net')
   ;
 
@@ -53,6 +52,25 @@ function toBase64 (str) {
 
 function md5 (str) {
   return crypto.createHash('md5').update(str).digest('hex')
+}
+
+// Return a simpiler request object to allow serialization
+function requestToJSON() {
+  return {
+    uri: this.uri,
+    method: this.method,
+    headers: this.headers
+  }
+}
+
+// Return a simpiler response object to allow serialization
+function responseToJSON() {
+  return {
+    statusCode: this.statusCode,
+    body: this.body,
+    headers: this.headers,
+    request: requestToJSON.call(this.request)
+  }
 }
 
 function Request (options) {
@@ -745,7 +763,7 @@ Request.prototype.onResponse = function (response) {
 
   self.response = response
   response.request = self
-  response.toJSON = toJSON
+  response.toJSON = responseToJSON
 
   // XXX This is different on 0.10, because SSL is strict by default
   if (self.httpModule === https &&
@@ -1373,11 +1391,7 @@ Request.prototype.destroy = function () {
   else if (this.response) this.response.destroy()
 }
 
-function toJSON () {
-  return getSafe(this, '__' + (((1+Math.random())*0x10000)|0).toString(16))
-}
-
-Request.prototype.toJSON = toJSON
+Request.prototype.toJSON = requestToJSON
 
 
 module.exports = Request
