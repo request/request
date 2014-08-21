@@ -43,22 +43,6 @@ function safeStringify (obj) {
 var globalPool = {}
 var isUrl = /^https?:|^unix:/
 
-
-// Hacky fix for pre-0.4.4 https
-if (https && !https.Agent) {
-  https.Agent = function (options) {
-    http.Agent.call(this, options)
-  }
-  util.inherits(https.Agent, http.Agent)
-  https.Agent.prototype._getConnection = function (host, port, cb) {
-    var s = tls.connect(port, host, this.options, function () {
-      // do other checks here?
-      if (cb) cb()
-    })
-    return s
-  }
-}
-
 function isReadStream (rs) {
   return rs.readable && rs.path && rs.mode;
 }
