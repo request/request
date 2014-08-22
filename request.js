@@ -1020,7 +1020,7 @@ Request.prototype.onResponse = function (response) {
         }
 
         if (buffer.length) {
-          debug('has body', self.uri.href)
+          debug('has body', self.uri.href, buffer.length)
           if (self.encoding === null) {
             // response.body = buffer
             // can't move to this until https://github.com/rvagg/bl/issues/13
