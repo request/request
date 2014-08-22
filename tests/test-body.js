@@ -107,7 +107,7 @@ s.listen(s.port, function () {
       request(test, function (err, resp, body) {
         if (err) throw err
         if (test.expectBody) {
-          assert.deepEqual(test.expectBody, body)
+          if (Buffer.isBuffer(test.expectBody)) assert.deepEqual(test.expectBody.toString(), body.toString())
         }
         counter = counter - 1;
         if (counter === 0) {
@@ -119,4 +119,3 @@ s.listen(s.port, function () {
     })()
   }
 })
-

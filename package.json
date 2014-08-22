@@ -22,6 +22,7 @@
   ],
   "main": "index.js",
   "dependencies": {
+    "bl": "~0.9.0",
     "caseless": "~0.6.0",
     "forever-agent": "~0.5.0",
     "qs": "~1.2.0",
@@ -41,5 +42,8 @@
   },
   "scripts": {
     "test": "node tests/run.js"
+  },
+  "devDependencies": {
+    "rimraf": "~2.2.8"
   }
 }
