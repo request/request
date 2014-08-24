@@ -19,7 +19,7 @@ var cookies = require('./lib/cookies')
 
 // organize params for patch, post, put, head, del
 function initParams(uri, options, callback) {
-  callback = getCallback([options, callback])
+  callback = filterForCallback([options, callback])
   options = constructOptions(uri, options)
 
   return constructObject()
@@ -39,6 +39,12 @@ function request (uri, options, callback) {
   options.uri = params.uri
 
   return new request.Request(options)
+}
+
+function requester(params) {
+  if(typeof params.options._requester === 'function')
+    return params.options._requester
+  return request
 }
 
 request.get = function (uri, options, callback) {
@@ -89,6 +95,7 @@ request.cookie = function (str) {
 }
 
 request.defaults = function (options, requester) {
+
   var wrap = function (method) {
     var headerlessOptions = function (options) {
       options = extend({}, options)
@@ -97,22 +104,21 @@ request.defaults = function (options, requester) {
     }
 
     var getHeaders = function (params, options) {
-      var headers = {}
-      extend(headers, options.headers)
-      extend(headers, params.options.headers)
-      return headers
+      return constructObject()
+        .extend(options.headers)
+        .extend(params.options.headers)
+        .done()
     }
 
     return function (uri, opts, callback) {
       var params = initParams(uri, opts, callback)
       params.options = extend(params.options, headerlessOptions(options))
 
-      if (options.headers) {
+      if (options.headers)
         params.options.headers = getHeaders(params, options)
-      }
 
-      if(typeof requester === 'function') {
-        if(method === request) {
+      if (isFunction(requester)) {
+        if (method === request) {
           method = requester
         } else {
           params.options._requester = requester
@@ -136,22 +142,15 @@ request.defaults = function (options, requester) {
 }
 
 request.forever = function (agentOptions, optionsArg) {
-  var options = {}
-  if (optionsArg) extend(options, optionsArg)
+  var options = constructObject()
+  if (optionsArg) options.extend(optionsArg)
   if (agentOptions) options.agentOptions = agentOptions
 
-  options.forever = true
+  options.extend({forever: true})
   return request.defaults(options)
 }
 
 // Helpers
-
-function requester(params) {
-  if(typeof params.options._requester === 'function')
-    return params.options._requester
-    
-  return request
-}
 
 function constructObject(initialObject) {
   initialObject = initialObject || {}
@@ -166,26 +165,21 @@ function constructObject(initialObject) {
   }
 }
 
-function getCallback(potentialCallbacks) {
-  var callbacks = potentialCallbacks.filter(function(potentialCallback) {
-    return typeof potentialCallback === 'function'
-  })
+function constructOptions(uri, options) {
+  var params = constructObject()
+  if (typeof uri === 'object') params.extend(uri)
+  if (typeof uri === 'string') params.extend({uri: uri})
+  params.extend(options)
+  return params.done()
+}
 
+function filterForCallback(values) {
+  var callbacks = values.filter(isFunction)
   return callbacks[0]
 }
 
-function constructOptions(uri, options) {
-  var params = constructObject()
-
-  if (options && typeof options === 'object') {
-    params.extend(options).extend({uri: uri})
-  } else if (typeof uri === 'string') {
-    params.extend({uri: uri})
-  } else {
-    params.extend(uri)
-  }
-
-  return params.done()
+function isFunction(value) {
+  return typeof value === 'function'
 }
 
 function paramsHaveRequestBody(params) {
