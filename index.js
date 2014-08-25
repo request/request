@@ -147,7 +147,7 @@ request.forever = function (agentOptions, optionsArg) {
   if (agentOptions) options.agentOptions = agentOptions
 
   options.extend({forever: true})
-  return request.defaults(options)
+  return request.defaults(options.done())
 }
 
 // Helpers
