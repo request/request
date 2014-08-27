@@ -163,9 +163,11 @@ Request.prototype.init = function (options) {
     if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
 
     // do the HTTP CONNECT dance using koichik/node-tunnel
-    if (http.globalAgent && self.uri.protocol === "https:" && self.canTunnel) {
-      var tunnelFn = self.proxy.protocol === "http:"
-                   ? tunnel.httpsOverHttp : tunnel.httpsOverHttps
+    // do the HTTP CONNECT dance using koichik/node-tunnel
+    if (http.globalAgent && self.canTunnel) {
+      var tunnelFn = self.proxy.protocol === 'http:'
+        ? (self.proxy.protocol === 'http:' ? tunnel.httpOverHttp : tunnel.httpsOverHttp)
+        : (self.proxy.protocol === 'https:' ? tunnel.httpsOverHttps : tunnel.httpOverHttps);
 
       var tunnelOptions = { proxy: { host: self.proxy.hostname
                                    , port: +self.proxy.port
