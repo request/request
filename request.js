@@ -1046,7 +1046,12 @@ Request.prototype.onResponse = function (response) {
         if (self._json) {
           try {
             response.body = JSON.parse(response.body)
-          } catch (e) {}
+          } catch (e) {
+            e.body = response.body;
+            self.emit('error', e);
+            debug('JSON.parse error', self.uri.href)
+            return
+          }
         }
         debug('emitting complete', self.uri.href)
         if(response.body == undefined && !self._json) {
