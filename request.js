@@ -955,6 +955,10 @@ Request.prototype.onResponse = function (response) {
       if (!self._ended) self.response.emit('end')
     })
 
+    response.on('end', function () {
+      self._ended = true
+    })
+
     var dataStream
     if (self.gzip) {
       var contentEncoding = response.headers["content-encoding"] || "identity"
@@ -999,7 +1003,6 @@ Request.prototype.onResponse = function (response) {
       self.emit("data", chunk)
     })
     dataStream.on("end", function (chunk) {
-      self._ended = true
       self.emit("end", chunk)
     })
     dataStream.on("close", function () {self.emit("close")})
