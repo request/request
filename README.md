@@ -288,6 +288,22 @@ There are also shorthand methods for different HTTP METHODs and some other conve
 
 This method returns a wrapper around the normal request API that defaults to whatever options you pass in to it.
 
+**Note:** You can call `.defaults()` on the wrapper that is returned from `request.defaults` to add/override defaults that were previously defaulted. 
+
+For example:
+```javascript
+//requests using baseRequest() will set the 'x-token' header
+var baseRequest = request.defaults({
+  headers: {x-token: 'my-token'}
+})
+
+//requests using specialRequest() will include the 'x-token' header set in
+//baseRequest and will also include the 'special' header
+var specialRequest = baseRequest.defaults({
+  headers: {special: 'special value'}
+})
+```
+
 ### request.put
 
 Same as `request()`, but defaults to `method: "PUT"`.
