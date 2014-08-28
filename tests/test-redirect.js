@@ -70,7 +70,7 @@ s.listen(s.port, function () {
 
   // Permanent bounce
   var jar = request.jar()
-  jar.setCookie('quux=baz', server);
+  jar.setCookieSync('quux=baz', server);
   request({uri: server+'/perm', jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     if (er) throw er
     if (res.statusCode !== 200) throw new Error('Status is not 200: '+res.statusCode)

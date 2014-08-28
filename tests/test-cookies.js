@@ -42,10 +42,10 @@ request({
 },
 function (error, response, body) {
   if (error) throw error;
-  assert.equal(jar1.getCookieString(validUrl), 'foo=bar');
+  assert.equal(jar1.getCookieStringSync(validUrl), 'foo=bar');
   assert.equal(body, 'okay');
 
-  var cookies = jar1.getCookies(validUrl);
+  var cookies = jar1.getCookiesSync(validUrl);
   assert(cookies.length == 1);
   assert(cookies[0].key === 'foo');
   assert(cookies[0].value === 'bar');
@@ -59,8 +59,8 @@ request({
 },
 function (error, response, body) {
   if (error) throw error;
-  assert.equal(jar2.getCookieString(validUrl), '');
-  assert.deepEqual(jar2.getCookies(validUrl), []);
+  assert.equal(jar2.getCookieStringSync(validUrl), '');
+  assert.deepEqual(jar2.getCookiesSync(validUrl), []);
   assert.equal(body, 'okay');
 });
 
