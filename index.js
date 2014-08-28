@@ -89,15 +89,17 @@ request.defaults = function (options, requester) {
     }
     return d
   }
-  var de = def(request)
-  de.get = def(request.get)
-  de.patch = def(request.patch)
-  de.post = def(request.post)
-  de.put = def(request.put)
-  de.head = def(request.head)
-  de.del = def(request.del)
-  de.cookie = def(request.cookie)
-  de.jar = request.jar
+  
+  var de = def(this)
+  de.get = def(this.get)
+  de.patch = def(this.patch)
+  de.post = def(this.post)
+  de.put = def(this.put)
+  de.head = def(this.head)
+  de.del = def(this.del)
+  de.cookie = def(this.cookie)
+  de.jar = this.jar
+  de.defaults = this.defaults
   return de
 }
 
