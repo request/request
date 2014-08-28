@@ -110,6 +110,37 @@ s.listen(s.port, function () {
     counter += 1;
   });
 
+  s.on('/get_recursive1', function (req, resp) {
+    assert.equal(req.headers.foo, 'bar1');
+    assert.equal(req.method, 'GET');
+    resp.writeHead(200, {'Content-Type': 'text/plain'});
+    resp.end('TESTING!');
+  });
+
+  s.on('/get_recursive2', function (req, resp) {
+    assert.equal(req.headers.foo, 'bar1');
+    assert.equal(req.headers.baz, 'bar2');
+    assert.equal(req.method, 'GET');
+    resp.writeHead(200, {'Content-Type': 'text/plain'});
+    resp.end('TESTING!');
+  });
+
+  // test recursive defaults (string, function)
+  var defaultsOne = request.defaults({headers:{foo:"bar1"}});
+  var defaultsTwo = defaultsOne.defaults({headers:{baz:"bar2"}});
+  
+  defaultsOne(s.url + '/get_recursive1', function (e, r, b){
+    if (e) throw e;
+    assert.deepEqual("TESTING!", b);
+    counter += 1;
+  });
+
+  defaultsTwo(s.url + '/get_recursive2', function (e, r, b){
+    if (e) throw e;
+    assert.deepEqual("TESTING!", b);
+    counter += 1;
+  });
+
   s.on('/get_custom', function(req, resp) {
     assert.equal(req.headers.foo, 'bar');
     assert.equal(req.headers.x, 'y');
