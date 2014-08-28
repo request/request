@@ -192,24 +192,42 @@ request.post('http://service.com/upload', {form:{key:'value'}})
 request.post('http://service.com/upload').form({key:'value'})
 ```
 
-For `multipart/form-data` we use the [form-data](https://github.com/felixge/node-form-data) library by [@felixge](https://github.com/felixge). You don’t need to worry about piping the form object or setting the headers, `request` will handle that for you.
+For `multipart/form-data` we use the [form-data](https://github.com/felixge/node-form-data) library by [@felixge](https://github.com/felixge). For the most basic case, you can pass your upload form data via the `formdata` option.
+
 
 ```javascript
-var r = request.post('http://service.com/upload', function optionalCallback (err, httpResponse, body) {
+var formData = {
+  my_field: 'my_value',
+  my_buffer: new Buffer([1, 2, 3]),
+  my_file: fs.createReadStream(__dirname + '/unicycle.jpg'),
+  remote_file: request(remoteFile)
+};
+request.post({url:'http://service.com/upload', formdata: formData}, function optionalCallback(err, httpResponse, body) {
+  if (err) {
+    return console.error('upload failed:', err);
+  }
+  console.log('Upload successful!  Server responded with:', body);
+});
+```
+
+For more advanced cases (like appending form data options) you'll need access to the form itself.
+
+```javascript
+var r = request.post('http://service.com/upload', function optionalCallback(err, httpResponse, body) {
   if (err) {
     return console.error('upload failed:', err);
   }
   console.log('Upload successful!  Server responded with:', body);
 })
-var form = r.form()
-form.append('my_field', 'my_value')
-form.append('my_buffer', new Buffer([1, 2, 3]))
-form.append('my_file', fs.createReadStream(path.join(__dirname, 'doodle.png')))
-form.append('remote_file', request('http://google.com/doodle.png'))
 
 // Just like always, `r` is a writable stream, and can be used as such (you have until nextTick to pipe it, etc.)
 // Alternatively, you can provide a callback (that's what this example does — see `optionalCallback` above).
+var form = r.form();
+form.append('my_field', 'my_value');
+form.append('my_buffer', new Buffer([1, 2, 3]));
+form.append('my_buffer', fs.createReadStream(__dirname + '/unicycle.jpg'), {filename: 'unicycle.jpg'});
 ```
+See the [form-data](https://github.com/felixge/node-form-data) README for more information & examples.
 
 Some variations in different HTTP implementations require a newline/CRLF before, after, or both before and after the boundary of a `multipart/form-data` request. This has been observed in the .NET WebAPI version 4.0. You can turn on a boundary preambleCRLF or postamble by passing them as `true` to your request options.
 

@@ -361,6 +361,16 @@ Request.prototype.init = function (options) {
       self.form(options.form)
     }
 
+    if (options.formdata) {
+      var formData = options.formdata
+      var requestForm = self.form()
+      for (var formKey in formData) {
+        if (formData.hasOwnProperty(formKey)) {
+          requestForm.append(formKey, formData[formKey])
+        }
+      }
+    }
+
     if (options.qs) self.qs(options.qs)
 
     if (self.uri.path) {
