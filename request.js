@@ -170,8 +170,9 @@ Request.prototype.init = function (options) {
       var tunnelOptions = { proxy: { host: self.proxy.hostname
                                    , port: +self.proxy.port
                                    , proxyAuth: self.proxy.auth
-                                   , headers: { Host: self.uri.hostname + ':' +
-                                        (self.uri.port || self.uri.protocol === 'https:' ? 443 : 80) }}
+                                   , headers: util._extend({ Host: self.uri.hostname + ':' +
+                                        (self.uri.port || self.uri.protocol === 'https:' ? 443 : 80) },
+                                        this.headers)}
                           , rejectUnauthorized: self.rejectUnauthorized
                           , ca: this.ca
                           , cert:this.cert
