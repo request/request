@@ -55,7 +55,7 @@ function md5 (str) {
   return crypto.createHash('md5').update(str).digest('hex')
 }
 
-// Return a simpiler request object to allow serialization
+// Return a simpler request object to allow serialization
 function requestToJSON() {
   return {
     uri: this.uri,
@@ -64,7 +64,7 @@ function requestToJSON() {
   }
 }
 
-// Return a simpiler response object to allow serialization
+// Return a simpler response object to allow serialization
 function responseToJSON() {
   return {
     statusCode: this.statusCode,
@@ -201,7 +201,10 @@ Request.prototype.init = function (options) {
 
   self._redirectsFollowed = self._redirectsFollowed || 0
   self.maxRedirects = (self.maxRedirects !== undefined) ? self.maxRedirects : 10
-  self.followRedirect = (self.followRedirect !== undefined) ? self.followRedirect : true
+  self.allowRedirect = (typeof self.followRedirect === 'function') ? self.followRedirect : function(response) {
+    return true;
+  };
+  self.followRedirect = (self.followRedirect !== undefined) ? !!self.followRedirect : true
   self.followAllRedirects = (self.followAllRedirects !== undefined) ? self.followAllRedirects : false
   if (self.followRedirect || self.followAllRedirects)
     self.redirects = self.redirects || []
@@ -768,10 +771,10 @@ Request.prototype.onResponse = function (response) {
 
   // XXX This is different on 0.10, because SSL is strict by default
   if (self.httpModule === https &&
-      self.strictSSL &&
-      !response.client.authorized) {
+      self.strictSSL && (!response.hasOwnProperty('client') ||
+      !response.client.authorized)) {
     debug('strict ssl error', self.uri.href)
-    var sslErr = response.client.authorizationError
+    var sslErr = response.hasOwnProperty('client') ? response.client.authorizationError : self.uri.href + " does not support SSL";
     self.emit('error', new Error('SSL Error: '+ sslErr))
     return
   }
@@ -895,7 +898,7 @@ Request.prototype.onResponse = function (response) {
     }
   }
 
-  if (redirectTo) {
+  if (redirectTo && self.allowRedirect.call(self, response)) {
     debug('redirect to', redirectTo)
 
     // ignore any potential response body.  it cannot possibly be useful

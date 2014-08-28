@@ -19,13 +19,34 @@ s.listen(s.port, function () {
   var passed = 0;
 
   bouncer(301, 'temp')
+  bouncer(301, 'double', 2)
   bouncer(302, 'perm')
   bouncer(302, 'nope')
   bouncer(307, 'fwd')
 
-  function bouncer(code, label) {
-    var landing = label+'_landing';
+  function bouncer(code, label, hops) {
+    var hop,
+        landing = label+'_landing',
+        currentLabel,
+        currentLanding;
 
+    hops = hops || 1;
+
+    if (hops === 1) {
+      createRedirectEndpoint(code, label, landing);
+    } else {
+      for (hop=0; hop<hops; hop++) {
+        currentLabel = (hop===0) ? label : label + '_' + (hop+1);
+        currentLanding = (hop===hops - 1) ? landing : label + '_' + (hop+2);
+
+        createRedirectEndpoint(code, currentLabel, currentLanding);
+      }
+    }
+
+    createLandingEndpoint(landing);
+  }
+
+  function createRedirectEndpoint(code, label, landing) {
     s.on('/'+label, function (req, res) {
       hits[label] = true;
       res.writeHead(code, {
@@ -34,7 +55,9 @@ s.listen(s.port, function () {
       })
       res.end()
     })
+  }
 
+  function createLandingEndpoint(landing) {
     s.on('/'+landing, function (req, res) {
       // Make sure the cookie doesn't get included twice, see #139:
       // Make sure cookies are set properly after redirect
@@ -155,10 +178,42 @@ s.listen(s.port, function () {
     done()
   })
 
+  // Double bounce
+  request({uri: server+'/double', jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
+    if (er) throw er
+    if (res.statusCode !== 200) throw new Error('Status is not 200: '+res.statusCode)
+    assert.ok(hits.double, 'Original request is to /double')
+    assert.ok(hits.double_2, 'Forward to temporary landing URL')
+    assert.ok(hits.double_landing, 'Forward to landing URL')
+    assert.equal(body, 'GET double_landing', 'Got temporary landing content')
+    passed += 1
+    done()
+  })
+
+  function filter(response) {
+    var location = response.headers.location || '';
+
+    if (~location.indexOf('double_2')) {
+      return false;
+    }
+
+    return true;
+  }
+
+  // Double bounce terminated after first redirect
+  request({uri: server+'/double', jar: jar, headers: {cookie: 'foo=bar'}, followRedirect: filter}, function (er, res, body) {
+    if (er) throw er
+    if (res.statusCode !== 301) { console.log('B:'+body);  throw new Error('Status is not 301: '+res.statusCode)}
+    assert.ok(hits.double, 'Original request is to /double')
+    assert.equal(res.headers.location, server+'/double_2', 'Current location should be ' + server+'/double_2')
+    passed += 1
+    done()
+  })
+
   var reqs_done = 0;
   function done() {
     reqs_done += 1;
-    if(reqs_done == 10) {
+    if(reqs_done == 12) {
       console.log(passed + ' tests passed.')
       s.close()
     }
