@@ -55,7 +55,7 @@ function md5 (str) {
   return crypto.createHash('md5').update(str).digest('hex')
 }
 
-// Return a simpiler request object to allow serialization
+// Return a simpler request object to allow serialization
 function requestToJSON() {
   return {
     uri: this.uri,
@@ -64,7 +64,7 @@ function requestToJSON() {
   }
 }
 
-// Return a simpiler response object to allow serialization
+// Return a simpler response object to allow serialization
 function responseToJSON() {
   return {
     statusCode: this.statusCode,
