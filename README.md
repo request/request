@@ -215,7 +215,7 @@ request.post({url:url, oauth:oauth}, function (e, r, body) {
 })
 ```
 
-### Custom HTTP Headers
+## Custom HTTP Headers
 
 HTTP Headers, such as `User-Agent`, can be set in the `options` object.
 In the example below, we call the github API to find out the number
@@ -243,7 +243,7 @@ function callback(error, response, body) {
 request(options, callback);
 ```
 
-### request(options, callback)
+## request(options, callback)
 
 The first argument can be either a `url` or an `options` object. The only required option is `uri`; all others are optional.
 
