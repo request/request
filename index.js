@@ -14,7 +14,6 @@
 
 var cookies = require('./lib/cookies')
   , copy = require('./lib/copy')
-  , Request = require('./request')
   , util = require('util')
   ;
 
@@ -51,15 +50,15 @@ function request (uri, options, callback) {
   }
 
   if (callback) opts.callback = callback
-  var r = new Request(opts)
+  var r = new request.Request(opts)
   return r
 }
 
 module.exports = request
 
-request.Request = Request;
+request.debug = process.env.NODE_DEBUG && /\brequest\b/.test(process.env.NODE_DEBUG)
 
-request.debug = process.env.NODE_DEBUG && /request/.test(process.env.NODE_DEBUG)
+request.Request = require('./request')
 
 request.initParams = initParams
 
