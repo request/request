@@ -129,15 +129,16 @@ request.defaults = function (options, requester) {
     }
   }
 
-  defaults        = wrap(this)
-  defaults.get    = wrap(this.get)
-  defaults.patch  = wrap(this.patch)
-  defaults.post   = wrap(this.post)
-  defaults.put    = wrap(this.put)
-  defaults.head   = wrap(this.head)
-  defaults.del    = wrap(this.del)
-  defaults.cookie = wrap(this.cookie)
-  defaults.jar    = this.jar
+  defaults          = wrap(this)
+  defaults.get      = wrap(this.get)
+  defaults.patch    = wrap(this.patch)
+  defaults.post     = wrap(this.post)
+  defaults.put      = wrap(this.put)
+  defaults.head     = wrap(this.head)
+  defaults.del      = wrap(this.del)
+  defaults.cookie   = wrap(this.cookie)
+  defaults.jar      = this.jar
+  defaults.defaults = this.defaults
   return defaults
 }
 
