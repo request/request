@@ -12,15 +12,21 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-var cookies = require('./lib/cookies')
-  , copy = require('./lib/copy')
-  , extend  = require('util')._extend
+var extend                = require('util')._extend
+  , cookies               = require('./lib/cookies')
+  , copy                  = require('./lib/copy')
+  , helpers               = require('./lib/helpers')
+  , isFunction            = helpers.isFunction
+  , constructObject       = helpers.constructObject
+  , filterForCallback     = helpers.filterForCallback
+  , constructOptionsFrom  = helpers.constructOptionsFrom
+  , paramsHaveRequestBody = helpers.paramsHaveRequestBody
   ;
 
 // organize params for patch, post, put, head, del
 function initParams(uri, options, callback) {
   callback = filterForCallback([options, callback])
-  options = constructOptions(uri, options)
+  options = constructOptionsFrom(uri, options)
 
   return constructObject()
     .extend({callback: callback})
@@ -90,6 +96,7 @@ request.del = function (uri, options, callback) {
 request.jar = function () {
   return cookies.jar()
 }
+
 request.cookie = function (str) {
   return cookies.parse(str)
 }
@@ -149,47 +156,6 @@ request.forever = function (agentOptions, optionsArg) {
 
   options.extend({forever: true})
   return request.defaults(options.done())
-}
-
-// Helpers
-
-function constructObject(initialObject) {
-  initialObject = initialObject || {}
-
-  return {
-    extend: function (object) {
-      return constructObject(extend(initialObject, object))
-    },
-    done: function () {
-      return initialObject
-    }
-  }
-}
-
-function constructOptions(uri, options) {
-  var params = constructObject()
-  if (typeof uri === 'object') params.extend(uri)
-  if (typeof uri === 'string') params.extend({uri: uri})
-  params.extend(options)
-  return params.done()
-}
-
-function filterForCallback(values) {
-  var callbacks = values.filter(isFunction)
-  return callbacks[0]
-}
-
-function isFunction(value) {
-  return typeof value === 'function'
-}
-
-function paramsHaveRequestBody(params) {
-  return (
-    params.options.body ||
-    params.options.requestBodyStream ||
-    (params.options.json && typeof params.options.json !== 'boolean') ||
-    params.options.multipart
-  )
 }
 
 // Exports
