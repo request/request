@@ -17,7 +17,7 @@ var optional = require('./lib/optional')
   , httpSignature = optional('http-signature')
   , uuid = require('node-uuid')
   , mime = require('mime-types')
-  , tunnel = optional('tunnel-agent')
+  , tunnel = require('tunnel-agent')
   , _safeStringify = require('json-stringify-safe')
   , stringstream = optional('stringstream')
   , caseless = require('caseless')
@@ -42,6 +42,36 @@ function safeStringify (obj) {
 
 var globalPool = {}
 var isUrl = /^https?:|^unix:/
+
+var defaultProxyHeaderWhiteList = [
+  'accept',
+  'accept-charset',
+  'accept-encoding',
+  'accept-language',
+  'accept-ranges',
+  'cache-control',
+  'content-encoding',
+  'content-language',
+  'content-length',
+  'content-location',
+  'content-md5',
+  'content-range',
+  'content-type',
+  'date',
+  'etag',
+  'expect',
+  'host',
+  'max-forwards',
+  'pragma',
+  'proxy-authenticate',
+  'proxy-authorization',
+  'proxy-connection',
+  'referer',
+  'te',
+  'transfer-encoding',
+  'user-agent',
+  'via'
+]
 
 function isReadStream (rs) {
   return rs.readable && rs.path && rs.mode;
@@ -98,11 +128,79 @@ function Request (options) {
     this.explicitMethod = true
   }
 
-  this.canTunnel = options.tunnel !== false && tunnel;
+  // Assume that we're not going to tunnel unless we need to
+  if (typeof options.tunnel === 'undefined') options.tunnel = false
 
   this.init(options)
 }
 util.inherits(Request, stream.Stream)
+
+
+// Set up the tunneling agent if necessary
+Request.prototype.setupTunnel = function () {
+  var self = this
+  if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
+
+  if (!self.proxy) return false
+
+  // Don't need to use a tunneling proxy
+  if (!self.tunnel && self.uri.protocol !== 'https:')
+    return
+
+  // do the HTTP CONNECT dance using koichik/node-tunnel
+
+  // The host to tell the proxy to CONNECT to
+  var proxyHost = self.uri.hostname + ':'
+  if (self.uri.port)
+    proxyHost += self.uri.port
+  else if (self.uri.protocol === 'https:')
+    proxyHost += '443'
+  else
+    proxyHost += '80'
+
+  if (!self.proxyHeaderWhiteList)
+    self.proxyHeaderWhiteList = defaultProxyHeaderWhiteList
+
+  // Only send the proxy the whitelisted header names.
+  var proxyHeaders = Object.keys(self.headers).filter(function (h) {
+    return self.proxyHeaderWhiteList.indexOf(h.toLowerCase()) !== -1
+  }).reduce(function (set, h) {
+    set[h] = self.headers[h]
+    return set
+  }, {})
+
+  proxyHeaders.host = proxyHost
+
+  var tunnelFnName =
+    (self.uri.protocol === 'https:' ? 'https' : 'http') +
+    'Over' +
+    (self.proxy.protocol === 'https:' ? 'Https' : 'Http')
+
+  var tunnelFn = tunnel[tunnelFnName]
+
+  var tunnelOptions = { proxy: { host: self.proxy.hostname
+                               , port: +self.proxy.port
+                               , proxyAuth: self.proxy.auth
+                               , headers: proxyHeaders }
+                      , rejectUnauthorized: self.rejectUnauthorized
+                      , headers: self.headers
+                      , ca: self.ca
+                      , cert: self.cert
+                      , key: self.key}
+
+  self.agent = tunnelFn(tunnelOptions)
+
+  // At this point, we know that the proxy will support tunneling
+  // (or fail miserably), so we're going to tunnel all proxied requests
+  // from here on out.
+  self.tunnel = true
+
+  return true
+}
+
+
+
+
 Request.prototype.init = function (options) {
   // init() contains all the code to setup the request object.
   // the actual outgoing request is not started until start() is called
@@ -159,28 +257,10 @@ Request.prototype.init = function (options) {
     }
   }
 
+  // Pass in `tunnel:true` to *always* tunnel through proxies
+  self.tunnel = !!options.tunnel
   if (self.proxy) {
-    if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
-
-    // do the HTTP CONNECT dance using koichik/node-tunnel
-    if (http.globalAgent && self.uri.protocol === "https:" && self.canTunnel) {
-      var tunnelFn = self.proxy.protocol === "http:"
-                   ? tunnel.httpsOverHttp : tunnel.httpsOverHttps
-
-      var tunnelOptions = { proxy: { host: self.proxy.hostname
-                                   , port: +self.proxy.port
-                                   , proxyAuth: self.proxy.auth
-                                   , headers: util._extend({ Host: self.uri.hostname + ':' +
-                                        (self.uri.port || self.uri.protocol === 'https:' ? 443 : 80) },
-                                        this.headers)}
-                          , rejectUnauthorized: self.rejectUnauthorized
-                          , ca: this.ca
-                          , cert:this.cert
-                          , key: this.key}
-
-      self.agent = tunnelFn(tunnelOptions)
-      self.tunnel = true
-    }
+    self.setupTunnel()
   }
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
@@ -319,10 +399,12 @@ Request.prototype.init = function (options) {
       var authPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
       self.auth(authPieces[0], authPieces.slice(1).join(':'), true)
     }
-    if (self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization') && !self.tunnel) {
-      self.setHeader('proxy-authorization', "Basic " + toBase64(self.proxy.auth.split(':').map(function(item){ return querystring.unescape(item)}).join(':')))
-    }
 
+    if (self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization') && !self.tunnel) {
+      var authPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
+      var authHeader = 'Basic ' + toBase64(authPieces[0], authPieces.slice(1).join(':'))
+      self.setHeader('proxy-authorization', authHeader)
+    }
 
     if (self.proxy && !self.tunnel) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
 
@@ -549,20 +631,11 @@ Request.prototype._updateProtocol = function () {
   var self = this
   var protocol = self.uri.protocol
 
-  if (protocol === 'https:') {
+  if (protocol === 'https:' || self.tunnel) {
     // previously was doing http, now doing https
     // if it's https, then we might need to tunnel now.
-    if (self.proxy && self.canTunnel) {
-      self.tunnel = true
-      var tunnelFn = self.proxy.protocol === 'http:'
-                   ? tunnel.httpsOverHttp : tunnel.httpsOverHttps
-      var tunnelOptions = { proxy: { host: self.proxy.hostname
-                                   , port: +self.proxy.port
-                                   , proxyAuth: self.proxy.auth }
-                          , rejectUnauthorized: self.rejectUnauthorized
-                          , ca: self.ca }
-      self.agent = tunnelFn(tunnelOptions)
-      return
+    if (self.proxy) {
+      if (self.setupTunnel()) return
     }
 
     self.httpModule = https
@@ -583,8 +656,6 @@ Request.prototype._updateProtocol = function () {
 
   } else {
     // previously was doing https, now doing http
-    // stop any tunneling.
-    if (self.tunnel) self.tunnel = false
     self.httpModule = http
     switch (self.agentClass) {
       case ForeverAgent.SSL:
@@ -1233,6 +1304,7 @@ Request.prototype.auth = function (user, pass, sendImmediately, bearer) {
   }
   return this
 }
+
 Request.prototype.aws = function (opts, now) {
   if (!now) {
     this._aws = opts
