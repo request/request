@@ -1248,13 +1248,14 @@ Request.prototype.aws = function (opts, now) {
     , md5: this.getHeader('content-md5') || ''
     , amazonHeaders: aws.canonicalizeHeaders(this.headers)
     }
-  if (opts.bucket && this.path) {
-    auth.resource = '/' + opts.bucket + this.path
-  } else if (opts.bucket && !this.path) {
+  var path = this.uri.path;
+  if (opts.bucket && path) {
+    auth.resource = '/' + opts.bucket + path
+  } else if (opts.bucket && !path) {
     auth.resource = '/' + opts.bucket
-  } else if (!opts.bucket && this.path) {
-    auth.resource = this.path
-  } else if (!opts.bucket && !this.path) {
+  } else if (!opts.bucket && path) {
+    auth.resource = path
+  } else if (!opts.bucket && !path) {
     auth.resource = '/'
   }
   auth.resource = aws.canonicalizeResource(auth.resource)
