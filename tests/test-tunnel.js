@@ -9,8 +9,6 @@ var server = require('./server')
   , request = require('../index')
   , fs = require('fs')
   , path = require('path')
-  , caFile = path.resolve(__dirname, 'ssl/npm-ca.crt')
-  , ca = fs.readFileSync(caFile)
   , child_process = require('child_process')
   , sqConf = path.resolve(__dirname, 'squid.conf')
   , sqArgs = ['-f', sqConf, '-N', '-d', '5']
@@ -57,7 +55,6 @@ setTimeout(function F () {
   request({ uri: 'https://registry.npmjs.org/'
           , proxy: 'http://localhost:3128'
           , strictSSL: true
-          , ca: ca
           , json: true }, function (er, body) {
     hadError = er
     console.log(er || typeof body)

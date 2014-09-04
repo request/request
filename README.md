@@ -81,6 +81,94 @@ http.createServer(function (req, resp) {
 
 You can still use intermediate proxies, the requests will still follow HTTP forwards, etc.
 
+## Proxies
+
+If you specify a `proxy` option, then the request (and any subsequent
+redirects) will be sent via a connection to the proxy server.
+
+If your endpoint is an `https` url, and you are using a proxy, then
+request will send a `CONNECT` request to the proxy server *first*, and
+then use the supplied connection to connect to the endpoint.
+
+That is, first it will make a request like:
+
+```
+HTTP/1.1 CONNECT endpoint-server.com:80
+Host: proxy-server.com
+User-Agent: whatever user agent you specify
+```
+
+and then the proxy server make a TCP connection to `endpoint-server`
+on port `80`, and return a response that looks like:
+
+```
+HTTP/1.1 200 OK
+```
+
+At this point, the connection is left open, and the client is
+communicating directly with the `endpoint-server.com` machine.
+
+See (the wikipedia page on HTTP
+Tunneling)[http://en.wikipedia.org/wiki/HTTP_tunnel] for more
+information.
+
+By default, when proxying `http` traffic, request will simply make a
+standard proxied `http` request.  This is done by making the `url`
+section of the initial line of the request a fully qualified url to
+the endpoint.
+
+For example, it will make a single request that looks like:
+
+```
+HTTP/1.1 GET http://endpoint-server.com/some-url
+Host: proxy-server.com
+Other-Headers: all go here
+
+request body or whatever
+```
+
+Because a pure "http over http" tunnel offers no additional security
+or other features, it is generally simpler to go with a
+straightforward HTTP proxy in this case.  However, if you would like
+to force a tunneling proxy, you may set the `tunnel` option to `true`.
+
+If you are using a tunneling proxy, you may set the
+`proxyHeaderWhiteList` to share certain headers with the proxy.
+
+By default, this set is:
+
+```
+accept
+accept-charset
+accept-encoding
+accept-language
+accept-ranges
+cache-control
+content-encoding
+content-language
+content-length
+content-location
+content-md5
+content-range
+content-type
+connection
+date
+expect
+max-forwards
+pragma
+proxy-authorization
+referer
+te
+transfer-encoding
+user-agent
+via
+```
+
+Note that, when using a tunneling proxy, the `proxy-authorization`
+header is *never* sent to the endpoint server, but only to the proxy
+server.  All other headers are sent as-is over the established
+connection.
+
 ## UNIX Socket 
 
 `request` supports the `unix://` protocol for all requests. The path is assumed to be absolute to the root of the host file system. 
@@ -272,6 +360,12 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `httpSignature` - Options for the [HTTP Signature Scheme](https://github.com/joyent/node-http-signature/blob/master/http_signing.md) using [Joyent's library](https://github.com/joyent/node-http-signature). The `keyId` and `key` properties must be specified. See the docs for other options.
 * `localAddress` - Local interface to bind for network connections.
 * `gzip` - If `true`, add an `Accept-Encoding` header to request compressed content encodings from the server (if not already present) and decode supported content encodings in the response.
+* `tunnel` - If `true`, then *always* use a tunneling proxy.  If
+  `false` (default), then tunneling will only be used if the
+  destination is `https`, or if a previous request in the redirect
+  chain used a tunneling proxy.
+* `proxyHeaderWhiteList` - A whitelist of headers to send to a
+  tunneling proxy.
 
 
 The callback argument gets 3 arguments: 
