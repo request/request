@@ -13,7 +13,6 @@ var port = 6768
   , proxiedHost = 'google.com'
   , expectProxyHeaders = {
       accept: 'yo',
-      'proxy-connection': 'close',
       'user-agent': 'just another foobar',
       host: 'google.com'
     }
@@ -21,18 +20,18 @@ var port = 6768
   , expect =
       "CONNECT google.com:80 HTTP/1.1\r\n" +
       "accept: yo\r\n" +
-      "proxy-connection: close\r\n" +
       "user-agent: just another foobar\r\n" +
       "host: google.com:80\r\n" +
       "Proxy-Authorization: Basic dXNlcjpwYXNz\r\n" +
+      "Connection: close\r\n" +
       "\r\n" +
       "GET / HTTP/1.1\r\n" +
       "authorization: Token deadbeef\r\n" +
       "do-not-send-this: ok\r\n" +
       "accept: yo\r\n" +
-      "proxy-connection: close\r\n" +
       "user-agent: just another foobar\r\n" +
       "host: google.com\r\n" +
+      "Connection: keep-alive\r\n" +
       "\r\n"
   ;
 
@@ -41,12 +40,14 @@ var s = require('net').createServer(function (sock) {
   called = true
   sock.once("data", function (c) {
     console.error("server got data")
+    // process.stderr.write(c)
     data += c
 
     sock.write("HTTP/1.1 200 OK\r\n\r\n")
 
     sock.once("data", function (c) {
       console.error("server got data again")
+      // process.stderr.write(c)
       data += c
 
       sock.write("HTTP/1.1 200 OK\r\n")
@@ -61,12 +62,12 @@ s.listen(port, function () {
   request ({
     tunnel: true,
     url: 'http://'+proxiedHost,
-    proxy: 'http://user:pass@localhost:'+port,
+    proxy: 'http://localhost:'+port,
     headers: {
+      'Proxy-Authorization': 'Basic dXNlcjpwYXNz',
       authorization: 'Token deadbeef',
       'do-not-send-this': 'ok',
       accept: 'yo',
-      'proxy-connection': 'close',
       'user-agent': 'just another foobar'
     }
     /*

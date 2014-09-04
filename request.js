@@ -57,15 +57,12 @@ var defaultProxyHeaderWhiteList = [
   'content-md5',
   'content-range',
   'content-type',
+  'connection',
   'date',
-  'etag',
   'expect',
-  'host',
   'max-forwards',
   'pragma',
-  'proxy-authenticate',
   'proxy-authorization',
-  'proxy-connection',
   'referer',
   'te',
   'transfer-encoding',
@@ -178,9 +175,15 @@ Request.prototype.setupTunnel = function () {
 
   var tunnelFn = tunnel[tunnelFnName]
 
+  var proxyAuth
+  if (self.proxy.auth)
+    proxyAuth = self.proxy.auth
+  else if (self.proxyAuthorization)
+    proxyHeaders['Proxy-Authorization'] = self.proxyAuthorization
+
   var tunnelOptions = { proxy: { host: self.proxy.hostname
                                , port: +self.proxy.port
-                               , proxyAuth: self.proxy.auth
+                               , proxyAuth: proxyAuth
                                , headers: proxyHeaders }
                       , rejectUnauthorized: self.rejectUnauthorized
                       , headers: self.headers
@@ -209,6 +212,12 @@ Request.prototype.init = function (options) {
   if (!options) options = {}
 
   caseless.httpify(self, self.headers || {})
+
+  // Never send proxy-auth to the endpoint!
+  if (self.hasHeader('proxy-authorization')) {
+    self.proxyAuthorization = self.getHeader('proxy-authorization')
+    self.removeHeader('proxy-authorization')
+  }
 
   if (!self.method) self.method = options.method || 'GET'
   self.localAddress = options.localAddress
@@ -400,10 +409,14 @@ Request.prototype.init = function (options) {
       self.auth(authPieces[0], authPieces.slice(1).join(':'), true)
     }
 
-    if (self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization') && !self.tunnel) {
-      var authPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
-      var authHeader = 'Basic ' + toBase64(authPieces[0], authPieces.slice(1).join(':'))
-      self.setHeader('proxy-authorization', authHeader)
+    if (self.proxy && !self.tunnel) {
+      if (self.proxy.auth && !self.proxyAuthorization) {
+        var authPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
+        var authHeader = 'Basic ' + toBase64(authPieces[0], authPieces.slice(1).join(':'))
+        self.proxyAuthorization = authHeader
+      }
+      if (self.proxyAuthorization)
+        self.setHeader('proxy-authorization', self.proxyAuthorization)
     }
 
     if (self.proxy && !self.tunnel) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)

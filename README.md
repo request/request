@@ -151,15 +151,12 @@ content-location
 content-md5
 content-range
 content-type
+connection
 date
-etag
 expect
-host
 max-forwards
 pragma
-proxy-authenticate
 proxy-authorization
-proxy-connection
 referer
 te
 transfer-encoding
