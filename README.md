@@ -1,6 +1,6 @@
 # Request — Simplified HTTP client
 
-[![NPM](https://nodei.co/npm/request.png)](https://nodei.co/npm/request/)
+[![NPM](https://nodei.co/npm/request.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/request/)
 
 ## Super simple to use
 
