@@ -164,6 +164,11 @@ user-agent
 via
 ```
 
+Note that, when using a tunneling proxy, the `proxy-authorization`
+header is *never* sent to the endpoint server, but only to the proxy
+server.  All other headers are sent as-is over the established
+connection.
+
 ## UNIX Socket 
 
 `request` supports the `unix://` protocol for all requests. The path is assumed to be absolute to the root of the host file system. 
