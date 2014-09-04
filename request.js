@@ -1484,5 +1484,8 @@ Request.prototype.destroy = function () {
 
 Request.prototype.toJSON = requestToJSON
 
+Request.defaultProxyHeaderWhiteList =
+  defaultProxyHeaderWhiteList.slice()
+
 
 module.exports = Request
