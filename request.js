@@ -411,7 +411,7 @@ Request.prototype.init = function (options) {
 
     if (self.proxy && !self.tunnel) {
       if (self.proxy.auth && !self.proxyAuthorization) {
-        var authPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
+        var authPieces = self.proxy.auth.split(':').map(function(item){ return querystring.unescape(item) })
         var authHeader = 'Basic ' + toBase64(authPieces[0], authPieces.slice(1).join(':'))
         self.proxyAuthorization = authHeader
       }
