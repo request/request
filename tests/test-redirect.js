@@ -12,9 +12,18 @@ var server = require('./server')
   ;
 
 var s = server.createServer()
+  , ss = server.createSSLServer()
+  ;
 
 s.listen(s.port, function () {
+  ss.listen(ss.port, function() {
+    serversReady()
+  })
+})
+
+function serversReady() {
   var server = 'http://localhost:' + s.port;
+  var sserver = 'https://localhost:' + ss.port;
   var hits = {}
   var passed = 0;
 
@@ -23,6 +32,18 @@ s.listen(s.port, function () {
   bouncer(302, 'perm')
   bouncer(302, 'nope')
   bouncer(307, 'fwd')
+
+  s.on('/ssl', function(req, res) {
+    res.writeHead(302, {
+      'location' : sserver + '/'
+    })
+    res.end()
+  })
+
+  ss.on('/', function(req, res) {
+    res.writeHead(200)
+    res.end('SSL')
+  })
 
   function bouncer(code, label, hops) {
     var hop,
@@ -210,12 +231,25 @@ s.listen(s.port, function () {
     done()
   })
 
+  // HTTP to HTTPS redirect
+  request.get({uri: require('url').parse(server+'/ssl'), rejectUnauthorized: false}, function(er, res, body) {
+    if (er) throw er
+    if (res.statusCode !== 200) {
+      console.log('Body: ' + body);
+      throw new Error('Status is not 200: ' + res.statusCode);
+    }
+    assert.equal(body, 'SSL', 'Got SSL redirect')
+    passed += 1
+    done()
+  })
+
   var reqs_done = 0;
   function done() {
     reqs_done += 1;
-    if(reqs_done == 12) {
+    if(reqs_done == 13) {
       console.log(passed + ' tests passed.')
       s.close()
+      ss.close()
     }
   }
-})
+}
