@@ -108,9 +108,8 @@ HTTP/1.1 200 OK
 At this point, the connection is left open, and the client is
 communicating directly with the `endpoint-server.com` machine.
 
-See (the wikipedia page on HTTP
-Tunneling)[http://en.wikipedia.org/wiki/HTTP_tunnel] for more
-information.
+See [the wikipedia page on HTTP Tunneling](http://en.wikipedia.org/wiki/HTTP_tunnel)
+for more information.
 
 By default, when proxying `http` traffic, request will simply make a
 standard proxied `http` request.  This is done by making the `url`
