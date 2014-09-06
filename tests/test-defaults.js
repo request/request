@@ -160,6 +160,27 @@ s.listen(s.port, function () {
     return request(params.uri, params.options, params.callback);
   });
 
+  s.on('/set-undefined', function (req, resp) {
+    assert.equal(req.method, 'POST')
+    assert.equal(req.headers['content-type'], 'application/json');
+    assert.equal(req.headers['x-foo'], 'baz');
+    var data = '';
+    req.on('data', function(d) {
+      data += d;
+    });
+    req.on('end', function() {
+      resp.writeHead(200, {'Content-Type': 'application/json'});
+      resp.end(data);
+    });
+  });
+
+  // test only setting undefined properties
+  request.defaults({method:'post',json:true,headers:{'x-foo':'bar'}})({uri:s.url + '/set-undefined',json:{foo:'bar'},headers:{'x-foo':'baz'}}, function (e, r, b){
+    if (e) throw e;
+    assert.deepEqual({foo:'bar'}, b);
+    counter += 1;
+  });
+
   var msg = 'defaults test failed. head request should throw earlier';
   assert.throws(function() {
     defaultRequest.head(s.url + '/get_custom', function(e, r, b) {
