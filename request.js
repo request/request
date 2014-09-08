@@ -988,6 +988,9 @@ Request.prototype.onResponse = function (response) {
   if (redirectTo && self.allowRedirect.call(self, response)) {
     debug('redirect to', redirectTo)
 
+    //remove authorization headers
+    self.removeHeader('authorization');
+
     // ignore any potential response body.  it cannot possibly be useful
     // to us at this point.
     if (self._paused) response.resume()
@@ -1359,6 +1362,9 @@ Request.prototype.httpSignature = function (opts) {
     },
     setHeader: function(header, value) {
       req.setHeader(header, value)
+    },
+    removeHeader: function(header) {
+      req.removeHeader(header)
     },
     method: this.method,
     path: this.path
