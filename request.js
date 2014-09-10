@@ -1,7 +1,8 @@
+var process = require('process');
+
 var optional = require('./lib/optional')
   , http = require('http')
-  , https = optional('https')
-  , tls = optional('tls')
+  , https = process.browser ? require('https') : optional('https')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
@@ -11,19 +12,19 @@ var optional = require('./lib/optional')
   , zlib = require('zlib')
 
   , bl = require('bl')
-  , oauth = optional('oauth-sign')
-  , hawk = optional('hawk')
-  , aws = optional('aws-sign2')
-  , httpSignature = optional('http-signature')
   , uuid = require('node-uuid')
   , mime = require('mime-types')
   , tunnel = require('tunnel-agent')
   , _safeStringify = require('json-stringify-safe')
-  , stringstream = optional('stringstream')
   , caseless = require('caseless')
-
   , ForeverAgent = require('forever-agent')
-  , FormData = optional('form-data')
+
+  , hawk = process.browser ? require('hawk') : optional('hawk')
+  , aws = process.browser ? require('aws-sign2') : optional('aws-sign2')
+  , oauth = process.browser ? require('oauth-sign') : optional('oauth-sign')
+  , FormData = process.browser ? require('form-data') : optional('form-data')
+  , stringstream = process.browser ? require('stringstream') : optional('stringstream')
+  , httpSignature = process.browser ? require('http-signature') : optional('http-signature')
 
   , cookies = require('./lib/cookies')
   , globalCookieJar = cookies.jar()
