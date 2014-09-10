@@ -2,7 +2,6 @@ var process = require('process');
 
 var optional = require('./lib/optional')
   , http = require('http')
-  , https = process.browser ? require('https') : optional('https')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
@@ -19,10 +18,13 @@ var optional = require('./lib/optional')
   , caseless = require('caseless')
   , ForeverAgent = require('forever-agent')
 
+  // This guy does behave on the browser.
+  , FormData = optional('form-data')
+
   , hawk = process.browser ? require('hawk') : optional('hawk')
+  , https = process.browser ? require('https') : optional('https')
   , aws = process.browser ? require('aws-sign2') : optional('aws-sign2')
   , oauth = process.browser ? require('oauth-sign') : optional('oauth-sign')
-  , FormData = process.browser ? require('form-data') : optional('form-data')
   , stringstream = process.browser ? require('stringstream') : optional('stringstream')
   , httpSignature = process.browser ? require('http-signature') : optional('http-signature')
 
