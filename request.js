@@ -18,9 +18,11 @@ var optional = require('./lib/optional')
   , caseless = require('caseless')
   , ForeverAgent = require('forever-agent')
 
-  // This guy does behave on the browser.
+  // This guy doesn't behave well in the browser environment.
   , FormData = optional('form-data')
 
+  // These modules have to be explicitly, statically loaded
+  // In browser environments for browserify to figure out the paths and resolve them.
   , hawk = process.browser ? require('hawk') : optional('hawk')
   , https = process.browser ? require('https') : optional('https')
   , aws = process.browser ? require('aws-sign2') : optional('aws-sign2')
