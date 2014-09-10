@@ -28,7 +28,7 @@
     "json-stringify-safe": "~5.0.0",
     "mime-types": "~1.0.1",
     "node-uuid": "~1.4.0",
-    "process": "^0.7.0",
+    "process": "~0.7.0",
     "qs": "~1.2.0",
     "tunnel-agent": "~0.4.0",
     "tough-cookie": ">=0.12.0",
