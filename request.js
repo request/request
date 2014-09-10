@@ -210,8 +210,9 @@ Request.prototype.init = function (options) {
   // this function is called from both the constructor and on redirect.
   var self = this
   if (!options) options = {}
+  self.headers = self.headers ? copy(self.headers) : {}
 
-  caseless.httpify(self, self.headers || {})
+  caseless.httpify(self, self.headers)
 
   // Never send proxy-auth to the endpoint!
   if (self.hasHeader('proxy-authorization')) {
