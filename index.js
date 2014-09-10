@@ -119,7 +119,7 @@ request.defaults = function (options, requester) {
 
     return function (uri, opts, callback) {
       var params = initParams(uri, opts, callback)
-      params.options = extend(params.options, headerlessOptions(options))
+      params.options = extend(headerlessOptions(options), params.options)
 
       if (options.headers)
         params.options.headers = getHeaders(params, options)
