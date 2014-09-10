@@ -1096,6 +1096,9 @@ Request.prototype.onResponse = function (response) {
     dataStream.on("end", function (chunk) {
       self.emit("end", chunk)
     })
+    dataStream.on("error", function (error) {
+      self.emit("error", error)
+    })
     dataStream.on("close", function () {self.emit("close")})
 
     if (self.callback) {
