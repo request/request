@@ -15,7 +15,6 @@ var http = require('http')
   , _safeStringify = require('json-stringify-safe')
   , caseless = require('caseless')
   , ForeverAgent = require('forever-agent')
-  , FormData = require('form-data')
   , hawk = require('hawk')
   , https = require('https')
   , aws = require('aws-sign2')
@@ -29,6 +28,10 @@ var http = require('http')
   , copy = require('./lib/copy')
   , debug = require('./lib/debug')
   , net = require('net')
+
+  // Form data uses mime that is not compatible with browsers since it
+  // uses fs in a browser incompatible way.
+  , FormData = process.browser ? function() {} : require('form-data')
   ;
 
 function safeStringify (obj) {
