@@ -1,6 +1,5 @@
 
-var optional = require('./lib/optional')
-  , http = require('http')
+var http = require('http')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
@@ -16,19 +15,13 @@ var optional = require('./lib/optional')
   , _safeStringify = require('json-stringify-safe')
   , caseless = require('caseless')
   , ForeverAgent = require('forever-agent')
-
-  // This guy does nt behave well in the browser environment.
-  , FormData = optional('form-data')
-
-  // These modules have to be explicitly, statically loaded
-  // In browser environments for browserify to figure out
-  // the paths and resolve them.
-  , hawk = process.browser ? require('hawk') : optional('hawk')
-  , https = process.browser ? require('https') : optional('https')
-  , aws = process.browser ? require('aws-sign2') : optional('aws-sign2')
-  , oauth = process.browser ? require('oauth-sign') : optional('oauth-sign')
-  , stringstream = process.browser ? require('stringstream') : optional('stringstream')
-  , httpSignature = process.browser ? require('http-signature') : optional('http-signature')
+  , FormData = require('form-data')
+  , hawk = require('hawk')
+  , https = require('https')
+  , aws = require('aws-sign2')
+  , oauth = require('oauth-sign')
+  , stringstream = require('stringstream')
+  , httpSignature = require('http-signature')
 
   , cookies = require('./lib/cookies')
   , globalCookieJar = cookies.jar()
