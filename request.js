@@ -1,4 +1,3 @@
-var process = require('process');
 
 var optional = require('./lib/optional')
   , http = require('http')
