@@ -3,10 +3,6 @@ node_js:
   - "0.8"
   - "0.10"
 
-env:
-  - OPTIONALS=Y
-  - OPTIONALS=N
-
 install:
-  - if [[ "$OPTIONALS" == "Y" ]]; then npm install;
-  - if [[ "$OPTIONALS" == "N" ]]; then npm install --no-optional; fi
+  npm install;
+

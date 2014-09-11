@@ -41,10 +41,8 @@
     "hawk": "1.1.1",
     "http-signature": "~0.10.0",
     "oauth-sign": "~0.4.0",
-    "stringstream": "~0.0.4"
-  },
-  "optionalDependencies": {
-    "brfs": "~1.2.0",
+    "stringstream": "~0.0.4",
+    "brfs": "1.1.1"
   },
   "scripts": {
     "test": "node tests/run.js"
