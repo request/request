@@ -1262,6 +1262,11 @@ Request.prototype.multipart = function (multipart) {
     self.body.push(new Buffer('\r\n'))
   })
   self.body.push(new Buffer('--' + self.boundary + '--'))
+
+  if (self.postambleCRLF) {
+    self.body.push(new Buffer('\r\n'))
+  }
+
   return self
 }
 Request.prototype.json = function (val) {
