@@ -29,7 +29,7 @@
     "mime-types": "~1.0.1",
     "node-uuid": "~1.4.0",
     "qs": "~1.2.0",
-    "soc": "^0.1.0",
+    "soc": "~0.1.0",
     "tunnel-agent": "~0.4.0"
   },
   "optionalDependencies": {
