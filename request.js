@@ -8,9 +8,12 @@ var optional = require('./lib/optional')
   , stream = require('stream')
   , qs = require('qs')
   , querystring = require('querystring')
-  , crypto = require('crypto')
   , zlib = require('zlib')
-
+  , helpers = require('./lib/helpers')
+  , safeStringify = helpers.safeStringify
+  , md5 = helpers.md5
+  , isReadStream = helpers.isReadStream
+  , toBase64 = helpers.toBase64
   , bl = require('bl')
   , oauth = optional('oauth-sign')
   , hawk = optional('hawk')
@@ -19,7 +22,6 @@ var optional = require('./lib/optional')
   , uuid = require('node-uuid')
   , mime = require('mime-types')
   , tunnel = require('tunnel-agent')
-  , _safeStringify = require('json-stringify-safe')
   , stringstream = optional('stringstream')
   , caseless = require('caseless')
 
@@ -67,7 +69,7 @@ var defaultProxyHeaderWhiteList = [
 function Request (options) {
   stream.Stream.call(this)
   var reserved = Object.keys(Request.prototype)
-  nonReserved = filterForNonReserved(reserved, options)
+  var nonReserved = filterForNonReserved(reserved, options)
   util._extend(this, nonReserved)
   options = filterOutReservedFunctions(reserved, options)
 
@@ -1497,25 +1499,6 @@ Request.defaultProxyHeaderWhiteList =
   defaultProxyHeaderWhiteList.slice()
 
 // Helpers
-
-function safeStringify (obj) {
-  var ret
-  try { ret = JSON.stringify(obj) }
-  catch (e) { ret = _safeStringify(obj) }
-  return ret
-}
-
-function isReadStream (rs) {
-  return rs.readable && rs.path && rs.mode;
-}
-
-function toBase64 (str) {
-  return (new Buffer(str || "", "ascii")).toString("base64")
-}
-
-function md5 (str) {
-  return crypto.createHash('md5').update(str).digest('hex')
-}
 
 // Return a simpler request object to allow serialization
 function requestToJSON() {
