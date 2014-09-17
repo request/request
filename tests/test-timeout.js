@@ -41,7 +41,8 @@ s.listen(s.port, function () {
   request(shouldTimeoutWithEvents)
     .on('error', function (err) {
       eventsEmitted++;
-      assert.equal(err.code, eventsEmitted == 1 ? "ETIMEDOUT" : "ECONNRESET");
+      assert.equal(1, eventsEmitted);
+      assert.equal(err.code, "ETIMEDOUT");
       checkDone();
     })
 
