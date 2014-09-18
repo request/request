@@ -803,7 +803,7 @@ Request.prototype.start = function () {
 
   if (self.timeout && !self.timeoutTimer) {
     self.timeoutTimer = setTimeout(function () {
-      self.req.abort()
+      self.abort()
       var e = new Error("ETIMEDOUT")
       e.code = "ETIMEDOUT"
       self.emit("error", e)
