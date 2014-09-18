@@ -211,6 +211,31 @@ form.append('remote_file', request('http://google.com/doodle.png'))
 // Alternatively, you can provide a callback (that's what this example does — see `optionalCallback` above).
 ```
 
+Some variations in different HTTP implementations require a newline/CRLF before, after, or both before and after the boundary of a `multipart/form-data` request. This has been observed in the .NET WebAPI version 4.0. You can turn on a boundary preambleCRLF or postamble by passing them as `true` to your request options.
+
+```javascript
+  request(
+    { method: 'PUT'
+    , preambleCRLF: true
+    , postambleCRLF: true
+    , uri: 'http://service.com/upload'
+    , multipart:
+      [ { 'content-type': 'application/json'
+        ,  body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})
+        }
+      , { body: 'I am an attachment' }
+      ]
+    }
+  , function (error, response, body) {
+      if (err) {
+        return console.error('upload failed:', err);
+      }
+      console.log('Upload successful!  Server responded with:', body);
+    }
+  )
+```
+
+
 ## HTTP Authentication
 
 ```javascript
@@ -343,6 +368,8 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `auth` - A hash containing values `user` || `username`, `pass` || `password`, and `sendImmediately` (optional).  See documentation above.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
 * `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
+* `preambleCRLF` - append a newline/CRLF before the boundary of your `multipart/form-data` request.
+* `postambleCRLF` - append a newline/CRLF at the end of the boundary of your `multipart/form-data` request.
 * `followRedirect` - follow HTTP 3xx responses as redirects (default: `true`). This property can also be implemented as function which gets `response` object as a single argument and should return `true` if redirects should continue or `false` otherwise.
 * `followAllRedirects` - follow non-GET HTTP 3xx responses as redirects (default: `false`)
 * `maxRedirects` - the maximum number of redirects to follow (default: `10`)
