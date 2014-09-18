@@ -93,6 +93,25 @@ var tests =
       , {'body': 'Oh hi.'}
       ]
     }
+  , testPutMultipartPostambleCRLF :
+    { resp: server.createPostValidator(
+        '\r\n--__BOUNDARY__\r\n' +
+        'content-type: text/html\r\n' +
+        '\r\n' +
+        '<html><body>Oh hi.</body></html>' +
+        '\r\n--__BOUNDARY__\r\n\r\n' +
+        'Oh hi.' +
+        '\r\n--__BOUNDARY__--' + 
+        '\r\n'
+        )
+    , method: "PUT"
+    , preambleCRLF: true
+    , postambleCRLF: true
+    , multipart:
+      [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
+      , {'body': 'Oh hi.'}
+      ]
+    }
   }
 
 s.listen(s.port, function () {
