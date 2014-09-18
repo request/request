@@ -1,7 +1,5 @@
-var optional = require('./lib/optional')
-  , http = require('http')
-  , https = optional('https')
-  , tls = optional('tls')
+
+var http = require('http')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
@@ -11,19 +9,18 @@ var optional = require('./lib/optional')
   , zlib = require('zlib')
 
   , bl = require('bl')
-  , oauth = optional('oauth-sign')
-  , hawk = optional('hawk')
-  , aws = optional('aws-sign2')
-  , httpSignature = optional('http-signature')
   , uuid = require('node-uuid')
   , mime = require('mime-types')
   , tunnel = require('tunnel-agent')
   , _safeStringify = require('json-stringify-safe')
-  , stringstream = optional('stringstream')
   , caseless = require('caseless')
-
   , ForeverAgent = require('forever-agent')
-  , FormData = optional('form-data')
+  , hawk = require('hawk')
+  , https = require('https')
+  , aws = require('aws-sign2')
+  , oauth = require('oauth-sign')
+  , stringstream = require('stringstream')
+  , httpSignature = require('http-signature')
 
   , cookies = require('./lib/cookies')
   , globalCookieJar = cookies.jar()
@@ -31,6 +28,10 @@ var optional = require('./lib/optional')
   , copy = require('./lib/copy')
   , debug = require('./lib/debug')
   , net = require('net')
+
+  // Form data uses mime that is not compatible with browsers since it
+  // uses fs in a browser incompatible way.
+  , FormData = process.browser ? function() {} : require('form-data')
   ;
 
 function safeStringify (obj) {
