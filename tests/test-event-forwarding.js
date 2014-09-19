@@ -5,7 +5,7 @@ var server = require('./server')
 
 var s = server.createServer();
 var expectedBody = "waited";
-var remainingTests = 1;
+var remainingTests = 2;
 
 s.listen(s.port, function () {
   s.on('/', function (req, resp) {
@@ -19,7 +19,9 @@ var shouldEmitSocketEvent = {
   url: s.url + '/',
 }
 
-var req = request(shouldEmitSocketEvent)
+var req = request(shouldEmitSocketEvent, function() {
+  s.close();
+})
 
 req.on('socket', function(socket) {
   var requestSocket = req.req.socket
@@ -27,13 +29,8 @@ req.on('socket', function(socket) {
   checkDone()
 })
 
-req.on('error', function(err) {
-  // I get an ECONNREFUSED error
-})
-
 function checkDone() {
   if(--remainingTests == 0) {
     console.log("All tests passed.");
-    s.close();
   }
 }
