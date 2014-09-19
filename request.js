@@ -827,6 +827,10 @@ Request.prototype.start = function () {
   self.req.on('drain', function() {
     self.emit('drain')
   })
+  self.req.on('socket', function(socket) {
+    self.emit('socket', socket)
+  })
+
   self.on('end', function() {
     if ( self.req.connection ) self.req.connection.removeListener('error', self._parserErrorHandler)
   })
