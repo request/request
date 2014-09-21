@@ -62,7 +62,7 @@ server.listen(8080, function() {
 
   var req = request.post({
     url: 'http://localhost:8080/upload',
-    formdata: multipartFormData
+    formData: multipartFormData
   }, function () {
     server.close();
   })

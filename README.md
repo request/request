@@ -192,7 +192,7 @@ request.post('http://service.com/upload', {form:{key:'value'}})
 request.post('http://service.com/upload').form({key:'value'})
 ```
 
-For `multipart/form-data` we use the [form-data](https://github.com/felixge/node-form-data) library by [@felixge](https://github.com/felixge). For the most basic case, you can pass your upload form data via the `formdata` option.
+For `multipart/form-data` we use the [form-data](https://github.com/felixge/node-form-data) library by [@felixge](https://github.com/felixge). For the most basic case, you can pass your upload form data via the `formData` option.
 
 
 ```javascript
@@ -202,7 +202,7 @@ var formData = {
   my_file: fs.createReadStream(__dirname + '/unicycle.jpg'),
   remote_file: request(remoteFile)
 };
-request.post({url:'http://service.com/upload', formdata: formData}, function optionalCallback(err, httpResponse, body) {
+request.post({url:'http://service.com/upload', formData: formData}, function optionalCallback(err, httpResponse, body) {
   if (err) {
     return console.error('upload failed:', err);
   }

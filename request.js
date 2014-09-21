@@ -361,8 +361,8 @@ Request.prototype.init = function (options) {
       self.form(options.form)
     }
 
-    if (options.formdata) {
-      var formData = options.formdata
+    if (options.formData) {
+      var formData = options.formData
       var requestForm = self.form()
       for (var formKey in formData) {
         if (formData.hasOwnProperty(formKey)) {
