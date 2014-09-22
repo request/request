@@ -5,7 +5,7 @@ var server = require('./server')
 
 var s = server.createServer();
 var expectedBody = "waited";
-var remainingTests = 2;
+var remainingTests = 1;
 
 s.listen(s.port, function () {
   s.on('/', function (req, resp) {
