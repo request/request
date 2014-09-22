@@ -555,9 +555,9 @@ OR
 
 ```javascript
 // `npm install --save tough-cookie` before this works
-var j = request.jar()
-var cookie = request.cookie('your_cookie_here')
-j.setCookie(cookie, uri);
+var j = request.jar();
+var cookie = request.cookie('your_cookie_here'); //your_cookie_here format: 'key1=value1'
+j.setCookieSync(cookie, url);
 request({url: 'http://www.google.com', jar: j}, function () {
   request('http://images.google.com')
 })
