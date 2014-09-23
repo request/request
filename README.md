@@ -391,7 +391,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `followRedirect` - follow HTTP 3xx responses as redirects (default: `true`). This property can also be implemented as function which gets `response` object as a single argument and should return `true` if redirects should continue or `false` otherwise.
 * `followAllRedirects` - follow non-GET HTTP 3xx responses as redirects (default: `false`)
 * `maxRedirects` - the maximum number of redirects to follow (default: `10`)
-* `encoding` - Encoding to be used on `setEncoding` of response data. If `null`, the `body` is returned as a `Buffer`.
+* `encoding` - Encoding to be used on `setEncoding` of response data. If `null`, the `body` is returned as a `Buffer`. Anything else **(including the default value of `undefined`)** will be passed as the [encoding](http://nodejs.org/api/buffer.html#buffer_buffer) parameter to `toString()` (meaning this is effectively `utf8` by default).
 * `pool` - A hash object containing the agents for these requests. If omitted, the request will use the global pool (which is set to node's default `maxSockets`)
 * `pool.maxSockets` - Integer containing the maximum amount of sockets in the pool.
 * `timeout` - Integer containing the number of milliseconds to wait for a request to respond before aborting the request
