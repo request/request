@@ -403,7 +403,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `aws` - `object` containing AWS signing information. Should have the properties `key`, `secret`. Also requires the property `bucket`, unless you’re specifying your `bucket` as part of the path, or the request doesn’t use a bucket (i.e. GET Services)
 * `httpSignature` - Options for the [HTTP Signature Scheme](https://github.com/joyent/node-http-signature/blob/master/http_signing.md) using [Joyent's library](https://github.com/joyent/node-http-signature). The `keyId` and `key` properties must be specified. See the docs for other options.
 * `localAddress` - Local interface to bind for network connections.
-* `gzip` - If `true`, add an `Accept-Encoding` header to request compressed content encodings from the server (if not already present) and decode supported content encodings in the response.
+* `gzip` - If `true`, add an `Accept-Encoding` header to request compressed content encodings from the server (if not already present) and decode supported content encodings in the response.  **Note:** Automatic decoding of the response content is performed on the body data returned through `request` (both through the `request` stream and passed to the callback function) but is not performed on the `response` stream (available from the `response` event) which is the unmodified `http.IncomingMessage` object which may contain compressed data. See example below.
 * `tunnel` - If `true`, then *always* use a tunneling proxy.  If
   `false` (default), then tunneling will only be used if the
   destination is `https`, or if a previous request in the redirect
@@ -530,6 +530,37 @@ request.jar()
       }
     }
   )
+```
+
+For backwards-compatibility, response compression is not supported by default.
+To accept gzip-compressed responses, set the `gzip` option to `true`.  Note
+that the body data passed through `request` is automatically decompressed
+while the response object is unmodified and will contain compressed data if
+the server sent a compressed response.
+
+```javascript
+  var request = require('request')
+  request(
+    { method: 'GET'
+    , uri: 'http://www.google.com'
+    , gzip: true
+    }
+  , function (error, response, body) {
+      // body is the decompressed response body
+      console.log('server encoded the data as: ' + (response.headers['content-encoding'] || 'identity'))
+      console.log('the decoded data is: ' + body)
+    }
+  ).on('data', function(data) {
+    // decompressed data as it is received
+    console.log('decoded chunk: ' + data)
+  })
+  .on('response', function(response) {
+    // unmodified http.IncomingMessage object
+    response.on('data', function(data) {
+      // compressed data as it is received
+      console.log('received ' + data.length + ' bytes of compressed data')
+    })
+  })
 ```
 
 Cookies are disabled by default (else, they would be used in subsequent requests). To enable cookies, set `jar` to `true` (either in `defaults` or `options`) and install `tough-cookie`.
