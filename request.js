@@ -65,87 +65,44 @@ var defaultProxyHeaderWhiteList = [
   'via'
 ]
 
-function Request (options) {
-  stream.Stream.call(this)
-  var reserved = Object.keys(Request.prototype)
-  var nonReserved = filterForNonReserved(reserved, options)
-  util._extend(this, nonReserved)
-  options = filterOutReservedFunctions(reserved, options)
-
-  this.readable = true
-  this.writable = true
-  this.canTunnel = options.tunnel !== false && tunnel
-  if (options.method) this.explicitMethod = true
-  this.init(options)
-}
-
 util.inherits(Request, stream.Stream)
 
-// Set up the tunneling agent if necessary
+function Request (options) {
+  var self = this
+  var reserved = Object.keys(Request.prototype)
+  var nonReserved = filterForNonReserved(reserved, options)
+
+  stream.Stream.call(self)
+  util._extend(self, nonReserved)
+  options = filterOutReservedFunctions(reserved, options)
+
+  self.readable = true
+  self.writable = true
+  self.canTunnel = options.tunnel !== false && tunnel
+  if (options.method) self.explicitMethod = true
+  self.init(options)
+}
+
 Request.prototype.setupTunnel = function () {
+  // Set up the tunneling agent if necessary
+  // Only send the proxy whitelisted header names.
+  // Turn on tunneling for the rest of request.
+
   var self = this
   if (typeof self.proxy == 'string') self.proxy = url.parse(self.proxy)
-
   if (!self.proxy) return false
+  if (!self.tunnel && self.uri.protocol !== 'https:') return
+  if (!self.proxyHeaderWhiteList) self.proxyHeaderWhiteList = defaultProxyHeaderWhiteList
 
-  // Don't need to use a tunneling proxy
-  if (!self.tunnel && self.uri.protocol !== 'https:')
-    return
+  var proxyHost = constructProxyHost(self.uri)
+  self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, self.proxyHeaderWhiteList)
+  self.proxyHeaders.host = proxyHost
 
-  // do the HTTP CONNECT dance using koichik/node-tunnel
-
-  // The host to tell the proxy to CONNECT to
-  var proxyHost = self.uri.hostname + ':'
-  if (self.uri.port)
-    proxyHost += self.uri.port
-  else if (self.uri.protocol === 'https:')
-    proxyHost += '443'
-  else
-    proxyHost += '80'
-
-  if (!self.proxyHeaderWhiteList)
-    self.proxyHeaderWhiteList = defaultProxyHeaderWhiteList
-
-  // Only send the proxy the whitelisted header names.
-  var proxyHeaders = Object.keys(self.headers).filter(function (h) {
-    return self.proxyHeaderWhiteList.indexOf(h.toLowerCase()) !== -1
-  }).reduce(function (set, h) {
-    set[h] = self.headers[h]
-    return set
-  }, {})
-
-  proxyHeaders.host = proxyHost
-
-  var tunnelFnName =
-    (self.uri.protocol === 'https:' ? 'https' : 'http') +
-    'Over' +
-    (self.proxy.protocol === 'https:' ? 'Https' : 'Http')
-
-  var tunnelFn = tunnel[tunnelFnName]
-
-  var proxyAuth
-  if (self.proxy.auth)
-    proxyAuth = self.proxy.auth
-  else if (self.proxyAuthorization)
-    proxyHeaders['Proxy-Authorization'] = self.proxyAuthorization
-
-  var tunnelOptions = { proxy: { host: self.proxy.hostname
-                               , port: +self.proxy.port
-                               , proxyAuth: proxyAuth
-                               , headers: proxyHeaders }
-                      , rejectUnauthorized: self.rejectUnauthorized
-                      , headers: self.headers
-                      , ca: self.ca
-                      , cert: self.cert
-                      , key: self.key}
+  var tunnelFn = getTunnelFn(self)
+  var tunnelOptions = construcTunnelOptions(self)
 
   self.agent = tunnelFn(tunnelOptions)
-
-  // At this point, we know that the proxy will support tunneling
-  // (or fail miserably), so we're going to tunnel all proxied requests
-  // from here on out.
   self.tunnel = true
-
   return true
 }
 
@@ -1462,6 +1419,18 @@ function responseToJSON() {
   }
 }
 
+function constructProxyHost(uriObject) {
+  var port = uriObject.portA
+    , protocol = uriObject.protocol
+    , proxyHost = uriObject.hostname + ':'
+
+  if (port) proxyHost += port
+  else if (protocol === 'https:') proxyHost += '443'
+  else proxyHost += '80'
+
+  return proxyHost
+}
+
 function filterForNonReserved(reserved, options) {
   var object = {}
   for (var i in options) {
@@ -1479,6 +1448,57 @@ function filterOutReservedFunctions(reserved, options) {
     if (!(isReserved && isFunction)) object[i] = options[i]
   }
   return object
+
+}
+
+function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList) {
+  return Object.keys(headers)
+    .filter(function (header) {
+      return proxyHeaderWhiteList.indexOf(header.toLowerCase()) !== -1
+    })
+    .reduce(function (set, header) {
+      set[header] = headers[header]
+      return set
+    }, {})
+}
+
+function construcTunnelOptions(request) {
+  var proxy = request.proxy
+  var proxyHeaders = request.proxyHeaders
+  var proxyAuth
+
+  if (proxy.auth) proxyAuth = proxy.auth
+  if (!proxy.auth && request.proxyAuthorization)
+    proxyHeaders['Proxy-Authorization'] = request.proxyAuthorization
+
+  var tunnelOptions = {
+    proxy: {
+      host: proxy.hostname,
+      port: +proxy.port,
+      proxyAuth: proxyAuth,
+      headers: proxyHeaders
+    },
+    rejectUnauthorized: request.rejectUnauthorized,
+    headers: request.headers,
+    ca: request.ca,
+    cert: request.cert,
+    key: request.key
+  }
+
+  return tunnelOptions
+}
+
+function constructTunnelFnName(uri, proxy) {
+  var uriProtocol = (uri.protocol === 'https:' ? 'https' : 'http')
+  var proxyProtocol = (proxy.protocol === 'https:' ? 'Https' : 'Http')
+  return [uriProtocol, proxyProtocol].join('Over')
+}
+
+function getTunnelFn(request) {
+  var uri = request.uri
+  var proxy = request.proxy
+  var tunnelFnName = constructTunnelFnName(uri, proxy)
+  return tunnel[tunnelFnName]
 }
 
 // Exports
