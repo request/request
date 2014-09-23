@@ -555,10 +555,11 @@ OR
 
 ```javascript
 // `npm install --save tough-cookie` before this works
-var j = request.jar()
-var cookie = request.cookie('your_cookie_here')
-j.setCookie(cookie, uri);
-request({url: 'http://www.google.com', jar: j}, function () {
+var j = request.jar();
+var cookie = request.cookie('key1=value1');
+var url = 'http://www.google.com';
+j.setCookieSync(cookie, url);
+request({url: url, jar: j}, function () {
   request('http://images.google.com')
 })
 ```
