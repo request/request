@@ -106,79 +106,133 @@ Request.prototype.setupTunnel = function () {
   return true
 }
 
+function moveProxyAuthHeader(request) {
+  if (request.hasHeader('proxy-authorization')) {
+    request.proxyAuthorization = request.getHeader('proxy-authorization')
+    request.removeHeader('proxy-authorization')
+  }
+}
 
+function wrapCallback(request) {
+  return function() {
+    if (request._callbackCalled) return // Print a warning maybe?
+    request._callbackCalled = true
+    request._callback.apply(request, arguments)
+  }
+}
 
+function setupCallback(request) {
+  if (request.callback && !request._callback) {
+    request._callback = request.callback
+    request.callback = wrapCallback(request)
+    request.on('error', request.callback.bind())
+    request.on('complete', request.callback.bind(request, null))
+  }
+}
+
+function moveUrlToUri(request) {
+  if (request.url && !request.uri) {
+    // People use this property instead all the time so why not just support it.
+    request.uri = request.url
+    delete request.url
+  }
+}
+
+function setupUri(request) {
+  moveUrlToUri(request)
+
+  if (!request.uri)
+    return request.emit('error', new Error("options.uri is a required argument"))
+
+  if (typeof request.uri == "string")
+    request.uri = url.parse(request.uri)
+}
+
+function setupProxy(request) {
+  if(!request.hasOwnProperty('proxy')) {
+    if(request.uri.protocol == "http:")
+      request.proxy = process.env.HTTP_PROXY || process.env.http_proxy || null
+
+    if(request.uri.protocol == "https:")
+      request.proxy = process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy || null
+  }
+
+  if (request.proxy) request.setupTunnel()
+
+  if (request.proxy && !request.tunnel) {
+    request.port = request.proxy.port
+    request.host = request.proxy.hostname
+  } else {
+    request.port = request.uri.port
+    request.host = request.uri.hostname
+  }
+}
+
+function setupHost(request) {
+  request.setHost = false
+  if (!request.hasHeader('host')) {
+    request.setHeader('host', request.uri.hostname)
+    if (request.uri.port) {
+      if ( !(request.uri.port === 80 && request.uri.protocol === 'http:') &&
+           !(request.uri.port === 443 && request.uri.protocol === 'https:') )
+      request.setHeader('host', request.getHeader('host') + (':'+request.uri.port) )
+    }
+    request.setHost = true
+  }
+}
+
+function setupPort(request) {
+  if (!request.uri.port) {
+    if (request.uri.protocol == 'http:') request.uri.port = 80
+    if (request.uri.protocol == 'https:') request.uri.port = 443
+  }
+}
 
 Request.prototype.init = function (options) {
   // init() contains all the code to setup the request object.
   // the actual outgoing request is not started until start() is called
-  // this function is called from both the constructor and on redirect.
-  var self = this
-  if (!options) options = {}
-  self.headers = self.headers ? copy(self.headers) : {}
-
-  caseless.httpify(self, self.headers)
+  // this function is called from both the constructor and on redirectA
 
   // Never send proxy-auth to the endpoint!
-  if (self.hasHeader('proxy-authorization')) {
-    self.proxyAuthorization = self.getHeader('proxy-authorization')
-    self.removeHeader('proxy-authorization')
-  }
-
-  if (!self.method) self.method = options.method || 'GET'
-  self.localAddress = options.localAddress
-
-  debug(options)
-  if (!self.pool && self.pool !== false) self.pool = globalPool
-  self.dests = self.dests || []
-  self.__isRequestRequest = true
-
   // Protect against double callback
-  if (!self._callback && self.callback) {
-    self._callback = self.callback
-    self.callback = function () {
-      if (self._callbackCalled) return // Print a warning maybe?
-      self._callbackCalled = true
-      self._callback.apply(self, arguments)
-    }
-    self.on('error', self.callback.bind())
-    self.on('complete', self.callback.bind(self, null))
-  }
 
-  if (self.url && !self.uri) {
-    // People use this property instead all the time so why not just support it.
-    self.uri = self.url
-    delete self.url
-  }
-
-  if (!self.uri) {
-    // this will throw if unhandled but is handleable when in a redirect
-    return self.emit('error', new Error("options.uri is a required argument"))
-  } else {
-    if (typeof self.uri == "string") self.uri = url.parse(self.uri)
-  }
-
-  if (self.strictSSL === false) {
-    self.rejectUnauthorized = false
-  }
-
-  if(!self.hasOwnProperty('proxy')) {
-    // check for HTTP(S)_PROXY environment variables
-    if(self.uri.protocol == "http:") {
-        self.proxy = process.env.HTTP_PROXY || process.env.http_proxy || null;
-    } else if(self.uri.protocol == "https:") {
-        self.proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
-                     process.env.HTTP_PROXY || process.env.http_proxy || null;
-    }
-  }
+  // this will throw if unhandled but is handleable when in a redirect
 
   // Pass in `tunnel:true` to *always* tunnel through proxies
+
+  var self = this
+  options = options || {}
+  debug(options)
+
+  self.dests = self.dests || []
+  self.localAddress = options.localAddress
+  self.headers = self.headers ? copy(self.headers) : {}
+  self._redirectsFollowed = self._redirectsFollowed || 0
+  self.maxRedirects = (self.maxRedirects !== undefined) ? self.maxRedirects : 10
   self.tunnel = !!options.tunnel
-  if (self.proxy) {
-    self.setupTunnel()
+  self.__isRequestRequest = true
+
+  caseless.httpify(self, self.headers)
+  moveProxyAuthHeader(self)
+  setupCallback(self)
+  setupUri(self)
+  setupProxy(self)
+  setupHost(self)
+  setupPort(self)
+
+  if (!self.method) self.method = options.method || 'GET'
+  if (!self.pool && self.pool !== false) self.pool = globalPool
+  if (self.strictSSL === false) self.rejectUnauthorized = false
+  if (!self.uri.pathname) self.uri.pathname = '/'
+
+  self.allowRedirect = (typeof self.followRedirect === 'function') ? self.followRedirect : function(response) {
+    return true;
   }
 
-  if (!self.uri.pathname) {self.uri.pathname = '/'}
+  self.followRedirect = (self.followRedirect !== undefined) ? !!self.followRedirect : true
+  self.followAllRedirects = (self.followAllRedirects !== undefined) ? self.followAllRedirects : false
+  if (self.followRedirect || self.followAllRedirects) self.redirects = self.redirects || []
+
 
   if (!self.uri.host && !self.protocol=='unix:') {
     // Invalid URI: it may generate lot of bad errors, like "TypeError: Cannot call method 'indexOf' of undefined" in CookieJar
@@ -195,41 +249,7 @@ Request.prototype.init = function (options) {
     return // This error was fatal
   }
 
-  self._redirectsFollowed = self._redirectsFollowed || 0
-  self.maxRedirects = (self.maxRedirects !== undefined) ? self.maxRedirects : 10
-  self.allowRedirect = (typeof self.followRedirect === 'function') ? self.followRedirect : function(response) {
-    return true;
-  };
-  self.followRedirect = (self.followRedirect !== undefined) ? !!self.followRedirect : true
-  self.followAllRedirects = (self.followAllRedirects !== undefined) ? self.followAllRedirects : false
-  if (self.followRedirect || self.followAllRedirects)
-    self.redirects = self.redirects || []
-
-  self.setHost = false
-  if (!self.hasHeader('host')) {
-    self.setHeader('host', self.uri.hostname)
-    if (self.uri.port) {
-      if ( !(self.uri.port === 80 && self.uri.protocol === 'http:') &&
-           !(self.uri.port === 443 && self.uri.protocol === 'https:') )
-      self.setHeader('host', self.getHeader('host') + (':'+self.uri.port) )
-    }
-    self.setHost = true
-  }
-
   self.jar(self._jar || options.jar)
-
-  if (!self.uri.port) {
-    if (self.uri.protocol == 'http:') {self.uri.port = 80}
-    else if (self.uri.protocol == 'https:') {self.uri.port = 443}
-  }
-
-  if (self.proxy && !self.tunnel) {
-    self.port = self.proxy.port
-    self.host = self.proxy.hostname
-  } else {
-    self.port = self.uri.port
-    self.host = self.uri.hostname
-  }
 
   self.clientErrorHandler = function (error) {
     if (self._aborted) return
