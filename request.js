@@ -265,6 +265,40 @@ Request.prototype.init = function (options) {
         self.proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
                      process.env.HTTP_PROXY || process.env.http_proxy || null;
     }
+
+    // respect NO_PROXY environment variables
+    // ref: http://lynx.isc.org/current/breakout/lynx_help/keystrokes/environments.html
+    var noProxy = process.env.NO_PROXY || process.env.no_proxy || null
+
+    // easy case first - if NO_PROXY is '*'
+    if(noProxy === '*') {
+      self.proxy = null
+    } else if(noProxy !== null) {
+      noProxyList = noProxy.split(',')
+      for(var i = 0, len = noProxyList.length; i < len; i++) {
+        var noProxyItem = noProxyList[i].trim(),
+            hostname = self.uri.hostname
+
+        // no_proxy can be granular at the port level, which complicates things a bit.
+        if (noProxyItem.indexOf(':') > -1) {
+          var noProxyItemParts = noProxyItem.split(':', 2),
+              noProxyHost = noProxyItemParts[0],
+              noProxyPort = noProxyItemParts[1]
+
+          var port = self.uri.port || (self.uri.protocol === 'https:' ? '443' : '80')
+          if(port === noProxyPort && hostname.indexOf(noProxyHost) === hostname.length - noProxyHost.length) {
+            // we've found a match - ports are same and host ends with no_proxy entry.
+            self.proxy = null
+            break
+          }
+        } else {
+          if(hostname.indexOf(noProxyItem) === hostname.length - noProxyItem.length) {
+            self.proxy = null
+            break
+          }
+        }
+      }
+    }
   }
 
   // Pass in `tunnel:true` to *always* tunnel through proxies
