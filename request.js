@@ -277,11 +277,11 @@ Request.prototype.init = function (options) {
       var noProxyItem, hostname, port, noProxyItemParts, noproxyHost, noProxyPort, noProxyList
 
       // canonicalize the hostname, so that 'oogle.com' won't match 'google.com'
-      hostname = self.uri.hostname.replace(/^\.*/, '.')
+      hostname = self.uri.hostname.replace(/^\.*/, '.').toLowerCase()
       noProxyList = noProxy.split(',')
 
       for (var i = 0, len = noProxyList.length; i < len; i++) {
-        noProxyItem = noProxyList[i].trim()
+        noProxyItem = noProxyList[i].trim().toLowerCase()
 
         // no_proxy can be granular at the port level, which complicates things a bit.
         if (noProxyItem.indexOf(':') > -1) {
