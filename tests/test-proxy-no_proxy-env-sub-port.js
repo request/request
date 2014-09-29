@@ -29,7 +29,8 @@ s.listen(port, function () {
     url: 'http://'+proxiedHost,
     /* should read from HTTP_PROXY env var and 
        also the NO_PROXY env. Net result is proxy
-       should NOT be called.
+       should be called (because oogle.com:80 shouldn't
+       match google.com:80)
     */
   }, function (err, res, body) {
     s.close()
@@ -37,5 +38,5 @@ s.listen(port, function () {
 })
 
 process.on('exit', function () {
-  assert.ok(called, 'the request must not be made to the proxy server')
+  assert.ok(called, 'the request must be made to the proxy server')
 })

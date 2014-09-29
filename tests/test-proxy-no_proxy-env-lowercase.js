@@ -29,7 +29,7 @@ s.listen(port, function () {
     url: 'http://'+proxiedHost,
     /* should read from HTTP_PROXY env var and 
        also the NO_PROXY env. Net result is proxy
-       should NOT be called.
+       should NOT be called, because env no_proxy === NO_PROXY
     */
   }, function (err, res, body) {
     s.close()

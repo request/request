@@ -29,7 +29,8 @@ s.listen(port, function () {
     url: 'http://'+proxiedHost,
     /* should read from HTTP_PROXY env var and 
        also the NO_PROXY env. Net result is proxy
-       should NOT be called.
+       should NOT be called, because implicit target
+       port of 80 matches google.com:80
     */
   }, function (err, res, body) {
     s.close()
