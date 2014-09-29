@@ -1111,17 +1111,26 @@ Request.prototype.onResponse = function (response) {
       self.pipeDest(dest)
     })
 
-    dataStream.on("data", function (chunk) {
-      var emitted = self.emit("data", chunk)
-      if (emitted) {
+    // part 1 of fix for https://github.com/mikeal/request/issues/887
+    // but we cannot pause and unshift in 0.8, so we check first
+    if (typeof dataStream.unshift === "function") {
+      dataStream.on("data", function (chunk) {
+        var emitted = self.emit("data", chunk)
+        if (emitted) {
+          self._destdata = true
+        } else {
+          // pause URL stream until we pipe it
+          dataStream.pause()
+          dataStream.unshift(chunk)
+        }
+      })
+    } else {
+      dataStream.on("data", function (chunk) {
         self._destdata = true
-      } else {
-        // pause URL stream until we pipe it
-        // part 1 of fix for https://github.com/mikeal/request/issues/887
-        dataStream.pause()
-        dataStream.unshift(chunk)
-      }
-    })
+        self.emit("data", chunk)
+      })
+    }
+    
     dataStream.on("end", function (chunk) {
       self.emit("end", chunk)
     })
