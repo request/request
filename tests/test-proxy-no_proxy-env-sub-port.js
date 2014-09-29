@@ -15,7 +15,7 @@ var port = 6768
 
 // set up environment variable
 process.env.HTTP_PROXY = 'http://localhost:'+port;
-process.env.NO_PROXY = 'google.com:1234';
+process.env.NO_PROXY = 'oogle.com:80';
   
 var s = server.createServer(port)
 s.listen(port, function () {
@@ -29,7 +29,7 @@ s.listen(port, function () {
     url: 'http://'+proxiedHost,
     /* should read from HTTP_PROXY env var and 
        also the NO_PROXY env. Net result is proxy
-       should be called.
+       should NOT be called.
     */
   }, function (err, res, body) {
     s.close()
@@ -37,5 +37,5 @@ s.listen(port, function () {
 })
 
 process.on('exit', function () {
-  assert.ok(called, 'the request must be made to the proxy server')
+  assert.ok(called, 'the request must not be made to the proxy server')
 })
