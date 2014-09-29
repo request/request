@@ -102,7 +102,7 @@ request.cookie = function (str) {
 }
 
 request.defaults = function (options, requester) {
-
+  var self = this
   var wrap = function (method) {
     var headerlessOptions = function (options) {
       options = extend({}, options)
@@ -125,7 +125,7 @@ request.defaults = function (options, requester) {
         params.options.headers = getHeaders(params, options)
 
       if (isFunction(requester)) {
-        if (method === request) {
+        if (method === self) {
           method = requester
         } else {
           params.options._requester = requester
@@ -136,16 +136,16 @@ request.defaults = function (options, requester) {
     }
   }
 
-  defaults          = wrap(this)
-  defaults.get      = wrap(this.get)
-  defaults.patch    = wrap(this.patch)
-  defaults.post     = wrap(this.post)
-  defaults.put      = wrap(this.put)
-  defaults.head     = wrap(this.head)
-  defaults.del      = wrap(this.del)
-  defaults.cookie   = wrap(this.cookie)
-  defaults.jar      = this.jar
-  defaults.defaults = this.defaults
+  defaults          = wrap(self)
+  defaults.get      = wrap(self.get)
+  defaults.patch    = wrap(self.patch)
+  defaults.post     = wrap(self.post)
+  defaults.put      = wrap(self.put)
+  defaults.head     = wrap(self.head)
+  defaults.del      = wrap(self.del)
+  defaults.cookie   = wrap(self.cookie)
+  defaults.jar      = self.jar
+  defaults.defaults = self.defaults
   return defaults
 }
 
