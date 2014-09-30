@@ -128,6 +128,12 @@ s.listen(s.port, function () {
   // test recursive defaults (string, function)
   var defaultsOne = request.defaults({headers:{foo:"bar1"}});
   var defaultsTwo = defaultsOne.defaults({headers:{baz:"bar2"}});
+  var defaultsThree = defaultsTwo.defaults({}, function(options, callback){
+    options.headers = {
+      foo: 'bar3'
+    };
+    defaultsTwo(options, callback);
+  });
   
   defaultsOne(s.url + '/get_recursive1', function (e, r, b){
     if (e) throw e;
@@ -136,6 +142,21 @@ s.listen(s.port, function () {
   });
 
   defaultsTwo(s.url + '/get_recursive2', function (e, r, b){
+    if (e) throw e;
+    assert.deepEqual("TESTING!", b);
+    counter += 1;
+  });
+
+  s.on('/get_recursive3', function (req, resp) {
+    assert.equal(req.headers.foo, 'bar3');
+    assert.equal(req.headers.baz, 'bar2');
+    assert.equal(req.method, 'GET');
+    resp.writeHead(200, {'Content-Type': 'text/plain'});
+    resp.end('TESTING!');
+  });
+
+  //test that you can set a requester function on recursive defaults
+  defaultsThree(s.url + '/get_recursive3', function (e, r, b){
     if (e) throw e;
     assert.deepEqual("TESTING!", b);
     counter += 1;
