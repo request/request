@@ -345,7 +345,7 @@ Request.prototype.init = function (options) {
     if (self.uri.port) {
       if ( !(self.uri.port === 80 && self.uri.protocol === 'http:') &&
            !(self.uri.port === 443 && self.uri.protocol === 'https:') )
-      self.setHeader('host', self.getHeader('host') + (':'+self.uri.port) )
+      self.setHeader('host', self.getHeader('host') + (':' + self.uri.port) )
     }
     self.setHost = true
   }
@@ -614,21 +614,21 @@ Request.prototype.init = function (options) {
 
     self.unixsocket = true;
 
-    var full_path = self.uri.href.replace(self.uri.protocol+'/', '');
+    var full_path = self.uri.href.replace(self.uri.protocol + '/', '');
 
     var lookup = full_path.split('/');
 
     var lookup_table = {};
-    do { lookup_table[lookup.join('/')]={} } while(lookup.pop())
+    do { lookup_table[lookup.join('/')] = {} } while(lookup.pop())
     for (var r in lookup_table){
       try_next(r);
     }
 
-    function try_next(table_row){
+    function try_next(table_row) {
       var client = net.connect( table_row );
       client.path = table_row
-      client.on('error', function(){ lookup_table[this.path].error_connecting=true; this.end(); });
-      client.on('connect', function(){ lookup_table[this.path].error_connecting=false; this.end(); });
+      client.on('error', function(){ lookup_table[this.path].error_connecting = true; this.end(); });
+      client.on('connect', function(){ lookup_table[this.path].error_connecting = false; this.end(); });
       table_row.client = client;
     }
 
@@ -648,7 +648,7 @@ Request.prototype.init = function (options) {
           if(typeof lookup_table[r].error_connecting === 'undefined')
             trying = true;
         }
-        if(trying && response_counter<1000)
+        if(trying && response_counter < 1000)
           wait_for_socket_response()
         else
           set_socket_properties();
@@ -663,7 +663,7 @@ Request.prototype.init = function (options) {
         }
       }
       if(!host){
-        self.emit('error', new Error("Failed to connect to any socket in "+full_path))
+        self.emit('error', new Error("Failed to connect to any socket in " + full_path))
       }
       var path = full_path.replace(host, '')
 
@@ -915,7 +915,7 @@ Request.prototype.onResponse = function (response) {
       !response.client.authorized)) {
     debug('strict ssl error', self.uri.href)
     var sslErr = response.hasOwnProperty('client') ? response.client.authorizationError : self.uri.href + " does not support SSL";
-    self.emit('error', new Error('SSL Error: '+ sslErr))
+    self.emit('error', new Error('SSL Error: ' + sslErr))
     return
   }
 
@@ -925,7 +925,7 @@ Request.prototype.onResponse = function (response) {
     self.timeoutTimer = null
   }
 
-  var targetCookieJar = (self._jar && self._jar.setCookieSync)?self._jar:globalCookieJar;
+  var targetCookieJar = (self._jar && self._jar.setCookieSync) ? self._jar : globalCookieJar;
   var addCookie = function (cookie) {
     //set the cookie if it's domain in the href's domain.
     try {
@@ -1046,7 +1046,7 @@ Request.prototype.onResponse = function (response) {
     if (self._paused) response.resume()
 
     if (self._redirectsFollowed >= self.maxRedirects) {
-      self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop "+self.uri.href))
+      self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop " + self.uri.href))
       return
     }
     self._redirectsFollowed += 1
@@ -1446,7 +1446,7 @@ Request.prototype.oauth = function (_oauth) {
   }
 
   var oa = {}
-  for (var i in _oauth) oa['oauth_'+i] = _oauth[i]
+  for (var i in _oauth) oa['oauth_' + i] = _oauth[i]
   if ('oauth_realm' in oa) delete oa.oauth_realm
 
   if (!oa.oauth_version) oa.oauth_version = '1.0'
@@ -1466,7 +1466,7 @@ Request.prototype.oauth = function (_oauth) {
 
   var realm = _oauth.realm ? 'realm="' + _oauth.realm + '",' : '';
   var authHeader = 'OAuth ' + realm +
-    Object.keys(oa).sort().map(function (i) {return i+'="'+oauth.rfc3986(oa[i])+'"'}).join(',')
+    Object.keys(oa).sort().map(function (i) {return i + '="' + oauth.rfc3986(oa[i]) + '"'}).join(',')
   authHeader += ',oauth_signature="' + oauth.rfc3986(signature) + '"'
   this.setHeader('Authorization', authHeader)
   return this
@@ -1483,7 +1483,7 @@ Request.prototype.jar = function (jar) {
     cookies = false
     this._disableCookies = true
   } else {
-    var targetCookieJar = (jar && jar.getCookieStringSync)?jar:globalCookieJar;
+    var targetCookieJar = (jar && jar.getCookieStringSync) ? jar : globalCookieJar;
     var urihref = this.uri.href
     //fetch cookie in the Specified host
     if (targetCookieJar) {
