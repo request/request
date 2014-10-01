@@ -418,16 +418,16 @@ Request.prototype.init = function (options) {
     }
 
     if (self.uri.auth && !self.hasHeader('authorization')) {
-      var authPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
-      self.auth(authPieces[0], authPieces.slice(1).join(':'), true)
+      var uriAuthPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
+      self.auth(uriAuthPieces[0], uriAuthPieces.slice(1).join(':'), true)
     }
 
     if (self.proxy && !self.tunnel) {
       if (self.proxy.auth && !self.proxyAuthorization) {
-        var authPieces = self.proxy.auth.split(':').map(function(item){
+        var proxyAuthPieces = self.proxy.auth.split(':').map(function(item){
           return querystring.unescape(item)
         })
-        var authHeader = 'Basic ' + toBase64(authPieces.join(':'))
+        var authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
         self.proxyAuthorization = authHeader
       }
       if (self.proxyAuthorization)
