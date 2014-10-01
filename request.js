@@ -3,7 +3,6 @@
 var optional = require('./lib/optional')
   , http = require('http')
   , https = optional('https')
-  , tls = optional('tls')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
@@ -579,7 +578,6 @@ Request.prototype.init = function (options) {
     var full_path = self.uri.href.replace(self.uri.protocol+'/', '');
 
     var lookup = full_path.split('/');
-    var error_connecting = true;
 
     var lookup_table = {};
     do { lookup_table[lookup.join('/')]={} } while(lookup.pop())

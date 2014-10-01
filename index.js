@@ -16,7 +16,6 @@
 
 var extend                = require('util')._extend
   , cookies               = require('./lib/cookies')
-  , copy                  = require('./lib/copy')
   , helpers               = require('./lib/helpers')
   , isFunction            = helpers.isFunction
   , constructObject       = helpers.constructObject
