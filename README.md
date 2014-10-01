@@ -202,7 +202,7 @@ var formData = {
   my_file: fs.createReadStream(__dirname + '/unicycle.jpg'),
   remote_file: request(remoteFile)
 };
-request.post({url:'http://service.com/upload', formData: formData}, function optionalCallback(err, httpResponse, body) {
+request.post({url:'http://service.com/upload', form: formData}, function optionalCallback(err, httpResponse, body) {
   if (err) {
     return console.error('upload failed:', err);
   }
