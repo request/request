@@ -274,7 +274,7 @@ Request.prototype.init = function (options) {
     if (noProxy === '*') {
       self.proxy = null
     } else if (noProxy !== null) {
-      var noProxyItem, hostname, port, noProxyItemParts, noproxyHost, noProxyPort, noProxyList
+      var noProxyItem, hostname, port, noProxyItemParts, noProxyHost, noProxyPort, noProxyList
 
       // canonicalize the hostname, so that 'oogle.com' won't match 'google.com'
       hostname = self.uri.hostname.replace(/^\.*/, '.').toLowerCase()
