@@ -75,8 +75,9 @@ function Request (options) {
 
   this.readable = true
   this.writable = true
-  this.canTunnel = options.tunnel !== false && tunnel
+  if (typeof options.tunnel === 'undefined') options.tunnel = false
   if (options.method) this.explicitMethod = true
+  this.canTunnel = options.tunnel !== false && tunnel
   this.init(options)
 }
 
@@ -1492,8 +1493,6 @@ Request.prototype.destroy = function () {
   if (!this._ended) this.end()
   else if (this.response) this.response.destroy()
 }
-
-Request.prototype.toJSON = requestToJSON
 
 Request.defaultProxyHeaderWhiteList =
   defaultProxyHeaderWhiteList.slice()
