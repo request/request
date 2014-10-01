@@ -18,7 +18,7 @@
   },
   "license": "Apache-2.0",
   "engines": {
-    "node" : ">=0.8.0"
+    "node": ">=0.8.0"
   },
   "main": "index.js",
   "dependencies": {
@@ -41,9 +41,11 @@
     "stringstream": "~0.0.4"
   },
   "scripts": {
-    "test": "node tests/run.js"
+    "test": "npm run lint && node tests/run.js",
+    "lint": "./node_modules/eslint/bin/eslint.js lib/ *.js"
   },
   "devDependencies": {
-    "rimraf": "~2.2.8"
+    "rimraf": "~2.2.8",
+    "eslint": "0.5.1"
   }
 }
