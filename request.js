@@ -1021,12 +1021,12 @@ Request.prototype.onResponse = function (response) {
 
         authHeader = []
         for (var k in authValues) {
-          if (!authValues[k]) {
-            //ignore
-          } else if (k === 'qop' || k === 'nc' || k === 'algorithm') {
-            authHeader.push(k + '=' + authValues[k])
-          } else {
-            authHeader.push(k + '="' + authValues[k] + '"')
+          if (authValues[k]) {
+            if (k === 'qop' || k === 'nc' || k === 'algorithm') {
+              authHeader.push(k + '=' + authValues[k])
+            } else {
+              authHeader.push(k + '="' + authValues[k] + '"')
+            }
           }
         }
         authHeader = 'Digest ' + authHeader.join(', ')
