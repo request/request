@@ -12,6 +12,8 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+'use strict';
+
 var extend                = require('util')._extend
   , cookies               = require('./lib/cookies')
   , copy                  = require('./lib/copy')
@@ -136,7 +138,7 @@ request.defaults = function (options, requester) {
     }
   }
 
-  defaults          = wrap(self)
+  var defaults      = wrap(self)
   defaults.get      = wrap(self.get)
   defaults.patch    = wrap(self.patch)
   defaults.post     = wrap(self.post)
