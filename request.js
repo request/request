@@ -864,8 +864,8 @@ Request.prototype.onResponse = function (response) {
     return
   }
   if (self._paused) response.pause()
-  // Check that response.resume is defined. Workaround for browserify.
-  else response.resume && response.resume()
+  // response.resume should be defined, but check anyway before calling. Workaround for browserify.
+  else if (response.resume) response.resume()
 
   self.response = response
   response.request = self
