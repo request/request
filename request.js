@@ -67,6 +67,14 @@ var defaultProxyHeaderWhiteList = [
 ]
 
 function Request (options) {
+  // if tunnel property of options was not given default to false
+  // if given the method property in options, set property explicitMethod to true 
+
+  // extend the Request instance with any non-reserved properties
+  // remove any reserved functions from the options object
+  // set Request instance to be readable and writable
+  // call init
+
   stream.Stream.call(this)
   var reserved = Object.keys(Request.prototype)
   var nonReserved = filterForNonReserved(reserved, options)
@@ -1519,6 +1527,9 @@ function responseToJSON() {
 }
 
 function filterForNonReserved(reserved, options) {
+  // Filter out properties that are not reserved.
+  // Reserved values are passed in at call site.
+
   var object = {}
   for (var i in options) {
     var notReserved = (reserved.indexOf(i) === -1)
@@ -1528,6 +1539,9 @@ function filterForNonReserved(reserved, options) {
 }
 
 function filterOutReservedFunctions(reserved, options) {
+  // Filter out properties that are functions and are reserved.
+  // Reserved values are passed in at call site.
+
   var object = {}
   for (var i in options) {
     var isReserved = !(reserved.indexOf(i) === -1)
