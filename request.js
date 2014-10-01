@@ -265,6 +265,45 @@ Request.prototype.init = function (options) {
         self.proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
                      process.env.HTTP_PROXY || process.env.http_proxy || null;
     }
+
+    // respect NO_PROXY environment variables
+    // ref: http://lynx.isc.org/current/breakout/lynx_help/keystrokes/environments.html
+    var noProxy = process.env.NO_PROXY || process.env.no_proxy || null
+
+    // easy case first - if NO_PROXY is '*'
+    if (noProxy === '*') {
+      self.proxy = null
+    } else if (noProxy !== null) {
+      var noProxyItem, hostname, port, noProxyItemParts, noproxyHost, noProxyPort, noProxyList
+
+      // canonicalize the hostname, so that 'oogle.com' won't match 'google.com'
+      hostname = self.uri.hostname.replace(/^\.*/, '.').toLowerCase()
+      noProxyList = noProxy.split(',')
+
+      for (var i = 0, len = noProxyList.length; i < len; i++) {
+        noProxyItem = noProxyList[i].trim().toLowerCase()
+
+        // no_proxy can be granular at the port level, which complicates things a bit.
+        if (noProxyItem.indexOf(':') > -1) {
+          noProxyItemParts = noProxyItem.split(':', 2)
+          noProxyHost = noProxyItemParts[0].replace(/^\.*/, '.')
+          noProxyPort = noProxyItemParts[1]
+
+          port = self.uri.port || (self.uri.protocol === 'https:' ? '443' : '80')
+          if (port === noProxyPort && hostname.indexOf(noProxyHost) === hostname.length - noProxyHost.length) {
+            // we've found a match - ports are same and host ends with no_proxy entry.
+            self.proxy = null
+            break
+          }
+        } else {
+          noProxyItem = noProxyItem.replace(/^\.*/, '.')
+          if (hostname.indexOf(noProxyItem) === hostname.length - noProxyItem.length) {
+            self.proxy = null
+            break
+          }
+        }
+      }
+    }
   }
 
   // Pass in `tunnel:true` to *always* tunnel through proxies
