@@ -1,3 +1,5 @@
+'use strict';
+
 var optional = require('./lib/optional')
   , http = require('http')
   , https = optional('https')
@@ -582,7 +584,7 @@ Request.prototype.init = function (options) {
 
     var lookup_table = {};
     do { lookup_table[lookup.join('/')]={} } while(lookup.pop())
-    for (r in lookup_table){
+    for (var r in lookup_table){
       try_next(r);
     }
 
@@ -596,7 +598,7 @@ Request.prototype.init = function (options) {
 
     wait_for_socket_response();
 
-    response_counter = 0;
+    var response_counter = 0;
 
     function wait_for_socket_response(){
       var detach;
