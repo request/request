@@ -75,18 +75,19 @@ function Request (options) {
   // set Request instance to be readable and writable
   // call init
 
-  stream.Stream.call(this)
+  var self = this
+  stream.Stream.call(self)
   var reserved = Object.keys(Request.prototype)
   var nonReserved = filterForNonReserved(reserved, options)
   util._extend(this, nonReserved)
   options = filterOutReservedFunctions(reserved, options)
 
-  this.readable = true
-  this.writable = true
+  self.readable = true
+  self.writable = true
   if (typeof options.tunnel === 'undefined') options.tunnel = false
-  if (options.method) this.explicitMethod = true
-  this.canTunnel = options.tunnel !== false && tunnel
-  this.init(options)
+  if (options.method) self.explicitMethod = true
+  self.canTunnel = options.tunnel !== false && tunnel
+  self.init(options)
 }
 
 util.inherits(Request, stream.Stream)
