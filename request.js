@@ -249,8 +249,8 @@ Request.prototype.init = function (options) {
   if (!self.uri) {
     // this will throw if unhandled but is handleable when in a redirect
     return self.emit('error', new Error("options.uri is a required argument"))
-  } else {
-    if (typeof self.uri === "string") self.uri = url.parse(self.uri)
+  } else if (typeof self.uri === "string") {
+    self.uri = url.parse(self.uri)
   }
 
   if (self.strictSSL === false) {
@@ -314,7 +314,7 @@ Request.prototype.init = function (options) {
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
 
-  if (!self.uri.host && !self.protocol === 'unix:') {
+  if (!self.uri.host && self.uri.protocol !== 'unix:') {
     // Invalid URI: it may generate lot of bad errors, like "TypeError: Cannot call method 'indexOf' of undefined" in CookieJar
     // Detect and reject it as soon as possible
     var faultyUri = url.format(self.uri)
