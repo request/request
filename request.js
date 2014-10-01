@@ -141,8 +141,7 @@ Request.prototype.setupTunnel = function () {
   if (!self.proxy) return false
 
   // Don't need to use a tunneling proxy
-  if (!self.tunnel && self.uri.protocol !== 'https:')
-    return
+  if (!self.tunnel && self.uri.protocol !== 'https:') return false
 
   // do the HTTP CONNECT dance using koichik/node-tunnel
 
@@ -286,8 +285,8 @@ Request.prototype.init = function (options) {
       // they should be warned that it can be caused by a redirection (can save some hair)
       message += '. This can be caused by a crappy redirection.'
     }
-    self.emit('error', new Error(message))
-    return // This error was fatal
+    // This error was fatal
+    return self.emit('error', new Error(message))
   }
 
   self._redirectsFollowed = self._redirectsFollowed || 0
@@ -779,10 +778,10 @@ Request.prototype.getAgent = function () {
   // we're using a stored agent.  Make sure it's protocol-specific
   poolKey = this.uri.protocol + poolKey
 
-  // already generated an agent for this setting
-  if (this.pool[poolKey]) return this.pool[poolKey]
+  // generate a new agent for this setting if none yet exists
+  if (!this.pool[poolKey]) this.pool[poolKey] = new Agent(options)
 
-  return this.pool[poolKey] = new Agent(options)
+  return this.pool[poolKey]
 }
 
 Request.prototype.start = function () {
