@@ -46,7 +46,7 @@ s.listen(s.port, function () {
   // Issue #125: headers.cookie + cookie jar
   //using new cookie module
   var jar = request.jar()
-  jar.setCookieSync('quux=baz', serverUri);
+  jar.setCookie('quux=baz', serverUri);
   createTest({jar: jar, headers: {cookie: 'foo=bar'}}, function (req, res) {
     assert.ok(req.headers.cookie)
     assert.equal(req.headers.cookie, 'foo=bar; quux=baz')
@@ -54,7 +54,7 @@ s.listen(s.port, function () {
 
   // Issue #794 add ability to ignore cookie parsing and domain errors
   var jar2 = request.jar()
-  jar2.setCookieSync('quux=baz; Domain=foo.bar.com', serverUri, {ignoreError: true});
+  jar2.setCookie('quux=baz; Domain=foo.bar.com', serverUri, {ignoreError: true});
   createTest({jar: jar2, headers: {cookie: 'foo=bar'}}, function (req, res) {
     assert.ok(req.headers.cookie)
     assert.equal(req.headers.cookie, 'foo=bar')
