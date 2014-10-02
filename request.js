@@ -68,7 +68,7 @@ var defaultProxyHeaderWhiteList = [
 
 function Request (options) {
   // if tunnel property of options was not given default to false
-  // if given the method property in options, set property explicitMethod to true 
+  // if given the method property in options, set property explicitMethod to true
 
   // extend the Request instance with any non-reserved properties
   // remove any reserved functions from the options object
