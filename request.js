@@ -84,8 +84,8 @@ function Request (options) {
 
   self.readable = true
   self.writable = true
-  if (typeof options.tunnel === 'undefined') options.tunnel = false
-  if (options.method) self.explicitMethod = true
+  if (typeof options.tunnel === 'undefined') { options.tunnel = false }
+  if (options.method) { self.explicitMethod = true }
   self.canTunnel = options.tunnel !== false && tunnel
   self.init(options)
 }
