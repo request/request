@@ -8,9 +8,12 @@ var optional = require('./lib/optional')
   , stream = require('stream')
   , qs = require('qs')
   , querystring = require('querystring')
-  , crypto = require('crypto')
   , zlib = require('zlib')
-
+  , helpers = require('./lib/helpers')
+  , safeStringify = helpers.safeStringify
+  , md5 = helpers.md5
+  , isReadStream = helpers.isReadStream
+  , toBase64 = helpers.toBase64
   , bl = require('bl')
   , oauth = optional('oauth-sign')
   , hawk = optional('hawk')
@@ -19,7 +22,6 @@ var optional = require('./lib/optional')
   , uuid = require('node-uuid')
   , mime = require('mime-types')
   , tunnel = require('tunnel-agent')
-  , _safeStringify = require('json-stringify-safe')
   , stringstream = optional('stringstream')
   , caseless = require('caseless')
 
@@ -33,13 +35,6 @@ var optional = require('./lib/optional')
   , debug = require('./lib/debug')
   , net = require('net')
   ;
-
-function safeStringify (obj) {
-  var ret
-  try { ret = JSON.stringify(obj) }
-  catch (e) { ret = _safeStringify(obj) }
-  return ret
-}
 
 var globalPool = {}
 var isUrl = /^https?:|^unix:/
@@ -71,68 +66,35 @@ var defaultProxyHeaderWhiteList = [
   'via'
 ]
 
-function isReadStream (rs) {
-  return rs.readable && rs.path && rs.mode;
-}
-
-function toBase64 (str) {
-  return (new Buffer(str || "", "ascii")).toString("base64")
-}
-
-function md5 (str) {
-  return crypto.createHash('md5').update(str).digest('hex')
-}
-
-// Return a simpler request object to allow serialization
-function requestToJSON() {
-  return {
-    uri: this.uri,
-    method: this.method,
-    headers: this.headers
-  }
-}
-
-// Return a simpler response object to allow serialization
-function responseToJSON() {
-  return {
-    statusCode: this.statusCode,
-    body: this.body,
-    headers: this.headers,
-    request: requestToJSON.call(this.request)
-  }
-}
-
 function Request (options) {
-  stream.Stream.call(this)
-  this.readable = true
-  this.writable = true
+  // if tunnel property of options was not given default to false
+  // if given the method property in options, set property explicitMethod to true
 
-  if (typeof options === 'string') {
-    options = {uri:options}
-  }
+  // extend the Request instance with any non-reserved properties
+  // remove any reserved functions from the options object
+  // set Request instance to be readable and writable
+  // call init
 
+  var self = this
+  stream.Stream.call(self)
   var reserved = Object.keys(Request.prototype)
-  for (var i in options) {
-    if (reserved.indexOf(i) === -1) {
-      this[i] = options[i]
-    } else {
-      if (typeof options[i] === 'function') {
-        delete options[i]
-      }
-    }
-  }
+  var nonReserved = filterForNonReserved(reserved, options)
+  util._extend(this, nonReserved)
+  options = filterOutReservedFunctions(reserved, options)
 
+  self.readable = true
+  self.writable = true
+  if (typeof options.tunnel === 'undefined') {
+    options.tunnel = false
+  }
   if (options.method) {
-    this.explicitMethod = true
+    self.explicitMethod = true
   }
-
-  // Assume that we're not going to tunnel unless we need to
-  if (typeof options.tunnel === 'undefined') options.tunnel = false
-
-  this.init(options)
+  self.canTunnel = options.tunnel !== false && tunnel
+  self.init(options)
 }
-util.inherits(Request, stream.Stream)
 
+util.inherits(Request, stream.Stream)
 
 // Set up the tunneling agent if necessary
 Request.prototype.setupTunnel = function () {
@@ -1545,10 +1507,60 @@ Request.prototype.destroy = function () {
   else if (this.response) this.response.destroy()
 }
 
-Request.prototype.toJSON = requestToJSON
-
 Request.defaultProxyHeaderWhiteList =
   defaultProxyHeaderWhiteList.slice()
 
+// Helpers
 
+// Return a simpler request object to allow serialization
+function requestToJSON() {
+  return {
+    uri: this.uri,
+    method: this.method,
+    headers: this.headers
+  }
+}
+
+// Return a simpler response object to allow serialization
+function responseToJSON() {
+  return {
+    statusCode: this.statusCode,
+    body: this.body,
+    headers: this.headers,
+    request: requestToJSON.call(this.request)
+  }
+}
+
+function filterForNonReserved(reserved, options) {
+  // Filter out properties that are not reserved.
+  // Reserved values are passed in at call site.
+
+  var object = {}
+  for (var i in options) {
+    var notReserved = (reserved.indexOf(i) === -1)
+    if (notReserved) {
+      object[i] = options[i]
+    }
+  }
+  return object
+}
+
+function filterOutReservedFunctions(reserved, options) {
+  // Filter out properties that are functions and are reserved.
+  // Reserved values are passed in at call site.
+
+  var object = {}
+  for (var i in options) {
+    var isReserved = !(reserved.indexOf(i) === -1)
+    var isFunction = (typeof options[i] === 'function')
+    if (!(isReserved && isFunction)) {
+      object[i] = options[i]
+    }
+  }
+  return object
+}
+
+// Exports
+
+Request.prototype.toJSON = requestToJSON
 module.exports = Request
