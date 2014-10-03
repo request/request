@@ -47,3 +47,9 @@ var req7 = request.get({ uri: 'http://www.google.com', qs: { where : { foo: 'bar
 setTimeout(function() {
   assert.equal('/?where%5Bfoo%5D=bar', req7.path)
 }, 1)
+
+// test a query with an array for a value.
+var req8 = request.get({ uri: 'http://www.google.com', qs: { order : ['bar', 'desc'] }})
+setTimeout(function() {
+  assert.equal('/?order%5B0%5D=bar&order%5B1%5D=desc', req8.path)
+}, 1)
