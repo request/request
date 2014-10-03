@@ -105,10 +105,21 @@ Request.prototype.setupTunnel = function () {
 
   var self = this
 
-  if (typeof self.proxy === 'string') self.proxy = url.parse(self.proxy)
-  if (!self.proxy) return false
-  if (!self.tunnel && self.uri.protocol !== 'https:') return false
-  if (!self.proxyHeaderWhiteList) self.proxyHeaderWhiteList = defaultProxyHeaderWhiteList
+  if (typeof self.proxy === 'string') {
+    self.proxy = url.parse(self.proxy)
+  }
+
+  if (!self.proxy) {
+    return false
+  }
+
+  if (!self.tunnel && self.uri.protocol !== 'https:') {
+    return false
+  }
+
+  if (!self.proxyHeaderWhiteList) {
+    self.proxyHeaderWhiteList = defaultProxyHeaderWhiteList
+  }
 
   var proxyHost = constructProxyHost(self.uri)
   self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, self.proxyHeaderWhiteList)
@@ -1492,9 +1503,13 @@ function constructProxyHost(uriObject) {
     , protocol = uriObject.protocol
     , proxyHost = uriObject.hostname + ':'
 
-  if (port) proxyHost += port
-  else if (protocol === 'https:') proxyHost += '443'
-  else proxyHost += '80'
+  if (port) {
+    proxyHost += port
+  } else if (protocol === 'https:') {
+    proxyHost += '443'
+  } else {
+    proxyHost += '80'
+  }
 
   return proxyHost
 }
@@ -1545,9 +1560,13 @@ function construcTunnelOptions(request) {
   var proxyHeaders = request.proxyHeaders
   var proxyAuth
 
-  if (proxy.auth) proxyAuth = proxy.auth
-  if (!proxy.auth && request.proxyAuthorization)
+  if (proxy.auth) {
+    proxyAuth = proxy.auth
+  }
+
+  if (!proxy.auth && request.proxyAuthorization) {
     proxyHeaders['Proxy-Authorization'] = request.proxyAuthorization
+  }
 
   var tunnelOptions = {
     proxy: {
