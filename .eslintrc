@@ -1,0 +1,26 @@
+{
+  "env": {
+    "node": true
+  },
+  "rules": {
+    // Disallow semi-colons, except to disambiguate some statements (warning until all violations fixed)
+    "semi": [1, "never"],
+    "no-extra-semi": 1,
+    // Allow only single-quotes, disallow double-quotes (warning until all violations fixed)
+    "quotes": [1, "single"],
+    // Require curly braces for all control statements (warning until all violations fixed)
+    "curly": 1,
+    // Disallow using variables and functions before they've been defined (warning until all violations fixed)
+    "no-use-before-define": 1,
+    // Allow any case for variable naming
+    "camelcase": 0,
+    // Disallow unused variables, except as function arguments
+    "no-unused-vars": [2, {"args":"none"}],
+    // Allow leading underscores for method names
+    // REASON: we use underscores to denote private methods
+    "no-underscore-dangle": 0,
+    // Allow non-require statements mixed in with module require statements
+    // REASON: we use the `optional()` helper, which makes this rule impossible to enforce
+    "no-mixed-requires": 0
+  }
+}
