@@ -84,8 +84,12 @@ function Request (options) {
 
   self.readable = true
   self.writable = true
-  if (typeof options.tunnel === 'undefined') { options.tunnel = false }
-  if (options.method) { self.explicitMethod = true }
+  if (typeof options.tunnel === 'undefined') {
+    options.tunnel = false
+  }
+  if (options.method) {
+    self.explicitMethod = true
+  }
   self.canTunnel = options.tunnel !== false && tunnel
   self.init(options)
 }
@@ -1534,7 +1538,9 @@ function filterForNonReserved(reserved, options) {
   var object = {}
   for (var i in options) {
     var notReserved = (reserved.indexOf(i) === -1)
-    if (notReserved) object[i] = options[i]
+    if (notReserved) {
+      object[i] = options[i]
+    }
   }
   return object
 }
@@ -1547,7 +1553,9 @@ function filterOutReservedFunctions(reserved, options) {
   for (var i in options) {
     var isReserved = !(reserved.indexOf(i) === -1)
     var isFunction = (typeof options[i] === 'function')
-    if (!(isReserved && isFunction)) object[i] = options[i]
+    if (!(isReserved && isFunction)) {
+      object[i] = options[i]
+    }
   }
   return object
 }
