@@ -1,7 +1,7 @@
 var request = request = require('../index')
   , assert = require('assert')
   ;
- 
+
 
 // Test adding a querystring
 var req1 = request.get({ uri: 'http://www.google.com', qs: { q : 'search' }})
@@ -40,3 +40,16 @@ req6.qs({ q: "test" });
 process.nextTick(function() {
     assert.equal('/?q=test', req6.path);
 });
+
+
+// test a query with an object for a value.
+var req7 = request.get({ uri: 'http://www.google.com', qs: { where : { foo: 'bar'} }})
+setTimeout(function() {
+  assert.equal('/?where%5Bfoo%5D=bar', req7.path)
+}, 1)
+
+// test a query with an array for a value.
+var req8 = request.get({ uri: 'http://www.google.com', qs: { order : ['bar', 'desc'] }})
+setTimeout(function() {
+  assert.equal('/?order%5B0%5D=bar&order%5B1%5D=desc', req8.path)
+}, 1)
