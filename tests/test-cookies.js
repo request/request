@@ -64,3 +64,10 @@ function (error, response, body) {
   assert.equal(body, 'okay');
 });
 
+// make sure setCookie works (and doesn't throw)
+var jar3 = request.jar();
+jar3.setCookie(request.cookie('foo=bar'), validUrl);
+var cookies = jar3.getCookies(validUrl);
+assert(cookies.length == 1);
+assert(cookies[0].key === 'foo');
+assert(cookies[0].value === 'bar');
