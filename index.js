@@ -65,7 +65,7 @@ request.head = function (uri, options, callback) {
   params.options.method = 'HEAD'
 
   if (paramsHaveRequestBody(params))
-    throw new Error("HTTP HEAD requests MUST NOT include a request body.")
+    throw new Error('HTTP HEAD requests MUST NOT include a request body.')
 
   return requester(params)(params.uri || null, params.options, params.callback)
 }
