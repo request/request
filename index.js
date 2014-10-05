@@ -12,7 +12,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-'use strict';
+'use strict'
 
 var extend                = require('util')._extend
   , cookies               = require('./lib/cookies')
@@ -22,7 +22,7 @@ var extend                = require('util')._extend
   , filterForCallback     = helpers.filterForCallback
   , constructOptionsFrom  = helpers.constructOptionsFrom
   , paramsHaveRequestBody = helpers.paramsHaveRequestBody
-  ;
+
 
 // organize params for patch, post, put, head, del
 function initParams(uri, options, callback) {

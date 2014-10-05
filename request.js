@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 var optional = require('./lib/optional')
   , http = require('http')
@@ -34,7 +34,7 @@ var optional = require('./lib/optional')
   , copy = require('./lib/copy')
   , debug = require('./lib/debug')
   , net = require('net')
-  ;
+
 
 var globalPool = {}
 var isUrl = /^https?:|^unix:/
@@ -222,10 +222,10 @@ Request.prototype.init = function (options) {
   if(!self.hasOwnProperty('proxy')) {
     // check for HTTP(S)_PROXY environment variables
     if(self.uri.protocol === "http:") {
-        self.proxy = process.env.HTTP_PROXY || process.env.http_proxy || null;
+        self.proxy = process.env.HTTP_PROXY || process.env.http_proxy || null
     } else if(self.uri.protocol === "https:") {
         self.proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
-                     process.env.HTTP_PROXY || process.env.http_proxy || null;
+                     process.env.HTTP_PROXY || process.env.http_proxy || null
     }
 
     // respect NO_PROXY environment variables
@@ -294,8 +294,8 @@ Request.prototype.init = function (options) {
   self._redirectsFollowed = self._redirectsFollowed || 0
   self.maxRedirects = (self.maxRedirects !== undefined) ? self.maxRedirects : 10
   self.allowRedirect = (typeof self.followRedirect === 'function') ? self.followRedirect : function(response) {
-    return true;
-  };
+    return true
+  }
   self.followRedirect = (self.followRedirect !== undefined) ? !!self.followRedirect : true
   self.followAllRedirects = (self.followAllRedirects !== undefined) ? self.followAllRedirects : false
   if (self.followRedirect || self.followAllRedirects)
@@ -356,7 +356,7 @@ Request.prototype.init = function (options) {
   }
 
   self._buildRequest = function(){
-    var self = this;
+    var self = this
 
     if (options.form) {
       self.form(options.form)
@@ -466,7 +466,7 @@ Request.prototype.init = function (options) {
     var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
       , defaultModules = {'http:':http, 'https:':https, 'unix:':http}
       , httpModules = self.httpModules || {}
-      ;
+
     self.httpModule = httpModules[protocol] || defaultModules[protocol]
 
     if (!self.httpModule) return this.emit('error', new Error("Invalid protocol: " + protocol))
@@ -574,51 +574,57 @@ Request.prototype.init = function (options) {
     // Thus http requests can be made to a socket using the uri unix://tmp/my.socket/urlpath
     // and a request for '/urlpath' will be sent to the unix socket at /tmp/my.socket
 
-    self.unixsocket = true;
+    self.unixsocket = true
 
-    var full_path = self.uri.href.replace(self.uri.protocol + '/', '');
+    var full_path = self.uri.href.replace(self.uri.protocol + '/', '')
 
-    var lookup = full_path.split('/');
+    var lookup = full_path.split('/')
 
-    var lookup_table = {};
+    var lookup_table = {}
     do { lookup_table[lookup.join('/')] = {} } while(lookup.pop())
     for (var r in lookup_table){
-      try_next(r);
+      try_next(r)
     }
 
     function try_next(table_row) {
-      var client = net.connect( table_row );
+      var client = net.connect( table_row )
       client.path = table_row
-      client.on('error', function(){ lookup_table[this.path].error_connecting = true; this.end(); });
-      client.on('connect', function(){ lookup_table[this.path].error_connecting = false; this.end(); });
-      table_row.client = client;
+      client.on('error', function(){
+        lookup_table[this.path].error_connecting = true
+        this.end()
+      })
+      client.on('connect', function(){
+        lookup_table[this.path].error_connecting = false
+        this.end()
+      })
+      table_row.client = client
     }
 
-    wait_for_socket_response();
+    wait_for_socket_response()
 
-    var response_counter = 0;
+    var response_counter = 0
 
     function wait_for_socket_response(){
-      var detach;
+      var detach
       if(typeof setImmediate === 'undefined') detach = process.nextTick
-      else detach = setImmediate;
+      else detach = setImmediate
       detach(function(){
         // counter to prevent infinite blocking waiting for an open socket to be found.
-        response_counter++;
-        var trying = false;
+        response_counter++
+        var trying = false
         for (r in lookup_table){
           if(typeof lookup_table[r].error_connecting === 'undefined')
-            trying = true;
+            trying = true
         }
         if(trying && response_counter < 1000)
           wait_for_socket_response()
         else
-          set_socket_properties();
+          set_socket_properties()
       })
     }
 
     function set_socket_properties(){
-      var host;
+      var host
       for (r in lookup_table){
         if(lookup_table[r].error_connecting === false){
           host = r
@@ -637,15 +643,15 @@ Request.prototype.init = function (options) {
       self.hostname = ''
       delete self.host
       delete self.hostname
-      self._buildRequest();
+      self._buildRequest()
     }
   }
 
   // Intercept UNIX protocol requests to change properties to match socket
   if(/^unix:/.test(self.uri.protocol)){
-    self._handleUnixSocketURI(self);
+    self._handleUnixSocketURI(self)
   } else {
-    self._buildRequest();
+    self._buildRequest()
   }
 
 }
@@ -851,7 +857,7 @@ Request.prototype.onResponse = function (response) {
   debug('onResponse', self.uri.href, response.statusCode, response.headers)
   response.on('end', function() {
     debug('response end', self.uri.href, response.statusCode, response.headers)
-  });
+  })
 
   // The check on response.connection is a workaround for browserify.
   if (response.connection && response.connection.listeners('error').indexOf(self._parserErrorHandler) === -1) {
@@ -876,7 +882,7 @@ Request.prototype.onResponse = function (response) {
       self.strictSSL && (!response.hasOwnProperty('client') ||
       !response.client.authorized)) {
     debug('strict ssl error', self.uri.href)
-    var sslErr = response.hasOwnProperty('client') ? response.client.authorizationError : self.uri.href + " does not support SSL";
+    var sslErr = response.hasOwnProperty('client') ? response.client.authorizationError : self.uri.href + " does not support SSL"
     self.emit('error', new Error('SSL Error: ' + sslErr))
     return
   }
@@ -887,13 +893,13 @@ Request.prototype.onResponse = function (response) {
     self.timeoutTimer = null
   }
 
-  var targetCookieJar = (self._jar && self._jar.setCookie) ? self._jar : globalCookieJar;
+  var targetCookieJar = (self._jar && self._jar.setCookie) ? self._jar : globalCookieJar
   var addCookie = function (cookie) {
     //set the cookie if it's domain in the href's domain.
     try {
-      targetCookieJar.setCookie(cookie, self.uri.href, {ignoreError: true});
+      targetCookieJar.setCookie(cookie, self.uri.href, {ignoreError: true})
     } catch (e) {
-      self.emit('error', e);
+      self.emit('error', e)
     }
   }
 
@@ -959,7 +965,7 @@ Request.prototype.onResponse = function (response) {
         for (;;) {
           var match = re.exec(authHeader)
           if (!match) break
-          challenge[match[1]] = match[2] || match[3];
+          challenge[match[1]] = match[2] || match[3]
         }
 
         var ha1 = md5(self._user + ':' + challenge.realm + ':' + self._pass)
@@ -1048,7 +1054,7 @@ Request.prototype.onResponse = function (response) {
       }
     }
 
-    self.emit('redirect');
+    self.emit('redirect')
 
     self.init()
     return // Ignore the rest of the response
@@ -1118,7 +1124,7 @@ Request.prototype.onResponse = function (response) {
     if (self.callback) {
       var buffer = bl()
         , strings = []
-        ;
+
       self.on("data", function (chunk) {
         if (Buffer.isBuffer(chunk)) buffer.append(chunk)
         else strings.push(chunk)
@@ -1155,7 +1161,7 @@ Request.prototype.onResponse = function (response) {
         }
         debug('emitting complete', self.uri.href)
         if(typeof response.body === 'undefined' && !self._json) {
-          response.body = "";
+          response.body = ""
         }
         self.emit('complete', response, response.body)
       })
@@ -1167,8 +1173,8 @@ Request.prototype.onResponse = function (response) {
           debug('aborted', self.uri.href)
           return
         }
-        self.emit('complete', response);
-      });
+        self.emit('complete', response)
+      })
     }
   }
   debug('finish init function', self.uri.href)
@@ -1252,7 +1258,7 @@ Request.prototype.multipart = function (multipart) {
   if (!self.hasHeader('content-type')) {
     self.setHeader('content-type', 'multipart/related; boundary=' + self.boundary)
   } else {
-    var headerName = self.hasHeader('content-type');
+    var headerName = self.hasHeader('content-type')
     self.setHeader(headerName, self.headers[headerName].split(';')[0] + '; boundary=' + self.boundary)
   }
 
@@ -1359,7 +1365,7 @@ Request.prototype.aws = function (opts, now) {
     , md5: this.getHeader('content-md5') || ''
     , amazonHeaders: aws.canonicalizeHeaders(this.headers)
     }
-  var path = this.uri.path;
+  var path = this.uri.path
   if (opts.bucket && path) {
     auth.resource = '/' + opts.bucket + path
   } else if (opts.bucket && !path) {
@@ -1426,7 +1432,7 @@ Request.prototype.oauth = function (_oauth) {
   var params = qs.parse([].concat(query, form, qs.stringify(oa)).join('&'))
   var signature = oauth.hmacsign(this.method, baseurl, params, consumer_secret, token_secret)
 
-  var realm = _oauth.realm ? 'realm="' + _oauth.realm + '",' : '';
+  var realm = _oauth.realm ? 'realm="' + _oauth.realm + '",' : ''
   var authHeader = 'OAuth ' + realm +
     Object.keys(oa).sort().map(function (i) {return i + '="' + oauth.rfc3986(oa[i]) + '"'}).join(',')
   authHeader += ',oauth_signature="' + oauth.rfc3986(signature) + '"'
@@ -1445,11 +1451,11 @@ Request.prototype.jar = function (jar) {
     cookies = false
     this._disableCookies = true
   } else {
-    var targetCookieJar = (jar && jar.getCookieString) ? jar : globalCookieJar;
+    var targetCookieJar = (jar && jar.getCookieString) ? jar : globalCookieJar
     var urihref = this.uri.href
     //fetch cookie in the Specified host
     if (targetCookieJar) {
-      cookies = targetCookieJar.getCookieString(urihref);
+      cookies = targetCookieJar.getCookieString(urihref)
     }
   }
 
