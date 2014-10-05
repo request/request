@@ -5,8 +5,8 @@
   "rules": {
     // Disallow semi-colons, unless needed to disambiguate statement
     "semi": [2, "never"],
-    // Allow only single-quotes, disallow double-quotes (warning until all violations fixed)
-    "quotes": [1, "single"],
+    // Require strings to use single quotes
+    "quotes": [2, "single"],
     // Require curly braces for all control statements (warning until all violations fixed)
     "curly": 1,
     // Disallow using variables and functions before they've been defined (warning until all violations fixed)
