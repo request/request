@@ -41,11 +41,13 @@
     "stringstream": "~0.0.4"
   },
   "scripts": {
-    "test": "npm run lint && node tests/run.js",
+    "test": "npm run lint && node node_modules/.bin/taper tests/test-*.js",
     "lint": "./node_modules/eslint/bin/eslint.js lib/ *.js"
   },
   "devDependencies": {
     "eslint": "0.5.1",
-    "rimraf": "~2.2.8"
+    "rimraf": "~2.2.8",
+    "tape": "~3.0.0",
+    "taper": "~0.2.0"
   }
 }
