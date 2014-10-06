@@ -16,6 +16,7 @@ There are a few basic ground-rules for contributors:
 1. Internal pull-requests to solicit feedback are *encouraged* for any other non-trivial contribution but left to the discretion of the contributor.
 1. For significant changes wait a full 24 hours before merging so that active contributors who are distributed throughout the world have a chance to weigh in.
 1. Contributors should attempt to adhere to the prevailing code-style.
+1. Run `npm test` locally before submitting your PR, to catch any easy to miss style & testing issues
 
 
 ## Releases
