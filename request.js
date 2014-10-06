@@ -210,8 +210,8 @@ Request.prototype.init = function (options) {
 
   if (!self.uri) {
     // this will throw if unhandled but is handleable when in a redirect
-    return self.emit('error', new Error("options.uri is a required argument"))
-  } else if (typeof self.uri === "string") {
+    return self.emit('error', new Error('options.uri is a required argument'))
+  } else if (typeof self.uri === 'string') {
     self.uri = url.parse(self.uri)
   }
 
@@ -221,9 +221,9 @@ Request.prototype.init = function (options) {
 
   if(!self.hasOwnProperty('proxy')) {
     // check for HTTP(S)_PROXY environment variables
-    if(self.uri.protocol === "http:") {
+    if(self.uri.protocol === 'http:') {
         self.proxy = process.env.HTTP_PROXY || process.env.http_proxy || null
-    } else if(self.uri.protocol === "https:") {
+    } else if(self.uri.protocol === 'https:') {
         self.proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
                      process.env.HTTP_PROXY || process.env.http_proxy || null
     }
@@ -277,7 +277,7 @@ Request.prototype.init = function (options) {
   if (!self.uri.pathname) {self.uri.pathname = '/'}
 
   if (!self.uri.host && self.uri.protocol !== 'unix:') {
-    // Invalid URI: it may generate lot of bad errors, like "TypeError: Cannot call method 'indexOf' of undefined" in CookieJar
+    // Invalid URI: it may generate lot of bad errors, like 'TypeError: Cannot call method `indexOf` of undefined' in CookieJar
     // Detect and reject it as soon as possible
     var faultyUri = url.format(self.uri)
     var message = 'Invalid URI "' + faultyUri + '"'
@@ -377,7 +377,7 @@ Request.prototype.init = function (options) {
     if (self.uri.path) {
       self.path = self.uri.path
     } else {
-      self.path = self.uri.pathname + (self.uri.search || "")
+      self.path = self.uri.pathname + (self.uri.search || '')
     }
 
     if (self.path.length === 0) self.path = '/'
@@ -469,7 +469,7 @@ Request.prototype.init = function (options) {
 
     self.httpModule = httpModules[protocol] || defaultModules[protocol]
 
-    if (!self.httpModule) return this.emit('error', new Error("Invalid protocol: " + protocol))
+    if (!self.httpModule) return this.emit('error', new Error('Invalid protocol: ' + protocol))
 
     if (options.ca) self.ca = options.ca
 
@@ -500,7 +500,7 @@ Request.prototype.init = function (options) {
     }
 
     self.on('pipe', function (src) {
-      if (self.ntick && self._started) throw new Error("You cannot pipe to this stream after the outbound request has started.")
+      if (self.ntick && self._started) throw new Error('You cannot pipe to this stream after the outbound request has started.')
       self.src = src
       if (isReadStream(src)) {
         if (!self.hasHeader('content-type')) self.setHeader('content-type', mime.lookup(src.path))
@@ -520,7 +520,7 @@ Request.prototype.init = function (options) {
       }
 
       // self.on('pipe', function () {
-      //   console.error("You have already piped to this stream. Pipeing twice is likely to break the request.")
+      //   console.error('You have already piped to this stream. Pipeing twice is likely to break the request.')
       // })
     })
 
@@ -541,7 +541,7 @@ Request.prototype.init = function (options) {
           }
           self.end()
         } else if (self.requestBodyStream) {
-          console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
+          console.warn('options.requestBodyStream is deprecated, please pass the request object to stream.pipe.')
           self.requestBodyStream.pipe(self)
         } else if (!self.src) {
           if (self.method !== 'GET' && typeof self.method !== 'undefined') {
@@ -631,7 +631,7 @@ Request.prototype.init = function (options) {
         }
       }
       if(!host){
-        self.emit('error', new Error("Failed to connect to any socket in " + full_path))
+        self.emit('error', new Error('Failed to connect to any socket in ' + full_path))
       }
       var path = full_path.replace(host, '')
 
@@ -820,9 +820,9 @@ Request.prototype.start = function () {
   if (self.timeout && !self.timeoutTimer) {
     self.timeoutTimer = setTimeout(function () {
       self.abort()
-      var e = new Error("ETIMEDOUT")
-      e.code = "ETIMEDOUT"
-      self.emit("error", e)
+      var e = new Error('ETIMEDOUT')
+      e.code = 'ETIMEDOUT'
+      self.emit('error', e)
     }, self.timeout)
 
     // Set additional timeout on socket - in case if remote
@@ -831,9 +831,9 @@ Request.prototype.start = function () {
       self.req.setTimeout(self.timeout, function () {
         if (self.req) {
           self.req.abort()
-          var e = new Error("ESOCKETTIMEDOUT")
-          e.code = "ESOCKETTIMEDOUT"
-          self.emit("error", e)
+          var e = new Error('ESOCKETTIMEDOUT')
+          e.code = 'ESOCKETTIMEDOUT'
+          self.emit('error', e)
         }
       })
     }
@@ -882,7 +882,7 @@ Request.prototype.onResponse = function (response) {
       self.strictSSL && (!response.hasOwnProperty('client') ||
       !response.client.authorized)) {
     debug('strict ssl error', self.uri.href)
-    var sslErr = response.hasOwnProperty('client') ? response.client.authorizationError : self.uri.href + " does not support SSL"
+    var sslErr = response.hasOwnProperty('client') ? response.client.authorizationError : self.uri.href + ' does not support SSL'
     self.emit('error', new Error('SSL Error: ' + sslErr))
     return
   }
@@ -1014,7 +1014,7 @@ Request.prototype.onResponse = function (response) {
     if (self._paused) response.resume()
 
     if (self._redirectsFollowed >= self.maxRedirects) {
-      self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop " + self.uri.href))
+      self.emit('error', new Error('Exceeded maxRedirects. Probably stuck in a redirect loop ' + self.uri.href))
       return
     }
     self._redirectsFollowed += 1
@@ -1072,17 +1072,17 @@ Request.prototype.onResponse = function (response) {
 
     var dataStream
     if (self.gzip) {
-      var contentEncoding = response.headers["content-encoding"] || "identity"
+      var contentEncoding = response.headers['content-encoding'] || 'identity'
       contentEncoding = contentEncoding.trim().toLowerCase()
 
-      if (contentEncoding === "gzip") {
+      if (contentEncoding === 'gzip') {
         dataStream = zlib.createGunzip()
         response.pipe(dataStream)
       } else {
         // Since previous versions didn't check for Content-Encoding header,
         // ignore any invalid values to preserve backwards-compatibility
-        if (contentEncoding !== "identity") {
-          debug("ignoring unrecognized Content-Encoding " + contentEncoding)
+        if (contentEncoding !== 'identity') {
+          debug('ignoring unrecognized Content-Encoding ' + contentEncoding)
         }
         dataStream = response
       }
@@ -1092,7 +1092,7 @@ Request.prototype.onResponse = function (response) {
 
     if (self.encoding) {
       if (self.dests.length !== 0) {
-        console.error("Ignoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.")
+        console.error('Ignoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.')
       } else if (dataStream.setEncoding) {
         dataStream.setEncoding(self.encoding)
       } else {
@@ -1109,27 +1109,27 @@ Request.prototype.onResponse = function (response) {
       self.pipeDest(dest)
     })
 
-    dataStream.on("data", function (chunk) {
+    dataStream.on('data', function (chunk) {
       self._destdata = true
-      self.emit("data", chunk)
+      self.emit('data', chunk)
     })
-    dataStream.on("end", function (chunk) {
-      self.emit("end", chunk)
+    dataStream.on('end', function (chunk) {
+      self.emit('end', chunk)
     })
-    dataStream.on("error", function (error) {
-      self.emit("error", error)
+    dataStream.on('error', function (error) {
+      self.emit('error', error)
     })
-    dataStream.on("close", function () {self.emit("close")})
+    dataStream.on('close', function () {self.emit('close')})
 
     if (self.callback) {
       var buffer = bl()
         , strings = []
 
-      self.on("data", function (chunk) {
+      self.on('data', function (chunk) {
         if (Buffer.isBuffer(chunk)) buffer.append(chunk)
         else strings.push(chunk)
       })
-      self.on("end", function () {
+      self.on('end', function () {
         debug('end event', self.uri.href)
         if (self._aborted) {
           debug('aborted', self.uri.href)
@@ -1148,7 +1148,7 @@ Request.prototype.onResponse = function (response) {
         } else if (strings.length) {
           // The UTF8 BOM [0xEF,0xBB,0xBF] is converted to [0xFE,0xFF] in the JS UTC16/UCS2 representation.
           // Strip this value out when the encoding is set to 'utf8', as upstream consumers won't expect it and it breaks JSON.parse().
-          if (self.encoding === 'utf8' && strings[0].length > 0 && strings[0][0] === "\uFEFF") {
+          if (self.encoding === 'utf8' && strings[0].length > 0 && strings[0][0] === '\uFEFF') {
             strings[0] = strings[0].substring(1)
           }
           response.body = strings.join('')
@@ -1161,14 +1161,14 @@ Request.prototype.onResponse = function (response) {
         }
         debug('emitting complete', self.uri.href)
         if(typeof response.body === 'undefined' && !self._json) {
-          response.body = ""
+          response.body = ''
         }
         self.emit('complete', response, response.body)
       })
     }
     //if no callback
     else{
-      self.on("end", function () {
+      self.on('end', function () {
         if (self._aborted) {
           debug('aborted', self.uri.href)
           return
@@ -1190,7 +1190,7 @@ Request.prototype.abort = function () {
     this.response.abort()
   }
 
-  this.emit("abort")
+  this.emit('abort')
 }
 
 Request.prototype.pipeDest = function (dest) {
@@ -1477,9 +1477,9 @@ Request.prototype.jar = function (jar) {
 Request.prototype.pipe = function (dest, opts) {
   if (this.response) {
     if (this._destdata) {
-      throw new Error("You cannot pipe after data has been emitted from the response.")
+      throw new Error('You cannot pipe after data has been emitted from the response.')
     } else if (this._ended) {
-      throw new Error("You cannot pipe after the response has been ended.")
+      throw new Error('You cannot pipe after the response has been ended.')
     } else {
       stream.Stream.prototype.pipe.call(this, dest, opts)
       this.pipeDest(dest)
