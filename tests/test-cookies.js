@@ -72,6 +72,22 @@ tape('after server sends a cookie for a different domain', function(t) {
   })
 })
 
+tape('make sure setCookie works', function(t) {
+  var jar3 = request.jar()
+    , err = null
+  try {
+    jar3.setCookie(request.cookie('foo=bar'), validUrl)
+  } catch (e) {
+    err = e
+  }
+  t.equal(err, null)
+  var cookies = jar3.getCookies(validUrl)
+  t.equal(cookies.length == 1)
+  t.equal(cookies[0].key === 'foo')
+  t.equal(cookies[0].value === 'bar')
+  t.end()
+})
+
 tape('cleanup', function(t) {
   server.close()
   t.end()

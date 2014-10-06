@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 var optional = require('./lib/optional')
   , http = require('http')
@@ -34,7 +34,7 @@ var optional = require('./lib/optional')
   , copy = require('./lib/copy')
   , debug = require('./lib/debug')
   , net = require('net')
-  ;
+
 
 var globalPool = {}
 var isUrl = /^https?:|^unix:/
@@ -66,6 +66,8 @@ var defaultProxyHeaderWhiteList = [
   'via'
 ]
 
+util.inherits(Request, stream.Stream)
+
 function Request (options) {
   // if tunnel property of options was not given default to false
   // if given the method property in options, set property explicitMethod to true
@@ -79,7 +81,9 @@ function Request (options) {
   stream.Stream.call(self)
   var reserved = Object.keys(Request.prototype)
   var nonReserved = filterForNonReserved(reserved, options)
-  util._extend(this, nonReserved)
+
+  stream.Stream.call(self)
+  util._extend(self, nonReserved)
   options = filterOutReservedFunctions(reserved, options)
 
   self.readable = true
@@ -94,77 +98,40 @@ function Request (options) {
   self.init(options)
 }
 
-util.inherits(Request, stream.Stream)
-
-// Set up the tunneling agent if necessary
 Request.prototype.setupTunnel = function () {
+  // Set up the tunneling agent if necessary
+  // Only send the proxy whitelisted header names.
+  // Turn on tunneling for the rest of request.
+
   var self = this
-  if (typeof self.proxy === 'string') self.proxy = url.parse(self.proxy)
 
-  if (!self.proxy) return false
+  if (typeof self.proxy === 'string') {
+    self.proxy = url.parse(self.proxy)
+  }
 
-  // Don't need to use a tunneling proxy
-  if (!self.tunnel && self.uri.protocol !== 'https:') return false
+  if (!self.proxy) {
+    return false
+  }
 
-  // do the HTTP CONNECT dance using koichik/node-tunnel
+  if (!self.tunnel && self.uri.protocol !== 'https:') {
+    return false
+  }
 
-  // The host to tell the proxy to CONNECT to
-  var proxyHost = self.uri.hostname + ':'
-  if (self.uri.port)
-    proxyHost += self.uri.port
-  else if (self.uri.protocol === 'https:')
-    proxyHost += '443'
-  else
-    proxyHost += '80'
-
-  if (!self.proxyHeaderWhiteList)
+  if (!self.proxyHeaderWhiteList) {
     self.proxyHeaderWhiteList = defaultProxyHeaderWhiteList
+  }
 
-  // Only send the proxy the whitelisted header names.
-  var proxyHeaders = Object.keys(self.headers).filter(function (h) {
-    return self.proxyHeaderWhiteList.indexOf(h.toLowerCase()) !== -1
-  }).reduce(function (set, h) {
-    set[h] = self.headers[h]
-    return set
-  }, {})
+  var proxyHost = constructProxyHost(self.uri)
+  self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, self.proxyHeaderWhiteList)
+  self.proxyHeaders.host = proxyHost
 
-  proxyHeaders.host = proxyHost
-
-  var tunnelFnName =
-    (self.uri.protocol === 'https:' ? 'https' : 'http') +
-    'Over' +
-    (self.proxy.protocol === 'https:' ? 'Https' : 'Http')
-
-  var tunnelFn = tunnel[tunnelFnName]
-
-  var proxyAuth
-  if (self.proxy.auth)
-    proxyAuth = self.proxy.auth
-  else if (self.proxyAuthorization)
-    proxyHeaders['Proxy-Authorization'] = self.proxyAuthorization
-
-  var tunnelOptions = { proxy: { host: self.proxy.hostname
-                               , port: +self.proxy.port
-                               , proxyAuth: proxyAuth
-                               , headers: proxyHeaders }
-                      , rejectUnauthorized: self.rejectUnauthorized
-                      , headers: self.headers
-                      , ca: self.ca
-                      , cert: self.cert
-                      , key: self.key}
+  var tunnelFn = getTunnelFn(self)
+  var tunnelOptions = construcTunnelOptions(self)
 
   self.agent = tunnelFn(tunnelOptions)
-
-  // At this point, we know that the proxy will support tunneling
-  // (or fail miserably), so we're going to tunnel all proxied requests
-  // from here on out.
   self.tunnel = true
-
   return true
 }
-
-
-
 
 Request.prototype.init = function (options) {
   // init() contains all the code to setup the request object.
@@ -210,8 +177,8 @@ Request.prototype.init = function (options) {
 
   if (!self.uri) {
     // this will throw if unhandled but is handleable when in a redirect
-    return self.emit('error', new Error("options.uri is a required argument"))
-  } else if (typeof self.uri === "string") {
+    return self.emit('error', new Error('options.uri is a required argument'))
+  } else if (typeof self.uri === 'string') {
     self.uri = url.parse(self.uri)
   }
 
@@ -221,11 +188,11 @@ Request.prototype.init = function (options) {
 
   if(!self.hasOwnProperty('proxy')) {
     // check for HTTP(S)_PROXY environment variables
-    if(self.uri.protocol === "http:") {
-        self.proxy = process.env.HTTP_PROXY || process.env.http_proxy || null;
-    } else if(self.uri.protocol === "https:") {
+    if(self.uri.protocol === 'http:') {
+        self.proxy = process.env.HTTP_PROXY || process.env.http_proxy || null
+    } else if(self.uri.protocol === 'https:') {
         self.proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
-                     process.env.HTTP_PROXY || process.env.http_proxy || null;
+                     process.env.HTTP_PROXY || process.env.http_proxy || null
     }
 
     // respect NO_PROXY environment variables
@@ -277,7 +244,7 @@ Request.prototype.init = function (options) {
   if (!self.uri.pathname) {self.uri.pathname = '/'}
 
   if (!self.uri.host && self.uri.protocol !== 'unix:') {
-    // Invalid URI: it may generate lot of bad errors, like "TypeError: Cannot call method 'indexOf' of undefined" in CookieJar
+    // Invalid URI: it may generate lot of bad errors, like 'TypeError: Cannot call method `indexOf` of undefined' in CookieJar
     // Detect and reject it as soon as possible
     var faultyUri = url.format(self.uri)
     var message = 'Invalid URI "' + faultyUri + '"'
@@ -294,8 +261,8 @@ Request.prototype.init = function (options) {
   self._redirectsFollowed = self._redirectsFollowed || 0
   self.maxRedirects = (self.maxRedirects !== undefined) ? self.maxRedirects : 10
   self.allowRedirect = (typeof self.followRedirect === 'function') ? self.followRedirect : function(response) {
-    return true;
-  };
+    return true
+  }
   self.followRedirect = (self.followRedirect !== undefined) ? !!self.followRedirect : true
   self.followAllRedirects = (self.followAllRedirects !== undefined) ? self.followAllRedirects : false
   if (self.followRedirect || self.followAllRedirects)
@@ -356,7 +323,7 @@ Request.prototype.init = function (options) {
   }
 
   self._buildRequest = function(){
-    var self = this;
+    var self = this
 
     if (options.form) {
       self.form(options.form)
@@ -377,7 +344,7 @@ Request.prototype.init = function (options) {
     if (self.uri.path) {
       self.path = self.uri.path
     } else {
-      self.path = self.uri.pathname + (self.uri.search || "")
+      self.path = self.uri.pathname + (self.uri.search || '')
     }
 
     if (self.path.length === 0) self.path = '/'
@@ -466,10 +433,10 @@ Request.prototype.init = function (options) {
     var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
       , defaultModules = {'http:':http, 'https:':https, 'unix:':http}
       , httpModules = self.httpModules || {}
-      ;
+
     self.httpModule = httpModules[protocol] || defaultModules[protocol]
 
-    if (!self.httpModule) return this.emit('error', new Error("Invalid protocol: " + protocol))
+    if (!self.httpModule) return this.emit('error', new Error('Invalid protocol: ' + protocol))
 
     if (options.ca) self.ca = options.ca
 
@@ -500,7 +467,7 @@ Request.prototype.init = function (options) {
     }
 
     self.on('pipe', function (src) {
-      if (self.ntick && self._started) throw new Error("You cannot pipe to this stream after the outbound request has started.")
+      if (self.ntick && self._started) throw new Error('You cannot pipe to this stream after the outbound request has started.')
       self.src = src
       if (isReadStream(src)) {
         if (!self.hasHeader('content-type')) self.setHeader('content-type', mime.lookup(src.path))
@@ -520,7 +487,7 @@ Request.prototype.init = function (options) {
       }
 
       // self.on('pipe', function () {
-      //   console.error("You have already piped to this stream. Pipeing twice is likely to break the request.")
+      //   console.error('You have already piped to this stream. Pipeing twice is likely to break the request.')
       // })
     })
 
@@ -541,7 +508,7 @@ Request.prototype.init = function (options) {
           }
           self.end()
         } else if (self.requestBodyStream) {
-          console.warn("options.requestBodyStream is deprecated, please pass the request object to stream.pipe.")
+          console.warn('options.requestBodyStream is deprecated, please pass the request object to stream.pipe.')
           self.requestBodyStream.pipe(self)
         } else if (!self.src) {
           if (self.method !== 'GET' && typeof self.method !== 'undefined') {
@@ -574,58 +541,64 @@ Request.prototype.init = function (options) {
     // Thus http requests can be made to a socket using the uri unix://tmp/my.socket/urlpath
     // and a request for '/urlpath' will be sent to the unix socket at /tmp/my.socket
 
-    self.unixsocket = true;
+    self.unixsocket = true
 
-    var full_path = self.uri.href.replace(self.uri.protocol + '/', '');
+    var full_path = self.uri.href.replace(self.uri.protocol + '/', '')
 
-    var lookup = full_path.split('/');
+    var lookup = full_path.split('/')
 
-    var lookup_table = {};
+    var lookup_table = {}
     do { lookup_table[lookup.join('/')] = {} } while(lookup.pop())
     for (var r in lookup_table){
-      try_next(r);
+      try_next(r)
     }
 
     function try_next(table_row) {
-      var client = net.connect( table_row );
+      var client = net.connect( table_row )
       client.path = table_row
-      client.on('error', function(){ lookup_table[this.path].error_connecting = true; this.end(); });
-      client.on('connect', function(){ lookup_table[this.path].error_connecting = false; this.end(); });
-      table_row.client = client;
+      client.on('error', function(){
+        lookup_table[this.path].error_connecting = true
+        this.end()
+      })
+      client.on('connect', function(){
+        lookup_table[this.path].error_connecting = false
+        this.end()
+      })
+      table_row.client = client
     }
 
-    wait_for_socket_response();
+    wait_for_socket_response()
 
-    var response_counter = 0;
+    var response_counter = 0
 
     function wait_for_socket_response(){
-      var detach;
+      var detach
       if(typeof setImmediate === 'undefined') detach = process.nextTick
-      else detach = setImmediate;
+      else detach = setImmediate
       detach(function(){
         // counter to prevent infinite blocking waiting for an open socket to be found.
-        response_counter++;
-        var trying = false;
+        response_counter++
+        var trying = false
         for (r in lookup_table){
           if(typeof lookup_table[r].error_connecting === 'undefined')
-            trying = true;
+            trying = true
         }
         if(trying && response_counter < 1000)
           wait_for_socket_response()
         else
-          set_socket_properties();
+          set_socket_properties()
       })
     }
 
     function set_socket_properties(){
-      var host;
+      var host
       for (r in lookup_table){
         if(lookup_table[r].error_connecting === false){
           host = r
         }
       }
       if(!host){
-        self.emit('error', new Error("Failed to connect to any socket in " + full_path))
+        self.emit('error', new Error('Failed to connect to any socket in ' + full_path))
       }
       var path = full_path.replace(host, '')
 
@@ -637,15 +610,15 @@ Request.prototype.init = function (options) {
       self.hostname = ''
       delete self.host
       delete self.hostname
-      self._buildRequest();
+      self._buildRequest()
     }
   }
 
   // Intercept UNIX protocol requests to change properties to match socket
   if(/^unix:/.test(self.uri.protocol)){
-    self._handleUnixSocketURI(self);
+    self._handleUnixSocketURI(self)
   } else {
-    self._buildRequest();
+    self._buildRequest()
   }
 
 }
@@ -814,9 +787,9 @@ Request.prototype.start = function () {
   if (self.timeout && !self.timeoutTimer) {
     self.timeoutTimer = setTimeout(function () {
       self.abort()
-      var e = new Error("ETIMEDOUT")
-      e.code = "ETIMEDOUT"
-      self.emit("error", e)
+      var e = new Error('ETIMEDOUT')
+      e.code = 'ETIMEDOUT'
+      self.emit('error', e)
     }, self.timeout)
 
     // Set additional timeout on socket - in case if remote
@@ -825,9 +798,9 @@ Request.prototype.start = function () {
       self.req.setTimeout(self.timeout, function () {
         if (self.req) {
           self.req.abort()
-          var e = new Error("ESOCKETTIMEDOUT")
-          e.code = "ESOCKETTIMEDOUT"
-          self.emit("error", e)
+          var e = new Error('ESOCKETTIMEDOUT')
+          e.code = 'ESOCKETTIMEDOUT'
+          self.emit('error', e)
         }
       })
     }
@@ -851,7 +824,7 @@ Request.prototype.onResponse = function (response) {
   debug('onResponse', self.uri.href, response.statusCode, response.headers)
   response.on('end', function() {
     debug('response end', self.uri.href, response.statusCode, response.headers)
-  });
+  })
 
   // The check on response.connection is a workaround for browserify.
   if (response.connection && response.connection.listeners('error').indexOf(self._parserErrorHandler) === -1) {
@@ -876,7 +849,7 @@ Request.prototype.onResponse = function (response) {
       self.strictSSL && (!response.hasOwnProperty('client') ||
       !response.client.authorized)) {
     debug('strict ssl error', self.uri.href)
-    var sslErr = response.hasOwnProperty('client') ? response.client.authorizationError : self.uri.href + " does not support SSL";
+    var sslErr = response.hasOwnProperty('client') ? response.client.authorizationError : self.uri.href + ' does not support SSL'
     self.emit('error', new Error('SSL Error: ' + sslErr))
     return
   }
@@ -887,13 +860,13 @@ Request.prototype.onResponse = function (response) {
     self.timeoutTimer = null
   }
 
-  var targetCookieJar = (self._jar && self._jar.setCookie) ? self._jar : globalCookieJar;
+  var targetCookieJar = (self._jar && self._jar.setCookie) ? self._jar : globalCookieJar
   var addCookie = function (cookie) {
     //set the cookie if it's domain in the href's domain.
     try {
-      targetCookieJar.setCookie(cookie, self.uri.href, {ignoreError: true});
+      targetCookieJar.setCookie(cookie, self.uri.href, {ignoreError: true})
     } catch (e) {
-      self.emit('error', e);
+      self.emit('error', e)
     }
   }
 
@@ -959,7 +932,7 @@ Request.prototype.onResponse = function (response) {
         for (;;) {
           var match = re.exec(authHeader)
           if (!match) break
-          challenge[match[1]] = match[2] || match[3];
+          challenge[match[1]] = match[2] || match[3]
         }
 
         var ha1 = md5(self._user + ':' + challenge.realm + ':' + self._pass)
@@ -1008,7 +981,7 @@ Request.prototype.onResponse = function (response) {
     if (self._paused) response.resume()
 
     if (self._redirectsFollowed >= self.maxRedirects) {
-      self.emit('error', new Error("Exceeded maxRedirects. Probably stuck in a redirect loop " + self.uri.href))
+      self.emit('error', new Error('Exceeded maxRedirects. Probably stuck in a redirect loop ' + self.uri.href))
       return
     }
     self._redirectsFollowed += 1
@@ -1048,7 +1021,7 @@ Request.prototype.onResponse = function (response) {
       }
     }
 
-    self.emit('redirect');
+    self.emit('redirect')
 
     self.init()
     return // Ignore the rest of the response
@@ -1066,17 +1039,17 @@ Request.prototype.onResponse = function (response) {
 
     var dataStream
     if (self.gzip) {
-      var contentEncoding = response.headers["content-encoding"] || "identity"
+      var contentEncoding = response.headers['content-encoding'] || 'identity'
       contentEncoding = contentEncoding.trim().toLowerCase()
 
-      if (contentEncoding === "gzip") {
+      if (contentEncoding === 'gzip') {
         dataStream = zlib.createGunzip()
         response.pipe(dataStream)
       } else {
         // Since previous versions didn't check for Content-Encoding header,
         // ignore any invalid values to preserve backwards-compatibility
-        if (contentEncoding !== "identity") {
-          debug("ignoring unrecognized Content-Encoding " + contentEncoding)
+        if (contentEncoding !== 'identity') {
+          debug('ignoring unrecognized Content-Encoding ' + contentEncoding)
         }
         dataStream = response
       }
@@ -1086,7 +1059,7 @@ Request.prototype.onResponse = function (response) {
 
     if (self.encoding) {
       if (self.dests.length !== 0) {
-        console.error("Ignoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.")
+        console.error('Ignoring encoding parameter as this stream is being piped to another stream which makes the encoding option invalid.')
       } else if (dataStream.setEncoding) {
         dataStream.setEncoding(self.encoding)
       } else {
@@ -1103,27 +1076,27 @@ Request.prototype.onResponse = function (response) {
       self.pipeDest(dest)
     })
 
-    dataStream.on("data", function (chunk) {
+    dataStream.on('data', function (chunk) {
       self._destdata = true
-      self.emit("data", chunk)
+      self.emit('data', chunk)
     })
-    dataStream.on("end", function (chunk) {
-      self.emit("end", chunk)
+    dataStream.on('end', function (chunk) {
+      self.emit('end', chunk)
     })
-    dataStream.on("error", function (error) {
-      self.emit("error", error)
+    dataStream.on('error', function (error) {
+      self.emit('error', error)
     })
-    dataStream.on("close", function () {self.emit("close")})
+    dataStream.on('close', function () {self.emit('close')})
 
     if (self.callback) {
       var buffer = bl()
         , strings = []
-        ;
-      self.on("data", function (chunk) {
+
+      self.on('data', function (chunk) {
         if (Buffer.isBuffer(chunk)) buffer.append(chunk)
         else strings.push(chunk)
       })
-      self.on("end", function () {
+      self.on('end', function () {
         debug('end event', self.uri.href)
         if (self._aborted) {
           debug('aborted', self.uri.href)
@@ -1142,7 +1115,7 @@ Request.prototype.onResponse = function (response) {
         } else if (strings.length) {
           // The UTF8 BOM [0xEF,0xBB,0xBF] is converted to [0xFE,0xFF] in the JS UTC16/UCS2 representation.
           // Strip this value out when the encoding is set to 'utf8', as upstream consumers won't expect it and it breaks JSON.parse().
-          if (self.encoding === 'utf8' && strings[0].length > 0 && strings[0][0] === "\uFEFF") {
+          if (self.encoding === 'utf8' && strings[0].length > 0 && strings[0][0] === '\uFEFF') {
             strings[0] = strings[0].substring(1)
           }
           response.body = strings.join('')
@@ -1155,20 +1128,20 @@ Request.prototype.onResponse = function (response) {
         }
         debug('emitting complete', self.uri.href)
         if(typeof response.body === 'undefined' && !self._json) {
-          response.body = "";
+          response.body = ''
         }
         self.emit('complete', response, response.body)
       })
     }
     //if no callback
     else{
-      self.on("end", function () {
+      self.on('end', function () {
         if (self._aborted) {
           debug('aborted', self.uri.href)
           return
         }
-        self.emit('complete', response);
-      });
+        self.emit('complete', response)
+      })
     }
   }
   debug('finish init function', self.uri.href)
@@ -1184,7 +1157,7 @@ Request.prototype.abort = function () {
     this.response.abort()
   }
 
-  this.emit("abort")
+  this.emit('abort')
 }
 
 Request.prototype.pipeDest = function (dest) {
@@ -1252,7 +1225,7 @@ Request.prototype.multipart = function (multipart) {
   if (!self.hasHeader('content-type')) {
     self.setHeader('content-type', 'multipart/related; boundary=' + self.boundary)
   } else {
-    var headerName = self.hasHeader('content-type');
+    var headerName = self.hasHeader('content-type')
     self.setHeader(headerName, self.headers[headerName].split(';')[0] + '; boundary=' + self.boundary)
   }
 
@@ -1359,7 +1332,7 @@ Request.prototype.aws = function (opts, now) {
     , md5: this.getHeader('content-md5') || ''
     , amazonHeaders: aws.canonicalizeHeaders(this.headers)
     }
-  var path = this.uri.path;
+  var path = this.uri.path
   if (opts.bucket && path) {
     auth.resource = '/' + opts.bucket + path
   } else if (opts.bucket && !path) {
@@ -1426,7 +1399,7 @@ Request.prototype.oauth = function (_oauth) {
   var params = qs.parse([].concat(query, form, qs.stringify(oa)).join('&'))
   var signature = oauth.hmacsign(this.method, baseurl, params, consumer_secret, token_secret)
 
-  var realm = _oauth.realm ? 'realm="' + _oauth.realm + '",' : '';
+  var realm = _oauth.realm ? 'realm="' + _oauth.realm + '",' : ''
   var authHeader = 'OAuth ' + realm +
     Object.keys(oa).sort().map(function (i) {return i + '="' + oauth.rfc3986(oa[i]) + '"'}).join(',')
   authHeader += ',oauth_signature="' + oauth.rfc3986(signature) + '"'
@@ -1445,11 +1418,11 @@ Request.prototype.jar = function (jar) {
     cookies = false
     this._disableCookies = true
   } else {
-    var targetCookieJar = (jar && jar.getCookieString) ? jar : globalCookieJar;
+    var targetCookieJar = (jar && jar.getCookieString) ? jar : globalCookieJar
     var urihref = this.uri.href
     //fetch cookie in the Specified host
     if (targetCookieJar) {
-      cookies = targetCookieJar.getCookieString(urihref);
+      cookies = targetCookieJar.getCookieString(urihref)
     }
   }
 
@@ -1471,9 +1444,9 @@ Request.prototype.jar = function (jar) {
 Request.prototype.pipe = function (dest, opts) {
   if (this.response) {
     if (this._destdata) {
-      throw new Error("You cannot pipe after data has been emitted from the response.")
+      throw new Error('You cannot pipe after data has been emitted from the response.')
     } else if (this._ended) {
-      throw new Error("You cannot pipe after the response has been ended.")
+      throw new Error('You cannot pipe after the response has been ended.')
     } else {
       stream.Stream.prototype.pipe.call(this, dest, opts)
       this.pipeDest(dest)
@@ -1531,6 +1504,22 @@ function responseToJSON() {
   }
 }
 
+function constructProxyHost(uriObject) {
+  var port = uriObject.portA
+    , protocol = uriObject.protocol
+    , proxyHost = uriObject.hostname + ':'
+
+  if (port) {
+    proxyHost += port
+  } else if (protocol === 'https:') {
+    proxyHost += '443'
+  } else {
+    proxyHost += '80'
+  }
+
+  return proxyHost
+}
+
 function filterForNonReserved(reserved, options) {
   // Filter out properties that are not reserved.
   // Reserved values are passed in at call site.
@@ -1558,6 +1547,61 @@ function filterOutReservedFunctions(reserved, options) {
     }
   }
   return object
+
+}
+
+function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList) {
+  return Object.keys(headers)
+    .filter(function (header) {
+      return proxyHeaderWhiteList.indexOf(header.toLowerCase()) !== -1
+    })
+    .reduce(function (set, header) {
+      set[header] = headers[header]
+      return set
+    }, {})
+}
+
+function construcTunnelOptions(request) {
+  var proxy = request.proxy
+  var proxyHeaders = request.proxyHeaders
+  var proxyAuth
+
+  if (proxy.auth) {
+    proxyAuth = proxy.auth
+  }
+
+  if (!proxy.auth && request.proxyAuthorization) {
+    proxyHeaders['Proxy-Authorization'] = request.proxyAuthorization
+  }
+
+  var tunnelOptions = {
+    proxy: {
+      host: proxy.hostname,
+      port: +proxy.port,
+      proxyAuth: proxyAuth,
+      headers: proxyHeaders
+    },
+    rejectUnauthorized: request.rejectUnauthorized,
+    headers: request.headers,
+    ca: request.ca,
+    cert: request.cert,
+    key: request.key
+  }
+
+  return tunnelOptions
+}
+
+function constructTunnelFnName(uri, proxy) {
+  var uriProtocol = (uri.protocol === 'https:' ? 'https' : 'http')
+  var proxyProtocol = (proxy.protocol === 'https:' ? 'Https' : 'Http')
+  return [uriProtocol, proxyProtocol].join('Over')
+}
+
+function getTunnelFn(request) {
+  var uri = request.uri
+  var proxy = request.proxy
+  var tunnelFnName = constructTunnelFnName(uri, proxy)
+  return tunnel[tunnelFnName]
 }
 
 // Exports
