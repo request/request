@@ -1,36 +1,36 @@
 var server = require('./server')
-  , assert = require('assert')
   , request = require('../index')
-  ;
+  , tape = require('tape')
 
-var s = server.createServer();
-var expectedBody = "waited";
-var remainingTests = 1;
+var s = server.createServer()
 
-s.listen(s.port, function () {
-  s.on('/', function (req, resp) {
-    resp.writeHead(200, {'content-type':'text/plain'})
-    resp.write(expectedBody)
-    resp.end()
-  });
+tape('setup', function(t) {
+  s.listen(s.port, function() {
+    s.on('/', function(req, res) {
+      res.writeHead(200, { 'content-type': 'text/plain' })
+      res.write('waited')
+      res.end()
+    })
+    t.end()
+  })
 })
 
-var shouldEmitSocketEvent = {
-  url: s.url + '/',
-}
+tape('should emit socket event', function(t) {
+  t.plan(4)
 
-var req = request(shouldEmitSocketEvent, function() {
-  s.close();
+  var req = request(s.url, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'waited')
+  })
+
+  req.on('socket', function(socket) {
+    var requestSocket = req.req.socket
+    t.equal(requestSocket, socket)
+  })
 })
 
-req.on('socket', function(socket) {
-  var requestSocket = req.req.socket
-  assert.equal(requestSocket, socket)
-  checkDone()
+tape('cleanup', function(t) {
+  s.close()
+  t.end()
 })
-
-function checkDone() {
-  if(--remainingTests == 0) {
-    console.log("All tests passed.");
-  }
-}
