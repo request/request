@@ -21,11 +21,16 @@ var server = http.createServer(function(req, res) {
   res.setHeader('Content-Type', 'text/plain')
 
   if (/\bgzip\b/i.test(req.headers['accept-encoding'])) {
-    zlib.gzip(testContent, function(err, data) {
-      if (err) t.fail(err)
-      res.setHeader('Content-Encoding', 'gzip')
-      res.end(data)
-    })
+    res.setHeader('Content-Encoding', 'gzip')
+    if (req.url == '/error') {
+      // send plaintext instead of gzip (should cause an error for the client)
+      res.end(testContent)
+    } else {
+      zlib.gzip(testContent, function(err, data) {
+        if (err) t.fail(err)
+        res.end(data)
+      })
+    }
   } else {
     res.end(testContent)
   }
@@ -113,6 +118,32 @@ tape('supports character encoding with gzip encoding', function(t) {
     })
     .on('error', function(err) {
       t.fail(err)
+    })
+})
+
+tape('transparently supports gzip error to callbacks', function(t) {
+  var options = { url: 'http://localhost:6767/error', gzip: true }
+  request.get(options, function(err, res, body) {
+    t.equal(err.code, 'Z_DATA_ERROR')
+    t.equal(res, undefined)
+    t.equal(body, undefined)
+    t.end()
+  })
+})
+
+tape('transparently supports gzip error to pipes', function(t) {
+  options = { url: 'http://localhost:6767/error', gzip: true }
+  var chunks = []
+  request.get(options)
+    .on('data', function (chunk) {
+      t.fail('Should not receive data event')
+    })
+    .on('end', function () {
+      t.fail('Should not receive end event')
+    })
+    .on('error', function (err) {
+      t.equal(err.code, 'Z_DATA_ERROR')
+      t.end()
     })
 })
 
