@@ -1,58 +1,68 @@
 var server = require('./server')
-  , events = require('events')
-  , assert = require('assert')
   , request = require('../index')
-  ;
+  , tape = require('tape')
 
 var local = 'http://localhost:8888/asdf'
 
-try {
-  request({})
-  assert.fail("Should have throw")
-} catch(e) {
-  assert.equal(e.message, 'options.uri is a required argument')
-}
+tape('without uri', function(t) {
+  t.throws(function() {
+    request({})
+  }, /^Error: options\.uri is a required argument$/)
+  t.end()
+})
 
-try {
-  request({uri: 'this-is-not-a-valid-uri'})
-  assert.fail("Should have throw")
-} catch(e) {
-  assert(e.message.indexOf('Invalid URI') === 0)
-}
+tape('invalid uri 1', function(t) {
+  t.throws(function() {
+    request({
+      uri: 'this-is-not-a-valid-uri'
+    })
+  }, /^Error: Invalid URI/)
+  t.end()
+})
 
-try {
-  request({uri: 'github.com/uri-is-not-valid-without-protocol'})
-  assert.fail("Should have throw")
-} catch(e) {
-  assert(e.message.indexOf('Invalid URI') === 0)
-}
+tape('invalid uri 2', function(t) {
+  t.throws(function() {
+    request({
+      uri: 'github.com/uri-is-not-valid-without-protocol'
+    })
+  }, /^Error: Invalid URI/)
+  t.end()
+})
 
-try {
-  request({uri:local, body:{}})
-  assert.fail("Should have throw")
-} catch(e) {
-  assert.equal(e.message, 'Argument error, options.body.')
-}
+tape('invalid body', function(t) {
+  t.throws(function() {
+    request({
+      uri: local, body: {}
+    })
+  }, /^Error: Argument error, options\.body\.$/)
+  t.end()
+})
 
-try {
-  request({uri:local, multipart: 'foo'})
-  assert.fail("Should have throw")
-} catch(e) {
-  assert.equal(e.message, 'Argument error, options.multipart.')
-}
+tape('invalid multipart', function(t) {
+  t.throws(function() {
+    request({
+      uri: local,
+      multipart: 'foo'
+    })
+  }, /^Error: Argument error, options\.multipart\.$/)
+  t.end()
+})
 
-try {
-  request({uri:local, multipart: [{}]})
-  assert.fail("Should have throw")
-} catch(e) {
-  assert.equal(e.message, 'Body attribute missing in multipart.')
-}
+tape('multipart without body 1', function(t) {
+  t.throws(function() {
+    request({
+      uri: local,
+      multipart: [ {} ]
+    })
+  }, /^Error: Body attribute missing in multipart\.$/)
+  t.end()
+})
 
-try {
-  request(local, {multipart: [{}]})
-  assert.fail("Should have throw")
-} catch(e) {
-  assert.equal(e.message, 'Body attribute missing in multipart.')
-}
-
-console.log("All tests passed.")
+tape('multipart without body 2', function(t) {
+  t.throws(function() {
+    request(local, {
+      multipart: [ {} ]
+    })
+  }, /^Error: Body attribute missing in multipart\.$/)
+  t.end()
+})
