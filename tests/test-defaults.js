@@ -1,219 +1,257 @@
 var server = require('./server')
   , assert = require('assert')
   , request = require('../index')
-  ;
+  , tape = require('tape')
 
-var s = server.createServer();
+var s = server.createServer()
 
-s.listen(s.port, function () {
-  var counter = 0;
-  s.on('/get', function (req, resp) {
-    assert.equal(req.headers.foo, 'bar');
-    assert.equal(req.method, 'GET')
-    resp.writeHead(200, {'Content-Type': 'text/plain'});
-    resp.end('TESTING!');
-  });
+tape('setup', function(t) {
+  s.listen(s.port, function() {
+    s.on('/get', function(req, resp) {
+      assert.equal(req.headers.foo, 'bar')
+      assert.equal(req.method, 'GET')
+      resp.writeHead(200, {'Content-Type': 'text/plain'})
+      resp.end('TESTING!')
+    })
 
-  // test get(string, function)
-  request.defaults({headers:{foo:"bar"}})(s.url + '/get', function (e, r, b){
-    if (e) throw e;
-    assert.deepEqual("TESTING!", b);
-    counter += 1;
-  });
+    s.on('/merge-headers', function (req, resp) {
+      assert.equal(req.headers.foo, 'bar')
+      assert.equal(req.headers.merged, 'yes')
+      resp.writeHead(200)
+      resp.end()
+    })
 
-  s.on('/merge-headers', function (req, resp) {
-    assert.equal(req.headers.foo, 'bar')
-    assert.equal(req.headers.merged, 'yes')
-    resp.writeHead(200)
-    resp.end()
-  });
+    s.on('/post', function (req, resp) {
+      assert.equal(req.headers.foo, 'bar')
+      assert.equal(req.headers['content-type'], null)
+      assert.equal(req.method, 'POST')
+      resp.writeHead(200, {'Content-Type': 'application/json'})
+      resp.end(JSON.stringify({foo:'bar'}))
+    })
 
+    s.on('/patch', function (req, resp) {
+      assert.equal(req.headers.foo, 'bar')
+      assert.equal(req.headers['content-type'], null)
+      assert.equal(req.method, 'PATCH')
+      resp.writeHead(200, {'Content-Type': 'application/json'})
+      resp.end(JSON.stringify({foo:'bar'}))
+    })
+
+    s.on('/post-body', function (req, resp) {
+      assert.equal(req.headers.foo, 'bar')
+      assert.equal(req.headers['content-type'], 'application/json')
+      assert.equal(req.method, 'POST')
+      resp.writeHead(200, {'Content-Type': 'application/json'})
+      resp.end(JSON.stringify({foo:'bar'}))
+    })
+
+    s.on('/del', function (req, resp) {
+      assert.equal(req.headers.foo, 'bar')
+      assert.equal(req.method, 'DELETE')
+      resp.writeHead(200, {'Content-Type': 'application/json'})
+      resp.end(JSON.stringify({foo:'bar'}))
+    })
+
+    s.on('/head', function (req, resp) {
+      assert.equal(req.headers.foo, 'bar')
+      assert.equal(req.method, 'HEAD')
+      resp.writeHead(200, {'Content-Type': 'text/plain'})
+      resp.end()
+    })
+
+    s.on('/get_recursive1', function (req, resp) {
+      assert.equal(req.headers.foo, 'bar1')
+      assert.equal(req.method, 'GET')
+      resp.writeHead(200, {'Content-Type': 'text/plain'})
+      resp.end('TESTING!')
+    })
+
+    s.on('/get_recursive2', function (req, resp) {
+      assert.equal(req.headers.foo, 'bar1')
+      assert.equal(req.headers.baz, 'bar2')
+      assert.equal(req.method, 'GET')
+      resp.writeHead(200, {'Content-Type': 'text/plain'})
+      resp.end('TESTING!')
+    })
+
+    s.on('/get_recursive3', function (req, resp) {
+      assert.equal(req.headers.foo, 'bar3')
+      assert.equal(req.headers.baz, 'bar2')
+      assert.equal(req.method, 'GET')
+      resp.writeHead(200, {'Content-Type': 'text/plain'})
+      resp.end('TESTING!')
+    })
+
+    s.on('/get_custom', function(req, resp) {
+      assert.equal(req.headers.foo, 'bar')
+      assert.equal(req.headers.x, 'y')
+      resp.writeHead(200, {'Content-Type': 'text/plain'})
+      resp.end()
+    })
+
+    s.on('/set-undefined', function (req, resp) {
+      assert.equal(req.method, 'POST')
+      assert.equal(req.headers['content-type'], 'application/json')
+      assert.equal(req.headers['x-foo'], 'baz')
+      var data = ''
+      req.on('data', function(d) {
+        data += d
+      })
+      req.on('end', function() {
+        resp.writeHead(200, {'Content-Type': 'application/json'})
+        resp.end(data)
+      })
+    })
+
+    t.end()
+  })
+})
+
+tape('get(string, function)', function(t) {
   request.defaults({
-    headers:{foo:"bar", merged:"no"}
+    headers: { foo: "bar" }
+  })(s.url + '/get', function (e, r, b) {
+    t.equal(e, null)
+    t.equal(b, 'TESTING!')
+    t.end()
+  })
+})
+
+tape('merge headers', function(t) {
+  request.defaults({
+    headers: { foo: "bar", merged: "no" }
   })(s.url + '/merge-headers', {
-    headers:{merged:"yes"}
-  }, function (e, r, b){
-    if (e) throw e
-    assert.equal(r.statusCode, 200)
-    counter += 1
-  });
+    headers: { merged: "yes" }
+  }, function (e, r, b) {
+    t.equal(e, null)
+    t.equal(r.statusCode, 200)
+    t.end()
+  })
+})
 
-  s.on('/post', function (req, resp) {
-    assert.equal(req.headers.foo, 'bar');
-    assert.equal(req.headers['content-type'], null);
-    assert.equal(req.method, 'POST')
-    resp.writeHead(200, {'Content-Type': 'application/json'});
-    resp.end(JSON.stringify({foo:'bar'}));
-  });
+tape('post(string, object, function)', function(t) {
+  request.defaults({
+    headers: { foo: "bar" }
+  }).post(s.url + '/post', { json: true }, function (e, r, b) {
+    t.equal(e, null)
+    t.equal(b.foo, 'bar')
+    t.end()
+  })
+})
 
-  // test post(string, object, function)
-  request.defaults({headers:{foo:"bar"}}).post(s.url + '/post', {json: true}, function (e, r, b){
-    if (e) throw e;
-    assert.deepEqual('bar', b.foo);
-    counter += 1;
-  });
+tape('patch(string, object, function)', function(t) {
+  request.defaults({
+    headers: { foo: "bar" }
+  }).patch(s.url + '/patch', { json: true }, function (e, r, b) {
+    t.equal(e, null)
+    t.equal(b.foo, 'bar')
+    t.end()
+  })
+})
 
-  s.on('/patch', function (req, resp) {
-    assert.equal(req.headers.foo, 'bar');
-    assert.equal(req.headers['content-type'], null);
-    assert.equal(req.method, 'PATCH')
-    resp.writeHead(200, {'Content-Type': 'application/json'});
-    resp.end(JSON.stringify({foo:'bar'}));
-  });
+tape('post(string, object, function) with body', function(t) {
+  request.defaults({
+    headers: { foo: "bar" }
+  }).post(s.url + '/post-body', {
+    json: true,
+    body: { bar: "baz" }
+  }, function (e, r, b) {
+    t.equal(e, null)
+    t.equal(b.foo, 'bar')
+    t.end()
+  })
+})
 
-  // test post(string, object, function)
-  request.defaults({headers:{foo:"bar"}}).patch(s.url + '/patch', {json: true}, function (e, r, b){
-    if (e) throw e;
-    assert.deepEqual('bar', b.foo);
-    counter += 1;
-  });
+tape('del(string, function)', function(t) {
+  request.defaults({
+    headers: {foo: "bar"},
+    json: true
+  }).del(s.url + '/del', function (e, r, b) {
+    t.equal(e, null)
+    t.equal(b.foo, 'bar')
+    t.end()
+  })
+})
 
-  s.on('/post-body', function (req, resp) {
-    assert.equal(req.headers.foo, 'bar');
-    assert.equal(req.headers['content-type'], 'application/json');
-    assert.equal(req.method, 'POST')
-    resp.writeHead(200, {'Content-Type': 'application/json'});
-    resp.end(JSON.stringify({foo:'bar'}));
-  });
+tape('head(object, function)', function(t) {
+  request.defaults({
+    headers: { foo: "bar" }
+  }).head({ uri: s.url + '/head' }, function (e, r, b) {
+    t.equal(e, null)
+    t.end()
+  })
+})
 
-  // test post(string, object, function) with body
-  request.defaults({headers:{foo:"bar"}}).post(s.url + '/post-body', {json: true, body:{bar:"baz"}}, function (e, r, b){
-    if (e) throw e;
-    assert.deepEqual('bar', b.foo);
-    counter += 1;
-  });
+tape('recursive defaults', function(t) {
+  t.plan(6)
 
-  s.on('/del', function (req, resp) {
-    assert.equal(req.headers.foo, 'bar');
-    assert.equal(req.method, 'DELETE')
-    resp.writeHead(200, {'Content-Type': 'application/json'});
-    resp.end(JSON.stringify({foo:'bar'}));
-  });
+  var defaultsOne = request.defaults({ headers: { foo: "bar1" } })
+    , defaultsTwo = defaultsOne.defaults({ headers: { baz: "bar2" } })
+    , defaultsThree = defaultsTwo.defaults({}, function(options, callback) {
+      options.headers = {
+        foo: 'bar3'
+      }
+      defaultsTwo(options, callback)
+    })
 
-  // test .del(string, function)
-  request.defaults({headers:{foo:"bar"}, json:true}).del(s.url + '/del', function (e, r, b){
-    if (e) throw e;
-    assert.deepEqual('bar', b.foo);
-    counter += 1;
-  });
+  defaultsOne(s.url + '/get_recursive1', function (e, r, b) {
+    t.equal(e, null)
+    t.equal(b, 'TESTING!')
+  })
 
-  s.on('/head', function (req, resp) {
-    assert.equal(req.headers.foo, 'bar');
-    assert.equal(req.method, 'HEAD')
-    resp.writeHead(200, {'Content-Type': 'text/plain'});
-    resp.end();
-  });
+  defaultsTwo(s.url + '/get_recursive2', function (e, r, b) {
+    t.equal(e, null)
+    t.equal(b, 'TESTING!')
+  })
 
-  // test head.(object, function)
-  request.defaults({headers:{foo:"bar"}}).head({uri: s.url + '/head'}, function (e, r, b){
-    if (e) throw e;
-    counter += 1;
-  });
+  // requester function on recursive defaults
+  defaultsThree(s.url + '/get_recursive3', function (e, r, b) {
+    t.equal(e, null)
+    t.equal(b, 'TESTING!')
+  })
+})
 
-  s.on('/get_recursive1', function (req, resp) {
-    assert.equal(req.headers.foo, 'bar1');
-    assert.equal(req.method, 'GET');
-    resp.writeHead(200, {'Content-Type': 'text/plain'});
-    resp.end('TESTING!');
-  });
+tape('test custom request handler function', function(t) {
+  t.plan(2)
 
-  s.on('/get_recursive2', function (req, resp) {
-    assert.equal(req.headers.foo, 'bar1');
-    assert.equal(req.headers.baz, 'bar2');
-    assert.equal(req.method, 'GET');
-    resp.writeHead(200, {'Content-Type': 'text/plain'});
-    resp.end('TESTING!');
-  });
-
-  // test recursive defaults (string, function)
-  var defaultsOne = request.defaults({headers:{foo:"bar1"}});
-  var defaultsTwo = defaultsOne.defaults({headers:{baz:"bar2"}});
-  var defaultsThree = defaultsTwo.defaults({}, function(options, callback){
-    options.headers = {
-      foo: 'bar3'
-    };
-    defaultsTwo(options, callback);
-  });
-  
-  defaultsOne(s.url + '/get_recursive1', function (e, r, b){
-    if (e) throw e;
-    assert.deepEqual("TESTING!", b);
-    counter += 1;
-  });
-
-  defaultsTwo(s.url + '/get_recursive2', function (e, r, b){
-    if (e) throw e;
-    assert.deepEqual("TESTING!", b);
-    counter += 1;
-  });
-
-  s.on('/get_recursive3', function (req, resp) {
-    assert.equal(req.headers.foo, 'bar3');
-    assert.equal(req.headers.baz, 'bar2');
-    assert.equal(req.method, 'GET');
-    resp.writeHead(200, {'Content-Type': 'text/plain'});
-    resp.end('TESTING!');
-  });
-
-  //test that you can set a requester function on recursive defaults
-  defaultsThree(s.url + '/get_recursive3', function (e, r, b){
-    if (e) throw e;
-    assert.deepEqual("TESTING!", b);
-    counter += 1;
-  });
-
-  s.on('/get_custom', function(req, resp) {
-    assert.equal(req.headers.foo, 'bar');
-    assert.equal(req.headers.x, 'y');
-    resp.writeHead(200, {'Content-Type': 'text/plain'});
-    resp.end();
-  });
-
-  // test custom request handler function
-  var defaultRequest = request.defaults({
-    headers:{foo:"bar"}
-    , body: 'TESTING!'
+  var requestWithCustomHandler = request.defaults({
+    headers: { foo: "bar" },
+    body: 'TESTING!'
   }, function(uri, options, callback) {
-    var params = request.initParams(uri, options, callback);
-    options = params.options;
-    options.headers.x = 'y';
+    var params = request.initParams(uri, options, callback)
+    options = params.options
+    options.headers.x = 'y'
+    return request(params.uri, params.options, params.callback)
+  })
 
-    return request(params.uri, params.options, params.callback);
-  });
+  t.throws(function() {
+    requestWithCustomHandler.head(s.url + '/get_custom', function(e, r, b) {
+      throw new Error('We should never get here')
+    })
+  }, /HTTP HEAD requests MUST NOT include a request body/)
 
-  s.on('/set-undefined', function (req, resp) {
-    assert.equal(req.method, 'POST')
-    assert.equal(req.headers['content-type'], 'application/json');
-    assert.equal(req.headers['x-foo'], 'baz');
-    var data = '';
-    req.on('data', function(d) {
-      data += d;
-    });
-    req.on('end', function() {
-      resp.writeHead(200, {'Content-Type': 'application/json'});
-      resp.end(data);
-    });
-  });
+  requestWithCustomHandler.get(s.url + '/get_custom', function(e, r, b) {
+    t.equal(e, null)
+  })
+})
 
-  // test only setting undefined properties
-  request.defaults({method:'post',json:true,headers:{'x-foo':'bar'}})({uri:s.url + '/set-undefined',json:{foo:'bar'},headers:{'x-foo':'baz'}}, function (e, r, b){
-    if (e) throw e;
-    assert.deepEqual({foo:'bar'}, b);
-    counter += 1;
-  });
+tape('test only setting undefined properties', function(t) {
+  request.defaults({
+    method: 'post',
+    json: true,
+    headers: { 'x-foo': 'bar' }
+  })({
+    uri: s.url + '/set-undefined',
+    json: {foo: 'bar'},
+    headers: {'x-foo': 'baz'}
+  }, function (e, r, b) {
+    t.equal(e, null)
+    t.deepEqual(b, { foo: 'bar' })
+    t.end()
+  })
+})
 
-  var msg = 'defaults test failed. head request should throw earlier';
-  assert.throws(function() {
-    defaultRequest.head(s.url + '/get_custom', function(e, r, b) {
-      throw new Error(msg);
-    });
-    counter+=1;
-  }, msg);
-
-  defaultRequest.get(s.url + '/get_custom', function(e, r, b) {
-    if(e) throw e;
-    counter += 1;
-    console.log(counter.toString() + " tests passed.");
-    s.close();
-  });
+tape('cleanup', function(t) {
+  s.close()
+  t.end()
 })
