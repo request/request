@@ -1,191 +1,181 @@
 var assert = require('assert')
   , http = require('http')
   , request = require('../index')
-  ;
+  , tape = require('tape')
 
-var numBasicRequests = 0;
+var numBasicRequests = 0
+  , basicServer
+  , port = 6767
 
-var basicServer = http.createServer(function (req, res) {
-  console.error('Basic auth server: ', req.method, req.url);
-  numBasicRequests++;
+tape('setup', function(t) {
+  basicServer = http.createServer(function (req, res) {
+    numBasicRequests++;
 
-  var ok;
+    var ok;
 
-  if (req.headers.authorization) {
-    if (req.headers.authorization == 'Basic ' + new Buffer('test:testing2').toString('base64')) {
-      ok = true;
-    } else if ( req.headers.authorization == 'Basic ' + new Buffer('test:').toString('base64')) {
-      ok = true;
-    } else if ( req.headers.authorization == 'Basic ' + new Buffer(':apassword').toString('base64')) {
-      ok = true;
-    } else if ( req.headers.authorization == 'Basic ' + new Buffer('justauser').toString('base64')) {
-      ok = true;
+    if (req.headers.authorization) {
+      if (req.headers.authorization == 'Basic ' + new Buffer('test:testing2').toString('base64')) {
+        ok = true;
+      } else if ( req.headers.authorization == 'Basic ' + new Buffer('test:').toString('base64')) {
+        ok = true;
+      } else if ( req.headers.authorization == 'Basic ' + new Buffer(':apassword').toString('base64')) {
+        ok = true;
+      } else if ( req.headers.authorization == 'Basic ' + new Buffer('justauser').toString('base64')) {
+        ok = true;
+      } else {
+        // Bad auth header, don't send back WWW-Authenticate header
+        ok = false;
+      }
     } else {
-      // Bad auth header, don't send back WWW-Authenticate header
+      // No auth header, send back WWW-Authenticate header
       ok = false;
+      res.setHeader('www-authenticate', 'Basic realm="Private"');
     }
-  } else {
-    // No auth header, send back WWW-Authenticate header
-    ok = false;
-    res.setHeader('www-authenticate', 'Basic realm="Private"');
-  }
 
-  if (req.url == '/post/') {
-    var expectedContent = 'data_key=data_value';
-    req.on('data', function(data) {
-      assert.equal(data, expectedContent);
-      console.log('received request data: ' + data);
-    });
-    assert.equal(req.method, 'POST');
-    assert.equal(req.headers['content-length'], '' + expectedContent.length);
-    assert.equal(req.headers['content-type'], 'application/x-www-form-urlencoded; charset=utf-8');
-  }
+    if (req.url == '/post/') {
+      var expectedContent = 'data_key=data_value';
+      req.on('data', function(data) {
+        assert.equal(data, expectedContent);
+      });
+      assert.equal(req.method, 'POST');
+      assert.equal(req.headers['content-length'], '' + expectedContent.length);
+      assert.equal(req.headers['content-type'], 'application/x-www-form-urlencoded; charset=utf-8');
+    }
 
-  if (ok) {
-    console.log('request ok');
-    res.end('ok');
-  } else {
-    console.log('status=401');
-    res.statusCode = 401;
-    res.end('401');
-  }
-});
+    if (ok) {
+      res.end('ok');
+    } else {
+      res.statusCode = 401;
+      res.end('401');
+    }
+  }).listen(port, function() {
+    t.end()
+  })
+})
 
-basicServer.listen(6767);
+tape('', function(t) {
+  request({
+    'method': 'GET',
+    'uri': 'http://localhost:6767/test/',
+    'auth': {
+      'user': 'test',
+      'pass': 'testing2',
+      'sendImmediately': false
+    }
+  }, function(error, res, body) {
+    t.equal(res.statusCode, 200);
+    t.equal(numBasicRequests, 2);
+    t.end();
+  });
+})
 
-var tests = [
-  function(next) {
+tape('', function(t) {
+  // If we don't set sendImmediately = false, request will send basic auth
+  request({
+    'method': 'GET',
+    'uri': 'http://localhost:6767/test2/',
+    'auth': {
+      'user': 'test',
+      'pass': 'testing2'
+    }
+  }, function(error, res, body) {
+    t.equal(res.statusCode, 200);
+    t.equal(numBasicRequests, 3);
+    t.end();
+  });
+})
+
+tape('', function(t) {
+  request({
+    'method': 'GET',
+    'uri': 'http://test:testing2@localhost:6767/test2/'
+  }, function(error, res, body) {
+    t.equal(res.statusCode, 200);
+    t.equal(numBasicRequests, 4);
+    t.end();
+  });
+})
+
+tape('', function(t) {
+  request({
+    'method': 'POST',
+    'form': { 'data_key': 'data_value' },
+    'uri': 'http://localhost:6767/post/',
+    'auth': {
+      'user': 'test',
+      'pass': 'testing2',
+      'sendImmediately': false
+    }
+  }, function(error, res, body) {
+    t.equal(res.statusCode, 200);
+    t.equal(numBasicRequests, 6);
+    t.end();
+  });
+})
+
+tape('', function(t) {
+  t.doesNotThrow( function() {
     request({
       'method': 'GET',
-      'uri': 'http://localhost:6767/test/',
+      'uri': 'http://localhost:6767/allow_empty_user/',
       'auth': {
-        'user': 'test',
-        'pass': 'testing2',
+        'user': '',
+        'pass': 'apassword',
         'sendImmediately': false
       }
-    }, function(error, res, body) {
-      assert.equal(res.statusCode, 200);
-      assert.equal(numBasicRequests, 2);
-      next();
+    }, function(error, res, body ) {
+      t.equal(res.statusCode, 200);
+      t.equal(numBasicRequests, 8);
+      t.end();
     });
-  },
+  })
+})
 
-  function(next) {
-    // If we don't set sendImmediately = false, request will send basic auth
+tape('', function(t) {
+  t.doesNotThrow( function() {
     request({
       'method': 'GET',
-      'uri': 'http://localhost:6767/test2/',
+      'uri': 'http://localhost:6767/allow_undefined_password/',
       'auth': {
-        'user': 'test',
-        'pass': 'testing2'
-      }
-    }, function(error, res, body) {
-      assert.equal(res.statusCode, 200);
-      assert.equal(numBasicRequests, 3);
-      next();
-    });
-  },
-
-  function(next) {
-    request({
-      'method': 'GET',
-      'uri': 'http://test:testing2@localhost:6767/test2/'
-    }, function(error, res, body) {
-      assert.equal(res.statusCode, 200);
-      assert.equal(numBasicRequests, 4);
-      next();
-    });
-  },
-
-  function(next) {
-    request({
-      'method': 'POST',
-      'form': { 'data_key': 'data_value' },
-      'uri': 'http://localhost:6767/post/',
-      'auth': {
-        'user': 'test',
-        'pass': 'testing2',
+        'user': 'justauser',
+        'pass': undefined,
         'sendImmediately': false
       }
-    }, function(error, res, body) {
-      assert.equal(res.statusCode, 200);
-      assert.equal(numBasicRequests, 6);
-      next();
+    }, function(error, res, body ) {
+      t.equal(res.statusCode, 200);
+      t.equal(numBasicRequests, 10);
+      t.end();
     });
-  },
+  })
+})
 
-  function(next) {
-    assert.doesNotThrow( function() {
-      request({
-        'method': 'GET',
-        'uri': 'http://localhost:6767/allow_empty_user/',
-        'auth': {
-          'user': '',
-          'pass': 'apassword',
-          'sendImmediately': false
-        }
-      }, function(error, res, body ) {
-        assert.equal(res.statusCode, 200);
-        assert.equal(numBasicRequests, 8);
-        next();
-      });
+tape('', function(t) {
+  request
+    .get('http://localhost:6767/test/')
+    .auth("test","",false)
+    .on('response', function (res) {
+      t.equal(res.statusCode, 200);
+      t.equal(numBasicRequests, 12);
+      t.end();
     })
-  },
+})
 
-  function(next) {
-    assert.doesNotThrow( function() {
-      request({
-        'method': 'GET',
-        'uri': 'http://localhost:6767/allow_undefined_password/',
-        'auth': {
-          'user': 'justauser',
-          'pass': undefined,
-          'sendImmediately': false
-        }
-      }, function(error, res, body ) {
-        assert.equal(res.statusCode, 200);
-        assert.equal(numBasicRequests, 10);
-        next();
-      });
+tape('', function(t) {
+  request.get('http://localhost:6767/test/',
+    {
+      auth: {
+        user: "test",
+        pass: "",
+        sendImmediately: false
+      }
+    }, function (err, res) {
+      t.equal(res.statusCode, 200);
+      t.equal(numBasicRequests, 14);
+      t.end();
     })
-  },
+})
 
-  function (next) {
-    request
-      .get('http://localhost:6767/test/')
-      .auth("test","",false)
-      .on('response', function (res) {
-        assert.equal(res.statusCode, 200);
-        assert.equal(numBasicRequests, 12);
-        next();
-      })
-  },
-
-  function (next) {
-    request.get('http://localhost:6767/test/',
-      {
-        auth: {
-          user: "test",
-          pass: "",
-          sendImmediately: false
-        }
-      }, function (err, res) {
-        assert.equal(res.statusCode, 200);
-        assert.equal(numBasicRequests, 14);
-        next();
-      })
-  }
-];
-
-function runTest(i) {
-  if (i < tests.length) {
-    tests[i](function() {
-      runTest(i + 1);
-    });
-  } else {
-    console.log('All tests passed');
-    basicServer.close();
-  }
-}
-
-runTest(0);
+tape('cleanup', function(t) {
+  basicServer.close()
+  t.end()
+})
