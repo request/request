@@ -7,8 +7,11 @@ var fs = require('fs')
   , assert = require('assert')
   ;
 
+exports.port = 6767
+exports.portSSL = 16167
+
 exports.createServer =  function (port) {
-  port = port || 6767
+  port = port || exports.port
   var s = http.createServer(function (req, resp) {
     s.emit(req.url, req, resp);
   })
@@ -18,7 +21,7 @@ exports.createServer =  function (port) {
 }
 
 exports.createSSLServer = function(port, opts) {
-  port = port || 16767
+  port = port || exports.portSSL
 
   var options = { 'key' : path.join(__dirname, 'ssl', 'test.key')
                 , 'cert': path.join(__dirname, 'ssl', 'test.crt')
