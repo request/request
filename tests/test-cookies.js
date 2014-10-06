@@ -6,8 +6,7 @@ try {
   process.exit(0)
 }
 
-var assert = require('assert')
-  , http = require('http')
+var http = require('http')
   , request = require('../index')
   , tape = require('tape')
 
