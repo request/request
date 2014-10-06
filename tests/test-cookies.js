@@ -81,9 +81,9 @@ tape('make sure setCookie works', function(t) {
   }
   t.equal(err, null)
   var cookies = jar3.getCookies(validUrl)
-  t.equal(cookies.length == 1)
-  t.equal(cookies[0].key === 'foo')
-  t.equal(cookies[0].value === 'bar')
+  t.equal(cookies.length, 1)
+  t.equal(cookies[0].key, 'foo')
+  t.equal(cookies[0].value, 'bar')
   t.end()
 })
 
