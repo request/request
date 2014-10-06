@@ -1,7 +1,7 @@
 var request = require('../index')
   , http = require('http')
-  , assert = require('assert')
   , zlib = require('zlib')
+  , tape = require('tape')
 
 if (!zlib.Gunzip.prototype.setEncoding) {
   try {
@@ -16,14 +16,13 @@ if (!zlib.Gunzip.prototype.setEncoding) {
 var testContent = 'Compressible response content.\n'
   , testContentGzip
 
-var server = http.createServer(function (req, res) {
+var server = http.createServer(function(req, res) {
   res.statusCode = 200
   res.setHeader('Content-Type', 'text/plain')
 
   if (/\bgzip\b/i.test(req.headers['accept-encoding'])) {
-    zlib.gzip(testContent, function (err, data) {
-      assert.ifError(err)
-      testContentGzip = data
+    zlib.gzip(testContent, function(err, data) {
+      if (err) t.fail(err)
       res.setHeader('Content-Encoding', 'gzip')
       res.end(data)
     })
@@ -32,74 +31,92 @@ var server = http.createServer(function (req, res) {
   }
 })
 
-server.listen(6767, function (err) {
-  assert.ifError(err)
-
-  var headers, options
-
-  // Transparently supports gzip decoding to callbacks
-  options = { url: 'http://localhost:6767/foo', gzip: true }
-  request.get(options, function (err, res, body) {
-    assert.ifError(err)
-    assert.strictEqual(res.headers['content-encoding'], 'gzip')
-    assert.strictEqual(body, testContent)
+tape('setup', function(t) {
+  zlib.gzip(testContent, function(err, data) {
+    t.equal(err, null)
+    testContentGzip = data
+    server.listen(6767, function() {
+      t.end()
+    })
   })
+})
 
+tape('transparently supports gzip decoding to callbacks', function(t) {
+  var options = { url: 'http://localhost:6767/foo', gzip: true }
+  request.get(options, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.headers['content-encoding'], 'gzip')
+    t.equal(body, testContent)
+    t.end()
+  })
+})
 
-  // Transparently supports gzip decoding to pipes
-  options = { url: 'http://localhost:6767/foo', gzip: true }
+tape('transparently supports gzip decoding to pipes', function(t) {
+  var options = { url: 'http://localhost:6767/foo', gzip: true }
   var chunks = []
   request.get(options)
-    .on('data', function (chunk) { chunks.push(chunk) })
-    .on('end', function () {
-        assert.strictEqual(Buffer.concat(chunks).toString(), testContent)
-      })
-    .on('error', function (err) { assert.ifError(err) })
+    .on('data', function(chunk) {
+      chunks.push(chunk)
+    })
+    .on('end', function() {
+      t.equal(Buffer.concat(chunks).toString(), testContent)
+      t.end()
+    })
+    .on('error', function(err) {
+      t.fail(err)
+    })
+})
 
-
-  // Does not request gzip if user specifies Accepted-Encodings
-  headers = { 'Accept-Encoding': null }
-  options = {
+tape('does not request gzip if user specifies Accepted-Encodings', function(t) {
+  var headers = { 'Accept-Encoding': null }
+  var options = {
     url: 'http://localhost:6767/foo',
     headers: headers,
     gzip: true
   }
-  request.get(options, function (err, res, body) {
-    assert.ifError(err)
-    assert.strictEqual(res.headers['content-encoding'], undefined)
-    assert.strictEqual(body, testContent)
+  request.get(options, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.headers['content-encoding'], undefined)
+    t.equal(body, testContent)
+    t.end()
   })
+})
 
-
-  // Does not decode user-requested encoding by default
-  headers = { 'Accept-Encoding': 'gzip' }
-  options = { url: 'http://localhost:6767/foo', headers: headers }
-  request.get(options, function (err, res, body) {
-    assert.ifError(err)
-    assert.strictEqual(res.headers['content-encoding'], 'gzip')
-    assert.strictEqual(body, testContentGzip.toString())
+tape('does not decode user-requested encoding by default', function(t) {
+  var headers = { 'Accept-Encoding': 'gzip' }
+  var options = { url: 'http://localhost:6767/foo', headers: headers }
+  request.get(options, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.headers['content-encoding'], 'gzip')
+    t.equal(body, testContentGzip.toString())
+    t.end()
   })
+})
 
-
-  // Supports character encoding with gzip encoding
-  headers = { 'Accept-Encoding': 'gzip' }
-  options = {
+tape('supports character encoding with gzip encoding', function(t) {
+  var headers = { 'Accept-Encoding': 'gzip' }
+  var options = {
     url: 'http://localhost:6767/foo',
     headers: headers,
     gzip: true,
-    encoding: "utf8"
+    encoding: 'utf8'
   }
   var strings = []
   request.get(options)
-    .on('data', function (string) {
-        assert.strictEqual(typeof string, "string")
-        strings.push(string)
-      })
-    .on('end', function () {
-        assert.strictEqual(strings.join(""), testContent)
+    .on('data', function(string) {
+      t.equal(typeof string, 'string')
+      strings.push(string)
+    })
+    .on('end', function() {
+      t.equal(strings.join(''), testContent)
+      t.end()
+    })
+    .on('error', function(err) {
+      t.fail(err)
+    })
+})
 
-        // Shutdown server after last test
-        server.close()
-      })
-    .on('error', function (err) { assert.ifError(err) })
+tape('cleanup', function(t) {
+  server.close()
+  t.end()
 })
