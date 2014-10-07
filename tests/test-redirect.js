@@ -29,6 +29,7 @@ function serversReady() {
 
   bouncer(301, 'temp')
   bouncer(301, 'double', 2)
+  bouncer(301, 'treble', 3)
   bouncer(302, 'perm')
   bouncer(302, 'nope')
   bouncer(307, 'fwd')
@@ -101,7 +102,7 @@ function serversReady() {
     passed += 1
     done()
   })
-  
+
   // Temporary bounce
   request({uri: server+'/temp', jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     if (er) throw er
@@ -112,7 +113,7 @@ function serversReady() {
     passed += 1
     done()
   })
-  
+
   // Prevent bouncing.
   request({uri:server+'/nope', jar: jar, headers: {cookie: 'foo=bar'}, followRedirect:false}, function (er, res, body) {
     if (er) throw er
@@ -123,7 +124,7 @@ function serversReady() {
     passed += 1
     done()
   })
-  
+
   // Should not follow post redirects by default
   request.post(server+'/temp', { jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     if (er) throw er
@@ -134,7 +135,7 @@ function serversReady() {
     passed += 1
     done()
   })
-  
+
   // Should follow post redirects when followAllRedirects true
   request.post({uri:server+'/temp', followAllRedirects:true, jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     if (er) throw er
@@ -145,7 +146,7 @@ function serversReady() {
     passed += 1
     done()
   })
-  
+
   request.post({uri:server+'/temp', followAllRedirects:false, jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     if (er) throw er
     if (res.statusCode !== 301) throw new Error('Status is not 301: '+res.statusCode)
@@ -166,7 +167,7 @@ function serversReady() {
     passed += 1
     done()
   })
-  
+
   // Should not follow delete redirects even if followRedirect is set to true
   request.del(server+'/temp', { followRedirect: true, jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     if (er) throw er
@@ -177,7 +178,7 @@ function serversReady() {
     passed += 1
     done()
   })
-  
+
   // Should follow delete redirects when followAllRedirects true
   request.del(server+'/temp', {followAllRedirects:true, jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     if (er) throw er
@@ -187,8 +188,8 @@ function serversReady() {
     assert.equal(body, 'GET temp_landing', 'Got temporary landing content')
     passed += 1
     done()
-  })  
-    
+  })
+
   request.del(server+'/fwd', {followAllRedirects:true, jar: jar, headers: {cookie: 'foo=bar'}}, function (er, res, body) {
     if (er) throw er
     if (res.statusCode !== 200) throw new Error('Status is not 200: '+res.statusCode)
@@ -211,22 +212,30 @@ function serversReady() {
     done()
   })
 
-  function filter(response) {
-    var location = response.headers.location || '';
-
-    if (~location.indexOf('double_2')) {
-      return false;
-    }
-
-    return true;
+  function filterDouble(response) {
+    return (response.headers.location || '').indexOf('double_2') === -1;
   }
 
   // Double bounce terminated after first redirect
-  request({uri: server+'/double', jar: jar, headers: {cookie: 'foo=bar'}, followRedirect: filter}, function (er, res, body) {
+  request({uri: server+'/double', jar: jar, headers: {cookie: 'foo=bar'}, followRedirect: filterDouble}, function (er, res, body) {
     if (er) throw er
     if (res.statusCode !== 301) { console.log('B:'+body);  throw new Error('Status is not 301: '+res.statusCode)}
     assert.ok(hits.double, 'Original request is to /double')
     assert.equal(res.headers.location, server+'/double_2', 'Current location should be ' + server+'/double_2')
+    passed += 1
+    done()
+  })
+
+  function filterTreble(response) {
+    return (response.headers.location || '').indexOf('treble_3') === -1;
+  }
+
+  // Triple bounce terminated after second redirect
+  request({uri: server+'/treble', jar: jar, headers: {cookie: 'foo=bar'}, followRedirect: filterTreble}, function (er, res, body) {
+    if (er) throw er
+    if (res.statusCode !== 301) { console.log('B:'+body);  throw new Error('Status is not 301: '+res.statusCode)}
+    assert.ok(hits.treble, 'Original request is to /treble')
+    assert.equal(res.headers.location, server+'/treble_3', 'Current location should be ' + server+'/treble_3')
     passed += 1
     done()
   })
@@ -246,7 +255,7 @@ function serversReady() {
   var reqs_done = 0;
   function done() {
     reqs_done += 1;
-    if(reqs_done == 13) {
+    if(reqs_done == 14) {
       console.log(passed + ' tests passed.')
       s.close()
       ss.close()
