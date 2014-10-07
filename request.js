@@ -263,9 +263,9 @@ Request.prototype.init = function (options) {
   self.allowRedirect = (typeof self.followRedirect === 'function') ? self.followRedirect : function(response) {
     return true
   }
-  self.followRedirect = (self.followRedirect !== undefined) ? !!self.followRedirect : true
+  self.followRedirects = (self.followRedirect !== undefined) ? !!self.followRedirect : true
   self.followAllRedirects = (self.followAllRedirects !== undefined) ? self.followAllRedirects : false
-  if (self.followRedirect || self.followAllRedirects)
+  if (self.followRedirects || self.followAllRedirects)
     self.redirects = self.redirects || []
 
   self.setHost = false
@@ -885,7 +885,7 @@ Request.prototype.onResponse = function (response) {
 
     if (self.followAllRedirects) {
       redirectTo = location
-    } else if (self.followRedirect) {
+    } else if (self.followRedirects) {
       switch (self.method) {
         case 'PATCH':
         case 'PUT':
