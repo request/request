@@ -7,73 +7,83 @@ try {
 }
 
 var server = require('./server')
-  , assert = require('assert')
   , request = require('../index')
-  , s = server.createServer()
+  , tape = require('tape')
 
-s.listen(s.port, function () {
-  var serverUri = 'http://localhost:' + s.port
-    , numTests = 0
-    , numOutstandingTests = 0
+var s = server.createServer()
 
-  function createTest(requestObj, serverAssertFn) {
-    var testNumber = numTests;
-    numTests += 1;
-    numOutstandingTests += 1;
-    s.on('/' + testNumber, function (req, res) {
-      serverAssertFn(req, res);
-      res.writeHead(200);
-      res.end();
-    });
-    requestObj.url = serverUri + '/' + testNumber
-    request(requestObj, function (err, res, body) {
-      assert.ok(!err)
-      assert.equal(res.statusCode, 200)
-      numOutstandingTests -= 1
-      if (numOutstandingTests === 0) {
-        console.log(numTests + ' tests passed.')
-        s.close()
-      }
+tape('setup', function(t) {
+  s.listen(s.port, function() {
+    t.end()
+  })
+})
+
+function runTest(name, path, requestObj, serverAssertFn) {
+  tape(name, function(t) {
+    s.on('/' + path, function(req, res) {
+      serverAssertFn(t, req, res)
+      res.writeHead(200)
+      res.end()
     })
-  }
+    requestObj.url = s.url + '/' + path
+    request(requestObj, function(err, res, body) {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.end()
+    })
+  })
+}
 
-  // Issue #125: headers.cookie shouldn't be replaced when a cookie jar isn't specified
-  createTest({headers: {cookie: 'foo=bar'}}, function (req, res) {
-    assert.ok(req.headers.cookie)
-    assert.equal(req.headers.cookie, 'foo=bar')
+runTest(
+  '#125: headers.cookie with no cookie jar',
+  'no-jar',
+  {headers: {cookie: 'foo=bar'}},
+  function(t, req, res) {
+    t.equal(req.headers.cookie, 'foo=bar')
   })
 
-  // Issue #125: headers.cookie + cookie jar
-  //using new cookie module
-  var jar = request.jar()
-  jar.setCookie('quux=baz', serverUri);
-  createTest({jar: jar, headers: {cookie: 'foo=bar'}}, function (req, res) {
-    assert.ok(req.headers.cookie)
-    assert.equal(req.headers.cookie, 'foo=bar; quux=baz')
+var jar = request.jar()
+jar.setCookie('quux=baz', s.url)
+runTest(
+  '#125: headers.cookie + cookie jar',
+  'header-and-jar',
+  {jar: jar, headers: {cookie: 'foo=bar'}},
+  function(t, req, res) {
+    t.equal(req.headers.cookie, 'foo=bar; quux=baz')
   })
 
-  // Issue #794 add ability to ignore cookie parsing and domain errors
-  var jar2 = request.jar()
-  jar2.setCookie('quux=baz; Domain=foo.bar.com', serverUri, {ignoreError: true});
-  createTest({jar: jar2, headers: {cookie: 'foo=bar'}}, function (req, res) {
-    assert.ok(req.headers.cookie)
-    assert.equal(req.headers.cookie, 'foo=bar')
+var jar2 = request.jar()
+jar2.setCookie('quux=baz; Domain=foo.bar.com', s.url, {ignoreError: true})
+runTest(
+  '#794: ignore cookie parsing and domain errors',
+  'ignore-errors',
+  {jar: jar2, headers: {cookie: 'foo=bar'}},
+  function(t, req, res) {
+    t.equal(req.headers.cookie, 'foo=bar')
   })
 
-  // Issue #784: override content-type when json is used
-  // https://github.com/mikeal/request/issues/784
-  createTest({
+runTest(
+  '#784: override content-type when json is used',
+  'json',
+  {
     json: true,
     method: 'POST',
-    headers: {'content-type': 'application/json; charset=UTF-8'},
-    body: {hello: 'my friend'}},function(req, res) {
-      assert.ok(req.headers['content-type']);
-      assert.equal(req.headers['content-type'], 'application/json; charset=UTF-8');
-    }
-  )
+    headers: { 'content-type': 'application/json; charset=UTF-8' },
+    body: { hello: 'my friend' }},
+  function(t, req, res) {
+    t.equal(req.headers['content-type'], 'application/json; charset=UTF-8')
+  }
+)
 
-  // There should be no cookie header when neither headers.cookie nor a cookie jar is specified
-  createTest({}, function (req, res) {
-    assert.ok(!req.headers.cookie)
+runTest(
+  'neither headers.cookie nor a cookie jar is specified',
+  'no-cookie',
+  {},
+  function(t, req, res) {
+    t.equal(req.headers.cookie, undefined)
   })
+
+tape('cleanup', function(t) {
+  s.close()
+  t.end()
 })
