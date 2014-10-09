@@ -22,6 +22,11 @@ var s = http.createServer(function(req, res) {
   // Test mixedcase
   request('HtTp://localhost:6767', function (err, resp, body) {
     assert.equal(true, true);
+  })
+
+  // Test URI with hostname and port specified
+  request({protocol: 'http:', hostname: 'localhost', port: 6767}, function (err, res, body) {
+    assert.equal(true, true);
     // clean up
     s.close();
   })
