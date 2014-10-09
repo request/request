@@ -243,7 +243,7 @@ Request.prototype.init = function (options) {
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
 
-  if (!self.uri.host && self.uri.protocol !== 'unix:') {
+  if (!(self.uri.host || (self.uri.hostname && self.uri.port)) && self.uri.protocol !== 'unix:') {
     // Invalid URI: it may generate lot of bad errors, like 'TypeError: Cannot call method `indexOf` of undefined' in CookieJar
     // Detect and reject it as soon as possible
     var faultyUri = url.format(self.uri)
