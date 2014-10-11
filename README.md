@@ -35,6 +35,18 @@ Request can also `pipe` to itself. When doing so, `content-type` and `content-le
 request.get('http://google.com/img.png').pipe(request.put('http://mysite.com/img.png'))
 ```
 
+Request exposes the `response` object via the "response" event while streaming. Use the `response` object to abort requests based on error conditions `response.statusCode > 399` or otherwise:
+
+```javascript
+request
+  .get('http://google.com/img.png')
+  .on('response', function(response) {
+    console.log(response.statusCode) // 200
+    console.log(response.headers['content-type']) // 'image/png'
+  })
+  .pipe(request.put('http://mysite.com/img.png'))
+```
+
 Now let’s get fancy.
 
 ```javascript
