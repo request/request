@@ -1,88 +1,77 @@
-var server = require('./server')
-  , events = require('events')
-  , stream = require('stream')
-  , assert = require('assert')
-  , fs = require('fs')
+var net = require('net')
   , request = require('../index')
-  , path = require('path')
-  , util = require('util')
-  ;
+  , tape = require('tape')
 
 var port = 6768
   , called = false
   , proxiedHost = 'google.com'
-  , expectProxyHeaders = {
-      accept: 'yo',
-      'user-agent': 'just another foobar',
-      host: 'google.com'
-    }
-  , data = ""
-  , expect =
-      "CONNECT google.com:80 HTTP/1.1\r\n" +
-      "accept: yo\r\n" +
-      "user-agent: just another foobar\r\n" +
-      "host: google.com:80\r\n" +
-      "Proxy-Authorization: Basic dXNlcjpwYXNz\r\n" +
-      "Connection: close\r\n" +
-      "\r\n" +
-      "GET / HTTP/1.1\r\n" +
-      "authorization: Token deadbeef\r\n" +
-      "do-not-send-this: ok\r\n" +
-      "accept: yo\r\n" +
-      "user-agent: just another foobar\r\n" +
-      "host: google.com\r\n" +
-      "Connection: keep-alive\r\n" +
-      "\r\n"
-  ;
+  , data = ''
 
-var s = require('net').createServer(function (sock) {
-  s.close()
+var s = require('net').createServer(function(sock) {
   called = true
-  sock.once("data", function (c) {
-    console.error("server got data")
-    // process.stderr.write(c)
+  sock.once('data', function (c) {
     data += c
 
-    sock.write("HTTP/1.1 200 OK\r\n\r\n")
+    sock.write('HTTP/1.1 200 OK\r\n\r\n')
 
-    sock.once("data", function (c) {
-      console.error("server got data again")
-      // process.stderr.write(c)
+    sock.once('data', function (c) {
       data += c
 
-      sock.write("HTTP/1.1 200 OK\r\n")
-      sock.write("content-type: text/plain\r\n")
-      sock.write("content-length: 5\r\n")
-      sock.write("\r\n")
-      sock.end("derp\n")
+      sock.write('HTTP/1.1 200 OK\r\n')
+      sock.write('content-type: text/plain\r\n')
+      sock.write('content-length: 5\r\n')
+      sock.write('\r\n')
+      sock.end('derp\n')
     })
   })
 })
-s.listen(port, function () {
-  request ({
-    tunnel: true,
-    url: 'http://'+proxiedHost,
-    proxy: 'http://localhost:'+port,
-    headers: {
-      'Proxy-Authorization': 'Basic dXNlcjpwYXNz',
-      authorization: 'Token deadbeef',
-      'do-not-send-this': 'ok',
-      accept: 'yo',
-      'user-agent': 'just another foobar'
-    }
-    /*
-    //should behave as if these arguments where passed:
-    url: 'http://localhost:'+port,
-    headers: {host: proxiedHost}
-    //*/
-  }, function (err, res, body) {
-    gotResp = true
-    assert.equal(body, "derp\n")
-    assert.equal(data, expect)
-  }).end()
+
+tape('setup', function(t) {
+  s.listen(port, function() {
+    t.end()
+  })
 })
 
-process.on('exit', function () {
-  assert.ok(called, 'the request must be made to the proxy server')
-  assert.ok(gotResp, "got request")
+tape('proxy', function(t) {
+  request({
+    tunnel: true,
+    url: 'http://' + proxiedHost,
+    proxy: 'http://localhost:' + port,
+    headers: {
+      'Proxy-Authorization' : 'Basic dXNlcjpwYXNz',
+      'authorization'       : 'Token deadbeef',
+      'do-not-send-this'    : 'ok',
+      'accept'              : 'yo',
+      'user-agent'          : 'just another foobar'
+    }
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'derp\n')
+    t.equal(data, [
+      'CONNECT google.com:80 HTTP/1.1',
+      'accept: yo',
+      'user-agent: just another foobar',
+      'host: google.com:80',
+      'Proxy-Authorization: Basic dXNlcjpwYXNz',
+      'Connection: close',
+      '',
+      'GET / HTTP/1.1',
+      'authorization: Token deadbeef',
+      'do-not-send-this: ok',
+      'accept: yo',
+      'user-agent: just another foobar',
+      'host: google.com',
+      'Connection: keep-alive',
+      '',
+      ''
+    ].join('\r\n'))
+    t.equal(called, true, 'the request must be made to the proxy server')
+    t.end()
+  })
+})
+
+tape('cleanup', function(t) {
+  s.close()
+  t.end()
 })
