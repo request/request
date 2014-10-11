@@ -35,7 +35,7 @@ Request can also `pipe` to itself. When doing so, `content-type` and `content-le
 request.get('http://google.com/img.png').pipe(request.put('http://mysite.com/img.png'))
 ```
 
-Request emits a "response" event when a response is received. This is identical to the behavior of Node core's [http.ClientRequest](http://nodejs.org/api/http.html#http_event_response).
+Request emits a "response" event when a response is received. The `response` argument will be an instance of [http.IncomingMessage](http://nodejs.org/api/http.html#http_http_incomingmessage).
 
 ```javascript
 request
