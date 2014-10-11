@@ -1,22 +1,39 @@
 var request = require('../index')
   , http = require('http')
-  , assert = require('assert')
-  ;
+  , tape = require('tape')
 
 var s = http.createServer(function (req, resp) {
   resp.statusCode = 200
   resp.end('asdf')
-}).listen(8080, function () {
-  var r = request({
-    url: 'http://localhost:8080',
-    headers: {foo: 'bar'}
-  }, function (e, resp) {
-    assert.equal(JSON.parse(JSON.stringify(r)).uri.href, r.uri.href)
-    assert.equal(JSON.parse(JSON.stringify(r)).method, r.method)
-    assert.equal(JSON.parse(JSON.stringify(r)).headers.foo, r.headers.foo)
-    assert.equal(JSON.parse(JSON.stringify(resp)).statusCode, resp.statusCode)
-    assert.equal(JSON.parse(JSON.stringify(resp)).body, resp.body)
-    assert.equal(JSON.parse(JSON.stringify(resp)).headers.date, resp.headers.date)
-    s.close()
+})
+
+tape('setup', function(t) {
+  s.listen(6767, function() {
+    t.end()
   })
+})
+
+tape('request().toJSON()', function(t) {
+  var r = request({
+    url: 'http://localhost:6767',
+    headers: { foo: 'bar' }
+  }, function(err, res) {
+    var json_r   = JSON.parse(JSON.stringify(r))
+      , json_res = JSON.parse(JSON.stringify(res))
+
+    t.equal(json_r.uri.href   , r.uri.href)
+    t.equal(json_r.method     , r.method)
+    t.equal(json_r.headers.foo, r.headers.foo)
+
+    t.equal(json_res.statusCode  , res.statusCode)
+    t.equal(json_res.body        , res.body)
+    t.equal(json_res.headers.date, res.headers.date)
+
+    t.end()
+  })
+})
+
+tape('cleanup', function(t) {
+  s.close()
+  t.end()
 })
