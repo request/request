@@ -1,100 +1,105 @@
 var server = require('./server')
   , events = require('events')
   , stream = require('stream')
-  , assert = require('assert')
   , request = require('../index')
-  ;
+  , tape = require('tape')
 
-var s = server.createServer();
-var expectedBody = "waited";
-var remainingTests = 6;
+var s = server.createServer()
 
-s.listen(s.port, function () {
-  // Request that waits for 200ms
-  s.on('/timeout', function (req, resp) {
-    setTimeout(function(){
-      resp.writeHead(200, {'content-type':'text/plain'})
-      resp.write(expectedBody)
-      resp.end()
-    }, 200);
-  });
+// Request that waits for 200ms
+s.on('/timeout', function(req, res) {
+  setTimeout(function() {
+    res.writeHead(200, {'content-type':'text/plain'})
+    res.write('waited')
+    res.end()
+  }, 200)
+})
 
-  // Scenario that should timeout
+tape('setup', function(t) {
+  s.listen(s.port, function() {
+    t.end()
+  })
+})
+
+tape('should timeout', function(t) {
   var shouldTimeout = {
-    url: s.url + "/timeout",
-    timeout:100
+    url: s.url + '/timeout',
+    timeout: 100
   }
 
-
-  request(shouldTimeout, function (err, resp, body) {
-    assert.equal(err.code, "ETIMEDOUT");
-    checkDone();
+  request(shouldTimeout, function(err, res, body) {
+    t.equal(err.code, 'ETIMEDOUT')
+    t.end()
   })
+})
 
+tape('should timeout with events', function(t) {
+  t.plan(2)
 
   var shouldTimeoutWithEvents = {
-    url: s.url + "/timeout",
-    timeout:100
+    url: s.url + '/timeout',
+    timeout: 100
   }
 
-  var eventsEmitted = 0;
+  var eventsEmitted = 0
   request(shouldTimeoutWithEvents)
-    .on('error', function (err) {
-      eventsEmitted++;
-      assert.equal(1, eventsEmitted);
-      assert.equal(err.code, "ETIMEDOUT");
-      checkDone();
+    .on('error', function(err) {
+      eventsEmitted++
+      t.equal(1, eventsEmitted)
+      t.equal(err.code, 'ETIMEDOUT')
     })
+})
 
-  // Scenario that shouldn't timeout
+tape('should not timeout', function(t) {
   var shouldntTimeout = {
-    url: s.url + "/timeout",
-    timeout:1200
+    url: s.url + '/timeout',
+    timeout: 1200
   }
 
-  request(shouldntTimeout, function (err, resp, body) {
-    assert.equal(err, null);
-    assert.equal(expectedBody, body)
-    checkDone();
+  request(shouldntTimeout, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(body, 'waited')
+    t.end()
   })
+})
 
-  // Scenario with no timeout set, so shouldn't timeout
+tape('no timeout', function(t) {
   var noTimeout = {
-    url: s.url + "/timeout"
+    url: s.url + '/timeout'
   }
 
-  request(noTimeout, function (err, resp, body) {
-    assert.equal(err);
-    assert.equal(expectedBody, body)
-    checkDone();
+  request(noTimeout, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(body, 'waited')
+    t.end()
   })
+})
 
-  // Scenario with a negative timeout value, should be treated a zero or the minimum delay
+tape('negative timeout', function(t) { // should be treated a zero or the minimum delay
   var negativeTimeout = {
-    url: s.url + "/timeout",
-    timeout:-1000
+    url: s.url + '/timeout',
+    timeout: -1000
   }
 
-  request(negativeTimeout, function (err, resp, body) {
-    assert.equal(err.code, "ETIMEDOUT");
-    checkDone();
+  request(negativeTimeout, function(err, res, body) {
+    t.equal(err.code, 'ETIMEDOUT')
+    t.end()
   })
+})
 
-  // Scenario with a float timeout value, should be rounded by setTimeout anyway
+tape('float timeout', function(t) { // should be rounded by setTimeout anyway
   var floatTimeout = {
-    url: s.url + "/timeout",
+    url: s.url + '/timeout',
     timeout: 100.76
   }
 
-  request(floatTimeout, function (err, resp, body) {
-    assert.equal(err.code, "ETIMEDOUT");
-    checkDone();
+  request(floatTimeout, function(err, res, body) {
+    t.equal(err.code, 'ETIMEDOUT')
+    t.end()
   })
+})
 
-  function checkDone() {
-    if(--remainingTests == 0) {
-      s.close();
-      console.log("All tests passed.");
-    }
-  }
+tape('cleanup', function(t) {
+  s.close()
+  t.end()
 })
