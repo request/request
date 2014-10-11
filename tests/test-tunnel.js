@@ -5,68 +5,84 @@
 // If the proxy fails to start, we'll just log a warning and assume success.
 
 var server = require('./server')
-  , assert = require('assert')
   , request = require('../index')
   , fs = require('fs')
   , path = require('path')
   , child_process = require('child_process')
-  , sqConf = path.resolve(__dirname, 'squid.conf')
+  , tape = require('tape')
+
+var sqConf = path.resolve(__dirname, 'squid.conf')
   , sqArgs = ['-f', sqConf, '-N', '-d', '5']
   , proxy = 'http://localhost:3128'
-  , hadError = null
+  , squid
+  , ready = false
+  , installed = true
+  , squidError = null
 
-var squid = child_process.spawn('squid', sqArgs);
-var ready = false
+// This test doesn't fit into tape very well...
 
-squid.stderr.on('data', function (c) {
-  console.error('SQUIDERR ' + c.toString().trim().split('\n')
-               .join('\nSQUIDERR '))
-  ready = c.toString().match(/ready to serve requests|Accepting HTTP Socket connections/i)
-})
+tape('setup', function(t) {
+  squid = child_process.spawn('squid', sqArgs)
 
-squid.stdout.on('data', function (c) {
-  console.error('SQUIDOUT ' + c.toString().trim().split('\n')
-               .join('\nSQUIDOUT '))
-})
-
-squid.on('error', function (c) {
-  console.error('squid: error '+c)
-  if (c && !ready) {
-    notInstalled()
-    return
-  }
-})
-
-squid.on('exit', function (c) {
-  console.error('squid: exit '+c)
-  if (c && !ready) {
-    notInstalled()
-    return
-  }
-
-  if (c) {
-    hadError = hadError || new Error('Squid exited with '+c)
-  }
-  if (hadError) throw hadError
-})
-
-setTimeout(function F () {
-  if (!ready) return setTimeout(F, 100)
-  request({ uri: 'https://registry.npmjs.org/'
-          , proxy: 'http://localhost:3128'
-          , strictSSL: true
-          , json: true }, function (er, body) {
-    hadError = er
-    console.log(er || typeof body)
-    if (!er) console.log("ok")
-    squid.kill('SIGKILL')
+  squid.stderr.on('data', function(c) {
+    console.error('SQUIDERR ' + c.toString().trim().split('\n').join('\nSQUIDERR '))
+    ready = c.toString().match(/ready to serve requests|Accepting HTTP Socket connections/i)
   })
-}, 100)
 
-function notInstalled() {
-  console.error('squid must be installed to run this test.')
-  console.error('skipping this test. please install squid and run again if you need to test tunneling.')
-  c = null
-  hadError = null
-  process.exit(0)
-}
+  squid.stdout.on('data', function(c) {
+    console.error('SQUIDOUT ' + c.toString().trim().split('\n').join('\nSQUIDOUT '))
+  })
+
+  squid.on('error', function(c) {
+    console.error('squid: error ' + c)
+    if (c && !ready) {
+      installed = false
+    }
+  })
+
+  squid.on('exit', function(c) {
+    console.error('squid: exit ' + c)
+    if (c && !ready) {
+      installed = false
+      return
+    }
+
+    if (c) {
+      squidError = squidError || new Error('Squid exited with code ' + c)
+    }
+    if (squidError) {
+      throw squidError
+    }
+  })
+
+  t.end()
+})
+
+tape('tunnel', function(t) {
+  setTimeout(function F() {
+    if (!installed) {
+      console.error('squid must be installed to run this test.')
+      console.error('skipping this test. please install squid and run again if you need to test tunneling.')
+      t.skip()
+      t.end()
+      return
+    }
+    if (!ready) {
+      return setTimeout(F, 100)
+    }
+    request({
+      uri: 'https://registry.npmjs.org/',
+      proxy: 'http://localhost:3128',
+      strictSSL: true,
+      json: true
+    }, function(err, body) {
+      t.equal(err, null)
+      t.end()
+    })
+  }, 100)
+})
+
+tape('cleanup', function(t) {
+  squid.kill('SIGKILL')
+  t.end()
+})
