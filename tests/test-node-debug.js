@@ -1,28 +1,33 @@
-var assert = require('assert')
-  , request = require('../index')
+var request = require('../index')
   , http = require('http')
-  ;
+  , tape = require('tape')
 
 var s = http.createServer(function(req, res) {
   res.statusCode = 200
   res.end('')
-}).listen(6767, function () {
-  // a simple request should not fail with debugging enabled
+})
+
+var stderr = []
+  , prevStderrLen = 0
+
+process.stderr.write = function(string, encoding, fd) {
+  stderr.push(string)
+}
+
+tape('setup', function(t) {
+  s.listen(6767, function() {
+    t.end()
+  })
+})
+
+tape('a simple request should not fail with debugging enabled', function(t) {
   request.debug = true
 
-  var stderr = []
-    , stderrLen = 0
-  process.stderr.write = (function(write) {
-    return function(string, encoding, fd) {
-      stderr.push(string)
-    }
-  })(process.stderr.write)
+  request('http://localhost:6767', function(err, res, body) {
+    t.ifError(err, 'the request did not fail')
+    t.ok(res, 'the request did not fail')
 
-  request('http://localhost:6767', function (err, resp, body) {
-    assert.ifError(err, 'the request did not fail')
-    assert.ok(resp, 'the request did not fail')
-
-    assert.ok(stderr.length, 'stderr has some messages')
+    t.ok(stderr.length, 'stderr has some messages')
     ;[
       /^REQUEST { uri: /,
       /^REQUEST make request http:\/\/localhost:6767\/\n$/,
@@ -31,37 +36,45 @@ var s = http.createServer(function(req, res) {
       /^REQUEST response end /,
       /^REQUEST end event /,
       /^REQUEST emitting complete /
-    ].forEach(function(t) {
+    ].forEach(function(pattern) {
       var found = false
       stderr.forEach(function(msg) {
-        if (t.test(msg)) found = true
+        if (pattern.test(msg)) {
+          found = true
+        }
       })
-      assert.ok(found, 'a log message matches ' + t)
+      t.ok(found, 'a log message matches ' + pattern)
     })
-    stderrLen = stderr.length
-
-    // there should be no further lookups on process.env
-    process.env.NODE_DEBUG = ''
-    stderr = []
-
-    request('http://localhost:6767', function(err, resp, body) {
-      assert.ifError(err, 'the request did not fail')
-      assert.ok(resp, 'the request did not fail')
-
-      assert.equal(stderr.length, stderrLen, 'env.NODE_DEBUG is not retested')
-
-      // it should be possible to disable debugging at runtime
-      request.debug = false
-      stderr = []
-
-      request('http://localhost:6767', function(err, resp, body) {
-        assert.ifError(err, 'the request did not fail')
-        assert.ok(resp, 'the request did not fail')
-
-        assert.equal(stderr.length, 0, 'debugging can be disabled')
-
-        s.close(); // clean up
-      })
-    })
+    prevStderrLen = stderr.length
+    t.end()
   })
+})
+
+tape('there should be no further lookups on process.env', function(t) {
+  process.env.NODE_DEBUG = ''
+  stderr = []
+
+  request('http://localhost:6767', function(err, res, body) {
+    t.ifError(err, 'the request did not fail')
+    t.ok(res, 'the request did not fail')
+    t.equal(stderr.length, prevStderrLen, 'env.NODE_DEBUG is not retested')
+    t.end()
+  })
+})
+
+tape('it should be possible to disable debugging at runtime', function(t) {
+  request.debug = false
+  stderr = []
+
+  request('http://localhost:6767', function(err, res, body) {
+    t.ifError(err, 'the request did not fail')
+    t.ok(res, 'the request did not fail')
+    t.equal(stderr.length, 0, 'debugging can be disabled')
+    t.end()
+  })
+})
+
+tape('cleanup', function(t) {
+  s.close()
+  t.end()
 })
