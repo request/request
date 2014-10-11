@@ -152,6 +152,10 @@ Request.prototype.init = function (options) {
   if (!self.method) self.method = options.method || 'GET'
   self.localAddress = options.localAddress
 
+  if (!self.qsLib) {
+    self.qsLib = (options.useQuerystring ? querystring : qs)
+  }
+
   debug(options)
   if (!self.pool && self.pool !== false) self.pool = globalPool
   self.dests = self.dests || []
@@ -1191,18 +1195,18 @@ Request.prototype.pipeDest = function (dest) {
 
 Request.prototype.qs = function (q, clobber) {
   var base
-  if (!clobber && this.uri.query) base = qs.parse(this.uri.query)
+  if (!clobber && this.uri.query) base = this.qsLib.parse(this.uri.query)
   else base = {}
 
   for (var i in q) {
     base[i] = q[i]
   }
 
-  if (qs.stringify(base) === ''){
+  if (this.qsLib.stringify(base) === ''){
     return this
   }
 
-  this.uri = url.parse(this.uri.href.split('?')[0] + '?' + qs.stringify(base))
+  this.uri = url.parse(this.uri.href.split('?')[0] + '?' + this.qsLib.stringify(base))
   this.url = this.uri
   this.path = this.uri.path
 
@@ -1211,7 +1215,7 @@ Request.prototype.qs = function (q, clobber) {
 Request.prototype.form = function (form) {
   if (form) {
     this.setHeader('content-type', 'application/x-www-form-urlencoded; charset=utf-8')
-    this.body = (typeof form === 'string') ? form.toString('utf8') : qs.stringify(form).toString('utf8')
+    this.body = (typeof form === 'string') ? form.toString('utf8') : this.qsLib.stringify(form).toString('utf8')
     return this
   }
   // create form-data object
@@ -1396,7 +1400,7 @@ Request.prototype.oauth = function (_oauth) {
   delete oa.oauth_token_secret
 
   var baseurl = this.uri.protocol + '//' + this.uri.host + this.uri.pathname
-  var params = qs.parse([].concat(query, form, qs.stringify(oa)).join('&'))
+  var params = this.qsLib.parse([].concat(query, form, this.qsLib.stringify(oa)).join('&'))
   var signature = oauth.hmacsign(this.method, baseurl, params, consumer_secret, token_secret)
 
   var realm = _oauth.realm ? 'realm="' + _oauth.realm + '",' : ''
