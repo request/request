@@ -1,33 +1,71 @@
-var assert = require('assert')
+var http = require('http')
   , request = require('../index')
-  , http = require('http')
-  ;
+  , tape = require('tape')
 
 var s = http.createServer(function(req, res) {
-  res.statusCode = 200;
-  res.end('');
-}).listen(6767, function () {
+  res.statusCode = 200
+  res.end('ok')
+})
 
-  // Test lowercase
-  request('http://localhost:6767', function (err, resp, body) {
-    // just need to get here without throwing an error
-    assert.equal(true, true);
+tape('setup', function(t) {
+  s.listen(6767, function() {
+    t.end()
   })
+})
 
-  // Test uppercase
-  request('HTTP://localhost:6767', function (err, resp, body) {
-    assert.equal(true, true);
+tape('lowercase', function(t) {
+  request('http://localhost:6767', function(err, resp, body) {
+    t.equal(err, null)
+    t.equal(body, 'ok')
+    t.end()
   })
+})
 
-  // Test mixedcase
-  request('HtTp://localhost:6767', function (err, resp, body) {
-    assert.equal(true, true);
+tape('uppercase', function(t) {
+  request('HTTP://localhost:6767', function(err, resp, body) {
+    t.equal(err, null)
+    t.equal(body, 'ok')
+    t.end()
   })
+})
 
-  // Test URI with hostname and port specified
-  request({protocol: 'http:', hostname: 'localhost', port: 6767}, function (err, res, body) {
-    assert.equal(true, true);
-    // clean up
-    s.close();
+tape('mixedcase', function(t) {
+  request('HtTp://localhost:6767', function(err, resp, body) {
+    t.equal(err, null)
+    t.equal(body, 'ok')
+    t.end()
   })
+})
+
+tape('hostname and port', function(t) {
+  request({
+    uri: {
+      protocol: 'http:',
+      hostname: 'localhost',
+      port: 6767
+    }
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(body, 'ok')
+    t.end()
+  })
+})
+
+tape('hostname and port', function(t) {
+  request({
+    uri: {
+      protocol: 'http:',
+      hostname: 'localhost',
+      port: 6767
+    }
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(body, 'ok')
+    t.end()
+  })
+})
+
+tape('cleanup', function(t) {
+  s.close()
+  t.end()
 })
