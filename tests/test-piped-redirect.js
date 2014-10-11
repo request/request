@@ -1,42 +1,49 @@
 var http = require('http')
-  , assert = require('assert')
   , request = require('../index')
-  ;
+  , tape = require('tape')
 
-var portOne = 8968
-  , portTwo = 8969
-  ;
+var port1 = 8968
+  , port2 = 8969
 
-
-// server one
-var s1 = http.createServer(function (req, resp) {
+var s1 = http.createServer(function(req, resp) {
   if (req.url == '/original') {
-    resp.writeHeader(302, {'location': '/redirected'})
+    resp.writeHeader(302, {
+      'location': '/redirected'
+    })
     resp.end()
   } else if (req.url == '/redirected') {
-    resp.writeHeader(200, {'content-type': 'text/plain'})
+    resp.writeHeader(200, {
+      'content-type': 'text/plain'
+    })
     resp.write('OK')
     resp.end()
   }
+})
 
-}).listen(portOne);
-
-
-// server two
-var s2 = http.createServer(function (req, resp) {
-  var x = request('http://localhost:'+portOne+'/original')
+var s2 = http.createServer(function(req, resp) {
+  var x = request('http://localhost:' + port1 + '/original')
   req.pipe(x)
   x.pipe(resp)
+})
 
-}).listen(portTwo, function () {
-  var r = request('http://localhost:'+portTwo+'/original', function (err, res, body) {
-    assert.equal(body, 'OK')
+tape('setup', function(t) {
+  s1.listen(port1, function() {
+    s2.listen(port2, function() {
+      t.end()
+    })
+  })
+})
 
-    s1.close()
-    s2.close()
-  });
+tape('piped redirect', function(t) {
+  var r = request('http://localhost:' + port2 + '/original', function(err, res, body) {
+    t.equal(err, null)
+    t.equal(body, 'OK')
+    t.end()
+  })
+})
 
-  // it hangs, so wait a second :)
-  r.timeout = 1000;
-
+tape('cleanup', function(t) {
+  s1.close()
+  s2.close()
+  t.end()
 })
