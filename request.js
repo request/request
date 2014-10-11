@@ -1209,7 +1209,7 @@ Request.prototype.qs = function (q, clobber) {
   return this
 }
 Request.prototype.form = function (form) {
-  self = this;
+  var self = this;
   if (form) {
     this.setHeader('content-type', 'application/x-www-form-urlencoded; charset=utf-8')
     this.body = (typeof form === 'string') ? form.toString('utf8') : qs.stringify(form).toString('utf8')
