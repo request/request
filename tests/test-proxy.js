@@ -69,6 +69,9 @@ function runTest(name, options, responseHandler) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       if (responseHandler) {
+        if (body.length > 100) {
+          body = body.substring(0, 100)
+        }
         t.equal(body, 'ok')
       } else {
         t.equal(/^<!doctype html>/i.test(body), true)
