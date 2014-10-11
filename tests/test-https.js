@@ -1,16 +1,58 @@
+// a test where we validate the siguature of the keys
+// otherwise exactly the same as the ssl test
+
 var server = require('./server')
-  , assert = require('assert')
   , request = require('../index')
+  , fs = require('fs')
+  , path = require('path')
+  , tape = require('tape')
 
-var s = server.createSSLServer();
+var s = server.createSSLServer()
+  , caFile = path.resolve(__dirname, 'ssl/ca/ca.crt')
+  , ca = fs.readFileSync(caFile)
+  , opts = {
+    key: path.resolve(__dirname, 'ssl/ca/server.key'),
+    cert: path.resolve(__dirname, 'ssl/ca/server.crt')
+  }
+  , sStrict = server.createSSLServer(s.port + 1, opts)
 
-var tests =
-  { testGet :
-    { resp : server.createGetResponse("TESTING!")
+function runAllTests(strict, s) {
+  var strictMsg = (strict ? 'strict ' : 'relaxed ')
+
+  tape(strictMsg + 'setup', function(t) {
+    s.listen(s.port, function() {
+      t.end()
+    })
+  })
+
+  function runTest(name, test) {
+    tape(strictMsg + name, function(t) {
+      s.on('/' + name, test.resp)
+      test.uri = s.url + '/' + name
+      if (strict) {
+        test.strictSSL = true
+        test.ca = ca
+        test.headers = { host: 'testing.request.mikealrogers.com' }
+      } else {
+        test.rejectUnauthorized = false
+      }
+      request(test, function(err, resp, body) {
+        t.equal(err, null)
+        if (test.expectBody) {
+          t.deepEqual(test.expectBody, body)
+        }
+        t.end()
+      })
+    })
+  }
+
+  runTest('testGet', {
+      resp : server.createGetResponse("TESTING!")
     , expectBody: "TESTING!"
-    }
-  , testGetChunkBreak :
-    { resp : server.createChunkResponse(
+  })
+
+  runTest('testGetChunkBreak', {
+      resp : server.createChunkResponse(
       [ new Buffer([239])
       , new Buffer([163])
       , new Buffer([191])
@@ -20,30 +62,35 @@ var tests =
       , new Buffer([152])
       , new Buffer([131])
       ])
-    , expectBody: "Ω☃"
-    }
-  , testGetJSON :
-    { resp : server.createGetResponse('{"test":true}', 'application/json')
+    , expectBody: "\uf8ff\u03a9\u2603"
+  })
+
+  runTest('testGetJSON', {
+      resp : server.createGetResponse('{"test":true}', 'application/json')
     , json : true
     , expectBody: {"test":true}
-    }
-  , testPutString :
-    { resp : server.createPostValidator("PUTTINGDATA")
+  })
+
+  runTest('testPutString', {
+      resp : server.createPostValidator("PUTTINGDATA")
     , method : "PUT"
     , body : "PUTTINGDATA"
-    }
-  , testPutBuffer :
-    { resp : server.createPostValidator("PUTTINGDATA")
+  })
+
+  runTest('testPutBuffer', {
+      resp : server.createPostValidator("PUTTINGDATA")
     , method : "PUT"
     , body : new Buffer("PUTTINGDATA")
-    }
-  , testPutJSON :
-    { resp : server.createPostValidator(JSON.stringify({foo: 'bar'}))
+  })
+
+  runTest('testPutJSON', {
+      resp : server.createPostValidator(JSON.stringify({foo: 'bar'}))
     , method: "PUT"
     , json: {foo: 'bar'}
-    }
-  , testPutMultipart :
-    { resp: server.createPostValidator(
+  })
+
+  runTest('testPutMultipart', {
+      resp: server.createPostValidator(
         '--__BOUNDARY__\r\n' +
         'content-type: text/html\r\n' +
         '\r\n' +
@@ -57,31 +104,13 @@ var tests =
       [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
       , {'body': 'Oh hi.'}
       ]
-    }
-  }
+  })
 
-s.listen(s.port, function () {
+  tape(strictMsg + 'cleanup', function(t) {
+    s.close()
+    t.end()
+  })
+}
 
-  var counter = 0
-
-  for (i in tests) {
-    (function () {
-      var test = tests[i]
-      s.on('/'+i, test.resp)
-      test.uri = s.url + '/' + i
-      test.rejectUnauthorized = false
-      request(test, function (err, resp, body) {
-        if (err) throw err
-        if (test.expectBody) {
-          assert.deepEqual(test.expectBody, body)
-        }
-        counter = counter - 1;
-        if (counter === 0) {
-          console.log(Object.keys(tests).length+" tests passed.")
-          s.close()
-        }
-      })
-      counter++
-    })()
-  }
-})
+runAllTests(false, s)
+runAllTests(true, sStrict)
