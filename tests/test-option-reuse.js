@@ -1,38 +1,50 @@
-var assert = require('assert')
-  , request = require('../index')
+var request = require('../index')
   , http = require('http')
-  ;
+  , tape = require('tape')
 
-var count = 0;
 var methodsSeen = {
-  head: 0
-, get: 0
-};
+  head: 0,
+  get: 0
+}
 
 var s = http.createServer(function(req, res) {
-  res.statusCode = 200;
-  res.end('');
-  count++;
+  res.statusCode = 200
+  res.end('ok')
 
-  if (req.method.toLowerCase() === 'head') methodsSeen.head++;
-  if (req.method.toLowerCase() === 'get') methodsSeen.get++;
+  methodsSeen[req.method.toLowerCase()]++
+})
 
-  if (count < 2) return
-  assert(methodsSeen.head === 1);
-  assert(methodsSeen.get === 1);
-}).listen(6767, function () {
+tape('setup', function(t) {
+  s.listen(6767, function() {
+    t.end()
+  })
+})
 
-  //this is a simple check to see if the options object is be mutilated
-  var url = 'http://localhost:6767';
-  var options = {url: url};
+tape('options object is not mutated', function(t) {
+  var url = 'http://localhost:6767'
+  var options = { url: url }
 
-  request.head(options, function (err, resp, body) {
-    assert(Object.keys(options).length === 1);
-    assert(options.url === url);
-    request.get(options, function (err, resp, body) {
-      assert(Object.keys(options).length === 1);
-      assert(options.url === url);
-      s.close();
+  request.head(options, function(err, resp, body) {
+    t.equal(err, null)
+    t.equal(body, '')
+    t.equal(Object.keys(options).length, 1)
+    t.equal(options.url, url)
+
+    request.get(options, function(err, resp, body) {
+      t.equal(err, null)
+      t.equal(body, 'ok')
+      t.equal(Object.keys(options).length, 1)
+      t.equal(options.url, url)
+
+      t.equal(methodsSeen.head, 1)
+      t.equal(methodsSeen.get, 1)
+
+      t.end()
     })
   })
+})
+
+tape('cleanup', function(t) {
+  s.close()
+  t.end()
 })

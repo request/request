@@ -6,11 +6,10 @@ try {
   process.exit(0)
 }
 
-var createServer = require('http').createServer
+var http = require('http')
   , request = require('../index')
   , httpSignature = require('http-signature')
-  , assert = require('assert')
-  ;
+  , tape = require('tape')
 
 var privateKeyPEMs = {}
 
@@ -67,7 +66,7 @@ publicKeyPEMs['key-2'] =
   'dQIDAQAB\n' +
   '-----END PUBLIC KEY-----'
 
-var server = createServer(function (req, res) {
+var server = http.createServer(function (req, res) {
   var parsed = httpSignature.parseRequest(req)
   var publicKeyPEM = publicKeyPEMs[parsed.keyId]
   var verified = httpSignature.verifySignature(parsed, publicKeyPEM)
@@ -75,40 +74,41 @@ var server = createServer(function (req, res) {
   res.end()
 })
 
-server.listen(8080, function () {
-  function correctKeyTest(callback) {
-    var options = {
-      httpSignature: {
-        keyId: 'key-1',
-        key: privateKeyPEMs['key-1']
-      }
-    }
-    request('http://localhost:8080', options, function (e, r, b) {
-      assert.equal(200, r.statusCode)
-      callback()
-    })
-  }
+tape('setup', function(t) {
+  server.listen(6767, function() {
+    t.end()
+  })
+})
 
-  function incorrectKeyTest(callback) {
-    var options = {
-      httpSignature: {
-        keyId: 'key-2',
-        key: privateKeyPEMs['key-1']
-      }
+tape('correct key', function(t) {
+  var options = {
+    httpSignature: {
+      keyId: 'key-1',
+      key: privateKeyPEMs['key-1']
     }
-    request('http://localhost:8080', options, function (e, r, b) {
-      assert.equal(400, r.statusCode)
-      callback()
-    })
   }
+  request('http://localhost:6767', options, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(200, res.statusCode)
+    t.end()
+  })
+})
 
-  var tests = [correctKeyTest, incorrectKeyTest]
-  var todo = tests.length;
-  for(var i = 0; i < tests.length; ++i) {
-    tests[i](function() {
-      if(!--todo) {
-        server.close()
-      }
-    })
+tape('incorrect key', function(t) {
+  var options = {
+    httpSignature: {
+      keyId: 'key-2',
+      key: privateKeyPEMs['key-1']
+    }
   }
+  request('http://localhost:6767', options, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(400, res.statusCode)
+    t.end()
+  })
+})
+
+tape('cleanup', function(t) {
+  server.close()
+  t.end()
 })

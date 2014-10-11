@@ -1,55 +1,101 @@
-var request = request = require('../index')
-  , assert = require('assert')
-  ;
+var request = require('../index')
+  , tape = require('tape')
 
+// Run a querystring test.  `options` can have the following keys:
+//   - suffix              : a string to be added to the URL
+//   - qs                  : an object to be passed to request's `qs` option
+//   - afterRequest        : a function to execute after creating the request
+//   - expected            : the expected path of the request
+//   - expectedQuerystring : expected path when using the querystring library
+function runTest(name, options) {
+  var uri = 'http://www.google.com' + (options.suffix || '')
+    , requestOptsQs = {
+      uri : uri
+    }
+    , requestOptsQuerystring = {
+      uri : uri,
+      useQuerystring : true
+    }
 
-// Test adding a querystring
-var req1 = request.get({ uri: 'http://www.google.com', qs: { q : 'search' }})
-setTimeout(function() {
-	assert.equal('/?q=search', req1.path)
-}, 1)
+  if (options.qs) {
+    requestOptsQs.qs = options.qs
+    requestOptsQuerystring.qs = options.qs
+  }
 
-// Test replacing a querystring value
-var req2 = request.get({ uri: 'http://www.google.com?q=abc', qs: { q : 'search' }})
-setTimeout(function() {
-	assert.equal('/?q=search', req2.path)
-}, 1)
+  tape(name + ' using qs', function(t) {
+    var r = request.get(requestOptsQs)
+    if (typeof options.afterRequest == 'function') {
+      options.afterRequest(r)
+    }
+    process.nextTick(function() {
+      t.equal(r.path, options.expected)
+      r.abort()
+      t.end()
+    })
+  })
 
-// Test appending a querystring value to the ones present in the uri
-var req3 = request.get({ uri: 'http://www.google.com?x=y', qs: { q : 'search' }})
-setTimeout(function() {
-	assert.equal('/?x=y&q=search', req3.path)
-}, 1)
+  tape(name + ' using querystring', function(t) {
+    var r = request.get(requestOptsQuerystring)
+    if (typeof options.afterRequest == 'function') {
+      options.afterRequest(r)
+    }
+    process.nextTick(function() {
+      t.equal(r.path, options.expectedQuerystring || options.expected)
+      r.abort()
+      t.end()
+    })
+  })
+}
 
-// Test leaving a querystring alone
-var req4 = request.get({ uri: 'http://www.google.com?x=y'})
-setTimeout(function() {
-	assert.equal('/?x=y', req4.path)
-}, 1)
+function esc(str) {
+  return str
+    .replace(/\[/g, '%5B')
+    .replace(/\]/g, '%5D')
+}
 
-// Test giving empty qs property
-var req5 = request.get({ uri: 'http://www.google.com', qs: {}})
-setTimeout(function(){
-	assert.equal('/', req5.path)
-}, 1)
+runTest('adding a querystring', {
+  qs       : { q : 'search' },
+  expected : '/?q=search'
+})
 
+runTest('replacing a querystring value', {
+  suffix   : '?q=abc',
+  qs       : { q : 'search' },
+  expected : '/?q=search'
+})
 
-// Test modifying the qs after creating the request
-var req6 = request.get({ uri: 'http://www.google.com', qs: {}});
-req6.qs({ q: "test" });
-process.nextTick(function() {
-    assert.equal('/?q=test', req6.path);
-});
+runTest('appending a querystring value to the ones present in the uri', {
+  suffix   : '?x=y',
+  qs       : { q : 'search' },
+  expected : '/?x=y&q=search'
+})
 
+runTest('leaving a querystring alone', {
+  suffix   : '?x=y',
+  expected : '/?x=y'
+})
 
-// test a query with an object for a value.
-var req7 = request.get({ uri: 'http://www.google.com', qs: { where : { foo: 'bar'} }})
-setTimeout(function() {
-  assert.equal('/?where%5Bfoo%5D=bar', req7.path)
-}, 1)
+runTest('giving empty qs property', {
+  qs       : {},
+  expected : '/'
+})
 
-// test a query with an array for a value.
-var req8 = request.get({ uri: 'http://www.google.com', qs: { order : ['bar', 'desc'] }})
-setTimeout(function() {
-  assert.equal('/?order%5B0%5D=bar&order%5B1%5D=desc', req8.path)
-}, 1)
+runTest('modifying the qs after creating the request', {
+  qs           : {},
+  afterRequest : function(r) {
+    r.qs({ q : 'test' })
+  },
+  expected : '/?q=test'
+})
+
+runTest('a query with an object for a value', {
+  qs       : { where : { foo: 'bar' } },
+  expected : esc('/?where[foo]=bar'),
+  expectedQuerystring : '/?where='
+})
+
+runTest('a query with an array for a value', {
+  qs       : { order : ['bar', 'desc'] },
+  expected : esc('/?order[0]=bar&order[1]=desc'),
+  expectedQuerystring : '/?order=bar&order=desc'
+})

@@ -1,30 +1,41 @@
-var request = require('../index');
-var http = require('http');
-var requests = 0;
-var assert = require('assert');
+var http = require('http')
+  , request = require('../index')
+  , tape = require('tape')
 
 var server = http.createServer(function (req, res) {
-  console.error(req.method, req.url);
-  requests ++;
-
   if (req.method === 'POST') {
-    console.error('send 303');
-    res.setHeader('location', req.url);
-    res.statusCode = 303;
-    res.end('try again, i guess\n');
+    res.setHeader('location', req.url)
+    res.statusCode = 303
+    res.end('try again')
   } else {
-    console.error('send 200')
-    res.end('ok: ' + requests);
+    res.end('ok')
   }
-});
-server.listen(6767);
+})
 
-request.post({ url: 'http://localhost:6767/foo',
-               followAllRedirects: true,
-               form: { foo: 'bar' } }, function (er, req, body) {
-  if (er) throw er;
-  assert.equal(body, 'ok: 2');
-  assert.equal(requests, 2);
-  console.error('ok - ' + process.version);
-  server.close();
-});
+tape('setup', function(t) {
+  server.listen(6767, function() {
+    t.end()
+  })
+})
+
+tape('followAllRedirects with 303', function(t) {
+  var redirects = 0
+
+  request.post({
+    url: 'http://localhost:6767/foo',
+    followAllRedirects: true,
+    form: { foo: 'bar' }
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(body, 'ok')
+    t.equal(redirects, 1)
+    t.end()
+  }).on('redirect', function() {
+    redirects++
+  })
+})
+
+tape('cleanup', function(t) {
+  server.close()
+  t.end()
+})
