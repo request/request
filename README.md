@@ -35,7 +35,7 @@ Request can also `pipe` to itself. When doing so, `content-type` and `content-le
 request.get('http://google.com/img.png').pipe(request.put('http://mysite.com/img.png'))
 ```
 
-Request exposes the `response` object via the "response" event while streaming. Use the `response` object to abort requests based on error conditions `response.statusCode > 399` or otherwise:
+Request emits a "response" event when a response is received. This is identical to the behavior of Node core's [http.ClientRequest](http://nodejs.org/api/http.html#http_event_response).
 
 ```javascript
 request
