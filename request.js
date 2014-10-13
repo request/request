@@ -967,8 +967,10 @@ Request.prototype.onResponse = function (response) {
     }
   }
 
-  var redirectTo = null
+  var redirectTo = null;
+  var isStatusRedirect = false;
   if (response.statusCode >= 300 && response.statusCode < 400 && response.caseless.has('location')) {
+    isStatusRedirect = true;
     var location = response.caseless.get('location')
     debug('redirect', location)
 
@@ -1062,6 +1064,11 @@ Request.prototype.onResponse = function (response) {
         redirectTo = self.uri
         break
     }
+  }
+
+  if(isStatusRedirect) {
+    //remove authorization headers
+    self.removeHeader('authorization');
   }
 
   if (redirectTo && self.allowRedirect.call(self, response)) {
@@ -1481,6 +1488,9 @@ Request.prototype.httpSignature = function (opts) {
     },
     setHeader: function(header, value) {
       req.setHeader(header, value)
+    },
+    removeHeader: function(header) {
+      req.removeHeader(header)
     },
     method: this.method,
     path: this.path
