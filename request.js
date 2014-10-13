@@ -1455,7 +1455,7 @@ Request.prototype.qs = function (q, clobber) {
 Request.prototype.form = function (form) {
   var self = this
   if (form) {
-    self.setHeader('content-type', 'application/x-www-form-urlencoded; charset=utf-8')
+    self.setHeader('content-type', 'application/x-www-form-urlencoded')
     self.body = (typeof form === 'string') ? form.toString('utf8') : self.qsLib.stringify(form).toString('utf8')
     return self
   }
