@@ -612,7 +612,7 @@ OR
 var j = request.jar();
 var cookie = request.cookie('key1=value1');
 var url = 'http://www.google.com';
-j.setCookieSync(cookie, url);
+j.setCookie(cookie, url);
 request({url: url, jar: j}, function () {
   request('http://images.google.com')
 })
