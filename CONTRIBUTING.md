@@ -23,7 +23,12 @@ There are a few basic ground-rules for contributors:
    in.
 1. Contributors should attempt to adhere to the prevailing code-style.
 1. Run `npm test` locally before submitting your PR, to catch any easy to miss
-   style & testing issues.
+   style & testing issues.  To diagnose test failures, there are two ways to
+   run a single test file:
+     - `node_modules/.bin/taper tests/test-file.js` - run using the default
+       [`taper`](/nylen/taper) test reporter.
+     - `node tests/test-file.js` - view the raw
+       [tap](https://testanything.org/) output.
 
 
 ## Releases
