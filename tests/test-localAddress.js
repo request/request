@@ -19,7 +19,6 @@ tape('bind to local address', function(t) {
     localAddress: '127.0.0.1'
   }, function(err, res) {
     t.notEqual(err, null)
-    t.equal(err.message, 'connect EINVAL')
     t.equal(res, undefined)
     t.end()
   })
