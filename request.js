@@ -450,14 +450,15 @@ Request.prototype.init = function (options) {
   }
 
   self._parserErrorHandler = function (error) {
-    if (self.res) {
-      if (self.res.request) {
-        self.res.request.emit('error', error)
+    var socket = this
+    if (socket.res) {
+      if (socket.res.request) {
+        socket.res.request.emit('error', error)
       } else {
-        self.res.emit('error', error)
+        socket.res.emit('error', error)
       }
     } else {
-      self._httpMessage.emit('error', error)
+      socket._httpMessage.emit('error', error)
     }
   }
 
@@ -717,14 +718,14 @@ Request.prototype.init = function (options) {
       var client = net.connect( table_row )
       client.path = table_row
       client.on('error', function(){
-        var self = this
-        lookup_table[self.path].error_connecting = true
-        self.end()
+        var _client = this
+        lookup_table[_client.path].error_connecting = true
+        _client.end()
       })
       client.on('connect', function(){
-        var self = this
-        lookup_table[self.path].error_connecting = false
-        self.end()
+        var _client = this
+        lookup_table[_client.path].error_connecting = false
+        _client.end()
       })
       table_row.client = client
     }
