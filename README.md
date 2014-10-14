@@ -35,6 +35,18 @@ Request can also `pipe` to itself. When doing so, `content-type` and `content-le
 request.get('http://google.com/img.png').pipe(request.put('http://mysite.com/img.png'))
 ```
 
+Request emits a "response" event when a response is received. The `response` argument will be an instance of [http.IncomingMessage](http://nodejs.org/api/http.html#http_http_incomingmessage).
+
+```javascript
+request
+  .get('http://google.com/img.png')
+  .on('response', function(response) {
+    console.log(response.statusCode) // 200
+    console.log(response.headers['content-type']) // 'image/png'
+  })
+  .pipe(request.put('http://mysite.com/img.png'))
+```
+
 Now let’s get fancy.
 
 ```javascript
