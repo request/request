@@ -66,7 +66,126 @@ var defaultProxyHeaderWhiteList = [
   'via'
 ]
 
-util.inherits(Request, stream.Stream)
+function filterForNonReserved(reserved, options) {
+  // Filter out properties that are not reserved.
+  // Reserved values are passed in at call site.
+
+  var object = {}
+  for (var i in options) {
+    var notReserved = (reserved.indexOf(i) === -1)
+    if (notReserved) {
+      object[i] = options[i]
+    }
+  }
+  return object
+}
+
+function filterOutReservedFunctions(reserved, options) {
+  // Filter out properties that are functions and are reserved.
+  // Reserved values are passed in at call site.
+
+  var object = {}
+  for (var i in options) {
+    var isReserved = !(reserved.indexOf(i) === -1)
+    var isFunction = (typeof options[i] === 'function')
+    if (!(isReserved && isFunction)) {
+      object[i] = options[i]
+    }
+  }
+  return object
+
+}
+
+function constructProxyHost(uriObject) {
+  var port = uriObject.portA
+    , protocol = uriObject.protocol
+    , proxyHost = uriObject.hostname + ':'
+
+  if (port) {
+    proxyHost += port
+  } else if (protocol === 'https:') {
+    proxyHost += '443'
+  } else {
+    proxyHost += '80'
+  }
+
+  return proxyHost
+}
+
+function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList) {
+  return Object.keys(headers)
+    .filter(function (header) {
+      return proxyHeaderWhiteList.indexOf(header.toLowerCase()) !== -1
+    })
+    .reduce(function (set, header) {
+      set[header] = headers[header]
+      return set
+    }, {})
+}
+
+function construcTunnelOptions(request) {
+  var proxy = request.proxy
+  var proxyHeaders = request.proxyHeaders
+  var proxyAuth
+
+  if (proxy.auth) {
+    proxyAuth = proxy.auth
+  }
+
+  if (!proxy.auth && request.proxyAuthorization) {
+    proxyHeaders['Proxy-Authorization'] = request.proxyAuthorization
+  }
+
+  var tunnelOptions = {
+    proxy: {
+      host: proxy.hostname,
+      port: +proxy.port,
+      proxyAuth: proxyAuth,
+      headers: proxyHeaders
+    },
+    rejectUnauthorized: request.rejectUnauthorized,
+    headers: request.headers,
+    ca: request.ca,
+    cert: request.cert,
+    key: request.key
+  }
+
+  return tunnelOptions
+}
+
+function constructTunnelFnName(uri, proxy) {
+  var uriProtocol = (uri.protocol === 'https:' ? 'https' : 'http')
+  var proxyProtocol = (proxy.protocol === 'https:' ? 'Https' : 'Http')
+  return [uriProtocol, proxyProtocol].join('Over')
+}
+
+function getTunnelFn(request) {
+  var uri = request.uri
+  var proxy = request.proxy
+  var tunnelFnName = constructTunnelFnName(uri, proxy)
+  return tunnel[tunnelFnName]
+}
+
+// Helpers
+
+// Return a simpler request object to allow serialization
+function requestToJSON() {
+  return {
+    uri: this.uri,
+    method: this.method,
+    headers: this.headers
+  }
+}
+
+// Return a simpler response object to allow serialization
+function responseToJSON() {
+  return {
+    statusCode: this.statusCode,
+    body: this.body,
+    headers: this.headers,
+    request: requestToJSON.call(this.request)
+  }
+}
 
 function Request (options) {
   // if tunnel property of options was not given default to false
@@ -97,6 +216,8 @@ function Request (options) {
   self.canTunnel = options.tunnel !== false && tunnel
   self.init(options)
 }
+
+util.inherits(Request, stream.Stream)
 
 Request.prototype.setupTunnel = function () {
   // Set up the tunneling agent if necessary
@@ -589,10 +710,6 @@ Request.prototype.init = function (options) {
     var lookup = full_path.split('/')
 
     var lookup_table = {}
-    do { lookup_table[lookup.join('/')] = {} } while(lookup.pop())
-    for (var r in lookup_table){
-      try_next(r)
-    }
 
     function try_next(table_row) {
       var client = net.connect( table_row )
@@ -608,9 +725,35 @@ Request.prototype.init = function (options) {
       table_row.client = client
     }
 
-    wait_for_socket_response()
+    do { lookup_table[lookup.join('/')] = {} } while(lookup.pop())
+    for (var r in lookup_table){
+      try_next(r)
+    }
 
     var response_counter = 0
+
+    function set_socket_properties(){
+      var host
+      for (r in lookup_table){
+        if(lookup_table[r].error_connecting === false){
+          host = r
+        }
+      }
+      if(!host){
+        self.emit('error', new Error('Failed to connect to any socket in ' + full_path))
+      }
+      var path = full_path.replace(host, '')
+
+      self.socketPath = host
+      self.uri.pathname = path
+      self.uri.href = path
+      self.uri.path = path
+      self.host = ''
+      self.hostname = ''
+      delete self.host
+      delete self.hostname
+      self._buildRequest()
+    }
 
     function wait_for_socket_response(){
       var detach
@@ -636,28 +779,7 @@ Request.prototype.init = function (options) {
       })
     }
 
-    function set_socket_properties(){
-      var host
-      for (r in lookup_table){
-        if(lookup_table[r].error_connecting === false){
-          host = r
-        }
-      }
-      if(!host){
-        self.emit('error', new Error('Failed to connect to any socket in ' + full_path))
-      }
-      var path = full_path.replace(host, '')
-
-      self.socketPath = host
-      self.uri.pathname = path
-      self.uri.href = path
-      self.uri.path = path
-      self.host = ''
-      self.hostname = ''
-      delete self.host
-      delete self.hostname
-      self._buildRequest()
-    }
+    wait_for_socket_response()
   }
 
   // Intercept UNIX protocol requests to change properties to match socket
@@ -1632,127 +1754,6 @@ Request.prototype.destroy = function () {
 
 Request.defaultProxyHeaderWhiteList =
   defaultProxyHeaderWhiteList.slice()
-
-// Helpers
-
-// Return a simpler request object to allow serialization
-function requestToJSON() {
-  return {
-    uri: this.uri,
-    method: this.method,
-    headers: this.headers
-  }
-}
-
-// Return a simpler response object to allow serialization
-function responseToJSON() {
-  return {
-    statusCode: this.statusCode,
-    body: this.body,
-    headers: this.headers,
-    request: requestToJSON.call(this.request)
-  }
-}
-
-function constructProxyHost(uriObject) {
-  var port = uriObject.portA
-    , protocol = uriObject.protocol
-    , proxyHost = uriObject.hostname + ':'
-
-  if (port) {
-    proxyHost += port
-  } else if (protocol === 'https:') {
-    proxyHost += '443'
-  } else {
-    proxyHost += '80'
-  }
-
-  return proxyHost
-}
-
-function filterForNonReserved(reserved, options) {
-  // Filter out properties that are not reserved.
-  // Reserved values are passed in at call site.
-
-  var object = {}
-  for (var i in options) {
-    var notReserved = (reserved.indexOf(i) === -1)
-    if (notReserved) {
-      object[i] = options[i]
-    }
-  }
-  return object
-}
-
-function filterOutReservedFunctions(reserved, options) {
-  // Filter out properties that are functions and are reserved.
-  // Reserved values are passed in at call site.
-
-  var object = {}
-  for (var i in options) {
-    var isReserved = !(reserved.indexOf(i) === -1)
-    var isFunction = (typeof options[i] === 'function')
-    if (!(isReserved && isFunction)) {
-      object[i] = options[i]
-    }
-  }
-  return object
-
-}
-
-function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList) {
-  return Object.keys(headers)
-    .filter(function (header) {
-      return proxyHeaderWhiteList.indexOf(header.toLowerCase()) !== -1
-    })
-    .reduce(function (set, header) {
-      set[header] = headers[header]
-      return set
-    }, {})
-}
-
-function construcTunnelOptions(request) {
-  var proxy = request.proxy
-  var proxyHeaders = request.proxyHeaders
-  var proxyAuth
-
-  if (proxy.auth) {
-    proxyAuth = proxy.auth
-  }
-
-  if (!proxy.auth && request.proxyAuthorization) {
-    proxyHeaders['Proxy-Authorization'] = request.proxyAuthorization
-  }
-
-  var tunnelOptions = {
-    proxy: {
-      host: proxy.hostname,
-      port: +proxy.port,
-      proxyAuth: proxyAuth,
-      headers: proxyHeaders
-    },
-    rejectUnauthorized: request.rejectUnauthorized,
-    headers: request.headers,
-    ca: request.ca,
-    cert: request.cert,
-    key: request.key
-  }
-
-  return tunnelOptions
-}
-
-function constructTunnelFnName(uri, proxy) {
-  var uriProtocol = (uri.protocol === 'https:' ? 'https' : 'http')
-  var proxyProtocol = (proxy.protocol === 'https:' ? 'Https' : 'Http')
-  return [uriProtocol, proxyProtocol].join('Over')
-}
-
-function getTunnelFn(request) {
-  var uri = request.uri
-  var proxy = request.proxy
-  var tunnelFnName = constructTunnelFnName(uri, proxy)
-  return tunnel[tunnelFnName]
-}
 
 // Exports
 
