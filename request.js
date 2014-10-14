@@ -1101,6 +1101,10 @@ Request.prototype.onResponse = function (response) {
     var location = response.caseless.get('location')
     debug('redirect', location)
 
+    if (!isUrl.test(location)) {
+      location = url.resolve(self.uri.href, location)
+    }
+
     if (self.followAllRedirects) {
       redirectTo = location
     } else if (self.followRedirects) {
@@ -1193,7 +1197,7 @@ Request.prototype.onResponse = function (response) {
     }
   }
 
-  if (redirectTo && self.allowRedirect.call(self, response)) {
+  if (redirectTo && redirectTo !== self.uri.href && self.allowRedirect.call(self, response)) {
     debug('redirect to', redirectTo)
 
     // ignore any potential response body.  it cannot possibly be useful
@@ -1207,10 +1211,6 @@ Request.prototype.onResponse = function (response) {
       return
     }
     self._redirectsFollowed += 1
-
-    if (!isUrl.test(redirectTo)) {
-      redirectTo = url.resolve(self.uri.href, redirectTo)
-    }
 
     var uriPrev = self.uri
     self.uri = url.parse(redirectTo)
