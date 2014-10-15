@@ -33,7 +33,7 @@ tape('setup', function(t) {
       });
       assert.equal(req.method, 'POST');
       assert.equal(req.headers['content-length'], '' + expectedContent.length);
-      assert.equal(req.headers['content-type'], 'application/x-www-form-urlencoded; charset=utf-8');
+      assert.equal(req.headers['content-type'], 'application/x-www-form-urlencoded');
     }
 
     if (ok) {
