@@ -474,7 +474,12 @@ Request.prototype.init = function (options) {
       var requestForm = self.form()
       for (var formKey in formData) {
         if (formData.hasOwnProperty(formKey)) {
-          requestForm.append(formKey, formData[formKey])
+          var formValue = formData[formKey]
+          if (formValue.hasOwnProperty('value') && formValue.hasOwnProperty('options')) {
+            requestForm.append(formKey, formValue.value, formValue.options)
+          } else {
+            requestForm.append(formKey, formValue)
+          }
         }
       }
     }
