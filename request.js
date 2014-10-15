@@ -1,8 +1,7 @@
 'use strict'
 
-var optional = require('./lib/optional')
-  , http = require('http')
-  , https = optional('https')
+var http = require('http')
+  , https = require('https')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
@@ -16,18 +15,18 @@ var optional = require('./lib/optional')
   , toBase64 = helpers.toBase64
   , defer = helpers.defer
   , bl = require('bl')
-  , oauth = optional('oauth-sign')
-  , hawk = optional('hawk')
-  , aws = optional('aws-sign2')
-  , httpSignature = optional('http-signature')
+  , oauth = require('oauth-sign')
+  , hawk = require('hawk')
+  , aws = require('aws-sign2')
+  , httpSignature = require('http-signature')
   , uuid = require('node-uuid')
   , mime = require('mime-types')
   , tunnel = require('tunnel-agent')
-  , stringstream = optional('stringstream')
+  , stringstream = require('stringstream')
   , caseless = require('caseless')
 
   , ForeverAgent = require('forever-agent')
-  , FormData = optional('form-data')
+  , FormData = require('form-data')
 
   , cookies = require('./lib/cookies')
   , globalCookieJar = cookies.jar()
