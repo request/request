@@ -14,6 +14,7 @@ var optional = require('./lib/optional')
   , md5 = helpers.md5
   , isReadStream = helpers.isReadStream
   , toBase64 = helpers.toBase64
+  , defer = helpers.defer
   , bl = require('bl')
   , oauth = optional('oauth-sign')
   , hawk = optional('hawk')
@@ -654,7 +655,7 @@ Request.prototype.init = function (options) {
       // })
     })
 
-    process.nextTick(function () {
+    defer(function () {
       if (self._aborted) {
         return
       }
@@ -761,13 +762,7 @@ Request.prototype.init = function (options) {
     }
 
     function wait_for_socket_response(){
-      var detach
-      if(typeof setImmediate === 'undefined') {
-        detach = process.nextTick
-      } else {
-        detach = setImmediate
-      }
-      detach(function(){
+      defer(function(){
         // counter to prevent infinite blocking waiting for an open socket to be found.
         response_counter++
         var trying = false
