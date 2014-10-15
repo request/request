@@ -31,7 +31,7 @@ tape('a simple request should not fail with debugging enabled', function(t) {
     ;[
       /^REQUEST { uri: /,
       /^REQUEST make request http:\/\/localhost:6767\/\n$/,
-      /^REQUEST onResponse /,
+      /^REQUEST onRequestResponse /,
       /^REQUEST finish init /,
       /^REQUEST response end /,
       /^REQUEST end event /,
