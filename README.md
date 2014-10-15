@@ -221,6 +221,8 @@ URL-encoded forms are simple.
 request.post('http://service.com/upload', {form:{key:'value'}})
 // or
 request.post('http://service.com/upload').form({key:'value'})
+// or
+request.post({url:'http://service.com/upload', form: {key:'value'}}, function(err,httpResponse,body){ /* ... */ })
 ```
 
 For `multipart/form-data` we use the [form-data](https://github.com/felixge/node-form-data) library by [@felixge](https://github.com/felixge). For the most basic case, you can pass your upload form data via the `formData` option.
