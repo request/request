@@ -125,9 +125,8 @@ tape('transparently supports gzip error to callbacks', function(t) {
 
 tape('transparently supports gzip error to pipes', function(t) {
   var options = { url: 'http://localhost:6767/error', gzip: true }
-    , chunks = []
   request.get(options)
-    .on('data', function (chunk) {
+    .on('data', function (/*chunk*/) {
       t.fail('Should not receive data event')
     })
     .on('end', function () {

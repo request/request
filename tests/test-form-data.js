@@ -81,7 +81,7 @@ tape('multipart formData', function(t) {
       fs.createReadStream(__dirname + '/unicycle.jpg')
     ]
 
-    var req = request.post({
+    request.post({
       url: 'http://localhost:8080/upload',
       formData: multipartFormData
     }, function (err, res, body) {

@@ -37,7 +37,7 @@ tape('setup', function(t) {
 })
 
 tape('piped redirect', function(t) {
-  var r = request('http://localhost:' + port2 + '/original', function(err, res, body) {
+  request('http://localhost:' + port2 + '/original', function(err, res, body) {
     t.equal(err, null)
     t.equal(body, 'OK')
     t.end()

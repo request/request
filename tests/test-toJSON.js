@@ -23,6 +23,8 @@ tape('request().toJSON()', function(t) {
     var json_r   = JSON.parse(JSON.stringify(r))
       , json_res = JSON.parse(JSON.stringify(res))
 
+    t.equal(err, null)
+
     t.equal(json_r.uri.href   , r.uri.href)
     t.equal(json_r.method     , r.method)
     t.equal(json_r.headers.foo, r.headers.foo)

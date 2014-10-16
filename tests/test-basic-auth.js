@@ -171,6 +171,7 @@ tape('', function(t) {
         sendImmediately: false
       }
     }, function (err, res) {
+      t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.equal(numBasicRequests, 14)
       t.end()

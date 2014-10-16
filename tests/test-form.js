@@ -8,7 +8,7 @@ var http = require('http')
   , tape = require('tape')
 
 tape('form', function(t) {
-  t.plan(17)
+  t.plan(18)
 
   var remoteFile = 'http://nodejs.org/images/logo.png'
     , totalLength = null
@@ -81,6 +81,7 @@ tape('form', function(t) {
     })
 
     form.getLength(function(err, length) {
+      t.equal(err, null)
       totalLength = length
     })
   })

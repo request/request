@@ -19,7 +19,7 @@ function wrap_request(name, module) {
     var value = module[key]
 
     if (key === 'request') {
-      wrapped[key] = function(options, callback) {
+      wrapped[key] = function(/*options, callback*/) {
         faux_requests_made[name] += 1
         return value.apply(this, arguments)
       }
