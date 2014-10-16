@@ -49,8 +49,8 @@ function runAllTests(strict, s) {
   }
 
   runTest('testGet', {
-      resp : server.createGetResponse("TESTING!")
-    , expectBody: "TESTING!"
+      resp : server.createGetResponse('TESTING!')
+    , expectBody: 'TESTING!'
   })
 
   runTest('testGetChunkBreak', {
@@ -64,30 +64,30 @@ function runAllTests(strict, s) {
       , new Buffer([152])
       , new Buffer([131])
       ])
-    , expectBody: "\uf8ff\u03a9\u2603"
+    , expectBody: '\uf8ff\u03a9\u2603'
   })
 
   runTest('testGetJSON', {
       resp : server.createGetResponse('{"test":true}', 'application/json')
     , json : true
-    , expectBody: {"test":true}
+    , expectBody: {'test':true}
   })
 
   runTest('testPutString', {
-      resp : server.createPostValidator("PUTTINGDATA")
-    , method : "PUT"
-    , body : "PUTTINGDATA"
+      resp : server.createPostValidator('PUTTINGDATA')
+    , method : 'PUT'
+    , body : 'PUTTINGDATA'
   })
 
   runTest('testPutBuffer', {
-      resp : server.createPostValidator("PUTTINGDATA")
-    , method : "PUT"
-    , body : new Buffer("PUTTINGDATA")
+      resp : server.createPostValidator('PUTTINGDATA')
+    , method : 'PUT'
+    , body : new Buffer('PUTTINGDATA')
   })
 
   runTest('testPutJSON', {
       resp : server.createPostValidator(JSON.stringify({foo: 'bar'}))
-    , method: "PUT"
+    , method: 'PUT'
     , json: {foo: 'bar'}
   })
 
@@ -101,7 +101,7 @@ function runAllTests(strict, s) {
         'Oh hi.' +
         '\r\n--__BOUNDARY__--'
         )
-    , method: "PUT"
+    , method: 'PUT'
     , multipart:
       [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
       , {'body': 'Oh hi.'}

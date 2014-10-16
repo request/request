@@ -154,7 +154,7 @@ tape('', function(t) {
 tape('', function(t) {
   request
     .get('http://localhost:6767/test/')
-    .auth("test","",false)
+    .auth('test','',false)
     .on('response', function (res) {
       t.equal(res.statusCode, 200)
       t.equal(numBasicRequests, 12)
@@ -166,8 +166,8 @@ tape('', function(t) {
   request.get('http://localhost:6767/test/',
     {
       auth: {
-        user: "test",
-        pass: "",
+        user: 'test',
+        pass: '',
         sendImmediately: false
       }
     }, function (err, res) {

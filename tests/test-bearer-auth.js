@@ -98,7 +98,7 @@ tape('', function(t) {
 tape('', function(t) {
   request
     .get('http://localhost:6767/test/')
-    .auth(null,null,false,"theToken")
+    .auth(null,null,false,'theToken')
     .on('response', function (res) {
       t.equal(res.statusCode, 200)
       t.equal(numBearerRequests, 7)
@@ -109,7 +109,7 @@ tape('', function(t) {
 tape('', function(t) {
   request
     .get('http://localhost:6767/test/')
-    .auth(null,null,true,"theToken")
+    .auth(null,null,true,'theToken')
     .on('response', function (res) {
       t.equal(res.statusCode, 200)
       t.equal(numBearerRequests, 8)

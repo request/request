@@ -111,7 +111,7 @@ tape('setup', function(t) {
 
 tape('get(string, function)', function(t) {
   request.defaults({
-    headers: { foo: "bar" }
+    headers: { foo: 'bar' }
   })(s.url + '/get', function (e, r, b) {
     t.equal(e, null)
     t.equal(b, 'TESTING!')
@@ -121,9 +121,9 @@ tape('get(string, function)', function(t) {
 
 tape('merge headers', function(t) {
   request.defaults({
-    headers: { foo: "bar", merged: "no" }
+    headers: { foo: 'bar', merged: 'no' }
   })(s.url + '/merge-headers', {
-    headers: { merged: "yes" }
+    headers: { merged: 'yes' }
   }, function (e, r, b) {
     t.equal(e, null)
     t.equal(r.statusCode, 200)
@@ -133,7 +133,7 @@ tape('merge headers', function(t) {
 
 tape('post(string, object, function)', function(t) {
   request.defaults({
-    headers: { foo: "bar" }
+    headers: { foo: 'bar' }
   }).post(s.url + '/post', { json: true }, function (e, r, b) {
     t.equal(e, null)
     t.equal(b.foo, 'bar')
@@ -143,7 +143,7 @@ tape('post(string, object, function)', function(t) {
 
 tape('patch(string, object, function)', function(t) {
   request.defaults({
-    headers: { foo: "bar" }
+    headers: { foo: 'bar' }
   }).patch(s.url + '/patch', { json: true }, function (e, r, b) {
     t.equal(e, null)
     t.equal(b.foo, 'bar')
@@ -153,10 +153,10 @@ tape('patch(string, object, function)', function(t) {
 
 tape('post(string, object, function) with body', function(t) {
   request.defaults({
-    headers: { foo: "bar" }
+    headers: { foo: 'bar' }
   }).post(s.url + '/post-body', {
     json: true,
-    body: { bar: "baz" }
+    body: { bar: 'baz' }
   }, function (e, r, b) {
     t.equal(e, null)
     t.equal(b.foo, 'bar')
@@ -166,7 +166,7 @@ tape('post(string, object, function) with body', function(t) {
 
 tape('del(string, function)', function(t) {
   request.defaults({
-    headers: {foo: "bar"},
+    headers: {foo: 'bar'},
     json: true
   }).del(s.url + '/del', function (e, r, b) {
     t.equal(e, null)
@@ -177,7 +177,7 @@ tape('del(string, function)', function(t) {
 
 tape('head(object, function)', function(t) {
   request.defaults({
-    headers: { foo: "bar" }
+    headers: { foo: 'bar' }
   }).head({ uri: s.url + '/head' }, function (e, r, b) {
     t.equal(e, null)
     t.end()
@@ -187,8 +187,8 @@ tape('head(object, function)', function(t) {
 tape('recursive defaults', function(t) {
   t.plan(6)
 
-  var defaultsOne = request.defaults({ headers: { foo: "bar1" } })
-    , defaultsTwo = defaultsOne.defaults({ headers: { baz: "bar2" } })
+  var defaultsOne = request.defaults({ headers: { foo: 'bar1' } })
+    , defaultsTwo = defaultsOne.defaults({ headers: { baz: 'bar2' } })
     , defaultsThree = defaultsTwo.defaults({}, function(options, callback) {
       options.headers = {
         foo: 'bar3'
@@ -217,7 +217,7 @@ tape('test custom request handler function', function(t) {
   t.plan(2)
 
   var requestWithCustomHandler = request.defaults({
-    headers: { foo: "bar" },
+    headers: { foo: 'bar' },
     body: 'TESTING!'
   }, function(uri, options, callback) {
     var params = request.initParams(uri, options, callback)
