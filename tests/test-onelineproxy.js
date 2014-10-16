@@ -28,10 +28,12 @@ var server = http.createServer(function(req, resp) {
   }
   if (req.url === '/proxy') {
     assert.equal(req.method, 'PUT')
-    return req.pipe(request('http://localhost:6767/put')).pipe(resp)
+    req.pipe(request('http://localhost:6767/put')).pipe(resp)
+    return
   }
   if (req.url === '/test') {
-    return request('http://localhost:6767/get').pipe(request.put('http://localhost:6767/proxy')).pipe(resp)
+    request('http://localhost:6767/get').pipe(request.put('http://localhost:6767/proxy')).pipe(resp)
+    return
   }
   throw new Error('Unknown url', req.url)
 })

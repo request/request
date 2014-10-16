@@ -70,7 +70,8 @@ tape('tunnel', function(t) {
       return
     }
     if (!ready) {
-      return setTimeout(F, 100)
+      setTimeout(F, 100)
+      return
     }
     request({
       uri: 'https://registry.npmjs.org/',
