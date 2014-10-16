@@ -204,14 +204,14 @@ if (process.env.TEST_PROXY_HARNESS) {
     env : {
       HTTP_PROXY : s.url,
       NO_PROXY   : 'oogle.com'
-    },
+    }
   }, true)
 
   runTest('NO_PROXY with port should not override HTTP_PROXY for partial domain matches', {
     env : {
       HTTP_PROXY : s.url,
       NO_PROXY   : 'oogle.com:80'
-    },
+    }
   }, true)
 
   runTest('proxy: null should override HTTP_PROXY', {
