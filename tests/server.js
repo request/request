@@ -24,14 +24,15 @@ exports.createServer =  function (port) {
 exports.createSSLServer = function(port, opts) {
   port = port || exports.portSSL
 
-  var options = { 'key' : path.join(__dirname, 'ssl', 'test.key')
+  var i
+    , options = { 'key' : path.join(__dirname, 'ssl', 'test.key')
                 , 'cert': path.join(__dirname, 'ssl', 'test.crt')
                 }
   if (opts) {
-    for (var i in opts) options[i] = opts[i]
+    for (i in opts) options[i] = opts[i]
   }
 
-  for (var i in options) {
+  for (i in options) {
     options[i] = fs.readFileSync(options[i])
   }
 

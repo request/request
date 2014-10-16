@@ -30,20 +30,21 @@ tape('form', function(t) {
     })
 
     req.on('end', function() {
+      var field
       // check for the fields' traces
 
       // 1st field : my_field
-      var field = FIELDS.shift()
+      field = FIELDS.shift()
       t.ok( data.indexOf('form-data; name="' + field.name + '"') !== -1 )
       t.ok( data.indexOf(field.value) !== -1 )
 
       // 2nd field : my_buffer
-      var field = FIELDS.shift()
+      field = FIELDS.shift()
       t.ok( data.indexOf('form-data; name="' + field.name + '"') !== -1 )
       t.ok( data.indexOf(field.value) !== -1 )
 
       // 3rd field : my_file
-      var field = FIELDS.shift()
+      field = FIELDS.shift()
       t.ok( data.indexOf('form-data; name="' + field.name + '"') !== -1 )
       t.ok( data.indexOf('; filename="' + path.basename(field.value.path) + '"') !== -1 )
       // check for unicycle.jpg traces
@@ -51,7 +52,7 @@ tape('form', function(t) {
       t.ok( data.indexOf('Content-Type: ' + mime.lookup(field.value.path) ) !== -1 )
 
       // 4th field : remote_file
-      var field = FIELDS.shift()
+      field = FIELDS.shift()
       t.ok( data.indexOf('form-data; name="' + field.name + '"') !== -1 )
       t.ok( data.indexOf('; filename="' + path.basename(field.value.path) + '"') !== -1 )
       // check for http://nodejs.org/images/logo.png traces
