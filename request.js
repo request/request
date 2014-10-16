@@ -167,7 +167,19 @@ function getTunnelFn(request) {
   return tunnel[tunnelFnName]
 }
 
-// Helpers
+// Function for properly handling a connection error
+function connectionErrorHandler(error) {
+  var socket = this
+  if (socket.res) {
+    if (socket.res.request) {
+      socket.res.request.emit('error', error)
+    } else {
+      socket.res.emit('error', error)
+    }
+  } else {
+    socket._httpMessage.emit('error', error)
+  }
+}
 
 // Return a simpler request object to allow serialization
 function requestToJSON() {
@@ -430,37 +442,6 @@ Request.prototype.init = function (options) {
   } else {
     self.port = self.uri.port
     self.host = self.uri.hostname
-  }
-
-  self.clientErrorHandler = function (error) {
-    if (self._aborted) {
-      return
-    }
-    if (self.req && self.req._reusedSocket && error.code === 'ECONNRESET'
-        && self.agent.addRequestNoreuse) {
-      self.agent = { addRequest: self.agent.addRequestNoreuse.bind(self.agent) }
-      self.start()
-      self.req.end()
-      return
-    }
-    if (self.timeout && self.timeoutTimer) {
-      clearTimeout(self.timeoutTimer)
-      self.timeoutTimer = null
-    }
-    self.emit('error', error)
-  }
-
-  self._parserErrorHandler = function (error) {
-    var socket = this
-    if (socket.res) {
-      if (socket.res.request) {
-        socket.res.request.emit('error', error)
-      } else {
-        socket.res.emit('error', error)
-      }
-    } else {
-      socket._httpMessage.emit('error', error)
-    }
   }
 
   self._buildRequest = function(){
@@ -985,7 +966,7 @@ Request.prototype.start = function () {
   delete reqOptions.auth
 
   debug('make request', self.uri.href)
-  self.req = self.httpModule.request(reqOptions, self.onResponse.bind(self))
+  self.req = self.httpModule.request(reqOptions)
 
   if (self.timeout && !self.timeoutTimer) {
     self.timeoutTimer = setTimeout(function () {
@@ -1009,7 +990,8 @@ Request.prototype.start = function () {
     }
   }
 
-  self.req.on('error', self.clientErrorHandler)
+  self.req.on('response', self.onRequestResponse.bind(self))
+  self.req.on('error', self.onRequestError.bind(self))
   self.req.on('drain', function() {
     self.emit('drain')
   })
@@ -1019,22 +1001,42 @@ Request.prototype.start = function () {
 
   self.on('end', function() {
     if ( self.req.connection ) {
-      self.req.connection.removeListener('error', self._parserErrorHandler)
+      self.req.connection.removeListener('error', connectionErrorHandler)
     }
   })
   self.emit('request', self.req)
 }
-Request.prototype.onResponse = function (response) {
+
+Request.prototype.onRequestError = function (error) {
   var self = this
-  debug('onResponse', self.uri.href, response.statusCode, response.headers)
+  if (self._aborted) {
+    return
+  }
+  if (self.req && self.req._reusedSocket && error.code === 'ECONNRESET'
+      && self.agent.addRequestNoreuse) {
+    self.agent = { addRequest: self.agent.addRequestNoreuse.bind(self.agent) }
+    self.start()
+    self.req.end()
+    return
+  }
+  if (self.timeout && self.timeoutTimer) {
+    clearTimeout(self.timeoutTimer)
+    self.timeoutTimer = null
+  }
+  self.emit('error', error)
+}
+
+Request.prototype.onRequestResponse = function (response) {
+  var self = this
+  debug('onRequestResponse', self.uri.href, response.statusCode, response.headers)
   response.on('end', function() {
     debug('response end', self.uri.href, response.statusCode, response.headers)
   })
 
   // The check on response.connection is a workaround for browserify.
-  if (response.connection && response.connection.listeners('error').indexOf(self._parserErrorHandler) === -1) {
+  if (response.connection && response.connection.listeners('error').indexOf(connectionErrorHandler) === -1) {
     response.connection.setMaxListeners(0)
-    response.connection.once('error', self._parserErrorHandler)
+    response.connection.once('error', connectionErrorHandler)
   }
   if (self._aborted) {
     debug('aborted', self.uri.href)
