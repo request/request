@@ -6,7 +6,7 @@ var server = require('./server')
   , request = require('../index')
   , tape = require('tape')
 
-var s = server.createServer();
+var s = server.createServer()
 
 tape('setup', function(t) {
   s.listen(s.port, function() {

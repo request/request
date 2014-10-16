@@ -11,7 +11,7 @@ var s = http.createServer(function (req, resp) {
 
 tape('setup', function(t) {
   s.listen(6767, function() {
-    t.end();
+    t.end()
   })
 })
 

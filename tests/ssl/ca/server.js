@@ -1,3 +1,5 @@
+'use strict'
+
 var fs = require("fs")
 var https = require("https")
 var options = { key: fs.readFileSync("./server.key")

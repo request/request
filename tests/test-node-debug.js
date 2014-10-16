@@ -30,7 +30,7 @@ tape('a simple request should not fail with debugging enabled', function(t) {
     t.ok(res, 'the request did not fail')
 
     t.ok(stderr.length, 'stderr has some messages')
-    ;[
+    var patterns = [
       /^REQUEST { uri: /,
       /^REQUEST make request http:\/\/localhost:6767\/\n$/,
       /^REQUEST onRequestResponse /,
@@ -38,7 +38,8 @@ tape('a simple request should not fail with debugging enabled', function(t) {
       /^REQUEST response end /,
       /^REQUEST end event /,
       /^REQUEST emitting complete /
-    ].forEach(function(pattern) {
+    ]
+    patterns.forEach(function(pattern) {
       var found = false
       stderr.forEach(function(msg) {
         if (pattern.test(msg)) {
