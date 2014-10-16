@@ -531,7 +531,7 @@ request.get(url)
 Function that creates a new cookie.
 
 ```javascript
-request.cookie('cookie_string_here')
+request.cookie('key1=value1')
 ```
 ### request.jar
 
