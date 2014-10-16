@@ -40,7 +40,7 @@
   },
   "scripts": {
     "test": "npm run lint && node node_modules/.bin/taper tests/test-*.js",
-    "lint": "./node_modules/eslint/bin/eslint.js lib/ *.js"
+    "lint": "node node_modules/.bin/eslint lib/ *.js tests/ && echo Lint passed."
   },
   "devDependencies": {
     "eslint": "0.5.1",
