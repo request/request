@@ -11,11 +11,12 @@ tape('form', function(t) {
   t.plan(18)
 
   var remoteFile = 'http://nodejs.org/images/logo.png'
+    , localFile = path.join(__dirname, 'unicycle.jpg')
     , totalLength = null
     , FIELDS = [
       { name: 'my_field', value: 'my_value' },
       { name: 'my_buffer', value: new Buffer([1, 2, 3]) },
-      { name: 'my_file', value: fs.createReadStream(__dirname + '/unicycle.jpg') },
+      { name: 'my_file', value: fs.createReadStream(localFile) },
       { name: 'remote_file', value: request(remoteFile) }
     ]
 

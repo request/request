@@ -11,6 +11,7 @@ tape('multipart formData', function(t) {
   t.plan(20)
 
   var remoteFile = 'http://nodejs.org/images/logo.png'
+    , localFile = path.join(__dirname, 'unicycle.jpg')
     , multipartFormData = {}
 
   var server = http.createServer(function(req, res) {
@@ -67,18 +68,18 @@ tape('multipart formData', function(t) {
     // @NOTE: multipartFormData properties must be set here so that my_file read stream does not leak in node v0.8
     multipartFormData.my_field = 'my_value'
     multipartFormData.my_buffer = new Buffer([1, 2, 3])
-    multipartFormData.my_file = fs.createReadStream(__dirname + '/unicycle.jpg')
+    multipartFormData.my_file = fs.createReadStream(localFile)
     multipartFormData.remote_file = request(remoteFile)
     multipartFormData.secret_file = {
-      value: fs.createReadStream(__dirname + '/unicycle.jpg'),
+      value: fs.createReadStream(localFile),
       options: {
         filename: 'topsecret.jpg',
         contentType: 'image/custom'
       }
     }
     multipartFormData.batch = [
-      fs.createReadStream(__dirname + '/unicycle.jpg'),
-      fs.createReadStream(__dirname + '/unicycle.jpg')
+      fs.createReadStream(localFile),
+      fs.createReadStream(localFile)
     ]
 
     request.post({
