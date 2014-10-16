@@ -56,23 +56,25 @@ tape('lots of redirects', function(t) {
   var n = 10
   t.plan(n * 4)
 
-  for (var i = 0; i < n; i ++) {
-    (function(i) {
-      var key = 'test_' + i
-      request({
-        url: (i % 2 ? s.url : ss.url) + '/a',
-        headers: { 'x-test-key': key },
-        rejectUnauthorized: false
-      }, function(err, res, body) {
-        t.equal(err, null)
-        t.equal(res.statusCode, 200)
-        t.equal(body, key)
-      })
+  function doRedirect(i) {
+    var key = 'test_' + i
+    request({
+      url: (i % 2 ? s.url : ss.url) + '/a',
+      headers: { 'x-test-key': key },
+      rejectUnauthorized: false
+    }, function(err, res, body) {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.equal(body, key)
+    })
 
-      e.once('hit-' + key, function(v) {
-        t.equal(v, key)
-      })
-    })(i)
+    e.once('hit-' + key, function(v) {
+      t.equal(v, key)
+    })
+  }
+
+  for (var i = 0; i < n; i ++) {
+    doRedirect(i)
   }
 })
 
