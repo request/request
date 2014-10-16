@@ -1,3 +1,5 @@
+'use strict'
+
 // test that we can tunnel a https request over an http proxy
 // keeping all the CA and whatnot intact.
 //

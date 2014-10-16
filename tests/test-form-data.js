@@ -1,3 +1,5 @@
+'use strict'
+
 var http = require('http')
   , path = require('path')
   , mime = require('mime-types')

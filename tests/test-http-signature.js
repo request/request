@@ -1,3 +1,5 @@
+'use strict'
+
 var http = require('http')
   , request = require('../index')
   , httpSignature = require('http-signature')

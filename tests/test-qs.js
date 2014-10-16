@@ -1,3 +1,5 @@
+'use strict'
+
 var request = require('../index')
   , tape = require('tape')
 

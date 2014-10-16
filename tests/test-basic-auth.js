@@ -1,3 +1,5 @@
+'use strict'
+
 var assert = require('assert')
   , http = require('http')
   , request = require('../index')

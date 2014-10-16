@@ -1,3 +1,5 @@
+'use strict'
+
 var server = require('./server')
   , request = require('../index')
   , events = require('events')

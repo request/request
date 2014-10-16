@@ -1,3 +1,5 @@
+'use strict'
+
 // a test where we validate the siguature of the keys
 // otherwise exactly the same as the ssl test
 

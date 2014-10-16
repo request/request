@@ -1,3 +1,5 @@
+'use strict'
+
 var http = require('http')
   , request = require('../index')
   , hawk = require('hawk')

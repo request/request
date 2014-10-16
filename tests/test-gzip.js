@@ -1,3 +1,5 @@
+'use strict'
+
 var request = require('../index')
   , http = require('http')
   , zlib = require('zlib')
@@ -122,8 +124,8 @@ tape('transparently supports gzip error to callbacks', function(t) {
 })
 
 tape('transparently supports gzip error to pipes', function(t) {
-  options = { url: 'http://localhost:6767/error', gzip: true }
-  var chunks = []
+  var options = { url: 'http://localhost:6767/error', gzip: true }
+    , chunks = []
   request.get(options)
     .on('data', function (chunk) {
       t.fail('Should not receive data event')

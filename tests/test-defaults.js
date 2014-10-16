@@ -1,3 +1,5 @@
+'use strict'
+
 var server = require('./server')
   , assert = require('assert')
   , request = require('../index')

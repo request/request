@@ -1,3 +1,5 @@
+'use strict'
+
 var server = require('./server')
   , events = require('events')
   , stream = require('stream')

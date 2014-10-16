@@ -1,3 +1,5 @@
+'use strict'
+
 if (process.env.TRAVIS == 'true') {
   console.error('This test is unreliable on Travis; skipping.')
   process.exit(0)

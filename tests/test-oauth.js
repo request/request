@@ -1,3 +1,5 @@
+'use strict'
+
 var hmacsign = require('oauth-sign').hmacsign
   , qs = require('querystring')
   , request = require('../index')

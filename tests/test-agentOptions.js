@@ -1,3 +1,5 @@
+'use strict'
+
 var request = require('../index')
   , http    = require('http')
   , server  = require('./server')
