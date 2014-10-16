@@ -26,36 +26,36 @@ tape('multipart formData', function(t) {
       // check for the fields' traces
 
       // 1st field : my_field
-      t.ok( data.indexOf('form-data; name="my_field"') != -1 )
-      t.ok( data.indexOf(multipartFormData.my_field) != -1 )
+      t.ok( data.indexOf('form-data; name="my_field"') !== -1 )
+      t.ok( data.indexOf(multipartFormData.my_field) !== -1 )
 
       // 2nd field : my_buffer
-      t.ok( data.indexOf('form-data; name="my_buffer"') != -1 )
-      t.ok( data.indexOf(multipartFormData.my_buffer) != -1 )
+      t.ok( data.indexOf('form-data; name="my_buffer"') !== -1 )
+      t.ok( data.indexOf(multipartFormData.my_buffer) !== -1 )
 
       // 3rd field : my_file
-      t.ok( data.indexOf('form-data; name="my_file"') != -1 )
-      t.ok( data.indexOf('; filename="'+path.basename(multipartFormData.my_file.path)+'"') != -1 )
+      t.ok( data.indexOf('form-data; name="my_file"') !== -1 )
+      t.ok( data.indexOf('; filename="'+path.basename(multipartFormData.my_file.path)+'"') !== -1 )
       // check for unicycle.jpg traces
-      t.ok( data.indexOf('2005:06:21 01:44:12') != -1 )
-      t.ok( data.indexOf('Content-Type: '+mime.lookup(multipartFormData.my_file.path) ) != -1 )
+      t.ok( data.indexOf('2005:06:21 01:44:12') !== -1 )
+      t.ok( data.indexOf('Content-Type: '+mime.lookup(multipartFormData.my_file.path) ) !== -1 )
 
       // 4th field : remote_file
-      t.ok( data.indexOf('form-data; name="remote_file"') != -1 )
-      t.ok( data.indexOf('; filename="'+path.basename(multipartFormData.remote_file.path)+'"') != -1 )
+      t.ok( data.indexOf('form-data; name="remote_file"') !== -1 )
+      t.ok( data.indexOf('; filename="'+path.basename(multipartFormData.remote_file.path)+'"') !== -1 )
 
       // 5th field : file with metadata
-      t.ok( data.indexOf('form-data; name="secret_file"') != -1 )
-      t.ok( data.indexOf('Content-Disposition: form-data; name="secret_file"; filename="topsecret.jpg"') != -1 )
-      t.ok( data.indexOf('Content-Type: image/custom') != -1 )
+      t.ok( data.indexOf('form-data; name="secret_file"') !== -1 )
+      t.ok( data.indexOf('Content-Disposition: form-data; name="secret_file"; filename="topsecret.jpg"') !== -1 )
+      t.ok( data.indexOf('Content-Type: image/custom') !== -1 )
 
       // 6th field : batch of files
-      t.ok( data.indexOf('form-data; name="batch"') != -1 )
-      t.ok( data.match(/form-data; name="batch"/g).length == 2 )
+      t.ok( data.indexOf('form-data; name="batch"') !== -1 )
+      t.ok( data.match(/form-data; name="batch"/g).length === 2 )
 
       // check for http://nodejs.org/images/logo.png traces
-      t.ok( data.indexOf('ImageReady') != -1 )
-      t.ok( data.indexOf('Content-Type: '+mime.lookup(remoteFile) ) != -1 )
+      t.ok( data.indexOf('ImageReady') !== -1 )
+      t.ok( data.indexOf('Content-Type: '+mime.lookup(remoteFile) ) !== -1 )
 
       res.writeHead(200)
       res.end('done')

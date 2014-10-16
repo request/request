@@ -16,13 +16,13 @@ tape('setup', function(t) {
     var ok
 
     if (req.headers.authorization) {
-      if (req.headers.authorization == 'Basic ' + new Buffer('test:testing2').toString('base64')) {
+      if (req.headers.authorization === 'Basic ' + new Buffer('test:testing2').toString('base64')) {
         ok = true
-      } else if ( req.headers.authorization == 'Basic ' + new Buffer('test:').toString('base64')) {
+      } else if ( req.headers.authorization === 'Basic ' + new Buffer('test:').toString('base64')) {
         ok = true
-      } else if ( req.headers.authorization == 'Basic ' + new Buffer(':apassword').toString('base64')) {
+      } else if ( req.headers.authorization === 'Basic ' + new Buffer(':apassword').toString('base64')) {
         ok = true
-      } else if ( req.headers.authorization == 'Basic ' + new Buffer('justauser').toString('base64')) {
+      } else if ( req.headers.authorization === 'Basic ' + new Buffer('justauser').toString('base64')) {
         ok = true
       } else {
         // Bad auth header, don't send back WWW-Authenticate header
@@ -34,7 +34,7 @@ tape('setup', function(t) {
       res.setHeader('www-authenticate', 'Basic realm="Private"')
     }
 
-    if (req.url == '/post/') {
+    if (req.url === '/post/') {
       var expectedContent = 'data_key=data_value'
       req.on('data', function(data) {
         assert.equal(data, expectedContent)

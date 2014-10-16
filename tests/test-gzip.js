@@ -14,7 +14,7 @@ var server = http.createServer(function(req, res) {
 
   if (/\bgzip\b/i.test(req.headers['accept-encoding'])) {
     res.setHeader('Content-Encoding', 'gzip')
-    if (req.url == '/error') {
+    if (req.url === '/error') {
       // send plaintext instead of gzip (should cause an error for the client)
       res.end(testContent)
     } else {

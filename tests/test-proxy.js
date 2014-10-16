@@ -49,7 +49,7 @@ function runTest(name, options, responseHandler) {
       if (responseHandler) {
         called = true
         t.equal(req.headers.host, 'google.com')
-        if (typeof responseHandler == 'function') {
+        if (typeof responseHandler === 'function') {
           responseHandler(t, req, res)
         }
       } else {

@@ -18,7 +18,7 @@ tape('setup', function(t) {
 
 tape('without agentOptions should use global agent', function(t) {
   var r = request(s.url, function(err, res, body) {
-    // TODO: figure out why err.code == 'ECONNREFUSED' on Travis?
+    // TODO: figure out why err.code === 'ECONNREFUSED' on Travis?
     //if (err) console.log(err)
     //t.equal(err, null)
     t.deepEqual(r.agent, http.globalAgent)
@@ -31,7 +31,7 @@ tape('with agentOptions should apply to new agent in pool', function(t) {
   var r = request(s.url, {
     agentOptions: { foo: 'bar' }
   }, function(err, res, body) {
-    // TODO: figure out why err.code == 'ECONNREFUSED' on Travis?
+    // TODO: figure out why err.code === 'ECONNREFUSED' on Travis?
     //if (err) console.log(err)
     //t.equal(err, null)
     t.equal(r.agent.options.foo, 'bar')

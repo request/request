@@ -33,31 +33,31 @@ tape('form', function(t) {
 
       // 1st field : my_field
       var field = FIELDS.shift()
-      t.ok( data.indexOf('form-data; name="'+field.name+'"') != -1 )
-      t.ok( data.indexOf(field.value) != -1 )
+      t.ok( data.indexOf('form-data; name="'+field.name+'"') !== -1 )
+      t.ok( data.indexOf(field.value) !== -1 )
 
       // 2nd field : my_buffer
       var field = FIELDS.shift()
-      t.ok( data.indexOf('form-data; name="'+field.name+'"') != -1 )
-      t.ok( data.indexOf(field.value) != -1 )
+      t.ok( data.indexOf('form-data; name="'+field.name+'"') !== -1 )
+      t.ok( data.indexOf(field.value) !== -1 )
 
       // 3rd field : my_file
       var field = FIELDS.shift()
-      t.ok( data.indexOf('form-data; name="'+field.name+'"') != -1 )
-      t.ok( data.indexOf('; filename="'+path.basename(field.value.path)+'"') != -1 )
+      t.ok( data.indexOf('form-data; name="'+field.name+'"') !== -1 )
+      t.ok( data.indexOf('; filename="'+path.basename(field.value.path)+'"') !== -1 )
       // check for unicycle.jpg traces
-      t.ok( data.indexOf('2005:06:21 01:44:12') != -1 )
-      t.ok( data.indexOf('Content-Type: '+mime.lookup(field.value.path) ) != -1 )
+      t.ok( data.indexOf('2005:06:21 01:44:12') !== -1 )
+      t.ok( data.indexOf('Content-Type: '+mime.lookup(field.value.path) ) !== -1 )
 
       // 4th field : remote_file
       var field = FIELDS.shift()
-      t.ok( data.indexOf('form-data; name="'+field.name+'"') != -1 )
-      t.ok( data.indexOf('; filename="'+path.basename(field.value.path)+'"') != -1 )
+      t.ok( data.indexOf('form-data; name="'+field.name+'"') !== -1 )
+      t.ok( data.indexOf('; filename="'+path.basename(field.value.path)+'"') !== -1 )
       // check for http://nodejs.org/images/logo.png traces
-      t.ok( data.indexOf('ImageReady') != -1 )
-      t.ok( data.indexOf('Content-Type: '+mime.lookup(remoteFile) ) != -1 )
+      t.ok( data.indexOf('ImageReady') !== -1 )
+      t.ok( data.indexOf('Content-Type: '+mime.lookup(remoteFile) ) !== -1 )
 
-      t.ok( req.headers['content-length'] == totalLength )
+      t.ok( +req.headers['content-length'] === totalLength )
 
       res.writeHead(200)
       res.end('done')

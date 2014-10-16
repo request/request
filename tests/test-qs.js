@@ -26,7 +26,7 @@ function runTest(name, options) {
 
   tape(name + ' using qs', function(t) {
     var r = request.get(requestOptsQs)
-    if (typeof options.afterRequest == 'function') {
+    if (typeof options.afterRequest === 'function') {
       options.afterRequest(r)
     }
     process.nextTick(function() {
@@ -38,7 +38,7 @@ function runTest(name, options) {
 
   tape(name + ' using querystring', function(t) {
     var r = request.get(requestOptsQuerystring)
-    if (typeof options.afterRequest == 'function') {
+    if (typeof options.afterRequest === 'function') {
       options.afterRequest(r)
     }
     process.nextTick(function() {

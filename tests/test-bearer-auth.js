@@ -16,7 +16,7 @@ tape('setup', function(t) {
     var ok
 
     if (req.headers.authorization) {
-      if (req.headers.authorization == 'Bearer theToken') {
+      if (req.headers.authorization === 'Bearer theToken') {
         ok = true
       } else {
         // Bad auth header, don't send back WWW-Authenticate header
@@ -28,7 +28,7 @@ tape('setup', function(t) {
       res.setHeader('www-authenticate', 'Bearer realm="Private"')
     }
 
-    if (req.url == '/post/') {
+    if (req.url === '/post/') {
       var expectedContent = 'data_key=data_value'
       req.on('data', function(data) {
         assert.equal(data, expectedContent)
