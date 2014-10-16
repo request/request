@@ -476,8 +476,8 @@ Request.prototype.init = function (options) {
       for (var formKey in formData) {
         if (formData.hasOwnProperty(formKey)) {
           if (formData[formKey] instanceof Array) {
-            for (var i=0; i < formData[formKey].length; i++) {
-              requestForm.append(formKey, formData[formKey][i])
+            for (var j = 0; j < formData[formKey].length; j++) {
+              requestForm.append(formKey, formData[formKey][j])
             }
           } else {
             requestForm.append(formKey, formData[formKey])
