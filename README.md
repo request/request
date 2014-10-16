@@ -232,8 +232,13 @@ var formData = {
   my_buffer: new Buffer([1, 2, 3]),
   my_file: fs.createReadStream(__dirname + '/unicycle.jpg'),
   remote_file: request(remoteFile),
+  attachments: [
+    fs.createReadStream(__dirname + '/attacment1.jpg')
+    fs.createReadStream(__dirname + '/attachment2.jpg')
+  ],
   custom_file: {
     value:  fs.createReadStream('/dev/urandom'),
+    // See the [form-data](https://github.com/felixge/node-form-data) README for more information about options.
     options: {
       filename: 'topsecret.jpg',
       contentType: 'image/jpg'
