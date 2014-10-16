@@ -17,7 +17,7 @@ exports.createServer =  function (port) {
     s.emit(req.url, req, resp)
   })
   s.port = port
-  s.url = 'http://localhost:'+port
+  s.url = 'http://localhost:' + port
   return s
 }
 
@@ -39,7 +39,7 @@ exports.createSSLServer = function(port, opts) {
     s.emit(req.url, req, resp)
   })
   s.port = port
-  s.url = 'https://localhost:'+port
+  s.url = 'https://localhost:' + port
   return s
 }
 

@@ -35,14 +35,14 @@ tape('multipart formData', function(t) {
 
       // 3rd field : my_file
       t.ok( data.indexOf('form-data; name="my_file"') !== -1 )
-      t.ok( data.indexOf('; filename="'+path.basename(multipartFormData.my_file.path)+'"') !== -1 )
+      t.ok( data.indexOf('; filename="' + path.basename(multipartFormData.my_file.path) + '"') !== -1 )
       // check for unicycle.jpg traces
       t.ok( data.indexOf('2005:06:21 01:44:12') !== -1 )
-      t.ok( data.indexOf('Content-Type: '+mime.lookup(multipartFormData.my_file.path) ) !== -1 )
+      t.ok( data.indexOf('Content-Type: ' + mime.lookup(multipartFormData.my_file.path) ) !== -1 )
 
       // 4th field : remote_file
       t.ok( data.indexOf('form-data; name="remote_file"') !== -1 )
-      t.ok( data.indexOf('; filename="'+path.basename(multipartFormData.remote_file.path)+'"') !== -1 )
+      t.ok( data.indexOf('; filename="' + path.basename(multipartFormData.remote_file.path) + '"') !== -1 )
 
       // 5th field : file with metadata
       t.ok( data.indexOf('form-data; name="secret_file"') !== -1 )
@@ -55,7 +55,7 @@ tape('multipart formData', function(t) {
 
       // check for http://nodejs.org/images/logo.png traces
       t.ok( data.indexOf('ImageReady') !== -1 )
-      t.ok( data.indexOf('Content-Type: '+mime.lookup(remoteFile) ) !== -1 )
+      t.ok( data.indexOf('Content-Type: ' + mime.lookup(remoteFile) ) !== -1 )
 
       res.writeHead(200)
       res.end('done')
