@@ -9,11 +9,6 @@ var http = require('http')
   , querystring = require('querystring')
   , zlib = require('zlib')
   , helpers = require('./lib/helpers')
-  , safeStringify = helpers.safeStringify
-  , md5 = helpers.md5
-  , isReadStream = helpers.isReadStream
-  , toBase64 = helpers.toBase64
-  , defer = helpers.defer
   , bl = require('bl')
   , oauth = require('oauth-sign')
   , hawk = require('hawk')
@@ -24,20 +19,23 @@ var http = require('http')
   , tunnel = require('tunnel-agent')
   , stringstream = require('stringstream')
   , caseless = require('caseless')
-
   , ForeverAgent = require('forever-agent')
   , FormData = require('form-data')
-
   , cookies = require('./lib/cookies')
-  , globalCookieJar = cookies.jar()
-
   , copy = require('./lib/copy')
   , debug = require('./lib/debug')
   , net = require('net')
 
+var safeStringify = helpers.safeStringify
+  , md5 = helpers.md5
+  , isReadStream = helpers.isReadStream
+  , toBase64 = helpers.toBase64
+  , defer = helpers.defer
+  , globalCookieJar = cookies.jar()
+
 
 var globalPool = {}
-var isUrl = /^https?:|^unix:/
+  , isUrl = /^https?:|^unix:/
 
 var defaultProxyHeaderWhiteList = [
   'accept',

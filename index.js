@@ -17,7 +17,8 @@
 var extend                = require('util')._extend
   , cookies               = require('./lib/cookies')
   , helpers               = require('./lib/helpers')
-  , isFunction            = helpers.isFunction
+
+var isFunction            = helpers.isFunction
   , constructObject       = helpers.constructObject
   , filterForCallback     = helpers.filterForCallback
   , constructOptionsFrom  = helpers.constructOptionsFrom
