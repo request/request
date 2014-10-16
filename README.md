@@ -199,9 +199,9 @@ Here's some examples of valid `no_proxy` values:
  * `google.com:443, yahoo.com:80` - don't proxy HTTPS requests to Google, and don't proxy HTTP requests to Yahoo!
  * `*` - ignore `https_proxy`/`http_proxy` environment variables altogether.
 
-## UNIX Socket 
+## UNIX Socket
 
-`request` supports the `unix://` protocol for all requests. The path is assumed to be absolute to the root of the host file system. 
+`request` supports the `unix://` protocol for all requests. The path is assumed to be absolute to the root of the host file system.
 
 HTTP paths are extracted from the supplied URL by testing each level of the full URL against net.connect for a socket response.
 
@@ -233,7 +233,19 @@ var formData = {
   my_field: 'my_value',
   my_buffer: new Buffer([1, 2, 3]),
   my_file: fs.createReadStream(__dirname + '/unicycle.jpg'),
-  remote_file: request(remoteFile)
+  remote_file: request(remoteFile),
+  attachments: [
+    fs.createReadStream(__dirname + '/attacment1.jpg')
+    fs.createReadStream(__dirname + '/attachment2.jpg')
+  ],
+  custom_file: {
+    value:  fs.createReadStream('/dev/urandom'),
+    // See the [form-data](https://github.com/felixge/node-form-data) README for more information about options.
+    options: {
+      filename: 'topsecret.jpg',
+      contentType: 'image/jpg'
+    }
+  }
 };
 request.post({url:'http://service.com/upload', formData: formData}, function optionalCallback(err, httpResponse, body) {
   if (err) {
@@ -313,7 +325,7 @@ If passed as an option, `auth` should be a hash containing values `user` || `use
 
 `sendImmediately` defaults to `true`, which causes a basic authentication header to be sent.  If `sendImmediately` is `false`, then `request` will retry with a proper authentication header after receiving a `401` response from the server (which must contain a `WWW-Authenticate` header indicating the required authentication method).
 
-Note that you can also use for basic authentication a trick using the URL itself, as specified in [RFC 1738](http://www.ietf.org/rfc/rfc1738.txt). 
+Note that you can also use for basic authentication a trick using the URL itself, as specified in [RFC 1738](http://www.ietf.org/rfc/rfc1738.txt).
 Simply pass the `user:password` before the host with an `@` sign.
 
 ```javascript
@@ -449,7 +461,7 @@ The first argument can be either a `url` or an `options` object. The only requir
   tunneling proxy.
 
 
-The callback argument gets 3 arguments: 
+The callback argument gets 3 arguments:
 
 1. An `error` when applicable (usually from [`http.ClientRequest`](http://nodejs.org/api/http.html#http_class_http_clientrequest) object)
 2. An [`http.IncomingMessage`](http://nodejs.org/api/http.html#http_http_incomingmessage) object
@@ -463,7 +475,7 @@ There are also shorthand methods for different HTTP METHODs and some other conve
 
 This method returns a wrapper around the normal request API that defaults to whatever options you pass in to it.
 
-**Note:** You can call `.defaults()` on the wrapper that is returned from `request.defaults` to add/override defaults that were previously defaulted. 
+**Note:** You can call `.defaults()` on the wrapper that is returned from `request.defaults` to add/override defaults that were previously defaulted.
 
 For example:
 ```javascript
@@ -635,10 +647,10 @@ request({url: url, jar: j}, function () {
 To inspect your cookie jar after a request
 
 ```javascript
-var j = request.jar() 
+var j = request.jar()
 request({url: 'http://www.google.com', jar: j}, function () {
   var cookie_string = j.getCookieString(uri); // "key1=value1; key2=value2; ..."
-  var cookies = j.getCookies(uri); 
+  var cookies = j.getCookies(uri);
   // [{key: 'key1', value: 'value1', domain: "www.google.com", ...}, ...]
 })
 ```

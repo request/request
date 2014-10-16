@@ -6,7 +6,7 @@ var http = require('http')
   , tape = require('tape')
 
 tape('multipart formData', function(t) {
-  t.plan(15)
+  t.plan(20)
 
   var remoteFile = 'http://nodejs.org/images/logo.png'
     , multipartFormData = {}
@@ -41,6 +41,16 @@ tape('multipart formData', function(t) {
       // 4th field : remote_file
       t.ok( data.indexOf('form-data; name="remote_file"') != -1 )
       t.ok( data.indexOf('; filename="'+path.basename(multipartFormData.remote_file.path)+'"') != -1 )
+
+      // 5th field : file with metadata
+      t.ok( data.indexOf('form-data; name="secret_file"') != -1 )
+      t.ok( data.indexOf('Content-Disposition: form-data; name="secret_file"; filename="topsecret.jpg"') != -1 )
+      t.ok( data.indexOf('Content-Type: image/custom') != -1 )
+
+      // 6th field : batch of files
+      t.ok( data.indexOf('form-data; name="batch"') != -1 )
+      t.ok( data.match(/form-data; name="batch"/g).length == 2 )
+
       // check for http://nodejs.org/images/logo.png traces
       t.ok( data.indexOf('ImageReady') != -1 )
       t.ok( data.indexOf('Content-Type: '+mime.lookup(remoteFile) ) != -1 )
@@ -57,6 +67,17 @@ tape('multipart formData', function(t) {
     multipartFormData.my_buffer = new Buffer([1, 2, 3])
     multipartFormData.my_file = fs.createReadStream(__dirname + '/unicycle.jpg')
     multipartFormData.remote_file = request(remoteFile)
+    multipartFormData.secret_file = {
+      value: fs.createReadStream(__dirname + '/unicycle.jpg'),
+      options: {
+        filename: 'topsecret.jpg',
+        contentType: 'image/custom'
+      }
+    }
+    multipartFormData.batch = [
+      fs.createReadStream(__dirname + '/unicycle.jpg'),
+      fs.createReadStream(__dirname + '/unicycle.jpg')
+    ]
 
     var req = request.post({
       url: 'http://localhost:8080/upload',
