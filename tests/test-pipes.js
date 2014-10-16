@@ -279,6 +279,7 @@ tape('cleanup', function(t) {
   setTimeout(function() {
     t.end()
     setTimeout(function() {
+      /*eslint no-process-exit:0*/
       process.exit(0)
     }, 10)
   }, 300)
