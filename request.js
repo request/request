@@ -455,7 +455,13 @@ Request.prototype.init = function (options) {
       var requestForm = self.form()
       for (var formKey in formData) {
         if (formData.hasOwnProperty(formKey)) {
-          requestForm.append(formKey, formData[formKey])
+          if (formData[formKey] instanceof Array) {
+            for (var j = 0; j < formData[formKey].length; j++) {
+              requestForm.append(formKey, formData[formKey][j])
+            }
+          } else {
+            requestForm.append(formKey, formData[formKey])
+          }
         }
       }
     }
