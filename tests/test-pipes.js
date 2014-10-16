@@ -57,7 +57,9 @@ ValidationStream.prototype.write = function(chunk) {
 }
 
 ValidationStream.prototype.end = function(chunk) {
-  if (chunk) this.emit('data', chunk)
+  if (chunk) {
+    this.emit('data', chunk)
+  }
   this.emit('end')
 }
 

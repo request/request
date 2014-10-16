@@ -3,6 +3,7 @@
 var request = require('../index')
   , http = require('http')
   , zlib = require('zlib')
+  , assert = require('assert')
   , tape = require('tape')
 
 var testContent = 'Compressible response content.\n'
@@ -19,7 +20,7 @@ var server = http.createServer(function(req, res) {
       res.end(testContent)
     } else {
       zlib.gzip(testContent, function(err, data) {
-        if (err) t.fail(err)
+        assert.equal(err, null)
         res.end(data)
       })
     }

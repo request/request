@@ -62,7 +62,6 @@ exports.createPostValidator = function (text, reqContentType) {
         var boundary = req.headers['content-type'].split('boundary=')[1]
         text = text.replace(/__BOUNDARY__/g, boundary)
       }
-      if (r !== text) console.log(r, text)
       assert.equal(r, text)
       if (reqContentType) {
         assert.ok(req.headers['content-type'])

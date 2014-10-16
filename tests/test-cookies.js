@@ -9,10 +9,11 @@ var validUrl = 'http://localhost:6767/valid'
   , invalidUrl = 'http://localhost:6767/invalid'
 
 var server = http.createServer(function (req, res) {
-  if (req.url === '/valid')
+  if (req.url === '/valid') {
     res.setHeader('set-cookie', 'foo=bar')
-  else if (req.url === '/invalid')
+  } else if (req.url === '/invalid') {
     res.setHeader('set-cookie', 'foo=bar; Domain=foo.com')
+  }
   res.end('okay')
 })
 
