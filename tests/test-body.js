@@ -44,7 +44,7 @@ addTest('testGetChunkBreak', {
     , new Buffer([152])
     , new Buffer([131])
     ])
-  , expectBody: 'Ω☃'
+  , expectBody: '\uF8FF\u03A9\u2603'
 })
 
 addTest('testGetBuffer', {
@@ -62,7 +62,7 @@ addTest('testGetEncoding', {
 addTest('testGetUTF', {
    resp: server.createGetResponse(new Buffer([0xEF, 0xBB, 0xBF, 226, 152, 131]))
  , encoding: 'utf8'
- , expectBody: '☃'
+ , expectBody: '\u2603'
 })
 
 addTest('testGetJSON', {
