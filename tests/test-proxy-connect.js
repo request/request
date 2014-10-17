@@ -1,3 +1,5 @@
+'use strict'
+
 var net = require('net')
   , request = require('../index')
   , tape = require('tape')

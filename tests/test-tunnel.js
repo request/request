@@ -1,3 +1,5 @@
+'use strict'
+
 // test that we can tunnel a https request over an http proxy
 // keeping all the CA and whatnot intact.
 //
@@ -68,7 +70,8 @@ tape('tunnel', function(t) {
       return
     }
     if (!ready) {
-      return setTimeout(F, 100)
+      setTimeout(F, 100)
+      return
     }
     request({
       uri: 'https://registry.npmjs.org/',

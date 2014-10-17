@@ -1,3 +1,5 @@
+'use strict'
+
 var http = require('http')
   , request = require('../index')
   , tape = require('tape')
@@ -6,12 +8,12 @@ var port1 = 8968
   , port2 = 8969
 
 var s1 = http.createServer(function(req, resp) {
-  if (req.url == '/original') {
+  if (req.url === '/original') {
     resp.writeHeader(302, {
       'location': '/redirected'
     })
     resp.end()
-  } else if (req.url == '/redirected') {
+  } else if (req.url === '/redirected') {
     resp.writeHeader(200, {
       'content-type': 'text/plain'
     })
@@ -35,7 +37,7 @@ tape('setup', function(t) {
 })
 
 tape('piped redirect', function(t) {
-  var r = request('http://localhost:' + port2 + '/original', function(err, res, body) {
+  request('http://localhost:' + port2 + '/original', function(err, res, body) {
     t.equal(err, null)
     t.equal(body, 'OK')
     t.end()

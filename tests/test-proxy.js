@@ -1,3 +1,5 @@
+'use strict'
+
 var server = require('./server')
   , request = require('../index')
   , tape = require('tape')
@@ -47,7 +49,7 @@ function runTest(name, options, responseHandler) {
       if (responseHandler) {
         called = true
         t.equal(req.headers.host, 'google.com')
-        if (typeof responseHandler == 'function') {
+        if (typeof responseHandler === 'function') {
           responseHandler(t, req, res)
         }
       } else {
@@ -202,14 +204,14 @@ if (process.env.TEST_PROXY_HARNESS) {
     env : {
       HTTP_PROXY : s.url,
       NO_PROXY   : 'oogle.com'
-    },
+    }
   }, true)
 
   runTest('NO_PROXY with port should not override HTTP_PROXY for partial domain matches', {
     env : {
       HTTP_PROXY : s.url,
       NO_PROXY   : 'oogle.com:80'
-    },
+    }
   }, true)
 
   runTest('proxy: null should override HTTP_PROXY', {

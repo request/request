@@ -1,3 +1,5 @@
+'use strict'
+
 var request = require('../index')
   , http = require('http')
   , tape = require('tape')
@@ -20,6 +22,8 @@ tape('request().toJSON()', function(t) {
   }, function(err, res) {
     var json_r   = JSON.parse(JSON.stringify(r))
       , json_res = JSON.parse(JSON.stringify(res))
+
+    t.equal(err, null)
 
     t.equal(json_r.uri.href   , r.uri.href)
     t.equal(json_r.method     , r.method)

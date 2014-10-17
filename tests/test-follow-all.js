@@ -1,3 +1,5 @@
+'use strict'
+
 var http = require('http')
   , request = require('../index')
   , tape = require('tape')
@@ -6,8 +8,11 @@ var server = http.createServer(function (req, res) {
   // redirect everything 3 times, no matter what.
   var c = req.headers.cookie
 
-  if (!c) c = 0
-  else c = +c.split('=')[1] || 0
+  if (!c) {
+    c = 0
+  } else {
+    c = +c.split('=')[1] || 0
+  }
 
   if (c > 3) {
     res.end('ok')

@@ -1,10 +1,12 @@
+'use strict'
+
 var server = require('./server')
   , events = require('events')
   , stream = require('stream')
   , request = require('../index')
   , tape = require('tape')
 
-var s = server.createServer();
+var s = server.createServer()
 
 tape('setup', function(t) {
   s.listen(s.port, function() {
@@ -27,8 +29,8 @@ function addTest(name, data) {
 }
 
 addTest('testGet', {
-    resp : server.createGetResponse("TESTING!")
-  , expectBody: "TESTING!"
+    resp : server.createGetResponse('TESTING!')
+  , expectBody: 'TESTING!'
 })
 
 addTest('testGetChunkBreak', {
@@ -42,48 +44,48 @@ addTest('testGetChunkBreak', {
     , new Buffer([152])
     , new Buffer([131])
     ])
-  , expectBody: "Ω☃"
+  , expectBody: '\uF8FF\u03A9\u2603'
 })
 
 addTest('testGetBuffer', {
-    resp : server.createGetResponse(new Buffer("TESTING!"))
+    resp : server.createGetResponse(new Buffer('TESTING!'))
   , encoding: null
-  , expectBody: new Buffer("TESTING!")
+  , expectBody: new Buffer('TESTING!')
 })
 
 addTest('testGetEncoding', {
     resp : server.createGetResponse(new Buffer('efa3bfcea9e29883', 'hex'))
   , encoding: 'hex'
-  , expectBody: "efa3bfcea9e29883"
+  , expectBody: 'efa3bfcea9e29883'
 })
 
 addTest('testGetUTF', {
    resp: server.createGetResponse(new Buffer([0xEF, 0xBB, 0xBF, 226, 152, 131]))
- , encoding: "utf8"
- , expectBody: "☃"
+ , encoding: 'utf8'
+ , expectBody: '\u2603'
 })
 
 addTest('testGetJSON', {
    resp : server.createGetResponse('{"test":true}', 'application/json')
  , json : true
- , expectBody: {"test":true}
+ , expectBody: {'test':true}
 })
 
 addTest('testPutString', {
-    resp : server.createPostValidator("PUTTINGDATA")
-  , method : "PUT"
-  , body : "PUTTINGDATA"
+    resp : server.createPostValidator('PUTTINGDATA')
+  , method : 'PUT'
+  , body : 'PUTTINGDATA'
 })
 
 addTest('testPutBuffer', {
-    resp : server.createPostValidator("PUTTINGDATA")
-  , method : "PUT"
-  , body : new Buffer("PUTTINGDATA")
+    resp : server.createPostValidator('PUTTINGDATA')
+  , method : 'PUT'
+  , body : new Buffer('PUTTINGDATA')
 })
 
 addTest('testPutJSON', {
     resp : server.createPostValidator(JSON.stringify({foo: 'bar'}))
-  , method: "PUT"
+  , method: 'PUT'
   , json: {foo: 'bar'}
 })
 
@@ -97,7 +99,7 @@ addTest('testPutMultipart', {
       'Oh hi.' +
       '\r\n--__BOUNDARY__--'
       )
-  , method: "PUT"
+  , method: 'PUT'
   , multipart:
     [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
     , {'body': 'Oh hi.'}
@@ -114,7 +116,7 @@ addTest('testPutMultipartPreambleCRLF', {
       'Oh hi.' +
       '\r\n--__BOUNDARY__--'
       )
-  , method: "PUT"
+  , method: 'PUT'
   , preambleCRLF: true
   , multipart:
     [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
@@ -133,7 +135,7 @@ addTest('testPutMultipartPostambleCRLF', {
       '\r\n--__BOUNDARY__--' +
       '\r\n'
       )
-  , method: "PUT"
+  , method: 'PUT'
   , preambleCRLF: true
   , postambleCRLF: true
   , multipart:

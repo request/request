@@ -1,3 +1,5 @@
+'use strict'
+
 var server = require('./server')
   , events = require('events')
   , stream = require('stream')
@@ -55,7 +57,9 @@ ValidationStream.prototype.write = function(chunk) {
 }
 
 ValidationStream.prototype.end = function(chunk) {
-  if (chunk) this.emit('data', chunk)
+  if (chunk) {
+    this.emit('data', chunk)
+  }
   this.emit('end')
 }
 
@@ -275,6 +279,7 @@ tape('cleanup', function(t) {
   setTimeout(function() {
     t.end()
     setTimeout(function() {
+      /*eslint no-process-exit:0*/
       process.exit(0)
     }, 10)
   }, 300)

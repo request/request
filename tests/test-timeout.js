@@ -1,5 +1,8 @@
-if (process.env.TRAVIS == 'true') {
+'use strict'
+
+if (process.env.TRAVIS === 'true') {
   console.error('This test is unreliable on Travis; skipping.')
+  /*eslint no-process-exit:0*/
   process.exit(0)
 }
 

@@ -1,6 +1,9 @@
+'use strict'
+
 var request = require('../index')
   , http = require('http')
   , zlib = require('zlib')
+  , assert = require('assert')
   , tape = require('tape')
 
 var testContent = 'Compressible response content.\n'
@@ -12,12 +15,12 @@ var server = http.createServer(function(req, res) {
 
   if (/\bgzip\b/i.test(req.headers['accept-encoding'])) {
     res.setHeader('Content-Encoding', 'gzip')
-    if (req.url == '/error') {
+    if (req.url === '/error') {
       // send plaintext instead of gzip (should cause an error for the client)
       res.end(testContent)
     } else {
       zlib.gzip(testContent, function(err, data) {
-        if (err) t.fail(err)
+        assert.equal(err, null)
         res.end(data)
       })
     }
@@ -122,10 +125,9 @@ tape('transparently supports gzip error to callbacks', function(t) {
 })
 
 tape('transparently supports gzip error to pipes', function(t) {
-  options = { url: 'http://localhost:6767/error', gzip: true }
-  var chunks = []
+  var options = { url: 'http://localhost:6767/error', gzip: true }
   request.get(options)
-    .on('data', function (chunk) {
+    .on('data', function (/*chunk*/) {
       t.fail('Should not receive data event')
     })
     .on('end', function () {

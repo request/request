@@ -1,3 +1,5 @@
+'use strict'
+
 var http = require('http')
   , request = require('../index')
   , tape = require('tape')
@@ -12,10 +14,11 @@ function makeHeaderRegex() {
 
 var digestServer = http.createServer(function(req, res) {
   var ok
+    , testHeader
 
   if (req.url === '/test/') {
     if (req.headers.authorization) {
-      var testHeader = makeHeaderRegex(
+      testHeader = makeHeaderRegex(
         'Digest username="test"',
         'realm="Private"',
         'nonce="WpcHS2/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93"',
@@ -48,7 +51,7 @@ var digestServer = http.createServer(function(req, res) {
     // RFC2069-compatible mode
     // check: http://www.rfc-editor.org/errata_search.php?rfc=2069
     if (req.headers.authorization) {
-      var testHeader = makeHeaderRegex(
+      testHeader = makeHeaderRegex(
         'Digest username="Mufasa"',
         'realm="testrealm@host.com"',
         'nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093"',

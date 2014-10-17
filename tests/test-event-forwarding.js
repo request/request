@@ -1,3 +1,5 @@
+'use strict'
+
 var server = require('./server')
   , request = require('../index')
   , tape = require('tape')
