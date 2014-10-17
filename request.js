@@ -1077,6 +1077,9 @@ Request.prototype.onRequestResponse = function (response) {
     return
   }
 
+  // Save the original host before any redirect (if it changes, we need to
+  // remove any authorization headers)
+  self.originalHost = self.headers.host
   if (self.setHost) {
     self.removeHeader('host')
   }
@@ -1252,6 +1255,12 @@ Request.prototype.onRequestResponse = function (response) {
         self.removeHeader('host')
         self.removeHeader('content-type')
         self.removeHeader('content-length')
+        if (self.uri.hostname !== self.originalHost.split(':')[0]) {
+          // Remove authorization if changing hostnames (but not if just
+          // changing ports or protocols).  This matches the behavior of curl:
+          // https://github.com/bagder/curl/blob/6beb0eee/lib/http.c#L710
+          self.removeHeader('authorization')
+        }
       }
     }
 

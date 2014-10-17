@@ -18,6 +18,7 @@ exports.createServer =  function (port) {
   })
   s.port = port
   s.url = 'http://localhost:' + port
+  s.protocol = 'http'
   return s
 }
 
@@ -41,6 +42,7 @@ exports.createSSLServer = function(port, opts) {
   })
   s.port = port
   s.url = 'https://localhost:' + port
+  s.protocol = 'https'
   return s
 }
 
