@@ -54,19 +54,7 @@ function handleRequests(srv) {
       })
 
       srv.on(util.format('/from/%s/%s', proto, host), function(req, res) {
-        // Expect an authorization header unless we changed hosts
-        var expectAuth = (host === req.headers.host.split(':')[0])
-          , foundAuth = (req.headers.authorization === 'Basic dGVzdDp0ZXN0aW5n')
-
-        if (expectAuth === foundAuth) {
-          res.end('ok')
-        } else {
-          res.writeHead(400)
-          res.end(util.format(
-            'Expected %s but found: %s',
-            (expectAuth ? 'auth' : 'no auth'),
-            req.headers.authorization || '(nothing)'))
-        }
+        res.end('auth: ' + (req.headers.authorization || '(nothing)'))
       })
     })
   })
@@ -99,29 +87,35 @@ tape('redirect URL helper', function(t) {
   t.end()
 })
 
-function runTest(name, redir) {
+function runTest(name, redir, expectAuth) {
   tape('redirect to ' + name, function(t) {
     request(redir.src, function(err, res, body) {
       t.equal(err, null)
       t.equal(res.request.uri.href, redir.dst)
-      t.equal(body, 'ok')
       t.equal(res.statusCode, 200)
+      t.equal(body, expectAuth
+        ? 'auth: Basic dGVzdDp0ZXN0aW5n'
+        : 'auth: (nothing)')
       t.end()
     })
   })
 }
 
 runTest('same host and protocol',
-  redirect.from('http', 'localhost').to('http', 'localhost'))
+  redirect.from('http', 'localhost').to('http', 'localhost'),
+  true)
 
 runTest('same host different protocol',
-  redirect.from('http', 'localhost').to('https', 'localhost'))
+  redirect.from('http', 'localhost').to('https', 'localhost'),
+  true)
 
 runTest('different host same protocol',
-  redirect.from('https', '127.0.0.1').to('https', 'localhost'))
+  redirect.from('https', '127.0.0.1').to('https', 'localhost'),
+  false)
 
 runTest('different host and protocol',
-  redirect.from('http', 'localhost').to('https', '127.0.0.1'))
+  redirect.from('http', 'localhost').to('https', '127.0.0.1'),
+  false)
 
 tape('cleanup', function(t) {
   s.close()
