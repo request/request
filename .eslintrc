@@ -17,9 +17,6 @@
     "no-unused-vars": [2, {"args":"none"}],
     // Allow leading underscores for method names
     // REASON: we use underscores to denote private methods
-    "no-underscore-dangle": 0,
-    // Allow non-require statements mixed in with module require statements
-    // REASON: we use the `optional()` helper, which makes this rule impossible to enforce
-    "no-mixed-requires": 0
+    "no-underscore-dangle": 0
   }
 }
