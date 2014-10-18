@@ -25,6 +25,7 @@ var http = require('http')
   , copy = require('./lib/copy')
   , debug = require('./lib/debug')
   , net = require('net')
+  , CombinedStream = require('combined-stream')
 
 var safeStringify = helpers.safeStringify
   , md5 = helpers.md5
@@ -656,14 +657,11 @@ Request.prototype.init = function (options) {
         if (self._form) {
           self._form.pipe(self)
         }
+        if (self._multipart) {
+          self._multipart.pipe(self)
+        }
         if (self.body) {
-          if (Array.isArray(self.body)) {
-            self.body.forEach(function (part) {
-              self.write(part)
-            })
-          } else {
-            self.write(self.body)
-          }
+          self.write(self.body)
           self.end()
         } else if (self.requestBodyStream) {
           console.warn('options.requestBodyStream is deprecated, please pass the request object to stream.pipe.')
@@ -1482,7 +1480,7 @@ Request.prototype.form = function (form) {
 }
 Request.prototype.multipart = function (multipart) {
   var self = this
-  self.body = []
+  self._multipart = new CombinedStream()
 
   if (!self.hasHeader('content-type')) {
     self.setHeader('content-type', 'multipart/related; boundary=' + self.boundary)
@@ -1496,7 +1494,7 @@ Request.prototype.multipart = function (multipart) {
   }
 
   if (self.preambleCRLF) {
-    self.body.push(new Buffer('\r\n'))
+    self._multipart.append('\r\n')
   }
 
   multipart.forEach(function (part) {
@@ -1510,14 +1508,14 @@ Request.prototype.multipart = function (multipart) {
       preamble += key + ': ' + part[key] + '\r\n'
     })
     preamble += '\r\n'
-    self.body.push(new Buffer(preamble))
-    self.body.push(new Buffer(body))
-    self.body.push(new Buffer('\r\n'))
+    self._multipart.append(preamble)
+    self._multipart.append(body)
+    self._multipart.append('\r\n')
   })
-  self.body.push(new Buffer('--' + self.boundary + '--'))
+  self._multipart.append('--' + self.boundary + '--')
 
   if (self.postambleCRLF) {
-    self.body.push(new Buffer('\r\n'))
+    self._multipart.append('\r\n')
   }
 
   return self
