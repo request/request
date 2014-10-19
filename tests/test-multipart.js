@@ -8,11 +8,17 @@ var http = require('http')
 
 tape('multipart related', function(t) {
 
-  var remoteFile = 'http://nodejs.org/images/logo.png'
+  var remoteFile = path.join(__dirname, 'googledoodle.jpg')
     , localFile = path.join(__dirname, 'unicycle.jpg')
     , multipartData = []
 
   var server = http.createServer(function(req, res) {
+    if (req.url === '/file') {
+      res.writeHead(200, {'content-type': 'image/jpg'})
+      res.end(fs.readFileSync(remoteFile), 'binary')
+      return
+    }
+
     // temp workaround
     var data = ''
     req.setEncoding('utf8')
@@ -39,8 +45,8 @@ tape('multipart related', function(t) {
 
       // 4th field : remote_file
       t.ok( data.indexOf('name: remote_file') !== -1 )
-      // check for http://nodejs.org/images/logo.png traces
-      t.ok( data.indexOf('ImageReady') !== -1 )
+      // check for http://localhost:8080/file traces
+      t.ok( data.indexOf('Photoshop ICC') !== -1 )
 
       res.writeHead(200)
       res.end('done')
@@ -55,7 +61,7 @@ tape('multipart related', function(t) {
       {name: 'my_field', body: 'my_value'},
       {name: 'my_buffer', body: new Buffer([1, 2, 3])},
       {name: 'my_file', body: fs.createReadStream(localFile)},
-      {name: 'remote_file', body: request(remoteFile)}
+      {name: 'remote_file', body: request('http://localhost:8080/file')}
     ]
 
     request.post({

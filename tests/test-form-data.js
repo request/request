@@ -8,13 +8,18 @@ var http = require('http')
   , tape = require('tape')
 
 tape('multipart formData', function(t) {
-  t.plan(20)
 
-  var remoteFile = 'http://nodejs.org/images/logo.png'
+  var remoteFile = path.join(__dirname, 'googledoodle.jpg')
     , localFile = path.join(__dirname, 'unicycle.jpg')
     , multipartFormData = {}
 
   var server = http.createServer(function(req, res) {
+    if (req.url === '/file') {
+      res.writeHead(200, {'content-type': 'image/jpg', 'content-length':7187})
+      res.end(fs.readFileSync(remoteFile), 'binary')
+      return
+    }
+
     // temp workaround
     var data = ''
     req.setEncoding('utf8')
@@ -54,12 +59,13 @@ tape('multipart formData', function(t) {
       t.ok( data.indexOf('form-data; name="batch"') !== -1 )
       t.ok( data.match(/form-data; name="batch"/g).length === 2 )
 
-      // check for http://nodejs.org/images/logo.png traces
-      t.ok( data.indexOf('ImageReady') !== -1 )
+      // check for http://localhost:8080/file traces
+      t.ok( data.indexOf('Photoshop ICC') !== -1 )
       t.ok( data.indexOf('Content-Type: ' + mime.lookup(remoteFile) ) !== -1 )
 
       res.writeHead(200)
       res.end('done')
+      t.end()
     })
   })
 
@@ -69,7 +75,7 @@ tape('multipart formData', function(t) {
     multipartFormData.my_field = 'my_value'
     multipartFormData.my_buffer = new Buffer([1, 2, 3])
     multipartFormData.my_file = fs.createReadStream(localFile)
-    multipartFormData.remote_file = request(remoteFile)
+    multipartFormData.remote_file = request('http://localhost:8080/file')
     multipartFormData.secret_file = {
       value: fs.createReadStream(localFile),
       options: {
