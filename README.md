@@ -201,15 +201,15 @@ Here's some examples of valid `no_proxy` values:
 
 ## UNIX Socket
 
-`request` supports the `unix://` protocol for all requests. The path is assumed to be absolute to the root of the host file system.
-
-HTTP paths are extracted from the supplied URL by testing each level of the full URL against net.connect for a socket response.
-
-Thus the following request will GET `/httppath` from the HTTP server listening on `/tmp/unix.socket`
+`request` supports making requests to [UNIX Domain Sockets](http://en.wikipedia.org/wiki/Unix_domain_socket). To make one, use the following URL scheme:
 
 ```javascript
-request.get('unix://tmp/unix.socket/httppath')
+/* Pattern */ 'http://unix:SOCKET:PATH'
+/* Example */ request.get('http://unix:/absolute/path/to/unix.socket:/request/path')
 ```
+
+Note: The `SOCKET` path is assumed to be absolute to the root of the host file system.
+
 
 ## Forms
 
