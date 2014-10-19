@@ -231,6 +231,15 @@ function Request (options) {
 
 util.inherits(Request, stream.Stream)
 
+// resume on data; part 2 of fix for https://github.com/mikeal/request/issues/887
+var superOn = Request.prototype.on;
+Request.prototype.on = function (eventName) {
+  if (eventName === "data") {
+    this.resume()
+  }
+  return superOn.apply(this, arguments)
+}
+
 Request.prototype.setupTunnel = function () {
   // Set up the tunneling agent if necessary
   // Only send the proxy whitelisted header names.
@@ -1319,9 +1328,16 @@ Request.prototype.onRequestResponse = function (response) {
       self.pipeDest(dest)
     })
 
-    dataStream.on('data', function (chunk) {
-      self._destdata = true
-      self.emit('data', chunk)
+    dataStream.on("data", function (chunk) {
+      var emitted = self.emit("data", chunk)
+      if (emitted) {
+        self._destdata = true
+      } else {
+        // pause URL stream until we pipe it
+        // part 1 of fix for https://github.com/mikeal/request/issues/887
+        dataStream.pause()
+        dataStream.unshift(chunk)
+      }
     })
     dataStream.on('end', function (chunk) {
       self.emit('end', chunk)
@@ -1730,7 +1746,6 @@ Request.prototype.jar = function (jar) {
   self._jar = jar
   return self
 }
-
 
 // Stream API
 Request.prototype.pipe = function (dest, opts) {
