@@ -1502,9 +1502,9 @@ Request.prototype.multipart = function (multipart) {
     if(typeof body === 'undefined') {
       throw new Error('Body attribute missing in multipart.')
     }
-    delete part.body
     var preamble = '--' + self.boundary + '\r\n'
     Object.keys(part).forEach(function (key) {
+      if (key === 'body') { return }
       preamble += key + ': ' + part[key] + '\r\n'
     })
     preamble += '\r\n'
