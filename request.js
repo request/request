@@ -232,9 +232,9 @@ function Request (options) {
 util.inherits(Request, stream.Stream)
 
 // resume on data; part 2 of fix for https://github.com/mikeal/request/issues/887
-var superOn = Request.prototype.on;
+var superOn = Request.prototype.on
 Request.prototype.on = function (eventName) {
-  if (eventName === "data") {
+  if (eventName === 'data') {
     this.resume()
   }
   return superOn.apply(this, arguments)
@@ -1330,9 +1330,9 @@ Request.prototype.onRequestResponse = function (response) {
 
     // part 1 of fix for https://github.com/mikeal/request/issues/887
     // but we cannot pause and unshift in 0.8, so we check first
-    if (typeof dataStream.unshift === "function") {
-      dataStream.on("data", function (chunk) {
-        var emitted = self.emit("data", chunk)
+    if (typeof dataStream.unshift === 'function') {
+      dataStream.on('data', function (chunk) {
+        var emitted = self.emit('data', chunk)
         if (emitted) {
           self._destdata = true
         } else {
@@ -1342,14 +1342,14 @@ Request.prototype.onRequestResponse = function (response) {
         }
       })
     } else {
-      dataStream.on("data", function (chunk) {
+      dataStream.on('data', function (chunk) {
         self._destdata = true
-        self.emit("data", chunk)
+        self.emit('data', chunk)
       })
     }
     
-    dataStream.on("end", function (chunk) {
-      self.emit("end", chunk)
+    dataStream.on('end', function (chunk) {
+      self.emit('end', chunk)
     })
     dataStream.on('error', function (error) {
       self.emit('error', error)
