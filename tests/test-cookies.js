@@ -82,6 +82,14 @@ tape('make sure setCookie works', function(t) {
   t.end()
 })
 
+tape('custom store', function(t) {
+  var Store = function() {};
+  var store = new Store();
+  var jar = request.jar(store);
+  t.equals(store, jar._jar.store);
+  t.end()
+});
+
 tape('cleanup', function(t) {
   server.close()
   t.end()
