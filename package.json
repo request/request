@@ -27,14 +27,14 @@
     "forever-agent": "~0.5.0",
     "form-data": "~0.1.0",
     "json-stringify-safe": "~5.0.0",
-    "mime-types": "~1.0.1",
+    "mime-types": "^2.0.2",
     "node-uuid": "~1.4.0",
-    "qs": "~1.2.0",
+    "qs": "^2.2.4",
     "tunnel-agent": "~0.4.0",
     "tough-cookie": ">=0.12.0",
     "http-signature": "~0.10.0",
-    "oauth-sign": "~0.4.0",
-    "hawk": "1.1.1",
+    "oauth-sign": "^0.5.0",
+    "hawk": "^2.3.0",
     "aws-sign2": "~0.5.0",
     "stringstream": "~0.0.4"
   },
@@ -43,7 +43,7 @@
     "lint": "node node_modules/.bin/eslint lib/ *.js tests/ && echo Lint passed."
   },
   "devDependencies": {
-    "eslint": "0.5.1",
+    "eslint": "^0.5.1",
     "rimraf": "~2.2.8",
     "tape": "~3.0.0",
     "taper": "~0.2.1"
