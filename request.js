@@ -35,7 +35,7 @@ var safeStringify = helpers.safeStringify
 
 
 var globalPool = {}
-  , isUrl = /^https?:|^unix:/
+  , isUrl = /^https?:/
 
 var defaultProxyHeaderWhiteList = [
   'accept',
@@ -314,17 +314,40 @@ Request.prototype.init = function (options) {
     self.on('complete', self.callback.bind(self, null))
   }
 
-  if (self.url && !self.uri) {
-    // People use this property instead all the time so why not just support it.
+  // People use this property instead all the time, so support it
+  if (!self.uri && self.url) {
     self.uri = self.url
     delete self.url
   }
 
+  // A URI is needed by this point, throw if we haven't been able to get one
   if (!self.uri) {
-    // this will throw if unhandled but is handleable when in a redirect
     return self.emit('error', new Error('options.uri is a required argument'))
-  } else if (typeof self.uri === 'string') {
+  }
+
+  // If a string URI/URL was given, parse it into a URL object
+  if(typeof self.uri === 'string') {
     self.uri = url.parse(self.uri)
+  }
+
+  // DEPRECATED: Warning for users of the old Unix Sockets URL Scheme
+  if (self.uri.protocol === 'unix:') {
+    return self.emit('error', new Error('`unix://` URL scheme is no longer supported. Please use the format `http://unix:SOCKET:PATH`'))
+  }
+
+  // Support Unix Sockets
+  if(self.uri.host === 'unix') {
+    // Get the socket & request paths from the URL
+    var unixParts = self.uri.path.split(':')
+      , host = unixParts[0]
+      , path = unixParts[1]
+    // Apply unix properties to request
+    self.socketPath = host
+    self.uri.pathname = path
+    self.uri.path = path
+    self.uri.host = host
+    self.uri.hostname = host
+    self.uri.isUnix = true
   }
 
   if (self.strictSSL === false) {
@@ -388,7 +411,7 @@ Request.prototype.init = function (options) {
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
 
-  if (!(self.uri.host || (self.uri.hostname && self.uri.port)) && self.uri.protocol !== 'unix:') {
+  if (!(self.uri.host || (self.uri.hostname && self.uri.port)) && !self.uri.isUnix) {
     // Invalid URI: it may generate lot of bad errors, like 'TypeError: Cannot call method `indexOf` of undefined' in CookieJar
     // Detect and reject it as soon as possible
     var faultyUri = url.format(self.uri)
@@ -576,7 +599,7 @@ Request.prototype.init = function (options) {
     }
 
     var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
-      , defaultModules = {'http:':http, 'https:':https, 'unix:':http}
+      , defaultModules = {'http:':http, 'https:':https}
       , httpModules = self.httpModules || {}
 
     self.httpModule = httpModules[protocol] || defaultModules[protocol]
@@ -694,92 +717,7 @@ Request.prototype.init = function (options) {
 
   } // End _buildRequest
 
-  self._handleUnixSocketURI = function(self){
-    // Parse URI and extract a socket path (tested as a valid socket using net.connect), and a http style path suffix
-    // Thus http requests can be made to a socket using the uri unix://tmp/my.socket/urlpath
-    // and a request for '/urlpath' will be sent to the unix socket at /tmp/my.socket
-
-    self.unixsocket = true
-
-    var full_path = self.uri.href.replace(self.uri.protocol + '/', '')
-
-    var lookup = full_path.split('/')
-
-    var lookup_table = {}
-
-    function try_next(table_row) {
-      var client = net.connect( table_row )
-      client.path = table_row
-      client.on('error', function(){
-        var _client = this
-        lookup_table[_client.path].error_connecting = true
-        _client.end()
-      })
-      client.on('connect', function(){
-        var _client = this
-        lookup_table[_client.path].error_connecting = false
-        _client.end()
-      })
-      table_row.client = client
-    }
-
-    do { lookup_table[lookup.join('/')] = {} } while(lookup.pop())
-    for (var r in lookup_table){
-      try_next(r)
-    }
-
-    var response_counter = 0
-
-    function set_socket_properties(){
-      var host
-      for (r in lookup_table){
-        if(lookup_table[r].error_connecting === false){
-          host = r
-        }
-      }
-      if(!host){
-        self.emit('error', new Error('Failed to connect to any socket in ' + full_path))
-      }
-      var path = full_path.replace(host, '')
-
-      self.socketPath = host
-      self.uri.pathname = path
-      self.uri.href = path
-      self.uri.path = path
-      self.host = ''
-      self.hostname = ''
-      delete self.host
-      delete self.hostname
-      self._buildRequest()
-    }
-
-    function wait_for_socket_response(){
-      defer(function(){
-        // counter to prevent infinite blocking waiting for an open socket to be found.
-        response_counter++
-        var trying = false
-        for (r in lookup_table){
-          if(typeof lookup_table[r].error_connecting === 'undefined') {
-            trying = true
-          }
-        }
-        if(trying && response_counter < 1000) {
-          wait_for_socket_response()
-        } else {
-          set_socket_properties()
-        }
-      })
-    }
-
-    wait_for_socket_response()
-  }
-
-  // Intercept UNIX protocol requests to change properties to match socket
-  if(/^unix:/.test(self.uri.protocol)){
-    self._handleUnixSocketURI(self)
-  } else {
-    self._buildRequest()
-  }
+  self._buildRequest()
 
 }
 
