@@ -354,7 +354,7 @@ Request.prototype.init = function (options) {
     self.rejectUnauthorized = false
   }
 
-  if(!self.hasOwnProperty('proxy')) {
+  if(!self.proxy) {
     // check for HTTP(S)_PROXY environment variables
     if(self.uri.protocol === 'http:') {
         self.proxy = process.env.HTTP_PROXY || process.env.http_proxy || null
