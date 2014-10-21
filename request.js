@@ -584,7 +584,7 @@ Request.prototype.init = function (options) {
     var length = 0
     if (!Buffer.isBuffer(self.body)) {
       if (Array.isArray(self.body)) {
-        for (i = 0; i < self.body.length; i++) {
+        for (var i = 0; i < self.body.length; i++) {
           length += self.body[i].length
         }
       } else {
