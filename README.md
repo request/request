@@ -422,6 +422,47 @@ function callback(error, response, body) {
 request(options, callback);
 ```
 
+## TLS/SSL Protocol
+
+TLS/SSL Protocol options, such as `cert`, `key` and `passphrase`, can be
+set in the `agentOptions` property of the `options` object.
+In the example below, we call an API requires client side SSL certificate
+(in PEM format) with passphrase protected private key (in PEM format) and disable the SSLv3 protocol:
+
+```javascript
+var fs = require('fs')
+    , path = require('path')
+    , certFile = path.resolve(__dirname, 'ssl/client.crt')
+    , keyFile = path.resolve(__dirname, 'ssl/client.key')
+    , request = require('request');
+
+var options = {
+    url: 'https://api.some-server.com/',
+    agentOptions: {
+        'cert': fs.readFileSync(certFile),
+        'key': fs.readFileSync(keyFile),
+        // Or use `pfx` property replacing `cert` and `key` when using private key, certificate and CA certs in PFX or PKCS12 format:
+        // 'pfx': fs.readFileSync(pfxFilePath),
+        'passphrase': 'password',
+        'securityOptions': 'SSL_OP_NO_SSLv3'
+    }
+};
+
+request.get(options);
+```
+
+It is able to force using SSLv3 only by specifying `secureProtocol`:
+
+```javascript
+
+request.get({
+    url: 'https://api.some-server.com/',
+    agentOptions: {
+        'secureProtocol': 'SSLv3_method'
+    }
+});
+```
+
 ## request(options, callback)
 
 The first argument can be either a `url` or an `options` object. The only required option is `uri`; all others are optional.
@@ -454,6 +495,8 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `oauth` - Options for OAuth HMAC-SHA1 signing. See documentation above.
 * `hawk` - Options for [Hawk signing](https://github.com/hueniverse/hawk). The `credentials` key must contain the necessary signing info, [see hawk docs for details](https://github.com/hueniverse/hawk#usage-example).
 * `strictSSL` - If `true`, requires SSL certificates be valid. **Note:** to use your own certificate authority, you need to specify an agent that was created with that CA as an option.
+* `agentOptions` - Object containing user agent options. See documentation above. **Note:** [see tls API doc for TLS/SSL options](http://nodejs.org/api/tls.html#tls_tls_connect_options_callback).
+
 * `jar` - If `true` and `tough-cookie` is installed, remember cookies for future use (or define your custom cookie jar; see examples section)
 * `aws` - `object` containing AWS signing information. Should have the properties `key`, `secret`. Also requires the property `bucket`, unless you’re specifying your `bucket` as part of the path, or the request doesn’t use a bucket (i.e. GET Services)
 * `httpSignature` - Options for the [HTTP Signature Scheme](https://github.com/joyent/node-http-signature/blob/master/http_signing.md) using [Joyent's library](https://github.com/joyent/node-http-signature). The `keyId` and `key` properties must be specified. See the docs for other options.
