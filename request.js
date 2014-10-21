@@ -164,6 +164,59 @@ function getTunnelFn(request) {
   return tunnel[tunnelFnName]
 }
 
+// Decide the proper request proxy to use based on the request URI object and the
+// environmental variables (NO_PROXY, HTTP_PROXY, etc.)
+function getProxyFromURI(uri) {
+  // respect NO_PROXY environment variables (see: http://lynx.isc.org/current/breakout/lynx_help/keystrokes/environments.html)
+  var noProxy = process.env.NO_PROXY || process.env.no_proxy || null
+
+  // easy case first - if NO_PROXY is '*'
+  if (noProxy === '*') {
+    return null
+  }
+
+  // otherwise, parse the noProxy value to see if it applies to the URL
+  if (noProxy !== null) {
+    var noProxyItem, hostname, port, noProxyItemParts, noProxyHost, noProxyPort, noProxyList
+
+    // canonicalize the hostname, so that 'oogle.com' won't match 'google.com'
+    hostname = uri.hostname.replace(/^\.*/, '.').toLowerCase()
+    noProxyList = noProxy.split(',')
+
+    for (var i = 0, len = noProxyList.length; i < len; i++) {
+      noProxyItem = noProxyList[i].trim().toLowerCase()
+
+      // no_proxy can be granular at the port level, which complicates things a bit.
+      if (noProxyItem.indexOf(':') > -1) {
+        noProxyItemParts = noProxyItem.split(':', 2)
+        noProxyHost = noProxyItemParts[0].replace(/^\.*/, '.')
+        noProxyPort = noProxyItemParts[1]
+        port = uri.port || (uri.protocol === 'https:' ? '443' : '80')
+
+        // we've found a match - ports are same and host ends with no_proxy entry.
+        if (port === noProxyPort && hostname.indexOf(noProxyHost) === hostname.length - noProxyHost.length) {
+          return null
+        }
+      } else {
+        noProxyItem = noProxyItem.replace(/^\.*/, '.')
+        if (hostname.indexOf(noProxyItem) === hostname.length - noProxyItem.length) {
+          return null
+        }
+      }
+    }
+  }
+
+  // check for HTTP(S)_PROXY environment variables
+  if (uri.protocol === 'http:') {
+      return process.env.HTTP_PROXY || process.env.http_proxy || null
+  } else if (uri.protocol === 'https:') {
+      return process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy || null
+  }
+
+  // return null if all else fails (What uri protocol are you using then?)
+  return null
+}
+
 // Function for properly handling a connection error
 function connectionErrorHandler(error) {
   var socket = this
@@ -355,52 +408,7 @@ Request.prototype.init = function (options) {
   }
 
   if(!self.hasOwnProperty('proxy')) {
-    // check for HTTP(S)_PROXY environment variables
-    if(self.uri.protocol === 'http:') {
-        self.proxy = process.env.HTTP_PROXY || process.env.http_proxy || null
-    } else if(self.uri.protocol === 'https:') {
-        self.proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
-                     process.env.HTTP_PROXY || process.env.http_proxy || null
-    }
-
-    // respect NO_PROXY environment variables
-    // ref: http://lynx.isc.org/current/breakout/lynx_help/keystrokes/environments.html
-    var noProxy = process.env.NO_PROXY || process.env.no_proxy || null
-
-    // easy case first - if NO_PROXY is '*'
-    if (noProxy === '*') {
-      self.proxy = null
-    } else if (noProxy !== null) {
-      var noProxyItem, hostname, port, noProxyItemParts, noProxyHost, noProxyPort, noProxyList
-
-      // canonicalize the hostname, so that 'oogle.com' won't match 'google.com'
-      hostname = self.uri.hostname.replace(/^\.*/, '.').toLowerCase()
-      noProxyList = noProxy.split(',')
-
-      for (var i = 0, len = noProxyList.length; i < len; i++) {
-        noProxyItem = noProxyList[i].trim().toLowerCase()
-
-        // no_proxy can be granular at the port level, which complicates things a bit.
-        if (noProxyItem.indexOf(':') > -1) {
-          noProxyItemParts = noProxyItem.split(':', 2)
-          noProxyHost = noProxyItemParts[0].replace(/^\.*/, '.')
-          noProxyPort = noProxyItemParts[1]
-
-          port = self.uri.port || (self.uri.protocol === 'https:' ? '443' : '80')
-          if (port === noProxyPort && hostname.indexOf(noProxyHost) === hostname.length - noProxyHost.length) {
-            // we've found a match - ports are same and host ends with no_proxy entry.
-            self.proxy = null
-            break
-          }
-        } else {
-          noProxyItem = noProxyItem.replace(/^\.*/, '.')
-          if (hostname.indexOf(noProxyItem) === hostname.length - noProxyItem.length) {
-            self.proxy = null
-            break
-          }
-        }
-      }
-    }
+    self.proxy = getProxyFromURI(self.uri)
   }
 
   // Pass in `tunnel:true` to *always* tunnel through proxies
