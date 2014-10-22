@@ -1,4 +1,5 @@
 # Request — Simplified HTTP client
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/mikeal/request?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [![NPM](https://nodei.co/npm/request.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/request/)
 
