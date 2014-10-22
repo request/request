@@ -551,7 +551,7 @@ Function that creates a new cookie.
 ```javascript
 request.cookie('key1=value1')
 ```
-### request.jar
+### request.jar(store)
 
 Function that creates a new cookie jar.
 
@@ -646,6 +646,20 @@ var cookie = request.cookie('key1=value1');
 var url = 'http://www.google.com';
 j.setCookie(cookie, url);
 request({url: url, jar: j}, function () {
+  request('http://images.google.com')
+})
+```
+
+To use a custom cookie store(such as FileCookieStore)
+
+**Note:** the custom cookie store need to support sync operations.
+
+```javascript
+// `npm install --save tough-cookie-filesore` before this works
+var FileCookieStore = require('tough-cookie-filestore');
+var j = request.jar(new FileCookieStore(filename));
+var request = request.defaults({jar:j})
+request('http://www.google.com', function() {
   request('http://images.google.com')
 })
 ```
