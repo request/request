@@ -27,7 +27,7 @@ tape('setup', function(t) {
 })
 
 tape('unix socket connection', function(t) {
-  request(['unix://', socket, path].join(''), function(err, res, body) {
+  request('http://unix:' + socket + ':' +  path, function(err, res, body) {
     t.equal(err, null, 'no error in connection')
     t.equal(res.statusCode, statusCode, 'got HTTP 200 OK response')
     t.equal(body, expectedBody, 'expected response body is received')

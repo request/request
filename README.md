@@ -1,4 +1,5 @@
 # Request — Simplified HTTP client
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/mikeal/request?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [![NPM](https://nodei.co/npm/request.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/request/)
 
@@ -201,19 +202,21 @@ Here's some examples of valid `no_proxy` values:
 
 ## UNIX Socket
 
-`request` supports the `unix://` protocol for all requests. The path is assumed to be absolute to the root of the host file system.
-
-HTTP paths are extracted from the supplied URL by testing each level of the full URL against net.connect for a socket response.
-
-Thus the following request will GET `/httppath` from the HTTP server listening on `/tmp/unix.socket`
+`request` supports making requests to [UNIX Domain Sockets](http://en.wikipedia.org/wiki/Unix_domain_socket). To make one, use the following URL scheme:
 
 ```javascript
-request.get('unix://tmp/unix.socket/httppath')
+/* Pattern */ 'http://unix:SOCKET:PATH'
+/* Example */ request.get('http://unix:/absolute/path/to/unix.socket:/request/path')
 ```
+
+Note: The `SOCKET` path is assumed to be absolute to the root of the host file system.
+
 
 ## Forms
 
 `request` supports `application/x-www-form-urlencoded` and `multipart/form-data` form uploads. For `multipart/related` refer to the `multipart` API.
+
+#### application/x-www-form-urlencoded (URL-Encoded Forms)
 
 URL-encoded forms are simple.
 
@@ -225,22 +228,28 @@ request.post('http://service.com/upload').form({key:'value'})
 request.post({url:'http://service.com/upload', form: {key:'value'}}, function(err,httpResponse,body){ /* ... */ })
 ```
 
-For `multipart/form-data` we use the [form-data](https://github.com/felixge/node-form-data) library by [@felixge](https://github.com/felixge). For the most basic case, you can pass your upload form data via the `formData` option.
+#### multipart/form-data (Multipart Form Uploads)
+
+For `multipart/form-data` we use the [form-data](https://github.com/felixge/node-form-data) library by [@felixge](https://github.com/felixge). For the most cases, you can pass your upload form data via the `formData` option.
 
 
 ```javascript
 var formData = {
+  // Pass a simple key-value pair
   my_field: 'my_value',
+  // Pass data via Buffers
   my_buffer: new Buffer([1, 2, 3]),
+  // Pass data via Streams
   my_file: fs.createReadStream(__dirname + '/unicycle.jpg'),
-  remote_file: request(remoteFile),
+  // Pass multiple values /w an Array
   attachments: [
     fs.createReadStream(__dirname + '/attacment1.jpg')
     fs.createReadStream(__dirname + '/attachment2.jpg')
   ],
+  // Pass optional meta-data with an 'options' object with style: {value: DATA, options: OPTIONS}
+  // See the `form-data` README for more information about options: https://github.com/felixge/node-form-data
   custom_file: {
     value:  fs.createReadStream('/dev/urandom'),
-    // See the [form-data](https://github.com/felixge/node-form-data) README for more information about options.
     options: {
       filename: 'topsecret.jpg',
       contentType: 'image/jpg'
@@ -255,24 +264,20 @@ request.post({url:'http://service.com/upload', formData: formData}, function opt
 });
 ```
 
-For more advanced cases (like appending form data options) you'll need access to the form itself.
+For advanced cases, you can the form-data object itself via `r.form()`. This can be modified until the request is fired on the next cycle of the event-loop. (Note that this calling `form()` will clear the currently set form data for that request.)
 
 ```javascript
-var r = request.post('http://service.com/upload', function optionalCallback(err, httpResponse, body) {
-  if (err) {
-    return console.error('upload failed:', err);
-  }
-  console.log('Upload successful!  Server responded with:', body);
-})
+// NOTE: Advanced use-case, for normal use see 'formData' usage above
+var r = request.post('http://service.com/upload', function optionalCallback(err, httpResponse, body) { // ...
 
-// Just like always, `r` is a writable stream, and can be used as such (you have until nextTick to pipe it, etc.)
-// Alternatively, you can provide a callback (that's what this example does — see `optionalCallback` above).
 var form = r.form();
 form.append('my_field', 'my_value');
 form.append('my_buffer', new Buffer([1, 2, 3]));
-form.append('my_buffer', fs.createReadStream(__dirname + '/unicycle.jpg'), {filename: 'unicycle.jpg'});
+form.append('custom_file', fs.createReadStream(__dirname + '/unicycle.jpg'), {filename: 'unicycle.jpg'});
 ```
-See the [form-data](https://github.com/felixge/node-form-data) README for more information & examples.
+See the [form-data README](https://github.com/felixge/node-form-data) for more information & examples.
+
+#### multipart/related
 
 Some variations in different HTTP implementations require a newline/CRLF before, after, or both before and after the boundary of a `multipart/related` request (using the multipart option). This has been observed in the .NET WebAPI version 4.0. You can turn on a boundary preambleCRLF or postamble by passing them as `true` to your request options.
 
@@ -418,6 +423,47 @@ function callback(error, response, body) {
 request(options, callback);
 ```
 
+## TLS/SSL Protocol
+
+TLS/SSL Protocol options, such as `cert`, `key` and `passphrase`, can be
+set in the `agentOptions` property of the `options` object.
+In the example below, we call an API requires client side SSL certificate
+(in PEM format) with passphrase protected private key (in PEM format) and disable the SSLv3 protocol:
+
+```javascript
+var fs = require('fs')
+    , path = require('path')
+    , certFile = path.resolve(__dirname, 'ssl/client.crt')
+    , keyFile = path.resolve(__dirname, 'ssl/client.key')
+    , request = require('request');
+
+var options = {
+    url: 'https://api.some-server.com/',
+    agentOptions: {
+        'cert': fs.readFileSync(certFile),
+        'key': fs.readFileSync(keyFile),
+        // Or use `pfx` property replacing `cert` and `key` when using private key, certificate and CA certs in PFX or PKCS12 format:
+        // 'pfx': fs.readFileSync(pfxFilePath),
+        'passphrase': 'password',
+        'securityOptions': 'SSL_OP_NO_SSLv3'
+    }
+};
+
+request.get(options);
+```
+
+It is able to force using SSLv3 only by specifying `secureProtocol`:
+
+```javascript
+
+request.get({
+    url: 'https://api.some-server.com/',
+    agentOptions: {
+        'secureProtocol': 'SSLv3_method'
+    }
+});
+```
+
 ## request(options, callback)
 
 The first argument can be either a `url` or an `options` object. The only required option is `uri`; all others are optional.
@@ -431,7 +477,9 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `method` - http method (default: `"GET"`)
 * `headers` - http headers (default: `{}`)
 * `body` - entity body for PATCH, POST and PUT requests. Must be a `Buffer` or `String`, unless `json` is `true`. If `json` is `true`, then `body` must be a JSON-serializable object.
-* `form` - when passed an object or a querystring, this sets `body` to a querystring representation of value, and adds `Content-type: application/x-www-form-urlencoded` header. When passed no options, a `FormData` instance is returned (and is piped to request).
+* `form` - when passed an object or a querystring, this sets `body` to a querystring representation of value, and adds `Content-type: application/x-www-form-urlencoded` header. When passed no options, a `FormData` instance is returned (and is piped to request). See "Forms" section above.
+* `formData` - Data to pass for a `multipart/form-data` request. See "Forms" section above.
+* `multipart` - (experimental) Data to pass for a `multipart/related` request. See "Forms" section above
 * `auth` - A hash containing values `user` || `username`, `pass` || `password`, and `sendImmediately` (optional).  See documentation above.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
 * `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
@@ -448,6 +496,8 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `oauth` - Options for OAuth HMAC-SHA1 signing. See documentation above.
 * `hawk` - Options for [Hawk signing](https://github.com/hueniverse/hawk). The `credentials` key must contain the necessary signing info, [see hawk docs for details](https://github.com/hueniverse/hawk#usage-example).
 * `strictSSL` - If `true`, requires SSL certificates be valid. **Note:** to use your own certificate authority, you need to specify an agent that was created with that CA as an option.
+* `agentOptions` - Object containing user agent options. See documentation above. **Note:** [see tls API doc for TLS/SSL options](http://nodejs.org/api/tls.html#tls_tls_connect_options_callback).
+
 * `jar` - If `true` and `tough-cookie` is installed, remember cookies for future use (or define your custom cookie jar; see examples section)
 * `aws` - `object` containing AWS signing information. Should have the properties `key`, `secret`. Also requires the property `bucket`, unless you’re specifying your `bucket` as part of the path, or the request doesn’t use a bucket (i.e. GET Services)
 * `httpSignature` - Options for the [HTTP Signature Scheme](https://github.com/joyent/node-http-signature/blob/master/http_signing.md) using [Joyent's library](https://github.com/joyent/node-http-signature). The `keyId` and `key` properties must be specified. See the docs for other options.
