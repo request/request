@@ -7,20 +7,20 @@ var http = require('http')
   , fs = require('fs')
   , tape = require('tape')
 
-tape('form', function(t) {
-  t.plan(18)
+tape('multipart form append', function(t) {
 
-  var remoteFile = 'http://nodejs.org/images/logo.png'
+  var remoteFile = path.join(__dirname, 'googledoodle.jpg')
     , localFile = path.join(__dirname, 'unicycle.jpg')
     , totalLength = null
-    , FIELDS = [
-      { name: 'my_field', value: 'my_value' },
-      { name: 'my_buffer', value: new Buffer([1, 2, 3]) },
-      { name: 'my_file', value: fs.createReadStream(localFile) },
-      { name: 'remote_file', value: request(remoteFile) }
-    ]
+    , FIELDS = []
 
   var server = http.createServer(function(req, res) {
+    if (req.url === '/file') {
+      res.writeHead(200, {'content-type': 'image/jpg', 'content-length':7187})
+      res.end(fs.readFileSync(remoteFile), 'binary')
+      return
+    }
+
     // temp workaround
     var data = ''
     req.setEncoding('utf8')
@@ -55,8 +55,8 @@ tape('form', function(t) {
       field = FIELDS.shift()
       t.ok( data.indexOf('form-data; name="' + field.name + '"') !== -1 )
       t.ok( data.indexOf('; filename="' + path.basename(field.value.path) + '"') !== -1 )
-      // check for http://nodejs.org/images/logo.png traces
-      t.ok( data.indexOf('ImageReady') !== -1 )
+      // check for http://localhost:8080/file traces
+      t.ok( data.indexOf('Photoshop ICC') !== -1 )
       t.ok( data.indexOf('Content-Type: ' + mime.lookup(remoteFile) ) !== -1 )
 
       t.ok( +req.headers['content-length'] === totalLength )
@@ -65,10 +65,18 @@ tape('form', function(t) {
       res.end('done')
 
       t.equal(FIELDS.length, 0)
+      t.end()
     })
   })
 
   server.listen(8080, function() {
+
+    FIELDS = [
+      { name: 'my_field', value: 'my_value' },
+      { name: 'my_buffer', value: new Buffer([1, 2, 3]) },
+      { name: 'my_file', value: fs.createReadStream(localFile) },
+      { name: 'remote_file', value: request('http://localhost:8080/file') }
+    ]
 
     var req = request.post('http://localhost:8080/upload', function(err, res, body) {
       t.equal(err, null)
