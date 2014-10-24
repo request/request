@@ -114,9 +114,8 @@ function constructProxyHost(uriObject) {
   return proxyHost
 }
 
-function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList, proxyHeaderExclusiveList) {
+function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList) {
   var whiteList = proxyHeaderWhiteList
-    .concat(proxyHeaderExclusiveList)
     .reduce(function (set, header) {
       set[header] = true
       return set
@@ -304,17 +303,27 @@ Request.prototype.setupTunnel = function () {
     return false
   }
 
+  // Always include `defaultProxyHeaderExclusiveList`
+
+  if (!self.proxyHeaderExclusiveList) {
+    self.proxyHeaderExclusiveList = [];
+  }
+
+  var proxyHeaderExclusiveList = self.proxyHeaderExclusiveList.concat(defaultProxyHeaderExclusiveList)
+
+  // Treat `proxyHeaderExclusiveList` as part of `proxyHeaderWhiteList`
+
   if (!self.proxyHeaderWhiteList) {
     self.proxyHeaderWhiteList = defaultProxyHeaderWhiteList
   }
 
-  self.proxyHeaderExclusiveList = defaultProxyHeaderExclusiveList.concat(self.proxyHeaderExclusiveList||[])
+  var proxyHeaderWhiteList = self.proxyHeaderWhiteList.concat(proxyHeaderExclusiveList)
 
   var proxyHost = constructProxyHost(self.uri)
-  self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, self.proxyHeaderWhiteList, self.proxyHeaderExclusiveList)
+  self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, proxyHeaderWhiteList)
   self.proxyHeaders.host = proxyHost
 
-  self.proxyHeaderExclusiveList.forEach(self.removeHeader, self)
+  proxyHeaderExclusiveList.forEach(self.removeHeader, self)
 
   var tunnelFn = getTunnelFn(self)
   var tunnelOptions = construcTunnelOptions(self)
