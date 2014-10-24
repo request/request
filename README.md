@@ -147,6 +147,9 @@ to force a tunneling proxy, you may set the `tunnel` option to `true`.
 If you are using a tunneling proxy, you may set the
 `proxyHeaderWhiteList` to share certain headers with the proxy.
 
+You can also set the `proxyHeaderExclusiveList` to share certain
+headers only with the proxy and not with destination host.
+
 By default, this set is:
 
 ```
@@ -177,9 +180,8 @@ via
 ```
 
 Note that, when using a tunneling proxy, the `proxy-authorization`
-header is *never* sent to the endpoint server, but only to the proxy
-server.  All other headers are sent as-is over the established
-connection.
+header and any headers from custom `proxyHeaderExclusiveList` are
+*never* sent to the endpoint server, but only to the proxy server.
 
 ### Controlling proxy behaviour using environment variables
 
@@ -509,6 +511,8 @@ The first argument can be either a `url` or an `options` object. The only requir
   chain used a tunneling proxy.
 * `proxyHeaderWhiteList` - A whitelist of headers to send to a
   tunneling proxy.
+* `proxyHeaderExclusiveList` - A whitelist of headers to send
+  exclusively to a tunneling proxy and not to destination.
 
 
 The callback argument gets 3 arguments:

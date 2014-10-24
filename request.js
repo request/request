@@ -64,7 +64,7 @@ var defaultProxyHeaderWhiteList = [
   'via'
 ]
 
-var defaultDestHeaderBlackList = [
+var defaultProxyHeaderExclusiveList = [
   'proxy-authorization'
 ]
 
@@ -114,9 +114,9 @@ function constructProxyHost(uriObject) {
   return proxyHost
 }
 
-function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList, destHeaderBlackList) {
+function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList, proxyHeaderExclusiveList) {
   var whiteList = proxyHeaderWhiteList
-    .concat(destHeaderBlackList)
+    .concat(proxyHeaderExclusiveList)
     .reduce(function (set, header) {
       set[header] = true
       return set
@@ -295,9 +295,9 @@ function Request (options) {
 
 util.inherits(Request, stream.Stream)
 
-Request.prototype.removeDestHeaderBlackList = function () {
-  defaultDestHeaderBlackList
-  .concat(this.destHeaderBlackList || [])
+Request.prototype.removeProxyHeaderExclusiveList = function () {
+  defaultProxyHeaderExclusiveList
+  .concat(this.proxyHeaderExclusiveList || [])
   .forEach(this.removeHeader, this)
 }
 
@@ -324,15 +324,15 @@ Request.prototype.setupTunnel = function () {
     self.proxyHeaderWhiteList = defaultProxyHeaderWhiteList
   }
 
-  if (!self.destHeaderBlackList) {
-    self.destHeaderBlackList = defaultDestHeaderBlackList
+  if (!self.proxyHeaderExclusiveList) {
+    self.proxyHeaderExclusiveList = defaultProxyHeaderExclusiveList
   }
 
   var proxyHost = constructProxyHost(self.uri)
-  self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, self.proxyHeaderWhiteList, self.destHeaderBlackList)
+  self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, self.proxyHeaderWhiteList, self.proxyHeaderExclusiveList)
   self.proxyHeaders.host = proxyHost
 
-  self.removeDestHeaderBlackList()
+  self.removeProxyHeaderExclusiveList()
 
   var tunnelFn = getTunnelFn(self)
   var tunnelOptions = construcTunnelOptions(self)
@@ -1756,8 +1756,8 @@ Request.prototype.destroy = function () {
 Request.defaultProxyHeaderWhiteList =
   defaultProxyHeaderWhiteList.slice()
 
-Request.defaultDestHeaderBlackList =
-  defaultDestHeaderBlackList.slice()
+Request.defaultProxyHeaderExclusiveList =
+  defaultProxyHeaderExclusiveList.slice()
 
 // Exports
 

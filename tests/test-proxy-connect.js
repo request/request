@@ -47,7 +47,7 @@ tape('proxy', function(t) {
       'accept'              : 'yo',
       'user-agent'          : 'just another foobar'
     },
-    destHeaderBlackList: ['dont-send-to-dest']
+    proxyHeaderExclusiveList: ['dont-send-to-dest']
   }, function(err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
