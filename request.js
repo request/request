@@ -306,7 +306,7 @@ Request.prototype.setupTunnel = function () {
   // Always include `defaultProxyHeaderExclusiveList`
 
   if (!self.proxyHeaderExclusiveList) {
-    self.proxyHeaderExclusiveList = [];
+    self.proxyHeaderExclusiveList = []
   }
 
   var proxyHeaderExclusiveList = self.proxyHeaderExclusiveList.concat(defaultProxyHeaderExclusiveList)
