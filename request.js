@@ -635,15 +635,7 @@ Request.prototype.init = function (options) {
   if (self.pool === false) {
     self.agent = false
   } else {
-    self.agent = self.agent || self.getAgent()
-    if (self.maxSockets) {
-      // Don't use our pooling if node has the refactored client
-      self.agent.maxSockets = self.maxSockets
-    }
-    if (self.pool.maxSockets) {
-      // Don't use our pooling if node has the refactored client
-      self.agent.maxSockets = self.pool.maxSockets
-    }
+    self.agent = self.agent || self.getNewAgent()
   }
 
   self.on('pipe', function (src) {
@@ -751,7 +743,7 @@ Request.prototype._updateProtocol = function () {
 
     // if there's an agent, we need to get a new one.
     if (self.agent) {
-      self.agent = self.getAgent()
+      self.agent = self.getNewAgent()
     }
 
   } else {
@@ -772,12 +764,12 @@ Request.prototype._updateProtocol = function () {
     // if there's an agent, then get a new one.
     if (self.agent) {
       self.agent = null
-      self.agent = self.getAgent()
+      self.agent = self.getNewAgent()
     }
   }
 }
 
-Request.prototype.getAgent = function () {
+Request.prototype.getNewAgent = function () {
   var self = this
   var Agent = self.agentClass
   var options = {}
@@ -883,6 +875,10 @@ Request.prototype.getAgent = function () {
   // generate a new agent for this setting if none yet exists
   if (!self.pool[poolKey]) {
     self.pool[poolKey] = new Agent(options)
+    // properly set maxSockets on new agents
+    if (self.pool.maxSockets) {
+      self.pool[poolKey].maxSockets = self.pool.maxSockets
+    }
   }
 
   return self.pool[poolKey]
