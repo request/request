@@ -595,7 +595,7 @@ Function that creates a new cookie.
 ```javascript
 request.cookie('key1=value1')
 ```
-### request.jar
+### request.jar()
 
 Function that creates a new cookie jar.
 
@@ -694,7 +694,28 @@ request({url: url, jar: j}, function () {
 })
 ```
 
-To inspect your cookie jar after a request
+To use a custom cookie store (such as a
+[`FileCookieStore`](https://github.com/mitsuru/tough-cookie-filestore)
+which supports saving to and restoring from JSON files), pass it as a parameter
+to `request.jar()`:
+
+```javascript
+var FileCookieStore = require('tough-cookie-filestore');
+// NOTE - currently the 'cookies.json' file must already exist!
+var j = request.jar(new FileCookieStore('cookies.json'));
+request = request.defaults({ jar : j })
+request('http://www.google.com', function() {
+  request('http://images.google.com')
+})
+```
+
+The cookie store must be a
+[`tough-cookie`](https://github.com/goinstant/tough-cookie)
+store and it must support synchronous operations; see the
+[`CookieStore` API docs](https://github.com/goinstant/tough-cookie/#cookiestore-api)
+for details.
+
+To inspect your cookie jar after a request:
 
 ```javascript
 var j = request.jar()
