@@ -67,7 +67,7 @@ tape('proxy', function(t) {
       'accept: yo',
       'user-agent: just another foobar',
       'host: google.com',
-      'Connection: close',
+      'Connection: keep-alive',
       '',
       ''
     ].join('\r\n'))
