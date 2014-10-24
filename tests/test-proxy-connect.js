@@ -54,11 +54,11 @@ tape('proxy', function(t) {
     t.equal(body, 'derp\n')
     t.equal(data, [
       'CONNECT google.com:80 HTTP/1.1',
+      'Proxy-Authorization: Basic dXNlcjpwYXNz',
       'dont-send-to-dest: ok',
       'accept: yo',
       'user-agent: just another foobar',
       'host: google.com:80',
-      'Proxy-Authorization: Basic dXNlcjpwYXNz',
       'Connection: close',
       '',
       'GET / HTTP/1.1',

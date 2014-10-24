@@ -134,23 +134,13 @@ function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList, proxyHeade
 
 function construcTunnelOptions(request) {
   var proxy = request.proxy
-  var proxyHeaders = request.proxyHeaders
-  var proxyAuth
-
-  if (proxy.auth) {
-    proxyAuth = proxy.auth
-  }
-
-  if (!proxy.auth && request.proxyAuthorization) {
-    proxyHeaders['Proxy-Authorization'] = request.proxyAuthorization
-  }
 
   var tunnelOptions = {
     proxy: {
       host: proxy.hostname,
       port: +proxy.port,
-      proxyAuth: proxyAuth,
-      headers: proxyHeaders
+      proxyAuth: proxy.auth,
+      headers: request.proxyHeaders
     },
     rejectUnauthorized: request.rejectUnauthorized,
     headers: request.headers,
@@ -295,12 +285,6 @@ function Request (options) {
 
 util.inherits(Request, stream.Stream)
 
-Request.prototype.removeProxyHeaderExclusiveList = function () {
-  defaultProxyHeaderExclusiveList
-  .concat(this.proxyHeaderExclusiveList || [])
-  .forEach(this.removeHeader, this)
-}
-
 Request.prototype.setupTunnel = function () {
   // Set up the tunneling agent if necessary
   // Only send the proxy whitelisted header names.
@@ -324,15 +308,13 @@ Request.prototype.setupTunnel = function () {
     self.proxyHeaderWhiteList = defaultProxyHeaderWhiteList
   }
 
-  if (!self.proxyHeaderExclusiveList) {
-    self.proxyHeaderExclusiveList = defaultProxyHeaderExclusiveList
-  }
+  self.proxyHeaderExclusiveList = defaultProxyHeaderExclusiveList.concat(self.proxyHeaderExclusiveList||[])
 
   var proxyHost = constructProxyHost(self.uri)
   self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, self.proxyHeaderWhiteList, self.proxyHeaderExclusiveList)
   self.proxyHeaders.host = proxyHost
 
-  self.removeProxyHeaderExclusiveList()
+  self.proxyHeaderExclusiveList.forEach(self.removeHeader, self)
 
   var tunnelFn = getTunnelFn(self)
   var tunnelOptions = construcTunnelOptions(self)
@@ -353,12 +335,6 @@ Request.prototype.init = function (options) {
   self.headers = self.headers ? copy(self.headers) : {}
 
   caseless.httpify(self, self.headers)
-
-  // Never send proxy-auth to the endpoint!
-  if (self.hasHeader('proxy-authorization')) {
-    self.proxyAuthorization = self.getHeader('proxy-authorization')
-    self.removeHeader('proxy-authorization')
-  }
 
   if (!self.method) {
     self.method = options.method || 'GET'
@@ -579,17 +555,12 @@ Request.prototype.init = function (options) {
     self.auth(uriAuthPieces[0], uriAuthPieces.slice(1).join(':'), true)
   }
 
-  if (self.proxy && !self.tunnel) {
-    if (self.proxy.auth && !self.proxyAuthorization) {
-      var proxyAuthPieces = self.proxy.auth.split(':').map(function(item){
-        return querystring.unescape(item)
-      })
-      var authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
-      self.proxyAuthorization = authHeader
-    }
-    if (self.proxyAuthorization) {
-      self.setHeader('proxy-authorization', self.proxyAuthorization)
-    }
+  if (!self.tunnel && self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization')) {
+    var proxyAuthPieces = self.proxy.auth.split(':').map(function(item){
+      return querystring.unescape(item)
+    })
+    var authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
+    self.setHeader('proxy-authorization', authHeader)
   }
 
   if (self.proxy && !self.tunnel) {
