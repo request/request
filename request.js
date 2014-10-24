@@ -57,12 +57,15 @@ var defaultProxyHeaderWhiteList = [
   'expect',
   'max-forwards',
   'pragma',
-  'proxy-authorization',
   'referer',
   'te',
   'transfer-encoding',
   'user-agent',
   'via'
+]
+
+var defaultDestHeaderBlackList = [
+  'proxy-authorization'
 ]
 
 function filterForNonReserved(reserved, options) {
@@ -111,10 +114,17 @@ function constructProxyHost(uriObject) {
   return proxyHost
 }
 
-function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList) {
+function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList, destHeaderBlackList) {
+  var whiteList = proxyHeaderWhiteList
+    .concat(destHeaderBlackList)
+    .reduce(function (set, header) {
+      set[header] = true
+      return set
+    }, {})
+
   return Object.keys(headers)
     .filter(function (header) {
-      return proxyHeaderWhiteList.indexOf(header.toLowerCase()) !== -1
+      return whiteList[header.toLowerCase()]
     })
     .reduce(function (set, header) {
       set[header] = headers[header]
@@ -285,6 +295,12 @@ function Request (options) {
 
 util.inherits(Request, stream.Stream)
 
+Request.prototype.removeDestHeaderBlackList = function () {
+  defaultDestHeaderBlackList
+  .concat(this.destHeaderBlackList || [])
+  .forEach(this.removeHeader, this)
+}
+
 Request.prototype.setupTunnel = function () {
   // Set up the tunneling agent if necessary
   // Only send the proxy whitelisted header names.
@@ -308,9 +324,15 @@ Request.prototype.setupTunnel = function () {
     self.proxyHeaderWhiteList = defaultProxyHeaderWhiteList
   }
 
+  if (!self.destHeaderBlackList) {
+    self.destHeaderBlackList = defaultDestHeaderBlackList
+  }
+
   var proxyHost = constructProxyHost(self.uri)
-  self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, self.proxyHeaderWhiteList)
+  self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, self.proxyHeaderWhiteList, self.destHeaderBlackList)
   self.proxyHeaders.host = proxyHost
+
+  self.removeDestHeaderBlackList()
 
   var tunnelFn = getTunnelFn(self)
   var tunnelOptions = construcTunnelOptions(self)
@@ -1733,6 +1755,9 @@ Request.prototype.destroy = function () {
 
 Request.defaultProxyHeaderWhiteList =
   defaultProxyHeaderWhiteList.slice()
+
+Request.defaultDestHeaderBlackList =
+  defaultDestHeaderBlackList.slice()
 
 // Exports
 
