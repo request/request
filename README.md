@@ -688,7 +688,6 @@ request('http://www.google.com', function () {
 OR
 
 ```javascript
-// `npm install --save tough-cookie` before this works
 var j = request.jar();
 var cookie = request.cookie('key1=value1');
 var url = 'http://www.google.com';
