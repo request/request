@@ -1,7 +1,7 @@
 # Request — Simplified HTTP client
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/mikeal/request?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 [![NPM](https://nodei.co/npm/request.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/request/)
+
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/request/request?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Super simple to use
 
@@ -408,7 +408,7 @@ custom `User-Agent` header as well as https.
 var request = require('request');
 
 var options = {
-	url: 'https://api.github.com/repos/mikeal/request',
+	url: 'https://api.github.com/repos/request/request',
 	headers: {
 		'User-Agent': 'request'
 	}
