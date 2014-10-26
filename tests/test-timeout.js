@@ -23,6 +23,12 @@ s.on('/timeout', function(req, res) {
   }, 200)
 })
 
+function checkErrCode(t, err) {
+  t.notEqual(err, null)
+  t.ok(err.code === 'ETIMEDOUT' || err.code === 'ESOCKETTIMEDOUT',
+    'Error ETIMEDOUT or ESOCKETTIMEDOUT')
+}
+
 tape('setup', function(t) {
   s.listen(s.port, function() {
     t.end()
@@ -36,13 +42,13 @@ tape('should timeout', function(t) {
   }
 
   request(shouldTimeout, function(err, res, body) {
-    t.equal(err.code, 'ETIMEDOUT')
+    checkErrCode(t, err)
     t.end()
   })
 })
 
 tape('should timeout with events', function(t) {
-  t.plan(2)
+  t.plan(3)
 
   var shouldTimeoutWithEvents = {
     url: s.url + '/timeout',
@@ -54,7 +60,7 @@ tape('should timeout with events', function(t) {
     .on('error', function(err) {
       eventsEmitted++
       t.equal(1, eventsEmitted)
-      t.equal(err.code, 'ETIMEDOUT')
+      checkErrCode(t, err)
     })
 })
 
@@ -90,7 +96,7 @@ tape('negative timeout', function(t) { // should be treated a zero or the minimu
   }
 
   request(negativeTimeout, function(err, res, body) {
-    t.equal(err.code, 'ETIMEDOUT')
+    checkErrCode(t, err)
     t.end()
   })
 })
@@ -102,7 +108,7 @@ tape('float timeout', function(t) { // should be rounded by setTimeout anyway
   }
 
   request(floatTimeout, function(err, res, body) {
-    t.equal(err.code, 'ETIMEDOUT')
+    checkErrCode(t, err)
     t.end()
   })
 })
