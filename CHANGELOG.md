@@ -1,6 +1,6 @@
 ## Change Log
 
-### upcoming (2014/10/26)
+### v2.47.0 (2014/10/26)
 - [#1222](https://github.com/request/request/pull/1222) Move from mikeal/request to request/request (@nylen)
 - [#1220](https://github.com/request/request/pull/1220) update qs dependency to 2.3.1 (@FredKSchott)
 - [#1212](https://github.com/request/request/pull/1212) Improve tests/test-timeout.js (@nylen)
