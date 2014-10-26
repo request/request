@@ -448,11 +448,12 @@ Request.prototype.init = function (options) {
 
   self.setHost = false
   if (!self.hasHeader('host')) {
-    self.setHeader('host', self.uri.hostname)
+    var hostHeaderName = self.originalHostHeaderName || 'host'
+    self.setHeader(hostHeaderName, self.uri.hostname)
     if (self.uri.port) {
       if ( !(self.uri.port === 80 && self.uri.protocol === 'http:') &&
            !(self.uri.port === 443 && self.uri.protocol === 'https:') ) {
-        self.setHeader('host', self.getHeader('host') + (':' + self.uri.port) )
+        self.setHeader(hostHeaderName, self.getHeader('host') + (':' + self.uri.port) )
       }
     }
     self.setHost = true
@@ -1009,8 +1010,13 @@ Request.prototype.onRequestResponse = function (response) {
   }
 
   // Save the original host before any redirect (if it changes, we need to
-  // remove any authorization headers)
-  self.originalHost = self.headers.host
+  // remove any authorization headers).  Also remember the case of the header
+  // name because lots of broken servers expect Host instead of host and we
+  // want the caller to be able to specify this.
+  self.originalHost = self.getHeader('host')
+  if (!self.originalHostHeaderName) {
+    self.originalHostHeaderName = self.hasHeader('host')
+  }
   if (self.setHost) {
     self.removeHeader('host')
   }
