@@ -1186,7 +1186,7 @@ Request.prototype.onRequestResponse = function (response) {
         self.removeHeader('host')
         self.removeHeader('content-type')
         self.removeHeader('content-length')
-        if (self.uri.hostname !== self.originalHost.split(':')[0]) {
+        if (self.originalHost && self.uri.hostname !== self.originalHost.split(':')[0]) {
           // Remove authorization if changing hostnames (but not if just
           // changing ports or protocols).  This matches the behavior of curl:
           // https://github.com/bagder/curl/blob/6beb0eee/lib/http.c#L710
