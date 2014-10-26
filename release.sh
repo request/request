@@ -15,7 +15,7 @@ fi
 npm version minor || exit 1
 
 # Generate changelog from pull requests
-github-changes -o mikeal -r request \
+github-changes -o request -r request \
   --auth --verbose \
   --file CHANGELOG.md \
   --only-pulls --use-commit-body \
