@@ -809,16 +809,6 @@ Request.prototype.getNewAgent = function () {
     poolKey += Agent.name
   }
 
-  if (!self.httpModule.globalAgent) {
-    // node 0.4.x
-    options.host = self.host
-    options.port = self.port
-    if (poolKey) {
-      poolKey += ':'
-    }
-    poolKey += self.host + ':' + self.port
-  }
-
   // ca option is only relevant if proxy or destination are https
   var proxy = self.proxy
   if (typeof proxy === 'string') {
