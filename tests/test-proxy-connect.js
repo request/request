@@ -42,25 +42,28 @@ tape('proxy', function(t) {
     headers: {
       'Proxy-Authorization' : 'Basic dXNlcjpwYXNz',
       'authorization'       : 'Token deadbeef',
-      'do-not-send-this'    : 'ok',
+      'dont-send-to-proxy'  : 'ok',
+      'dont-send-to-dest'   : 'ok',
       'accept'              : 'yo',
       'user-agent'          : 'just another foobar'
-    }
+    },
+    proxyHeaderExclusiveList: ['dont-send-to-dest']
   }, function(err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, 'derp\n')
     t.equal(data, [
       'CONNECT google.com:80 HTTP/1.1',
+      'Proxy-Authorization: Basic dXNlcjpwYXNz',
+      'dont-send-to-dest: ok',
       'accept: yo',
       'user-agent: just another foobar',
       'host: google.com:80',
-      'Proxy-Authorization: Basic dXNlcjpwYXNz',
       'Connection: close',
       '',
       'GET / HTTP/1.1',
       'authorization: Token deadbeef',
-      'do-not-send-this: ok',
+      'dont-send-to-proxy: ok',
       'accept: yo',
       'user-agent: just another foobar',
       'host: google.com',

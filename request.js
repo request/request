@@ -57,12 +57,15 @@ var defaultProxyHeaderWhiteList = [
   'expect',
   'max-forwards',
   'pragma',
-  'proxy-authorization',
   'referer',
   'te',
   'transfer-encoding',
   'user-agent',
   'via'
+]
+
+var defaultProxyHeaderExclusiveList = [
+  'proxy-authorization'
 ]
 
 function filterForNonReserved(reserved, options) {
@@ -112,9 +115,15 @@ function constructProxyHost(uriObject) {
 }
 
 function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList) {
+  var whiteList = proxyHeaderWhiteList
+    .reduce(function (set, header) {
+      set[header] = true
+      return set
+    }, {})
+
   return Object.keys(headers)
     .filter(function (header) {
-      return proxyHeaderWhiteList.indexOf(header.toLowerCase()) !== -1
+      return whiteList[header.toLowerCase()]
     })
     .reduce(function (set, header) {
       set[header] = headers[header]
@@ -124,23 +133,13 @@ function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList) {
 
 function construcTunnelOptions(request) {
   var proxy = request.proxy
-  var proxyHeaders = request.proxyHeaders
-  var proxyAuth
-
-  if (proxy.auth) {
-    proxyAuth = proxy.auth
-  }
-
-  if (!proxy.auth && request.proxyAuthorization) {
-    proxyHeaders['Proxy-Authorization'] = request.proxyAuthorization
-  }
 
   var tunnelOptions = {
     proxy: {
       host: proxy.hostname,
       port: +proxy.port,
-      proxyAuth: proxyAuth,
-      headers: proxyHeaders
+      proxyAuth: proxy.auth,
+      headers: request.proxyHeaders
     },
     rejectUnauthorized: request.rejectUnauthorized,
     headers: request.headers,
@@ -304,13 +303,27 @@ Request.prototype.setupTunnel = function () {
     return false
   }
 
+  // Always include `defaultProxyHeaderExclusiveList`
+
+  if (!self.proxyHeaderExclusiveList) {
+    self.proxyHeaderExclusiveList = []
+  }
+
+  var proxyHeaderExclusiveList = self.proxyHeaderExclusiveList.concat(defaultProxyHeaderExclusiveList)
+
+  // Treat `proxyHeaderExclusiveList` as part of `proxyHeaderWhiteList`
+
   if (!self.proxyHeaderWhiteList) {
     self.proxyHeaderWhiteList = defaultProxyHeaderWhiteList
   }
 
+  var proxyHeaderWhiteList = self.proxyHeaderWhiteList.concat(proxyHeaderExclusiveList)
+
   var proxyHost = constructProxyHost(self.uri)
-  self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, self.proxyHeaderWhiteList)
+  self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, proxyHeaderWhiteList)
   self.proxyHeaders.host = proxyHost
+
+  proxyHeaderExclusiveList.forEach(self.removeHeader, self)
 
   var tunnelFn = getTunnelFn(self)
   var tunnelOptions = construcTunnelOptions(self)
@@ -331,12 +344,6 @@ Request.prototype.init = function (options) {
   self.headers = self.headers ? copy(self.headers) : {}
 
   caseless.httpify(self, self.headers)
-
-  // Never send proxy-auth to the endpoint!
-  if (self.hasHeader('proxy-authorization')) {
-    self.proxyAuthorization = self.getHeader('proxy-authorization')
-    self.removeHeader('proxy-authorization')
-  }
 
   if (!self.method) {
     self.method = options.method || 'GET'
@@ -558,17 +565,12 @@ Request.prototype.init = function (options) {
     self.auth(uriAuthPieces[0], uriAuthPieces.slice(1).join(':'), true)
   }
 
-  if (self.proxy && !self.tunnel) {
-    if (self.proxy.auth && !self.proxyAuthorization) {
-      var proxyAuthPieces = self.proxy.auth.split(':').map(function(item){
-        return querystring.unescape(item)
-      })
-      var authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
-      self.proxyAuthorization = authHeader
-    }
-    if (self.proxyAuthorization) {
-      self.setHeader('proxy-authorization', self.proxyAuthorization)
-    }
+  if (!self.tunnel && self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization')) {
+    var proxyAuthPieces = self.proxy.auth.split(':').map(function(item){
+      return querystring.unescape(item)
+    })
+    var authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
+    self.setHeader('proxy-authorization', authHeader)
   }
 
   if (self.proxy && !self.tunnel) {
@@ -1735,6 +1737,9 @@ Request.prototype.destroy = function () {
 
 Request.defaultProxyHeaderWhiteList =
   defaultProxyHeaderWhiteList.slice()
+
+Request.defaultProxyHeaderExclusiveList =
+  defaultProxyHeaderExclusiveList.slice()
 
 // Exports
 
