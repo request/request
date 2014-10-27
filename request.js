@@ -117,7 +117,7 @@ function constructProxyHost(uriObject) {
 function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList) {
   var whiteList = proxyHeaderWhiteList
     .reduce(function (set, header) {
-      set[header] = true
+      set[header.toLowerCase()] = true
       return set
     }, {})
 
