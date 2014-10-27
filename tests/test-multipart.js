@@ -6,8 +6,7 @@ var http = require('http')
   , fs = require('fs')
   , tape = require('tape')
 
-tape('multipart related', function(t) {
-
+function runTest(t, json) {
   var remoteFile = path.join(__dirname, 'googledoodle.jpg')
     , localFile = path.join(__dirname, 'unicycle.jpg')
     , multipartData = []
@@ -49,8 +48,7 @@ tape('multipart related', function(t) {
       t.ok( data.indexOf('Photoshop ICC') !== -1 )
 
       res.writeHead(200)
-      res.end(JSON.stringify({status: 'done'}))
-      t.end()
+      res.end(json ? JSON.stringify({status: 'done'}) : 'done')
     })
   })
 
@@ -64,16 +62,28 @@ tape('multipart related', function(t) {
       {name: 'remote_file', body: request('http://localhost:8080/file')}
     ]
 
-    request.post({
+    var reqOptions = {
       url: 'http://localhost:8080/upload',
-      multipart: multipartData,
-      json: true
-    }, function (err, res, body) {
+      multipart: multipartData
+    }
+    if (json) {
+      reqOptions.json = true
+    }
+    request.post(reqOptions, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
-      t.deepEqual(body, {status: 'done'})
+      t.deepEqual(body, json ? {status: 'done'} : 'done')
       server.close()
+      t.end()
     })
 
   })
+}
+
+tape('multipart related', function(t) {
+  runTest(t, false)
+})
+
+tape('multipart related + JSON', function(t) {
+  runTest(t, true)
 })
