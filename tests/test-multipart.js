@@ -49,7 +49,7 @@ tape('multipart related', function(t) {
       t.ok( data.indexOf('Photoshop ICC') !== -1 )
 
       res.writeHead(200)
-      res.end('done')
+      res.end(JSON.stringify({status: 'done'}))
       t.end()
     })
   })
@@ -66,11 +66,12 @@ tape('multipart related', function(t) {
 
     request.post({
       url: 'http://localhost:8080/upload',
-      multipart: multipartData
+      multipart: multipartData,
+      json: true
     }, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
-      t.equal(body, 'done')
+      t.deepEqual(body, {status: 'done'})
       server.close()
     })
 

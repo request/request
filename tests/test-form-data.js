@@ -64,7 +64,7 @@ tape('multipart formData', function(t) {
       t.ok( data.indexOf('Content-Type: ' + mime.lookup(remoteFile) ) !== -1 )
 
       res.writeHead(200)
-      res.end('done')
+      res.end(JSON.stringify({status: 'done'}))
       t.end()
     })
   })
@@ -90,11 +90,12 @@ tape('multipart formData', function(t) {
 
     request.post({
       url: 'http://localhost:8080/upload',
-      formData: multipartFormData
+      formData: multipartFormData,
+      json: true
     }, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
-      t.equal(body, 'done')
+      t.deepEqual(body, {status: 'done'})
       server.close()
     })
 
