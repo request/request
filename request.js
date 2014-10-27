@@ -579,7 +579,8 @@ Request.prototype.init = function (options) {
 
   if (options.json) {
     self.json(options.json)
-  } else if (options.multipart) {
+  }
+  if (options.multipart) {
     self.boundary = uuid()
     self.multipart(options.multipart)
   }
@@ -1415,10 +1416,10 @@ Request.prototype.multipart = function (multipart) {
   var self = this
   self._multipart = new CombinedStream()
 
-  if (!self.hasHeader('content-type')) {
+  var headerName = self.hasHeader('content-type')
+  if (!headerName || headerName.indexOf('multipart') === -1) {
     self.setHeader('content-type', 'multipart/related; boundary=' + self.boundary)
   } else {
-    var headerName = self.hasHeader('content-type')
     self.setHeader(headerName, self.headers[headerName].split(';')[0] + '; boundary=' + self.boundary)
   }
 
