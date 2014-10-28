@@ -1182,7 +1182,9 @@ Request.prototype.onRequestResponse = function (response) {
       delete self.body
       delete self._form
       if (self.headers) {
-        self.removeHeader('host')
+        if (isUrl.test(redirectTo)) {
+          self.removeHeader('host')
+        }
         self.removeHeader('content-type')
         self.removeHeader('content-length')
         if (self.uri.hostname !== self.originalHost.split(':')[0]) {
