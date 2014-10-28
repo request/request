@@ -351,6 +351,10 @@ Bearer authentication is supported, and is activated when the `bearer` value is 
 
 ## OAuth Signing
 
+[OAuth version 1.0](https://tools.ietf.org/html/rfc5849) is supported.  The
+default signing algorithm is
+[HMAC-SHA1](https://tools.ietf.org/html/rfc5849#section-3.4.2):
+
 ```javascript
 // Twitter OAuth
 var qs = require('querystring')
@@ -396,6 +400,12 @@ request.post({url:url, oauth:oauth}, function (e, r, body) {
   })
 })
 ```
+
+For [RSA-SHA1 signing](https://tools.ietf.org/html/rfc5849#section-3.4.3), make
+the following changes to the OAuth options object:
+* Pass `signature_method : 'RSA-SHA1'`
+* Instead of `consumer_secret`, specify a `private_key` string in
+  [PEM format](http://how2ssl.com/articles/working_with_pem_files/)
 
 ## Custom HTTP Headers
 
