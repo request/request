@@ -1614,8 +1614,9 @@ Request.prototype.oauth = function (_oauth) {
     oa.oauth_signature_method = 'HMAC-SHA1'
   }
 
-  var consumer_secret = oa.oauth_consumer_secret
+  var consumer_secret_or_private_key = oa.oauth_consumer_secret || oa.oauth_private_key
   delete oa.oauth_consumer_secret
+  delete oa.oauth_private_key
   var token_secret = oa.oauth_token_secret
   delete oa.oauth_token_secret
 
@@ -1627,7 +1628,7 @@ Request.prototype.oauth = function (_oauth) {
     self.method,
     baseurl,
     params,
-    consumer_secret,
+    consumer_secret_or_private_key,
     token_secret)
 
   var realm = _oauth.realm ? 'realm="' + _oauth.realm + '",' : ''
