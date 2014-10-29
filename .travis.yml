@@ -2,6 +2,8 @@ language: node_js
 node_js:
   - "0.8"
   - "0.10"
+before_install:
+  - npm install -g npm
 webhooks:
   urls: https://webhooks.gitter.im/e/237280ed4796c19cc626
   on_success: change  # options: [always|never|change] default: always
