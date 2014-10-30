@@ -48,6 +48,17 @@ request
   .pipe(request.put('http://mysite.com/img.png'))
 ```
 
+To easily handle errors when streaming requests, listen to the `error` event before piping:
+
+```javascript
+request
+  .get('http://mysite.com/doodle.png')
+  .on('error', function(err) {
+    handleError(err)
+  })
+  .pipe(fs.createWriteStream('doodle.png'))
+```
+
 Now let’s get fancy.
 
 ```javascript
