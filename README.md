@@ -476,6 +476,17 @@ request.get({
 });
 ```
 
+It is possible to allow a custom certificate authority (CA), by specifying the contents of the certificate-file as `ca`:
+
+```javascript
+request.get({
+    url: 'https://api.some-server.com/',
+    agentOptions: {
+        'ca': fs.readFileSync("ca.cert.pem")
+    }
+});
+```
+
 ## request(options, callback)
 
 The first argument can be either a `url` or an `options` object. The only required option is `uri`; all others are optional.
