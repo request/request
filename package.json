@@ -18,8 +18,10 @@
   },
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=0.8.0"
+    "node": ">=0.8.0",
+    "npm": ">=1.4.3"
   },
+  "engineStrict": true,
   "main": "index.js",
   "dependencies": {
     "bl": "~0.9.0",
