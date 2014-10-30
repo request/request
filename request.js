@@ -1610,17 +1610,26 @@ Request.prototype.oauth = function (_oauth) {
   if (!oa.oauth_nonce) {
     oa.oauth_nonce = uuid().replace(/-/g, '')
   }
+  if (!oa.oauth_signature_method) {
+    oa.oauth_signature_method = 'HMAC-SHA1'
+  }
 
-  oa.oauth_signature_method = 'HMAC-SHA1'
-
-  var consumer_secret = oa.oauth_consumer_secret
+  var consumer_secret_or_private_key = oa.oauth_consumer_secret || oa.oauth_private_key
   delete oa.oauth_consumer_secret
+  delete oa.oauth_private_key
   var token_secret = oa.oauth_token_secret
   delete oa.oauth_token_secret
 
   var baseurl = self.uri.protocol + '//' + self.uri.host + self.uri.pathname
   var params = self.qsLib.parse([].concat(query, form, self.qsLib.stringify(oa)).join('&'))
-  var signature = oauth.hmacsign(self.method, baseurl, params, consumer_secret, token_secret)
+
+  var signature = oauth.sign(
+    oa.oauth_signature_method,
+    self.method,
+    baseurl,
+    params,
+    consumer_secret_or_private_key,
+    token_secret)
 
   var realm = _oauth.realm ? 'realm="' + _oauth.realm + '",' : ''
   var authHeader = 'OAuth ' + realm +
