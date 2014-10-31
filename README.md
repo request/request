@@ -476,7 +476,9 @@ request.get({
 });
 ```
 
-It is possible to allow a custom certificate authority (CA), by specifying the contents of the certificate-file as `ca`:
+It is possible to accept other certificates than those signed by generally allowed Certificate Authorities (CAs).
+This can be useful, for example,  when using self-signed certificates.
+To allow a different certificate, you can specify the signing CA by adding the contents of the CA's certificate file to the `agentOptions`:
 
 ```javascript
 request.get({
