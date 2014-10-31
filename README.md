@@ -452,12 +452,12 @@ var fs = require('fs')
 var options = {
     url: 'https://api.some-server.com/',
     agentOptions: {
-        'cert': fs.readFileSync(certFile),
-        'key': fs.readFileSync(keyFile),
+        cert: fs.readFileSync(certFile),
+        key: fs.readFileSync(keyFile),
         // Or use `pfx` property replacing `cert` and `key` when using private key, certificate and CA certs in PFX or PKCS12 format:
-        // 'pfx': fs.readFileSync(pfxFilePath),
-        'passphrase': 'password',
-        'securityOptions': 'SSL_OP_NO_SSLv3'
+        // pfx: fs.readFileSync(pfxFilePath),
+        passphrase: 'password',
+        securityOptions: 'SSL_OP_NO_SSLv3'
     }
 };
 
@@ -467,11 +467,10 @@ request.get(options);
 It is able to force using SSLv3 only by specifying `secureProtocol`:
 
 ```javascript
-
 request.get({
     url: 'https://api.some-server.com/',
     agentOptions: {
-        'secureProtocol': 'SSLv3_method'
+        secureProtocol: 'SSLv3_method'
     }
 });
 ```
@@ -484,7 +483,7 @@ To allow a different certificate, you can specify the signing CA by adding the c
 request.get({
     url: 'https://api.some-server.com/',
     agentOptions: {
-        'ca': fs.readFileSync("ca.cert.pem")
+        ca: fs.readFileSync('ca.cert.pem')
     }
 });
 ```
