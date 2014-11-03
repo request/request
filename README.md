@@ -54,7 +54,7 @@ To easily handle errors when streaming requests, listen to the `error` event bef
 request
   .get('http://mysite.com/doodle.png')
   .on('error', function(err) {
-    handleError(err)
+    console.log(err)
   })
   .pipe(fs.createWriteStream('doodle.png'))
 ```
