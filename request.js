@@ -908,6 +908,10 @@ Request.prototype.start = function () {
 
   if (self.timeout && !self.timeoutTimer) {
     self.timeoutTimer = setTimeout(function () {
+      self.timeoutTimer = null;
+      if (self._aborted) {
+        return
+      }
       self.abort()
       var e = new Error('ETIMEDOUT')
       e.code = 'ETIMEDOUT'
@@ -1334,6 +1338,11 @@ Request.prototype.abort = function () {
   }
   else if (self.response) {
     self.response.abort()
+  }
+
+  if (self.timeout && self.timeoutTimer) {
+    clearTimeout(self.timeoutTimer)
+    self.timeoutTimer = null
   }
 
   self.emit('abort')
