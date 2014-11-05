@@ -297,8 +297,8 @@ Some variations in different HTTP implementations require a newline/CRLF before,
       ]
     }
   , function (error, response, body) {
-      if (err) {
-        return console.error('upload failed:', err);
+      if (error) {
+        return console.error('upload failed:', error);
       }
       console.log('Upload successful!  Server responded with:', body);
     }
