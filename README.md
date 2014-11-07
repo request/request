@@ -560,9 +560,14 @@ There are also shorthand methods for different HTTP METHODs and some other conve
 
 ### request.defaults(options)
 
-This method returns a wrapper around the normal request API that defaults to whatever options you pass in to it.
+This method **returns a wrapper** around the normal request API that defaults
+to whatever options you pass to it.
 
-**Note:** You can call `.defaults()` on the wrapper that is returned from `request.defaults` to add/override defaults that were previously defaulted.
+**Note:** `request.defaults()` **does not** modify the global request API;
+instead, it **returns a wrapper** that has your default settings applied to it.
+
+**Note:** You can call `.defaults()` on the wrapper that is returned from
+`request.defaults` to add/override defaults that were previously defaulted.
 
 For example:
 ```javascript
