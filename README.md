@@ -526,6 +526,11 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `encoding` - Encoding to be used on `setEncoding` of response data. If `null`, the `body` is returned as a `Buffer`. Anything else **(including the default value of `undefined`)** will be passed as the [encoding](http://nodejs.org/api/buffer.html#buffer_buffer) parameter to `toString()` (meaning this is effectively `utf8` by default).
 * `pool` - An object describing which agents to use for the request. If this option is omitted the request will use the global agent (as long as [your options allow for it](request.js#L747)). Otherwise, request will search the pool for your custom agent. If no custom agent is found, a new agent will be created and added to the pool.
   * A `maxSockets` property can also be provided on the `pool` object to set the max number of sockets for all agents created (ex: `pool: {maxSockets: Infinity}`).
+  * Note that if you are sending multiple requests in a loop and creating
+    multiple new `pool` objects, `maxSockets` will not work as intended.  To
+    work around this, either use [`request.defaults`](#requestdefaultsoptions)
+    with your pool options or create the pool object with the `maxSockets`
+    property outside of the loop.
 * `timeout` - Integer containing the number of milliseconds to wait for a request to respond before aborting the request
 * `proxy` - An HTTP proxy to be used. Supports proxy Auth with Basic Auth, identical to support for the `url` parameter (by embedding the auth info in the `uri`)
 * `oauth` - Options for OAuth HMAC-SHA1 signing. See documentation above.
