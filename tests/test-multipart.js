@@ -6,7 +6,7 @@ var http = require('http')
   , fs = require('fs')
   , tape = require('tape')
 
-function runTest(t, json) {
+function runTest(t, a) {
   var remoteFile = path.join(__dirname, 'googledoodle.jpg')
     , localFile = path.join(__dirname, 'unicycle.jpg')
     , multipartData = []
@@ -37,42 +37,51 @@ function runTest(t, json) {
       t.ok( data.indexOf('name: my_buffer') !== -1 )
       t.ok( data.indexOf(multipartData[1].body) !== -1 )
 
-      // 3rd field : my_file
-      t.ok( data.indexOf('name: my_file') !== -1 )
-      // check for unicycle.jpg traces
-      t.ok( data.indexOf('2005:06:21 01:44:12') !== -1 )
+      if (a.chunked) {
+        // 3rd field : my_file
+        t.ok( data.indexOf('name: my_file') !== -1 )
+        // check for unicycle.jpg traces
+        t.ok( data.indexOf('2005:06:21 01:44:12') !== -1 )
 
-      // 4th field : remote_file
-      t.ok( data.indexOf('name: remote_file') !== -1 )
-      // check for http://localhost:8080/file traces
-      t.ok( data.indexOf('Photoshop ICC') !== -1 )
+        // 4th field : remote_file
+        t.ok( data.indexOf('name: remote_file') !== -1 )
+        // check for http://localhost:8080/file traces
+        t.ok( data.indexOf('Photoshop ICC') !== -1 )
+      }
 
       res.writeHead(200)
-      res.end(json ? JSON.stringify({status: 'done'}) : 'done')
+      res.end(a.json ? JSON.stringify({status: 'done'}) : 'done')
     })
   })
 
   server.listen(8080, function() {
 
     // @NOTE: multipartData properties must be set here so that my_file read stream does not leak in node v0.8
-    multipartData = [
-      {name: 'my_field', body: 'my_value'},
-      {name: 'my_buffer', body: new Buffer([1, 2, 3])},
-      {name: 'my_file', body: fs.createReadStream(localFile)},
-      {name: 'remote_file', body: request('http://localhost:8080/file')}
-    ]
+    multipartData = a.chunked
+      ? [
+        {name: 'my_field', body: 'my_value'},
+        {name: 'my_buffer', body: new Buffer([1, 2, 3])},
+        {name: 'my_file', body: fs.createReadStream(localFile)},
+        {name: 'remote_file', body: request('http://localhost:8080/file')}
+      ]
+      : [
+        {name: 'my_field', body: 'my_value'},
+        {name: 'my_buffer', body: new Buffer([1, 2, 3])}
+      ]
 
     var reqOptions = {
       url: 'http://localhost:8080/upload',
-      multipart: multipartData
+      multipart: a.array
+        ? multipartData
+        : {chunked: a.chunked, data: multipartData}
     }
-    if (json) {
+    if (a.json) {
       reqOptions.json = true
     }
     request.post(reqOptions, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
-      t.deepEqual(body, json ? {status: 'done'} : 'done')
+      t.deepEqual(body, a.json ? {status: 'done'} : 'done')
       server.close()
       t.end()
     })
@@ -80,10 +89,18 @@ function runTest(t, json) {
   })
 }
 
-tape('multipart related', function(t) {
-  runTest(t, false)
-})
+var cases = [
+  {name: '-json +array',   args: {json: false, array: true, chunked: null}},
+  {name: '-json +chunked', args: {json: false, array: false, chunked: true}},
+  {name: '-json -chunked', args: {json: false, array: false, chunked: false}},
 
-tape('multipart related + JSON', function(t) {
-  runTest(t, true)
+  {name: '+json +array',   args: {json: true, array: true, chunked: null}},
+  {name: '+json +chunked', args: {json: true, array: false, chunked: true}},
+  {name: '+json -chunked', args: {json: true, array: false, chunked: false}}
+]
+
+cases.forEach(function (test) {
+  tape('multipart related ' + test.name, function(t) {
+    runTest.call(null, t, test.args)
+  })
 })
