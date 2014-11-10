@@ -525,9 +525,16 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `headers` - http headers (default: `{}`)
 * `body` - entity body for PATCH, POST and PUT requests. Must be a `Buffer` or `String`, unless `json` is `true`. If `json` is `true`, then `body` must be a JSON-serializable object.
 * `form` - when passed an object or a querystring, this sets `body` to a querystring representation of value, and adds `Content-type: application/x-www-form-urlencoded` header. When passed no options, a `FormData` instance is returned (and is piped to request). See "Forms" section above.
-* `formData` - Data to pass for a `multipart/form-data` request. See "Forms" section above.
-* `multipart` - array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See _Forms_ section above.
-  * Alternatively you can pass in an object `{chunked: false, data: []}` where `chunked` is used to specify the `transfer-encoding` header of your request. In non chunked requests body streams are not allowed.
+* `formData` - Data to pass for a `multipart/form-data` request. See
+  [Forms](#forms) section above.
+* `multipart` - array of objects which contain their own headers and `body`
+  attributes. Sends a `multipart/related` request. See [Forms](#forms) section
+  above.
+  * Alternatively you can pass in an object `{chunked: false, data: []}` where
+    `chunked` is used to specify whether the request is sent in
+    [chunked transfer encoding](https://en.wikipedia.org/wiki/Chunked_transfer_encoding)
+    (the default is `chunked: true`).  In non-chunked requests, data items with
+    body streams are not allowed.
 * `auth` - A hash containing values `user` || `username`, `pass` || `password`, and `sendImmediately` (optional).  See documentation above.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
 * `preambleCRLF` - append a newline/CRLF before the boundary of your `multipart/form-data` request.
