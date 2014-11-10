@@ -1421,7 +1421,7 @@ Request.prototype.form = function (form) {
 Request.prototype.multipart = function (multipart) {
   var self = this
 
-  var chunked = (multipart instanceof Array)
+  var chunked = (multipart instanceof Array) || multipart.chunked
   multipart = multipart.data || multipart
 
   var items = chunked ? new CombinedStream() : []
