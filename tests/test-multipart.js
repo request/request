@@ -10,6 +10,7 @@ function runTest(t, a) {
   var remoteFile = path.join(__dirname, 'googledoodle.jpg')
     , localFile = path.join(__dirname, 'unicycle.jpg')
     , multipartData = []
+    , chunked = a.array || (a.chunked === undefined) || a.chunked
 
   var server = http.createServer(function(req, res) {
     if (req.url === '/file') {
@@ -37,7 +38,7 @@ function runTest(t, a) {
       t.ok( data.indexOf('name: my_buffer') !== -1 )
       t.ok( data.indexOf(multipartData[1].body) !== -1 )
 
-      if (a.chunked) {
+      if (chunked) {
         // 3rd field : my_file
         t.ok( data.indexOf('name: my_file') !== -1 )
         // check for unicycle.jpg traces
@@ -57,7 +58,7 @@ function runTest(t, a) {
   server.listen(8080, function() {
 
     // @NOTE: multipartData properties must be set here so that my_file read stream does not leak in node v0.8
-    multipartData = a.chunked
+    multipartData = chunked
       ? [
         {name: 'my_field', body: 'my_value'},
         {name: 'my_buffer', body: new Buffer([1, 2, 3])},
@@ -90,17 +91,19 @@ function runTest(t, a) {
 }
 
 var cases = [
-  {name: '-json +array',   args: {json: false, array: true, chunked: null}},
+  {name: '-json +array',   args: {json: false, array: true}},
+  {name: '-json -array',   args: {json: false, array: false}},
   {name: '-json +chunked', args: {json: false, array: false, chunked: true}},
   {name: '-json -chunked', args: {json: false, array: false, chunked: false}},
 
-  {name: '+json +array',   args: {json: true, array: true, chunked: null}},
+  {name: '+json +array',   args: {json: true, array: true}},
+  {name: '+json -array',   args: {json: true, array: false}},
   {name: '+json +chunked', args: {json: true, array: false, chunked: true}},
   {name: '+json -chunked', args: {json: true, array: false, chunked: false}}
 ]
 
 cases.forEach(function (test) {
   tape('multipart related ' + test.name, function(t) {
-    runTest.call(null, t, test.args)
+    runTest(t, test.args)
   })
 })
