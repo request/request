@@ -685,7 +685,13 @@ Request.prototype.init = function (options) {
         self._multipart.pipe(self)
       }
       if (self.body) {
-        self.write(self.body)
+        if (Array.isArray(self.body)) {
+          self.body.forEach(function (part) {
+            self.write(part)
+          })
+        } else {
+          self.write(self.body)
+        }
         self.end()
       } else if (self.requestBodyStream) {
         console.warn('options.requestBodyStream is deprecated, please pass the request object to stream.pipe.')
@@ -1414,7 +1420,14 @@ Request.prototype.form = function (form) {
 }
 Request.prototype.multipart = function (multipart) {
   var self = this
-  self._multipart = new CombinedStream()
+
+  var chunked = (multipart instanceof Array) || (multipart.chunked === undefined) || multipart.chunked
+  multipart = multipart.data || multipart
+
+  var items = chunked ? new CombinedStream() : []
+  function add (part) {
+    return chunked ? items.append(part) : items.push(new Buffer(part))
+  }
 
   var headerName = self.hasHeader('content-type')
   if (!headerName || headerName.indexOf('multipart') === -1) {
@@ -1428,7 +1441,7 @@ Request.prototype.multipart = function (multipart) {
   }
 
   if (self.preambleCRLF) {
-    self._multipart.append('\r\n')
+    add('\r\n')
   }
 
   multipart.forEach(function (part) {
@@ -1442,16 +1455,17 @@ Request.prototype.multipart = function (multipart) {
       preamble += key + ': ' + part[key] + '\r\n'
     })
     preamble += '\r\n'
-    self._multipart.append(preamble)
-    self._multipart.append(body)
-    self._multipart.append('\r\n')
+    add(preamble)
+    add(body)
+    add('\r\n')
   })
-  self._multipart.append('--' + self.boundary + '--')
+  add('--' + self.boundary + '--')
 
   if (self.postambleCRLF) {
-    self._multipart.append('\r\n')
+    add('\r\n')
   }
 
+  self[chunked ? '_multipart' : 'body'] = items
   return self
 }
 Request.prototype.json = function (val) {

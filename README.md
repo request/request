@@ -295,25 +295,37 @@ See the [form-data README](https://github.com/felixge/node-form-data) for more i
 Some variations in different HTTP implementations require a newline/CRLF before, after, or both before and after the boundary of a `multipart/related` request (using the multipart option). This has been observed in the .NET WebAPI version 4.0. You can turn on a boundary preambleCRLF or postamble by passing them as `true` to your request options.
 
 ```javascript
-  request(
-    { method: 'PUT'
-    , preambleCRLF: true
-    , postambleCRLF: true
-    , uri: 'http://service.com/upload'
-    , multipart:
-      [ { 'content-type': 'application/json'
-        ,  body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})
-        }
-      , { body: 'I am an attachment' }
+  request({
+    method: 'PUT',
+    preambleCRLF: true,
+    postambleCRLF: true,
+    uri: 'http://service.com/upload',
+    multipart: [
+      {
+        'content-type': 'application/json'
+        body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})
+      },
+      { body: 'I am an attachment' },
+      { body: fs.createReadStream('image.png') }
+    ],
+    // alternatively pass an object containing additional options
+    multipart: {
+      chunked: false,
+      data: [
+        {
+          'content-type': 'application/json', 
+          body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})
+        },
+        { body: 'I am an attachment' }
       ]
     }
-  , function (error, response, body) {
-      if (error) {
-        return console.error('upload failed:', error);
-      }
-      console.log('Upload successful!  Server responded with:', body);
+  },
+  function (error, response, body) {
+    if (error) {
+      return console.error('upload failed:', error);
     }
-  )
+    console.log('Upload successful!  Server responded with:', body);
+  })
 ```
 
 
@@ -513,11 +525,18 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `headers` - http headers (default: `{}`)
 * `body` - entity body for PATCH, POST and PUT requests. Must be a `Buffer` or `String`, unless `json` is `true`. If `json` is `true`, then `body` must be a JSON-serializable object.
 * `form` - when passed an object or a querystring, this sets `body` to a querystring representation of value, and adds `Content-type: application/x-www-form-urlencoded` header. When passed no options, a `FormData` instance is returned (and is piped to request). See "Forms" section above.
-* `formData` - Data to pass for a `multipart/form-data` request. See "Forms" section above.
-* `multipart` - (experimental) Data to pass for a `multipart/related` request. See "Forms" section above
+* `formData` - Data to pass for a `multipart/form-data` request. See
+  [Forms](#forms) section above.
+* `multipart` - array of objects which contain their own headers and `body`
+  attributes. Sends a `multipart/related` request. See [Forms](#forms) section
+  above.
+  * Alternatively you can pass in an object `{chunked: false, data: []}` where
+    `chunked` is used to specify whether the request is sent in
+    [chunked transfer encoding](https://en.wikipedia.org/wiki/Chunked_transfer_encoding)
+    (the default is `chunked: true`).  In non-chunked requests, data items with
+    body streams are not allowed.
 * `auth` - A hash containing values `user` || `username`, `pass` || `password`, and `sendImmediately` (optional).  See documentation above.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
-* `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
 * `preambleCRLF` - append a newline/CRLF before the boundary of your `multipart/form-data` request.
 * `postambleCRLF` - append a newline/CRLF at the end of the boundary of your `multipart/form-data` request.
 * `followRedirect` - follow HTTP 3xx responses as redirects (default: `true`). This property can also be implemented as function which gets `response` object as a single argument and should return `true` if redirects should continue or `false` otherwise.
