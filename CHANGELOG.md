@@ -1,5 +1,19 @@
 ## Change Log
 
+### v2.48.0 (2014/11/12)
+- [#1263](https://github.com/request/request/pull/1263) Fixed a syntax error / typo in README.md (@xna2)
+- [#1253](https://github.com/request/request/pull/1253) Add multipart chunked flag (@simov, @nylen)
+- [#1251](https://github.com/request/request/pull/1251) Clarify that defaults() does not modify global defaults (@nylen)
+- [#1250](https://github.com/request/request/pull/1250) Improve documentation for pool and maxSockets options (@nylen)
+- [#1237](https://github.com/request/request/pull/1237) Documenting error handling when using streams (@vmattos)
+- [#1244](https://github.com/request/request/pull/1244) Finalize changelog command (@nylen)
+- [#1241](https://github.com/request/request/pull/1241) Fix typo (@alexanderGugel)
+- [#1223](https://github.com/request/request/pull/1223) Show latest version number instead of "upcoming" in changelog (@nylen)
+- [#1236](https://github.com/request/request/pull/1236) Document how to use custom CA in README (#1229) (@hypesystem)
+- [#1228](https://github.com/request/request/pull/1228) Support for oauth with RSA-SHA1 signing (@nylen)
+- [#1216](https://github.com/request/request/pull/1216) Made json and multipart options coexist (@nylen, @simov)
+- [#1225](https://github.com/request/request/pull/1225) Allow header white/exclusive lists in any case. (@RReverser)
+
 ### v2.47.0 (2014/10/26)
 - [#1222](https://github.com/request/request/pull/1222) Move from mikeal/request to request/request (@nylen)
 - [#1220](https://github.com/request/request/pull/1220) update qs dependency to 2.3.1 (@FredKSchott)
@@ -295,7 +309,7 @@
 - [#280](https://github.com/request/request/pull/280) Like in node.js print options if NODE_DEBUG contains the word request (@Filirom1)
 - [#207](https://github.com/request/request/pull/207) Fix #206 Change HTTP/HTTPS agent when redirecting between protocols (@isaacs)
 - [#214](https://github.com/request/request/pull/214) documenting additional behavior of json option (@jphaas)
-- [#272](https://github.com/request/request/pull/272) Boundary begins with CRLF? (@proksoup)
+- [#272](https://github.com/request/request/pull/272) Boundary begins with CRLF? (@elspoono)
 - [#284](https://github.com/request/request/pull/284) Remove stray `console.log()` call in multipart generator. (@bcherry)
 - [#241](https://github.com/request/request/pull/241) Composability updates suggested by issue #239 (@polotek)
 - [#282](https://github.com/request/request/pull/282) OAuth Authorization header contains non-"oauth_" parameters (@jplock)
