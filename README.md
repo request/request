@@ -256,7 +256,7 @@ var formData = {
   my_file: fs.createReadStream(__dirname + '/unicycle.jpg'),
   // Pass multiple values /w an Array
   attachments: [
-    fs.createReadStream(__dirname + '/attacment1.jpg')
+    fs.createReadStream(__dirname + '/attacment1.jpg'),
     fs.createReadStream(__dirname + '/attachment2.jpg')
   ],
   // Pass optional meta-data with an 'options' object with style: {value: DATA, options: OPTIONS}
