@@ -113,3 +113,62 @@ fs.createReadStream(TMP_FILE_PATH)
   .pipe(request.post('http://127.0.0.1:3000'))
 ;
 ```
+
+## Responses: `statusCode`, `headers`, et. al
+
+When streaming with Request, listen for the "response" event in order to handle `statusCode`s and `headers`.
+
+TL;DR: A Request stream emits a "response" event, which provides the `res` argument you may be familiar with, having used `http.createServer` or Express:
+
+```
+request('http://example.com')
+  .on('response', function(res) {
+    console.log('status code:', res.statusCode);
+    console.log('headers:', res.headers);
+  })
+;
+```
+
+A more detailed example rejecting any responses that are not `200`s:
+
+```js
+var http = require('http')
+  , url = require('url')
+  , querystring = require('querystring')
+  , request = require('request')
+;
+
+http.createServer(function(req, res) {
+  req.params = querystring.parse(url.parse(req.url).search.replace('?', ''));
+
+  var handleError = function(err) {
+    res.statusCode = 500;
+    res.end(err.toString());
+  }
+  request(req.params.url)
+    .on('response', function(response) {
+      if (response.statusCode !== 200)
+        handleError(new Error('something went wrong\n'))
+    })
+    .pipe(res)
+  ;
+}).listen(3000).unref();
+
+http.createServer(function(req, res) {
+  res.end('ok!\n')
+}).listen(3001).unref();
+
+http.createServer(function(req, res) {
+  res.statusCode = 500;
+  res.end('not ok :(\n');
+}).listen(3002).unref();
+
+
+request('http://localhost:3000?url=' + encodeURIComponent('http://localhost:3001'))
+  .pipe(process.stdout)
+;
+
+request('http://localhost:3000?url=' + encodeURIComponent('http://localhost:3002'))
+  .pipe(process.stdout)
+;
+```
