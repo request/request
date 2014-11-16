@@ -77,6 +77,30 @@ tape('should not timeout', function(t) {
   })
 })
 
+tape('should have no timeout when manually abort', function(t) {
+  var shouldntTimeout = {
+    url: s.url + '/timeout',
+    timeout: 100
+  }
+
+  var req = request(shouldntTimeout, function(err, res, body) {
+	console.log(err)
+    t.fail('aborted but callback invoked')
+	t.end()
+  })
+
+  var abortCount = 0
+  req.on('abort', function() {
+    abortCount++
+    t.equal(abortCount, 1, 'request aborted')
+  })
+  
+  // need time for req to start
+  setTimeout(function(){
+    req.abort()
+  }, 10)
+})
+
 tape('no timeout', function(t) {
   var noTimeout = {
     url: s.url + '/timeout'
