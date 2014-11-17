@@ -85,7 +85,6 @@ tape('should have no timeout when manually abort', function(t) {
   }
 
   var req = request(shouldntTimeout, function(err, res, body) {
-	console.log(err)
     t.fail('aborted but callback invoked')
   })
 

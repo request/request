@@ -908,9 +908,6 @@ Request.prototype.start = function () {
 
   if (self.timeout && !self.timeoutTimer) {
     self.timeoutTimer = setTimeout(function () {
-      if (self._aborted) {
-        return
-      }
       self.abort()
       var e = new Error('ETIMEDOUT')
       e.code = 'ETIMEDOUT'
