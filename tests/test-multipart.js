@@ -22,6 +22,9 @@ function runTest(t, a) {
     if (a.headers) {
       t.ok(req.headers['content-type'].match(/multipart\/mixed/))
     }
+    else {
+      t.ok(req.headers['content-type'].match(/multipart\/related/))
+    }
 
     // temp workaround
     var data = ''
