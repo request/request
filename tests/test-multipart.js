@@ -21,9 +21,16 @@ function runTest(t, a) {
 
     if (a.headers) {
       t.ok(req.headers['content-type'].match(/multipart\/mixed/))
-    }
-    else {
+    } else {
       t.ok(req.headers['content-type'].match(/multipart\/related/))
+    }
+
+    if (chunked) {
+      t.ok(req.headers['transfer-encoding'] === 'chunked')
+      t.notOk(req.headers['content-length'])
+    } else {
+      t.ok(req.headers['content-length'])
+      t.notOk(req.headers['transfer-encoding'])
     }
 
     // temp workaround
