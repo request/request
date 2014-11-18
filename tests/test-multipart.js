@@ -44,26 +44,24 @@ function runTest(t, a) {
     req.on('end', function() {
       // check for the fields' traces
 
-      if (a.method === 'post') {
-        // 1st field : my_field
-        t.ok( data.indexOf('name: my_field') !== -1 )
-        t.ok( data.indexOf(multipartData[0].body) !== -1 )
+      // 1st field : my_field
+      t.ok( data.indexOf('name: my_field') !== -1 )
+      t.ok( data.indexOf(multipartData[0].body) !== -1 )
 
-        // 2nd field : my_buffer
-        t.ok( data.indexOf('name: my_buffer') !== -1 )
-        t.ok( data.indexOf(multipartData[1].body) !== -1 )
+      // 2nd field : my_buffer
+      t.ok( data.indexOf('name: my_buffer') !== -1 )
+      t.ok( data.indexOf(multipartData[1].body) !== -1 )
 
-        if (chunked) {
-          // 3rd field : my_file
-          t.ok( data.indexOf('name: my_file') !== -1 )
-          // check for unicycle.jpg traces
-          t.ok( data.indexOf('2005:06:21 01:44:12') !== -1 )
+      if (chunked) {
+        // 3rd field : my_file
+        t.ok( data.indexOf('name: my_file') !== -1 )
+        // check for unicycle.jpg traces
+        t.ok( data.indexOf('2005:06:21 01:44:12') !== -1 )
 
-          // 4th field : remote_file
-          t.ok( data.indexOf('name: remote_file') !== -1 )
-          // check for http://localhost:8080/file traces
-          t.ok( data.indexOf('Photoshop ICC') !== -1 )
-        }
+        // 4th field : remote_file
+        t.ok( data.indexOf('name: remote_file') !== -1 )
+        // check for http://localhost:8080/file traces
+        t.ok( data.indexOf('Photoshop ICC') !== -1 )
       }
 
       res.writeHead(200)
@@ -132,7 +130,7 @@ var cases = [
 
 methods.forEach(function(method) {
   cases.forEach(function (test) {
-    tape('multipart related ' + test.name, function(t) {
+    tape('multipart related ' + method + ' ' + test.name, function(t) {
       test.args.method = method
       runTest(t, test.args)
     })
