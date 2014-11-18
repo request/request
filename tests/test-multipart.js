@@ -44,24 +44,26 @@ function runTest(t, a) {
     req.on('end', function() {
       // check for the fields' traces
 
-      // 1st field : my_field
-      t.ok( data.indexOf('name: my_field') !== -1 )
-      t.ok( data.indexOf(multipartData[0].body) !== -1 )
+      if (a.method === 'post') {
+        // 1st field : my_field
+        t.ok( data.indexOf('name: my_field') !== -1 )
+        t.ok( data.indexOf(multipartData[0].body) !== -1 )
 
-      // 2nd field : my_buffer
-      t.ok( data.indexOf('name: my_buffer') !== -1 )
-      t.ok( data.indexOf(multipartData[1].body) !== -1 )
+        // 2nd field : my_buffer
+        t.ok( data.indexOf('name: my_buffer') !== -1 )
+        t.ok( data.indexOf(multipartData[1].body) !== -1 )
 
-      if (chunked) {
-        // 3rd field : my_file
-        t.ok( data.indexOf('name: my_file') !== -1 )
-        // check for unicycle.jpg traces
-        t.ok( data.indexOf('2005:06:21 01:44:12') !== -1 )
+        if (chunked) {
+          // 3rd field : my_file
+          t.ok( data.indexOf('name: my_file') !== -1 )
+          // check for unicycle.jpg traces
+          t.ok( data.indexOf('2005:06:21 01:44:12') !== -1 )
 
-        // 4th field : remote_file
-        t.ok( data.indexOf('name: remote_file') !== -1 )
-        // check for http://localhost:8080/file traces
-        t.ok( data.indexOf('Photoshop ICC') !== -1 )
+          // 4th field : remote_file
+          t.ok( data.indexOf('name: remote_file') !== -1 )
+          // check for http://localhost:8080/file traces
+          t.ok( data.indexOf('Photoshop ICC') !== -1 )
+        }
       }
 
       res.writeHead(200)
@@ -94,7 +96,7 @@ function runTest(t, a) {
     if (a.json) {
       reqOptions.json = true
     }
-    request.post(reqOptions, function (err, res, body) {
+    request[a.method](reqOptions, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.deepEqual(body, a.json ? {status: 'done'} : 'done')
@@ -105,6 +107,7 @@ function runTest(t, a) {
   })
 }
 
+var methods = ['post', 'get']
 var cases = [
   {name: '-json +array',   args: {json: false, array: true}},
   {name: '-json -array',   args: {json: false, array: false}},
@@ -127,8 +130,11 @@ var cases = [
   {name: '+json +headers -chunked', args: {json: true, headers: true, array: false, chunked: false}}
 ]
 
-cases.forEach(function (test) {
-  tape('multipart related ' + test.name, function(t) {
-    runTest(t, test.args)
+methods.forEach(function(method) {
+  cases.forEach(function (test) {
+    tape('multipart related ' + test.name, function(t) {
+      test.args.method = method
+      runTest(t, test.args)
+    })
   })
 })
