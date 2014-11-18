@@ -19,6 +19,10 @@ function runTest(t, a) {
       return
     }
 
+    if (a.headers) {
+      t.ok(req.headers['content-type'].match(/multipart\/mixed/))
+    }
+
     // temp workaround
     var data = ''
     req.setEncoding('utf8')
@@ -72,6 +76,7 @@ function runTest(t, a) {
 
     var reqOptions = {
       url: 'http://localhost:8080/upload',
+      headers: (a.headers ? {'content-type': 'multipart/mixed'} : undefined),
       multipart: a.array
         ? multipartData
         : {chunked: a.chunked, data: multipartData}
@@ -96,10 +101,20 @@ var cases = [
   {name: '-json +chunked', args: {json: false, array: false, chunked: true}},
   {name: '-json -chunked', args: {json: false, array: false, chunked: false}},
 
+  {name: '-json +headers +array',   args: {json: false, headers: true, array: true}},
+  {name: '-json +headers -array',   args: {json: false, headers: true, array: false}},
+  {name: '-json +headers +chunked', args: {json: false, headers: true, array: false, chunked: true}},
+  {name: '-json +headers -chunked', args: {json: false, headers: true, array: false, chunked: false}},
+
   {name: '+json +array',   args: {json: true, array: true}},
   {name: '+json -array',   args: {json: true, array: false}},
   {name: '+json +chunked', args: {json: true, array: false, chunked: true}},
-  {name: '+json -chunked', args: {json: true, array: false, chunked: false}}
+  {name: '+json -chunked', args: {json: true, array: false, chunked: false}},
+
+  {name: '+json +headers +array',   args: {json: true, headers: true, array: true}},
+  {name: '+json +headers -array',   args: {json: true, headers: true, array: false}},
+  {name: '+json +headers +chunked', args: {json: true, headers: true, array: false, chunked: true}},
+  {name: '+json +headers -chunked', args: {json: true, headers: true, array: false, chunked: false}}
 ]
 
 cases.forEach(function (test) {
