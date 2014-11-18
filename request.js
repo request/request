@@ -1430,7 +1430,7 @@ Request.prototype.multipart = function (multipart) {
   }
 
   var headerName = self.hasHeader('content-type')
-  if (!headerName || headerName.indexOf('multipart') === -1) {
+  if (!headerName || self.headers[headerName].indexOf('multipart') === -1) {
     self.setHeader('content-type', 'multipart/related; boundary=' + self.boundary)
   } else {
     self.setHeader(headerName, self.headers[headerName].split(';')[0] + '; boundary=' + self.boundary)
