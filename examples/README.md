@@ -147,8 +147,11 @@ http.createServer(function(req, res) {
   }
   request(req.params.url)
     .on('response', function(response) {
-      if (response.statusCode !== 200)
-        handleError(new Error('something went wrong\n'))
+      if (response.statusCode !== 200) {
+        this.abort(); // aborts the request!
+        handleError(new Error('something went wrong\n'));
+      }
+        
     })
     .pipe(res)
   ;
@@ -164,11 +167,11 @@ http.createServer(function(req, res) {
 }).listen(3002).unref();
 
 
-request('http://localhost:3000?url=' + encodeURIComponent('http://localhost:3001'))
+request({ uri: 'http://localhost:3000', qs: { url: 'http://localhost:3001' } })
   .pipe(process.stdout)
 ;
 
-request('http://localhost:3000?url=' + encodeURIComponent('http://localhost:3002'))
+request({ uri: 'http://localhost:3000', qs: { url: 'http://localhost:3002' } })
   .pipe(process.stdout)
 ;
 ```
