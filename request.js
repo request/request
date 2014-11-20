@@ -1429,6 +1429,10 @@ Request.prototype.multipart = function (multipart) {
     return chunked ? items.append(part) : items.push(new Buffer(part))
   }
 
+  if (chunked) {
+    self.setHeader('transfer-encoding', 'chunked')
+  }
+
   var headerName = self.hasHeader('content-type')
   if (!headerName || self.headers[headerName].indexOf('multipart') === -1) {
     self.setHeader('content-type', 'multipart/related; boundary=' + self.boundary)
