@@ -13,32 +13,37 @@ tape('setup', function(t) {
   })
 })
 
-tape('test testPutBoolean', function(t) {
-  s.on('/testPutBoolean', server.createPostValidator('true', 'application/json'))
-  var opts = {
-    method: 'PUT',
-    uri: s.url + '/testPutBoolean',
-    json: true,
-    body: true
-  }
-  request(opts, function (err, resp, body) {
-    t.equal(err, null)
-    t.end()
+function testJSONValue(testId, value) {
+  tape('test ' + testId, function(t) {
+    var testUrl = '/' + testId
+    s.on(testUrl, server.createPostValidator(JSON.stringify(value), 'application/json'))
+    var opts = {
+      method: 'PUT',
+      uri: s.url + testUrl,
+      json: true,
+      body: value
+    }
+    request(opts, function (err, resp, body) {
+      t.equal(err, null)
+      t.end()
+    })
   })
-})
+}
 
-tape('test testPutNull', function(t) {
-  s.on('/testPutNull', server.createPostValidator('null', 'application/json'))
-  var opts = {
-    method: 'PUT',
-    uri: s.url + '/testPutNull',
-    json: true,
-    body: null
-  }
-  request(opts, function (err, resp, body) {
-    t.equal(err, null)
-    t.end()
-  })
+testJSONValue('jsonNull', null)
+testJSONValue('jsonTrue', true)
+testJSONValue('jsonFalse', false)
+testJSONValue('jsonNumber', -289365.2938)
+testJSONValue('jsonString', 'some string')
+testJSONValue('jsonArray', ['value1', 2, null, 8925.53289, true, false, ['array'], { object: 'property' }])
+testJSONValue('jsonObject', {
+  trueProperty: true,
+  falseProperty: false,
+  numberProperty: -98346.34698,
+  stringProperty: 'string',
+  nullProperty: null,
+  arrayProperty: ['array'],
+  objectProperty: { object: 'property' }
 })
 
 tape('cleanup', function(t) {
