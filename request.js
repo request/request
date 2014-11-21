@@ -1482,7 +1482,7 @@ Request.prototype.json = function (val) {
 
   self._json = true
   if (typeof val === 'boolean') {
-    if (typeof self.body === 'object') {
+    if (self.body !== undefined && self.body !== null) {
       self.body = safeStringify(self.body)
       if (!self.hasHeader('content-type')) {
         self.setHeader('content-type', 'application/json')
