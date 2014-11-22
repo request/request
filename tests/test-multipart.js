@@ -10,7 +10,7 @@ function runTest(t, a) {
   var remoteFile = path.join(__dirname, 'googledoodle.jpg')
     , localFile = path.join(__dirname, 'unicycle.jpg')
     , multipartData = []
-    , chunked = a.array || (a.chunked === undefined) || a.chunked
+    , chunked = a.stream || a.chunked || a.encoding
 
   var server = http.createServer(function(req, res) {
     if (req.url === '/file') {
@@ -19,7 +19,7 @@ function runTest(t, a) {
       return
     }
 
-    if (a.headers) {
+    if (a.mixed) {
       t.ok(req.headers['content-type'].match(/multipart\/mixed/))
     } else {
       t.ok(req.headers['content-type'].match(/multipart\/related/))
@@ -86,7 +86,16 @@ function runTest(t, a) {
 
     var reqOptions = {
       url: 'http://localhost:8080/upload',
-      headers: (a.headers ? {'content-type': 'multipart/mixed'} : undefined),
+      headers: (function () {
+        var headers = {}
+        if (a.mixed) {
+          headers['content-type'] = 'multipart/mixed'
+        }
+        if (a.encoding) {
+          headers['transfer-encoding'] = 'chunked'
+        }
+        return headers
+      }()),
       multipart: a.array
         ? multipartData
         : {chunked: a.chunked, data: multipartData}
@@ -105,34 +114,57 @@ function runTest(t, a) {
   })
 }
 
-var methods = ['post', 'get']
+// array - multipart option is array
+// object - multipart option is object
+// encoding -  headers option have transfer-encoding set to chunked
+// mixed - headers option have content-type set to something different than multipart/related
+// json - json option
+// stream - body contains streams or not
+// chunked - chunked is set when multipart is object
+
+// var methods = ['post', 'get']
 var cases = [
-  {name: '-json +array',   args: {json: false, array: true}},
-  {name: '-json -array',   args: {json: false, array: false}},
-  {name: '-json +chunked', args: {json: false, array: false, chunked: true}},
-  {name: '-json -chunked', args: {json: false, array: false, chunked: false}},
+  // based on body type
+  {name: '+array -stream',   args: {array: true, encoding: false, stream: false}},
+  {name: '+array +stream',   args: {array: true, encoding: false, stream: true}},
+  // encoding overrides stream
+  {name: '+array +encoding',   args: {array: true, encoding: true, stream: false}},
 
-  {name: '-json +headers +array',   args: {json: false, headers: true, array: true}},
-  {name: '-json +headers -array',   args: {json: false, headers: true, array: false}},
-  {name: '-json +headers +chunked', args: {json: false, headers: true, array: false, chunked: true}},
-  {name: '-json +headers -chunked', args: {json: false, headers: true, array: false, chunked: false}},
+  // based on body type
+  {name: '+object -stream',   args: {object: true, encoding: false, stream: false}},
+  {name: '+object +stream',   args: {object: true, encoding: false, stream: true}},
+  // encoding overrides stream
+  {name: '+object +encoding',   args: {object: true, encoding: true, stream: false}},
 
-  {name: '+json +array',   args: {json: true, array: true}},
-  {name: '+json -array',   args: {json: true, array: false}},
-  {name: '+json +chunked', args: {json: true, array: false, chunked: true}},
-  {name: '+json -chunked', args: {json: true, array: false, chunked: false}},
-
-  {name: '+json +headers +array',   args: {json: true, headers: true, array: true}},
-  {name: '+json +headers -array',   args: {json: true, headers: true, array: false}},
-  {name: '+json +headers +chunked', args: {json: true, headers: true, array: false, chunked: true}},
-  {name: '+json +headers -chunked', args: {json: true, headers: true, array: false, chunked: false}}
+  // based on body type
+  {name: '+object -chunked -stream',   args: {object: true, encoding: false, chunked: false, stream: false}},
+  {name: '+object -chunked +stream',   args: {object: true, encoding: false, chunked: false, stream: true}},
+  // chunked overrides stream
+  {name: '+object +chunked -stream',   args: {object: true, encoding: false, chunked: true, stream: false}},
+  // chunked overrides encoding
+  {name: '+object +encoding -chunked',   args: {object: true, encoding: true, chunked: false, stream: false}},
+  // stream overrides chunked
+  {name: '+object +encoding -chunked +stream',   args: {object: true, encoding: true, chunked: false, stream: true}}
 ]
 
-methods.forEach(function(method) {
-  cases.forEach(function (test) {
-    tape('multipart related ' + method + ' ' + test.name, function(t) {
-      test.args.method = method
-      runTest(t, test.args)
+var suite = ['post', 'get'].forEach(function(method) {
+  [true, false].forEach(function(json) {
+    [true, false].forEach(function(mixed) {
+      cases.forEach(function (test) {
+        var name = [
+          'multipart related', method,
+          (json ? '+' : '-') + 'json',
+          (mixed ? '+' : '-') + 'mixed',
+          test.name
+        ].join(' ')
+
+        tape(name, function(t) {
+          test.args.method = method
+          test.args.json = json
+          test.args.mixed = mixed
+          runTest(t, test.args)
+        })
+      })
     })
   })
 })
