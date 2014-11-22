@@ -137,6 +137,7 @@ tape('piping from a file', function(t) {
     if (req.method === 'PUT') {
       t.equal(req.headers['content-type'], 'application/javascript')
       t.end()
+      res.end()
     }
   })
   fs.createReadStream(__filename).pipe(request.put(s.url + '/pushjs'))
@@ -275,12 +276,5 @@ tape('request.pipefilter is called correctly', function(t) {
 
 tape('cleanup', function(t) {
   s.close()
-  // TODO - which test is causing the process not to exit?
-  setTimeout(function() {
-    t.end()
-    setTimeout(function() {
-      /*eslint no-process-exit:0*/
-      process.exit(0)
-    }, 10)
-  }, 300)
+  t.end()
 })
