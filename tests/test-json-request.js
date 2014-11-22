@@ -28,7 +28,7 @@ tape('test testPutBoolean', function(t) {
 })
 
 tape('test testPutNull', function(t) {
-  s.on('/testPutNull', server.createPostValidator(''))
+  s.on('/testPutNull', server.createPostValidator('null', 'application/json'))
   var opts = {
     method: 'PUT',
     uri: s.url + '/testPutNull',
