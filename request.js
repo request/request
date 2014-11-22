@@ -1421,15 +1421,31 @@ Request.prototype.form = function (form) {
 Request.prototype.multipart = function (multipart) {
   var self = this
 
-  var chunked = (multipart instanceof Array) || (multipart.chunked === undefined) || multipart.chunked
-  multipart = multipart.data || multipart
+  var chunked = false
+  var _multipart = multipart.data || multipart
 
-  var items = chunked ? new CombinedStream() : []
-  function add (part) {
-    return chunked ? items.append(part) : items.push(new Buffer(part))
+  if (!_multipart.forEach) {
+    throw new Error('Argument error, options.multipart.')
   }
 
-  if (chunked) {
+  if (self.getHeader('transfer-encoding') === 'chunked') {
+    chunked = true
+  }
+  if (multipart.chunked !== undefined) {
+    chunked = multipart.chunked
+  }
+  if (!chunked) {
+    _multipart.forEach(function (part) {
+      if(typeof part.body === 'undefined') {
+        throw new Error('Body attribute missing in multipart.')
+      }
+      if (part.body.readable || part.body.writable) {
+        chunked = true
+      }
+    })
+  }
+
+  if (chunked && !self.hasHeader('transfer-encoding')) {
     self.setHeader('transfer-encoding', 'chunked')
   }
 
@@ -1440,19 +1456,17 @@ Request.prototype.multipart = function (multipart) {
     self.setHeader(headerName, self.headers[headerName].split(';')[0] + '; boundary=' + self.boundary)
   }
 
-  if (!multipart.forEach) {
-    throw new Error('Argument error, options.multipart.')
+  var parts = chunked ? new CombinedStream() : []
+  function add (part) {
+    return chunked ? parts.append(part) : parts.push(new Buffer(part))
   }
 
   if (self.preambleCRLF) {
     add('\r\n')
   }
 
-  multipart.forEach(function (part) {
+  _multipart.forEach(function (part) {
     var body = part.body
-    if(typeof body === 'undefined') {
-      throw new Error('Body attribute missing in multipart.')
-    }
     var preamble = '--' + self.boundary + '\r\n'
     Object.keys(part).forEach(function (key) {
       if (key === 'body') { return }
@@ -1469,7 +1483,7 @@ Request.prototype.multipart = function (multipart) {
     add('\r\n')
   }
 
-  self[chunked ? '_multipart' : 'body'] = items
+  self[chunked ? '_multipart' : 'body'] = parts
   return self
 }
 Request.prototype.json = function (val) {
