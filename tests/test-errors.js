@@ -31,6 +31,15 @@ tape('invalid uri 2', function(t) {
   t.end()
 })
 
+tape('deprecated unix URL', function(t) {
+  t.throws(function() {
+    request({
+      uri: 'unix://path/to/socket/and/then/request/path'
+    })
+  }, /^Error: `unix:\/\/` URL scheme is no longer supported/)
+  t.end()
+})
+
 tape('invalid body', function(t) {
   t.throws(function() {
     request({

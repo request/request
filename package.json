@@ -7,14 +7,14 @@
     "util",
     "utility"
   ],
-  "version": "2.45.1",
+  "version": "2.48.1",
   "author": "Mikeal Rogers <mikeal.rogers@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mikeal/request.git"
+    "url": "https://github.com/request/request.git"
   },
   "bugs": {
-    "url": "http://github.com/mikeal/request/issues"
+    "url": "http://github.com/request/request/issues"
   },
   "license": "Apache-2.0",
   "engines": {
@@ -23,20 +23,21 @@
   "main": "index.js",
   "dependencies": {
     "bl": "~0.9.0",
-    "caseless": "~0.6.0",
+    "caseless": "~0.7.0",
     "forever-agent": "~0.5.0",
     "form-data": "~0.1.0",
     "json-stringify-safe": "~5.0.0",
     "mime-types": "~1.0.1",
     "node-uuid": "~1.4.0",
-    "qs": "~1.2.0",
+    "qs": "~2.3.1",
     "tunnel-agent": "~0.4.0",
     "tough-cookie": ">=0.12.0",
     "http-signature": "~0.10.0",
-    "oauth-sign": "~0.4.0",
+    "oauth-sign": "~0.5.0",
     "hawk": "1.1.1",
     "aws-sign2": "~0.5.0",
-    "stringstream": "~0.0.4"
+    "stringstream": "~0.0.4",
+    "combined-stream": "~0.0.5"
   },
   "scripts": {
     "test": "npm run lint && node node_modules/.bin/taper tests/test-*.js",
@@ -46,6 +47,6 @@
     "eslint": "0.5.1",
     "rimraf": "~2.2.8",
     "tape": "~3.0.0",
-    "taper": "~0.2.1"
+    "taper": "~0.3.0"
   }
 }

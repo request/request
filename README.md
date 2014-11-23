@@ -1,6 +1,7 @@
 # Request — Simplified HTTP client
-
 [![NPM](https://nodei.co/npm/request.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/request/)
+
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/request/request?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Super simple to use
 
@@ -45,6 +46,17 @@ request
     console.log(response.headers['content-type']) // 'image/png'
   })
   .pipe(request.put('http://mysite.com/img.png'))
+```
+
+To easily handle errors when streaming requests, listen to the `error` event before piping:
+
+```javascript
+request
+  .get('http://mysite.com/doodle.png')
+  .on('error', function(err) {
+    console.log(err)
+  })
+  .pipe(fs.createWriteStream('doodle.png'))
 ```
 
 Now let’s get fancy.
@@ -146,6 +158,9 @@ to force a tunneling proxy, you may set the `tunnel` option to `true`.
 If you are using a tunneling proxy, you may set the
 `proxyHeaderWhiteList` to share certain headers with the proxy.
 
+You can also set the `proxyHeaderExclusiveList` to share certain
+headers only with the proxy and not with destination host.
+
 By default, this set is:
 
 ```
@@ -176,9 +191,8 @@ via
 ```
 
 Note that, when using a tunneling proxy, the `proxy-authorization`
-header is *never* sent to the endpoint server, but only to the proxy
-server.  All other headers are sent as-is over the established
-connection.
+header and any headers from custom `proxyHeaderExclusiveList` are
+*never* sent to the endpoint server, but only to the proxy server.
 
 ### Controlling proxy behaviour using environment variables
 
@@ -201,19 +215,21 @@ Here's some examples of valid `no_proxy` values:
 
 ## UNIX Socket
 
-`request` supports the `unix://` protocol for all requests. The path is assumed to be absolute to the root of the host file system.
-
-HTTP paths are extracted from the supplied URL by testing each level of the full URL against net.connect for a socket response.
-
-Thus the following request will GET `/httppath` from the HTTP server listening on `/tmp/unix.socket`
+`request` supports making requests to [UNIX Domain Sockets](http://en.wikipedia.org/wiki/Unix_domain_socket). To make one, use the following URL scheme:
 
 ```javascript
-request.get('unix://tmp/unix.socket/httppath')
+/* Pattern */ 'http://unix:SOCKET:PATH'
+/* Example */ request.get('http://unix:/absolute/path/to/unix.socket:/request/path')
 ```
+
+Note: The `SOCKET` path is assumed to be absolute to the root of the host file system.
+
 
 ## Forms
 
 `request` supports `application/x-www-form-urlencoded` and `multipart/form-data` form uploads. For `multipart/related` refer to the `multipart` API.
+
+#### application/x-www-form-urlencoded (URL-Encoded Forms)
 
 URL-encoded forms are simple.
 
@@ -225,22 +241,28 @@ request.post('http://service.com/upload').form({key:'value'})
 request.post({url:'http://service.com/upload', form: {key:'value'}}, function(err,httpResponse,body){ /* ... */ })
 ```
 
-For `multipart/form-data` we use the [form-data](https://github.com/felixge/node-form-data) library by [@felixge](https://github.com/felixge). For the most basic case, you can pass your upload form data via the `formData` option.
+#### multipart/form-data (Multipart Form Uploads)
+
+For `multipart/form-data` we use the [form-data](https://github.com/felixge/node-form-data) library by [@felixge](https://github.com/felixge). For the most cases, you can pass your upload form data via the `formData` option.
 
 
 ```javascript
 var formData = {
+  // Pass a simple key-value pair
   my_field: 'my_value',
+  // Pass data via Buffers
   my_buffer: new Buffer([1, 2, 3]),
+  // Pass data via Streams
   my_file: fs.createReadStream(__dirname + '/unicycle.jpg'),
-  remote_file: request(remoteFile),
+  // Pass multiple values /w an Array
   attachments: [
-    fs.createReadStream(__dirname + '/attacment1.jpg')
+    fs.createReadStream(__dirname + '/attacment1.jpg'),
     fs.createReadStream(__dirname + '/attachment2.jpg')
   ],
+  // Pass optional meta-data with an 'options' object with style: {value: DATA, options: OPTIONS}
+  // See the `form-data` README for more information about options: https://github.com/felixge/node-form-data
   custom_file: {
     value:  fs.createReadStream('/dev/urandom'),
-    // See the [form-data](https://github.com/felixge/node-form-data) README for more information about options.
     options: {
       filename: 'topsecret.jpg',
       contentType: 'image/jpg'
@@ -255,47 +277,55 @@ request.post({url:'http://service.com/upload', formData: formData}, function opt
 });
 ```
 
-For more advanced cases (like appending form data options) you'll need access to the form itself.
+For advanced cases, you can the form-data object itself via `r.form()`. This can be modified until the request is fired on the next cycle of the event-loop. (Note that this calling `form()` will clear the currently set form data for that request.)
 
 ```javascript
-var r = request.post('http://service.com/upload', function optionalCallback(err, httpResponse, body) {
-  if (err) {
-    return console.error('upload failed:', err);
-  }
-  console.log('Upload successful!  Server responded with:', body);
-})
+// NOTE: Advanced use-case, for normal use see 'formData' usage above
+var r = request.post('http://service.com/upload', function optionalCallback(err, httpResponse, body) { // ...
 
-// Just like always, `r` is a writable stream, and can be used as such (you have until nextTick to pipe it, etc.)
-// Alternatively, you can provide a callback (that's what this example does — see `optionalCallback` above).
 var form = r.form();
 form.append('my_field', 'my_value');
 form.append('my_buffer', new Buffer([1, 2, 3]));
-form.append('my_buffer', fs.createReadStream(__dirname + '/unicycle.jpg'), {filename: 'unicycle.jpg'});
+form.append('custom_file', fs.createReadStream(__dirname + '/unicycle.jpg'), {filename: 'unicycle.jpg'});
 ```
-See the [form-data](https://github.com/felixge/node-form-data) README for more information & examples.
+See the [form-data README](https://github.com/felixge/node-form-data) for more information & examples.
+
+#### multipart/related
 
 Some variations in different HTTP implementations require a newline/CRLF before, after, or both before and after the boundary of a `multipart/related` request (using the multipart option). This has been observed in the .NET WebAPI version 4.0. You can turn on a boundary preambleCRLF or postamble by passing them as `true` to your request options.
 
 ```javascript
-  request(
-    { method: 'PUT'
-    , preambleCRLF: true
-    , postambleCRLF: true
-    , uri: 'http://service.com/upload'
-    , multipart:
-      [ { 'content-type': 'application/json'
-        ,  body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})
-        }
-      , { body: 'I am an attachment' }
+  request({
+    method: 'PUT',
+    preambleCRLF: true,
+    postambleCRLF: true,
+    uri: 'http://service.com/upload',
+    multipart: [
+      {
+        'content-type': 'application/json'
+        body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})
+      },
+      { body: 'I am an attachment' },
+      { body: fs.createReadStream('image.png') }
+    ],
+    // alternatively pass an object containing additional options
+    multipart: {
+      chunked: false,
+      data: [
+        {
+          'content-type': 'application/json', 
+          body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})
+        },
+        { body: 'I am an attachment' }
       ]
     }
-  , function (error, response, body) {
-      if (err) {
-        return console.error('upload failed:', err);
-      }
-      console.log('Upload successful!  Server responded with:', body);
+  },
+  function (error, response, body) {
+    if (error) {
+      return console.error('upload failed:', error);
     }
-  )
+    console.log('Upload successful!  Server responded with:', body);
+  })
 ```
 
 
@@ -344,6 +374,10 @@ Bearer authentication is supported, and is activated when the `bearer` value is 
 
 ## OAuth Signing
 
+[OAuth version 1.0](https://tools.ietf.org/html/rfc5849) is supported.  The
+default signing algorithm is
+[HMAC-SHA1](https://tools.ietf.org/html/rfc5849#section-3.4.2):
+
 ```javascript
 // Twitter OAuth
 var qs = require('querystring')
@@ -390,6 +424,12 @@ request.post({url:url, oauth:oauth}, function (e, r, body) {
 })
 ```
 
+For [RSA-SHA1 signing](https://tools.ietf.org/html/rfc5849#section-3.4.3), make
+the following changes to the OAuth options object:
+* Pass `signature_method : 'RSA-SHA1'`
+* Instead of `consumer_secret`, specify a `private_key` string in
+  [PEM format](http://how2ssl.com/articles/working_with_pem_files/)
+
 ## Custom HTTP Headers
 
 HTTP Headers, such as `User-Agent`, can be set in the `options` object.
@@ -401,7 +441,7 @@ custom `User-Agent` header as well as https.
 var request = require('request');
 
 var options = {
-	url: 'https://api.github.com/repos/mikeal/request',
+	url: 'https://api.github.com/repos/request/request',
 	headers: {
 		'User-Agent': 'request'
 	}
@@ -418,6 +458,59 @@ function callback(error, response, body) {
 request(options, callback);
 ```
 
+## TLS/SSL Protocol
+
+TLS/SSL Protocol options, such as `cert`, `key` and `passphrase`, can be
+set in the `agentOptions` property of the `options` object.
+In the example below, we call an API requires client side SSL certificate
+(in PEM format) with passphrase protected private key (in PEM format) and disable the SSLv3 protocol:
+
+```javascript
+var fs = require('fs')
+    , path = require('path')
+    , certFile = path.resolve(__dirname, 'ssl/client.crt')
+    , keyFile = path.resolve(__dirname, 'ssl/client.key')
+    , request = require('request');
+
+var options = {
+    url: 'https://api.some-server.com/',
+    agentOptions: {
+        cert: fs.readFileSync(certFile),
+        key: fs.readFileSync(keyFile),
+        // Or use `pfx` property replacing `cert` and `key` when using private key, certificate and CA certs in PFX or PKCS12 format:
+        // pfx: fs.readFileSync(pfxFilePath),
+        passphrase: 'password',
+        securityOptions: 'SSL_OP_NO_SSLv3'
+    }
+};
+
+request.get(options);
+```
+
+It is able to force using SSLv3 only by specifying `secureProtocol`:
+
+```javascript
+request.get({
+    url: 'https://api.some-server.com/',
+    agentOptions: {
+        secureProtocol: 'SSLv3_method'
+    }
+});
+```
+
+It is possible to accept other certificates than those signed by generally allowed Certificate Authorities (CAs).
+This can be useful, for example,  when using self-signed certificates.
+To allow a different certificate, you can specify the signing CA by adding the contents of the CA's certificate file to the `agentOptions`:
+
+```javascript
+request.get({
+    url: 'https://api.some-server.com/',
+    agentOptions: {
+        ca: fs.readFileSync('ca.cert.pem')
+    }
+});
+```
+
 ## request(options, callback)
 
 The first argument can be either a `url` or an `options` object. The only required option is `uri`; all others are optional.
@@ -431,10 +524,19 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `method` - http method (default: `"GET"`)
 * `headers` - http headers (default: `{}`)
 * `body` - entity body for PATCH, POST and PUT requests. Must be a `Buffer` or `String`, unless `json` is `true`. If `json` is `true`, then `body` must be a JSON-serializable object.
-* `form` - when passed an object or a querystring, this sets `body` to a querystring representation of value, and adds `Content-type: application/x-www-form-urlencoded` header. When passed no options, a `FormData` instance is returned (and is piped to request).
+* `form` - when passed an object or a querystring, this sets `body` to a querystring representation of value, and adds `Content-type: application/x-www-form-urlencoded` header. When passed no options, a `FormData` instance is returned (and is piped to request). See "Forms" section above.
+* `formData` - Data to pass for a `multipart/form-data` request. See
+  [Forms](#forms) section above.
+* `multipart` - array of objects which contain their own headers and `body`
+  attributes. Sends a `multipart/related` request. See [Forms](#forms) section
+  above.
+  * Alternatively you can pass in an object `{chunked: false, data: []}` where
+    `chunked` is used to specify whether the request is sent in
+    [chunked transfer encoding](https://en.wikipedia.org/wiki/Chunked_transfer_encoding)
+    (the default is `chunked: true`).  In non-chunked requests, data items with
+    body streams are not allowed.
 * `auth` - A hash containing values `user` || `username`, `pass` || `password`, and `sendImmediately` (optional).  See documentation above.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
-* `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
 * `preambleCRLF` - append a newline/CRLF before the boundary of your `multipart/form-data` request.
 * `postambleCRLF` - append a newline/CRLF at the end of the boundary of your `multipart/form-data` request.
 * `followRedirect` - follow HTTP 3xx responses as redirects (default: `true`). This property can also be implemented as function which gets `response` object as a single argument and should return `true` if redirects should continue or `false` otherwise.
@@ -443,11 +545,18 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `encoding` - Encoding to be used on `setEncoding` of response data. If `null`, the `body` is returned as a `Buffer`. Anything else **(including the default value of `undefined`)** will be passed as the [encoding](http://nodejs.org/api/buffer.html#buffer_buffer) parameter to `toString()` (meaning this is effectively `utf8` by default).
 * `pool` - An object describing which agents to use for the request. If this option is omitted the request will use the global agent (as long as [your options allow for it](request.js#L747)). Otherwise, request will search the pool for your custom agent. If no custom agent is found, a new agent will be created and added to the pool.
   * A `maxSockets` property can also be provided on the `pool` object to set the max number of sockets for all agents created (ex: `pool: {maxSockets: Infinity}`).
+  * Note that if you are sending multiple requests in a loop and creating
+    multiple new `pool` objects, `maxSockets` will not work as intended.  To
+    work around this, either use [`request.defaults`](#requestdefaultsoptions)
+    with your pool options or create the pool object with the `maxSockets`
+    property outside of the loop.
 * `timeout` - Integer containing the number of milliseconds to wait for a request to respond before aborting the request
 * `proxy` - An HTTP proxy to be used. Supports proxy Auth with Basic Auth, identical to support for the `url` parameter (by embedding the auth info in the `uri`)
 * `oauth` - Options for OAuth HMAC-SHA1 signing. See documentation above.
 * `hawk` - Options for [Hawk signing](https://github.com/hueniverse/hawk). The `credentials` key must contain the necessary signing info, [see hawk docs for details](https://github.com/hueniverse/hawk#usage-example).
 * `strictSSL` - If `true`, requires SSL certificates be valid. **Note:** to use your own certificate authority, you need to specify an agent that was created with that CA as an option.
+* `agentOptions` - Object containing user agent options. See documentation above. **Note:** [see tls API doc for TLS/SSL options](http://nodejs.org/api/tls.html#tls_tls_connect_options_callback).
+
 * `jar` - If `true` and `tough-cookie` is installed, remember cookies for future use (or define your custom cookie jar; see examples section)
 * `aws` - `object` containing AWS signing information. Should have the properties `key`, `secret`. Also requires the property `bucket`, unless you’re specifying your `bucket` as part of the path, or the request doesn’t use a bucket (i.e. GET Services)
 * `httpSignature` - Options for the [HTTP Signature Scheme](https://github.com/joyent/node-http-signature/blob/master/http_signing.md) using [Joyent's library](https://github.com/joyent/node-http-signature). The `keyId` and `key` properties must be specified. See the docs for other options.
@@ -459,6 +568,8 @@ The first argument can be either a `url` or an `options` object. The only requir
   chain used a tunneling proxy.
 * `proxyHeaderWhiteList` - A whitelist of headers to send to a
   tunneling proxy.
+* `proxyHeaderExclusiveList` - A whitelist of headers to send
+  exclusively to a tunneling proxy and not to destination.
 
 
 The callback argument gets 3 arguments:
@@ -473,9 +584,14 @@ There are also shorthand methods for different HTTP METHODs and some other conve
 
 ### request.defaults(options)
 
-This method returns a wrapper around the normal request API that defaults to whatever options you pass in to it.
+This method **returns a wrapper** around the normal request API that defaults
+to whatever options you pass to it.
 
-**Note:** You can call `.defaults()` on the wrapper that is returned from `request.defaults` to add/override defaults that were previously defaulted.
+**Note:** `request.defaults()` **does not** modify the global request API;
+instead, it **returns a wrapper** that has your default settings applied to it.
+
+**Note:** You can call `.defaults()` on the wrapper that is returned from
+`request.defaults` to add/override defaults that were previously defaulted.
 
 For example:
 ```javascript
@@ -545,7 +661,7 @@ Function that creates a new cookie.
 ```javascript
 request.cookie('key1=value1')
 ```
-### request.jar
+### request.jar()
 
 Function that creates a new cookie jar.
 
@@ -634,7 +750,6 @@ request('http://www.google.com', function () {
 OR
 
 ```javascript
-// `npm install --save tough-cookie` before this works
 var j = request.jar();
 var cookie = request.cookie('key1=value1');
 var url = 'http://www.google.com';
@@ -644,7 +759,28 @@ request({url: url, jar: j}, function () {
 })
 ```
 
-To inspect your cookie jar after a request
+To use a custom cookie store (such as a
+[`FileCookieStore`](https://github.com/mitsuru/tough-cookie-filestore)
+which supports saving to and restoring from JSON files), pass it as a parameter
+to `request.jar()`:
+
+```javascript
+var FileCookieStore = require('tough-cookie-filestore');
+// NOTE - currently the 'cookies.json' file must already exist!
+var j = request.jar(new FileCookieStore('cookies.json'));
+request = request.defaults({ jar : j })
+request('http://www.google.com', function() {
+  request('http://images.google.com')
+})
+```
+
+The cookie store must be a
+[`tough-cookie`](https://github.com/goinstant/tough-cookie)
+store and it must support synchronous operations; see the
+[`CookieStore` API docs](https://github.com/goinstant/tough-cookie/#cookiestore-api)
+for details.
+
+To inspect your cookie jar after a request:
 
 ```javascript
 var j = request.jar()
