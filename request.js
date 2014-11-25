@@ -1607,11 +1607,11 @@ Request.prototype.oauth = function (_oauth) {
         'application/x-www-form-urlencoded'
      ) {
     form = self.body = self.body
-      .replace(/\!/g, "%21")
-      .replace(/\'/g, "%27")
-      .replace(/\(/g, "%28")
-      .replace(/\)/g, "%29")
-      .replace(/\*/g, "%2A")
+      .replace(/\!/g, '%21')
+      .replace(/\'/g, '%27')
+      .replace(/\(/g, '%28')
+      .replace(/\)/g, '%29')
+      .replace(/\*/g, '%2A')
   }
   if (self.uri.query) {
     query = self.uri.query
