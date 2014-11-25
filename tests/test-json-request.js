@@ -16,7 +16,7 @@ tape('setup', function(t) {
 function testJSONValue(testId, value) {
   tape('test ' + testId, function(t) {
     var testUrl = '/' + testId
-    s.on(testUrl, server.createPostValidator(JSON.stringify(value), 'application/json'))
+    s.on(testUrl, server.createPostJSONValidator(value, 'application/json'))
     var opts = {
       method: 'PUT',
       uri: s.url + testUrl,
@@ -25,6 +25,8 @@ function testJSONValue(testId, value) {
     }
     request(opts, function (err, resp, body) {
       t.equal(err, null)
+      t.equal(body.status, 'OK')
+      t.deepEqual(body.value, value)
       t.end()
     })
   })
