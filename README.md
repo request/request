@@ -260,6 +260,7 @@ var formData = {
     fs.createReadStream(__dirname + '/attachment2.jpg')
   ],
   // Pass optional meta-data with an 'options' object with style: {value: DATA, options: OPTIONS}
+  // Use case: for some types of streams, you'll need to provide "file"-related information manually.
   // See the `form-data` README for more information about options: https://github.com/felixge/node-form-data
   custom_file: {
     value:  fs.createReadStream('/dev/urandom'),
