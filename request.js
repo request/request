@@ -199,7 +199,8 @@ function getProxyFromURI(uri) {
         }
       } else {
         noProxyItem = noProxyItem.replace(/^\.*/, '.')
-        if (hostname.indexOf(noProxyItem) === hostname.length - noProxyItem.length) {
+        var isMatchedAt = hostname.indexOf(noProxyItem)
+        if (isMatchedAt > -1 && isMatchedAt === hostname.length - noProxyItem.length) {
           return null
         }
       }

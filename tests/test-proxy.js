@@ -131,6 +131,13 @@ if (process.env.TEST_PROXY_HARNESS) {
     env : { http_proxy : s.url }
   }, true)
 
+  runTest('http_proxy with length of one more than the URL', {
+    env: {
+      HTTP_PROXY : s.url,
+      NO_PROXY: 'elgoog1.com' // one more char than google.com
+    }
+  }, true)
+
   runTest('NO_PROXY hostnames are case insensitive', {
     env : {
       HTTP_PROXY : s.url,
