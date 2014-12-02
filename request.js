@@ -914,6 +914,8 @@ Request.prototype.start = function () {
   self.req = self.httpModule.request(reqOptions)
 
   if (self.timeout && !self.timeoutTimer) {
+    self.timeout *= 1;
+    
     self.timeoutTimer = setTimeout(function () {
       self.abort()
       var e = new Error('ETIMEDOUT')
