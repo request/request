@@ -537,7 +537,7 @@ The first argument can be either a `url` or an `options` object. The only requir
     (the default is `chunked: true`).  In non-chunked requests, data items with
     body streams are not allowed.
 * `auth` - A hash containing values `user` || `username`, `pass` || `password`, and `sendImmediately` (optional).  See documentation above.
-* `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
+* `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON, with an optional `jsonReviver` that is passed to `JSON.parse()`.
 * `preambleCRLF` - append a newline/CRLF before the boundary of your `multipart/form-data` request.
 * `postambleCRLF` - append a newline/CRLF at the end of the boundary of your `multipart/form-data` request.
 * `followRedirect` - follow HTTP 3xx responses as redirects (default: `true`). This property can also be implemented as function which gets `response` object as a single argument and should return `true` if redirects should continue or `false` otherwise.

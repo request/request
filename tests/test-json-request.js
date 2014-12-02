@@ -32,6 +32,26 @@ function testJSONValue(testId, value) {
   })
 }
 
+function testJSONValueReviver(testId, value, reviver, revivedValue) {
+  tape('test ' + testId, function(t) {
+    var testUrl = '/' + testId
+    s.on(testUrl, server.createPostJSONValidator(value, 'application/json'))
+    var opts = {
+      method: 'PUT',
+      uri: s.url + testUrl,
+      json: true,
+      jsonReviver: reviver,
+      body: value
+    }
+    request(opts, function (err, resp, body) {
+      t.equal(err, null)
+      t.equal(resp.statusCode, 200)
+      t.deepEqual(body, revivedValue)
+      t.end()
+    })
+  })
+}
+
 testJSONValue('jsonNull', null)
 testJSONValue('jsonTrue', true)
 testJSONValue('jsonFalse', false)
@@ -47,6 +67,11 @@ testJSONValue('jsonObject', {
   arrayProperty: ['array'],
   objectProperty: { object: 'property' }
 })
+
+testJSONValueReviver('jsonReviver', -48269.592, function (k, v) {
+  return v * -1
+}, 48269.592)
+testJSONValueReviver('jsonReviverInvalid', -48269.592, 'invalid reviver', -48269.592)
 
 tape('cleanup', function(t) {
   s.close()
