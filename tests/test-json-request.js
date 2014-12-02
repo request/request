@@ -25,8 +25,8 @@ function testJSONValue(testId, value) {
     }
     request(opts, function (err, resp, body) {
       t.equal(err, null)
-      t.equal(body.status, 'OK')
-      t.deepEqual(body.value, value)
+      t.equal(resp.statusCode, 200)
+      t.deepEqual(body, value)
       t.end()
     })
   })

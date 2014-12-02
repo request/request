@@ -89,7 +89,7 @@ exports.createPostJSONValidator = function (value, reqContentType) {
         assert.ok(~req.headers['content-type'].indexOf(reqContentType))
       }
       resp.writeHead(200, {'content-type':'application/json'})
-      resp.write(JSON.stringify({ status: 'OK', value: parsedValue }))
+      resp.write(r)
       resp.end()
     })
   }
