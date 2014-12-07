@@ -199,7 +199,8 @@ function getProxyFromURI(uri) {
         }
       } else {
         noProxyItem = noProxyItem.replace(/^\.*/, '.')
-        if (hostname.indexOf(noProxyItem) === hostname.length - noProxyItem.length) {
+        var isMatchedAt = hostname.indexOf(noProxyItem)
+        if (isMatchedAt > -1 && isMatchedAt === hostname.length - noProxyItem.length) {
           return null
         }
       }
@@ -1429,6 +1430,10 @@ Request.prototype.multipart = function (multipart) {
     return chunked ? items.append(part) : items.push(new Buffer(part))
   }
 
+  if (chunked) {
+    self.setHeader('transfer-encoding', 'chunked')
+  }
+
   var headerName = self.hasHeader('content-type')
   if (!headerName || self.headers[headerName].indexOf('multipart') === -1) {
     self.setHeader('content-type', 'multipart/related; boundary=' + self.boundary)
@@ -1477,7 +1482,7 @@ Request.prototype.json = function (val) {
 
   self._json = true
   if (typeof val === 'boolean') {
-    if (typeof self.body === 'object') {
+    if (self.body !== undefined) {
       self.body = safeStringify(self.body)
       if (!self.hasHeader('content-type')) {
         self.setHeader('content-type', 'application/json')

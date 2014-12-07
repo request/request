@@ -94,7 +94,7 @@ function runTest(t, a) {
     if (a.json) {
       reqOptions.json = true
     }
-    request.post(reqOptions, function (err, res, body) {
+    request[a.method](reqOptions, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.deepEqual(body, a.json ? {status: 'done'} : 'done')
@@ -105,6 +105,7 @@ function runTest(t, a) {
   })
 }
 
+var methods = ['post', 'get']
 var cases = [
   {name: '-json +array',   args: {json: false, array: true}},
   {name: '-json -array',   args: {json: false, array: false}},
@@ -127,8 +128,11 @@ var cases = [
   {name: '+json +headers -chunked', args: {json: true, headers: true, array: false, chunked: false}}
 ]
 
-cases.forEach(function (test) {
-  tape('multipart related ' + test.name, function(t) {
-    runTest(t, test.args)
+methods.forEach(function(method) {
+  cases.forEach(function (test) {
+    tape('multipart related ' + method + ' ' + test.name, function(t) {
+      test.args.method = method
+      runTest(t, test.args)
+    })
   })
 })

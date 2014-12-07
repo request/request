@@ -256,10 +256,11 @@ var formData = {
   my_file: fs.createReadStream(__dirname + '/unicycle.jpg'),
   // Pass multiple values /w an Array
   attachments: [
-    fs.createReadStream(__dirname + '/attacment1.jpg'),
+    fs.createReadStream(__dirname + '/attachment1.jpg'),
     fs.createReadStream(__dirname + '/attachment2.jpg')
   ],
   // Pass optional meta-data with an 'options' object with style: {value: DATA, options: OPTIONS}
+  // Use case: for some types of streams, you'll need to provide "file"-related information manually.
   // See the `form-data` README for more information about options: https://github.com/felixge/node-form-data
   custom_file: {
     value:  fs.createReadStream('/dev/urandom'),
@@ -277,7 +278,7 @@ request.post({url:'http://service.com/upload', formData: formData}, function opt
 });
 ```
 
-For advanced cases, you can the form-data object itself via `r.form()`. This can be modified until the request is fired on the next cycle of the event-loop. (Note that this calling `form()` will clear the currently set form data for that request.)
+For advanced cases, you can access the form-data object itself via `r.form()`. This can be modified until the request is fired on the next cycle of the event-loop. (Note that this calling `form()` will clear the currently set form data for that request.)
 
 ```javascript
 // NOTE: Advanced use-case, for normal use see 'formData' usage above
@@ -313,7 +314,7 @@ Some variations in different HTTP implementations require a newline/CRLF before,
       chunked: false,
       data: [
         {
-          'content-type': 'application/json', 
+          'content-type': 'application/json',
           body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})
         },
         { body: 'I am an attachment' }

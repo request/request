@@ -1,5 +1,13 @@
 ## Change Log
 
+### v2.49.0 (2014/11/28)
+- [#1295](https://github.com/request/request/pull/1295) fix(proxy): no-proxy false positive (@oliamb)
+- [#1292](https://github.com/request/request/pull/1292) Upgrade `caseless` to 0.8.1 (@mmalecki)
+- [#1276](https://github.com/request/request/pull/1276) Set transfer encoding for multipart/related to chunked by default (@simov)
+- [#1275](https://github.com/request/request/pull/1275) Fix multipart content-type headers detection (@simov)
+- [#1269](https://github.com/request/request/pull/1269) adds streams example for review (@tbuchok)
+- [#1238](https://github.com/request/request/pull/1238) Add examples README.md (@simov)
+
 ### v2.48.0 (2014/11/12)
 - [#1263](https://github.com/request/request/pull/1263) Fixed a syntax error / typo in README.md (@xna2)
 - [#1253](https://github.com/request/request/pull/1253) Add multipart chunked flag (@simov, @nylen)
