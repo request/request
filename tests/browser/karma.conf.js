@@ -3,13 +3,10 @@
 module.exports = function(config) {
   config.set({
     basePath: '',
-    frameworks: ['browserify', 'tap'],
+    frameworks: ['tap'],
     files: [
-      'test.js'
+      'test-browser.js'
     ],
-    preprocessors: {
-      'test.js': [ 'browserify' ]
-    },
     port: 9876,
 
     reporters: ['dots'],

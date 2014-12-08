@@ -41,7 +41,7 @@
   },
   "scripts": {
     "test": "npm run lint && node node_modules/.bin/taper tests/test-*.js && npm run test-browser",
-    "test-browser": "karma start tests/browser/karma.conf.js",
+    "test-browser": "browserify tests/browser/test.js -o tests/browser/test-browser.js && karma start tests/browser/karma.conf.js",
     "lint": "node node_modules/.bin/eslint lib/ *.js tests/ && echo Lint passed."
   },
   "devDependencies": {
@@ -51,7 +51,6 @@
     "function-bind": "~1.0.0",
     "istanbul": "~0.3.2",
     "karma": "~0.12.21",
-    "karma-browserify": "~1.0.0",
     "karma-cli": "0.0.4",
     "karma-phantomjs-launcher": "~0.1.4",
     "karma-tap": "~1.0.1",
