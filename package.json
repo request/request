@@ -40,7 +40,7 @@
     "combined-stream": "~0.0.5"
   },
   "scripts": {
-    "test": "npm run lint && node node_modules/.bin/taper tests/test-*.js",
+    "test": "npm run lint && node node_modules/.bin/taper tests/test-*.js && npm run test-browser",
     "test-browser": "karma start tests/browser/karma.conf.js",
     "lint": "node node_modules/.bin/eslint lib/ *.js tests/ && echo Lint passed."
   },
