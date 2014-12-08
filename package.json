@@ -45,7 +45,7 @@
     "lint": "node node_modules/.bin/eslint lib/ *.js tests/ && echo Lint passed."
   },
   "devDependencies": {
-    "browserify": "^5.9.1",
+    "browserify": "~5.9.1",
     "coveralls": "~2.11.2",
     "eslint": "0.5.1",
     "function-bind": "~1.0.0",
