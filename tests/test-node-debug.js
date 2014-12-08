@@ -24,6 +24,7 @@ tape('setup', function(t) {
 
 tape('a simple request should not fail with debugging enabled', function(t) {
   request.debug = true
+  stderr = []
 
   request('http://localhost:6767', function(err, res, body) {
     t.ifError(err, 'the request did not fail')
