@@ -1308,7 +1308,7 @@ Request.prototype.onRequestResponse = function (response) {
 
         if (self._json) {
           try {
-            response.body = JSON.parse(response.body)
+            response.body = JSON.parse(response.body, self._jsonReviver)
           } catch (e) {}
         }
         debug('emitting complete', self.uri.href)
@@ -1493,6 +1493,10 @@ Request.prototype.json = function (val) {
     if (!self.hasHeader('content-type')) {
       self.setHeader('content-type', 'application/json')
     }
+  }
+
+  if (typeof self.jsonReviver === 'function') {
+    self._jsonReviver = self.jsonReviver
   }
 
   return self
