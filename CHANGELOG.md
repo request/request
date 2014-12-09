@@ -1,5 +1,13 @@
 ## Change Log
 
+### v2.50.0 (2014/12/09)
+- [#1308](https://github.com/request/request/pull/1308) Add browser test to keep track of browserify compability. (@eiriksm)
+- [#1299](https://github.com/request/request/pull/1299) Add optional support for jsonReviver (@poislagarde)
+- [#1277](https://github.com/request/request/pull/1277) Add Coveralls configuration (@simov)
+- [#1307](https://github.com/request/request/pull/1307) Upgrade form-data, add back browserify compability. Fixes #455. (@eiriksm)
+- [#1305](https://github.com/request/request/pull/1305) Fix typo in README.md (@LewisJEllis)
+- [#1288](https://github.com/request/request/pull/1288) Update README.md to explain custom file use case (@cliffcrosland)
+
 ### v2.49.0 (2014/11/28)
 - [#1295](https://github.com/request/request/pull/1295) fix(proxy): no-proxy false positive (@oliamb)
 - [#1292](https://github.com/request/request/pull/1292) Upgrade `caseless` to 0.8.1 (@mmalecki)
