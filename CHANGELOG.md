@@ -1,5 +1,8 @@
 ## Change Log
 
+### v2.51.0 (2014/12/10)
+- [#1310](https://github.com/request/request/pull/1310) Revert changes introduced in https://github.com/request/request/pull/1282 (@simov)
+
 ### v2.50.0 (2014/12/09)
 - [#1308](https://github.com/request/request/pull/1308) Add browser test to keep track of browserify compability. (@eiriksm)
 - [#1299](https://github.com/request/request/pull/1299) Add optional support for jsonReviver (@poislagarde)
