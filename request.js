@@ -26,6 +26,7 @@ var http = require('http')
   , debug = require('./lib/debug')
   , net = require('net')
   , CombinedStream = require('combined-stream')
+  , isstream = require('isstream')
 
 var safeStringify = helpers.safeStringify
   , md5 = helpers.md5
@@ -1439,7 +1440,7 @@ Request.prototype.multipart = function (multipart) {
       if(typeof part.body === 'undefined') {
         throw new Error('Body attribute missing in multipart.')
       }
-      if (part.body.readable || part.body.writable) {
+      if (isstream(part.body)) {
         chunked = true
       }
     })
