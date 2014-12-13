@@ -253,6 +253,13 @@ function responseToJSON() {
   }
 }
 
+// encode rfc3986 characters
+function rfc3986 (str) {
+  return str.replace(/[!'()*]/g, function(c) {
+    return '%' + c.charCodeAt(0).toString(16)
+  })
+}
+
 function Request (options) {
   // if tunnel property of options was not given default to false
   // if given the method property in options, set property explicitMethod to true
@@ -353,6 +360,10 @@ Request.prototype.init = function (options) {
 
   if (!self.qsLib) {
     self.qsLib = (options.useQuerystring ? querystring : qs)
+  }
+
+  if (options.rfc3986) {
+    self._rfc3986 = true
   }
 
   debug(options)
@@ -1402,7 +1413,12 @@ Request.prototype.qs = function (q, clobber) {
     return self
   }
 
-  self.uri = url.parse(self.uri.href.split('?')[0] + '?' + self.qsLib.stringify(base))
+  var qs = self.qsLib.stringify(base)
+  if (self._rfc3986) {
+    qs = rfc3986(qs)
+  }
+
+  self.uri = url.parse(self.uri.href.split('?')[0] + '?' + qs)
   self.url = self.uri
   self.path = self.uri.path
 
@@ -1413,6 +1429,9 @@ Request.prototype.form = function (form) {
   if (form) {
     self.setHeader('content-type', 'application/x-www-form-urlencoded')
     self.body = (typeof form === 'string') ? form.toString('utf8') : self.qsLib.stringify(form).toString('utf8')
+    if (self._rfc3986) {
+      self.body = rfc3986(self.body)
+    }
     return self
   }
   // create form-data object
@@ -1484,12 +1503,18 @@ Request.prototype.json = function (val) {
   if (typeof val === 'boolean') {
     if (self.body !== undefined && self.getHeader('content-type') !== 'application/x-www-form-urlencoded') {
       self.body = safeStringify(self.body)
+      if (self._rfc3986) {
+        self.body = rfc3986(self.body)
+      }
       if (!self.hasHeader('content-type')) {
         self.setHeader('content-type', 'application/json')
       }
     }
   } else {
     self.body = safeStringify(val)
+    if (self._rfc3986) {
+      self.body = rfc3986(self.body)
+    }
     if (!self.hasHeader('content-type')) {
       self.setHeader('content-type', 'application/json')
     }
