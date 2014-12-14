@@ -5,11 +5,11 @@ var http = require('http')
   , tape = require('tape')
 
 
-tape('application/x-www-form-urlencoded', function(t) {
+function runTest (t, options) {
 
   var server = http.createServer(function(req, res) {
 
-    t.equal(req.headers['content-type'], 'application/x-www-form-urlencoded')
+    t.ok(req.headers['content-type'].match(/application\/x-www-form-urlencoded/))
     t.equal(req.headers.accept, 'application/json')
 
     var data = ''
@@ -24,21 +24,35 @@ tape('application/x-www-form-urlencoded', function(t) {
 
       res.writeHead(200)
       res.end('done')
-
-      t.end()
     })
   })
 
   server.listen(8080, function() {
 
-    request.post('http://localhost:8080', {
-      form: {some: 'url', encoded: 'data'},
-      json: true
-    }, function(err, res, body) {
+    request.post('http://localhost:8080', options, function(err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.equal(body, 'done')
       server.close()
+      t.end()
     })
+  })
+}
+
+var cases = [
+  {
+    form: {some: 'url', encoded: 'data'},
+    json: true
+  },
+  {
+    headers: {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+    body: 'some=url&encoded=data',
+    json: true
+  }
+]
+
+cases.forEach(function (options, index) {
+  tape('application/x-www-form-urlencoded ' + index, function(t) {
+    runTest(t, options)
   })
 })
