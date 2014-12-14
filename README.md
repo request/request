@@ -380,7 +380,8 @@ default signing algorithm is
 [HMAC-SHA1](https://tools.ietf.org/html/rfc5849#section-3.4.2):
 
 ```javascript
-// Twitter OAuth
+// OAuth1.0 - 3-legged server side flow (Twitter example)
+// step 1
 var qs = require('querystring')
   , oauth =
     { callback: 'http://mysite.com/callback/'
@@ -394,30 +395,40 @@ request.post({url:url, oauth:oauth}, function (e, r, body) {
   // and construct a URL that a user clicks on (like a sign in button).
   // The verifier is only available in the response after a user has
   // verified with twitter that they are authorizing your app.
-  var access_token = qs.parse(body)
+
+  // step 2
+  var req_data = qs.parse(body)
+  var uri = 'https://api.twitter.com/oauth/authenticate'
+    + '?' + qs.stringify({oauth_token: req_data.oauth_token})
+  // redirect the user to the authorize uri
+
+  // step 3
+  // after the user is redirected back to your server
+  var auth_data = qs.parse(body)
     , oauth =
       { consumer_key: CONSUMER_KEY
       , consumer_secret: CONSUMER_SECRET
-      , token: access_token.oauth_token
-      , verifier: access_token.oauth_verifier
+      , token: auth_data.oauth_token
+      , token_secret: req_data.oauth_token_secret
+      , verifier: auth_data.oauth_verifier
       }
     , url = 'https://api.twitter.com/oauth/access_token'
     ;
   request.post({url:url, oauth:oauth}, function (e, r, body) {
-    var perm_token = qs.parse(body)
+    // ready to make signed requests on behalf of the user
+    var perm_data = qs.parse(body)
       , oauth =
         { consumer_key: CONSUMER_KEY
         , consumer_secret: CONSUMER_SECRET
-        , token: perm_token.oauth_token
-        , token_secret: perm_token.oauth_token_secret
+        , token: perm_data.oauth_token
+        , token_secret: perm_data.oauth_token_secret
         }
-      , url = 'https://api.twitter.com/1.1/users/show.json?'
-      , params =
-        { screen_name: perm_token.screen_name
-        , user_id: perm_token.user_id
+      , url = 'https://api.twitter.com/1.1/users/show.json'
+      , qs =
+        { screen_name: perm_data.screen_name
+        , user_id: perm_data.user_id
         }
       ;
-    url += qs.stringify(params)
     request.get({url:url, oauth:oauth, json:true}, function (e, r, user) {
       console.log(user)
     })
