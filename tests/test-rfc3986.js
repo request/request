@@ -57,12 +57,11 @@ var cases = [
   {form: {rfc3986: '!*()\''}, json: true},
   {qs: {rfc3986: '!*()\''}, form: {rfc3986: '!*()\''}},
   {qs: {rfc3986: '!*()\''}, form: {rfc3986: '!*()\''}, json: true},
-  // Fixed in https://github.com/request/request/pull/1314
-  // {
-  //   headers: {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'},
-  //   body: 'rfc3986=!*()\'',
-  //   json: true
-  // },
+  {
+    headers: {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+    body: 'rfc3986=!*()\'',
+    json: true
+  },
   {
     body: {rfc3986: '!*()\''}, json: true
   },
