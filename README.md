@@ -545,8 +545,7 @@ The first argument can be either a `url` or an `options` object. The only requir
   * Alternatively you can pass in an object `{chunked: false, data: []}` where
     `chunked` is used to specify whether the request is sent in
     [chunked transfer encoding](https://en.wikipedia.org/wiki/Chunked_transfer_encoding)
-    (the default is `chunked: true`).  In non-chunked requests, data items with
-    body streams are not allowed.
+    In non-chunked requests, data items with body streams are not allowed.
 * `auth` - A hash containing values `user` || `username`, `pass` || `password`, and `sendImmediately` (optional).  See documentation above.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
 * `jsonReviver` - a [reviver function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse) that will be passed to `JSON.parse()` when parsing a JSON response body.
