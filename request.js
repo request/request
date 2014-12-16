@@ -362,10 +362,6 @@ Request.prototype.init = function (options) {
     self.qsLib = (options.useQuerystring ? querystring : qs)
   }
 
-  if (options.rfc3986) {
-    self._rfc3986 = true
-  }
-
   debug(options)
   if (!self.pool && self.pool !== false) {
     self.pool = globalPool
@@ -1414,11 +1410,8 @@ Request.prototype.qs = function (q, clobber) {
   }
 
   var qs = self.qsLib.stringify(base)
-  if (self._rfc3986) {
-    qs = rfc3986(qs)
-  }
 
-  self.uri = url.parse(self.uri.href.split('?')[0] + '?' + qs)
+  self.uri = url.parse(self.uri.href.split('?')[0] + '?' + rfc3986(qs))
   self.url = self.uri
   self.path = self.uri.path
 
@@ -1429,9 +1422,7 @@ Request.prototype.form = function (form) {
   if (form) {
     self.setHeader('content-type', 'application/x-www-form-urlencoded')
     self.body = (typeof form === 'string') ? form.toString('utf8') : self.qsLib.stringify(form).toString('utf8')
-    if (self._rfc3986) {
-      self.body = rfc3986(self.body)
-    }
+    self.body = rfc3986(self.body)
     return self
   }
   // create form-data object
@@ -1505,18 +1496,14 @@ Request.prototype.json = function (val) {
       if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
         self.body = safeStringify(self.body)
       }
-      if (self._rfc3986) {
-        self.body = rfc3986(self.body)
-      }
+      self.body = rfc3986(self.body)
       if (!self.hasHeader('content-type')) {
         self.setHeader('content-type', 'application/json')
       }
     }
   } else {
     self.body = safeStringify(val)
-    if (self._rfc3986) {
-      self.body = rfc3986(self.body)
-    }
+    self.body = rfc3986(self.body)
     if (!self.hasHeader('content-type')) {
       self.setHeader('content-type', 'application/json')
     }

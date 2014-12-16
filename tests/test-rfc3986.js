@@ -18,21 +18,21 @@ function runTest (t, options) {
 
     req.on('end', function() {
       if (options.qs) {
-        t.equal(req.url, (options.rfc3986 ? '/?rfc3986=%21%2a%28%29%27' : '/?rfc3986=!*()%27'))
+        t.equal(req.url, '/?rfc3986=%21%2a%28%29%27')
       }
       if (options.form) {
-        t.equal(data, (options.rfc3986 ? 'rfc3986=%21%2a%28%29%27' : 'rfc3986=!*()\''))
+        t.equal(data, 'rfc3986=%21%2a%28%29%27')
       }
       if (options.body) {
         if (options.headers) {
-          t.equal(data, (options.rfc3986 ? 'rfc3986=%21%2a%28%29%27' : 'rfc3986=!*()\''))
+          t.equal(data, 'rfc3986=%21%2a%28%29%27')
         }
         else {
-          t.equal(data, (options.rfc3986 ? '{"rfc3986":"%21%2a%28%29%27"}' : '{"rfc3986":"!*()\'"}'))
+          t.equal(data, '{"rfc3986":"%21%2a%28%29%27"}')
         }
       }
       if (typeof options.json === 'object') {
-        t.equal(data, (options.rfc3986 ? '{"rfc3986":"%21%2a%28%29%27"}' : '{"rfc3986":"!*()\'"}'))
+        t.equal(data, '{"rfc3986":"%21%2a%28%29%27"}')
       }
 
       res.writeHead(200)
@@ -70,13 +70,8 @@ var cases = [
   }
 ]
 
-var rfc3986 = [false, true]
-
-rfc3986.forEach(function (rfc, index) {
-  cases.forEach(function (options, index) {
-    options.rfc3986 = rfc
-    tape('rfc3986 ' + index, function(t) {
-      runTest(t, options)
-    })
+cases.forEach(function (options, index) {
+  tape('rfc3986 ' + index, function(t) {
+    runTest(t, options)
   })
 })
