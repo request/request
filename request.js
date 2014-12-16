@@ -200,7 +200,8 @@ function getProxyFromURI(uri) {
         }
       } else {
         noProxyItem = noProxyItem.replace(/^\.*/, '.')
-        if (hostname.indexOf(noProxyItem) === hostname.length - noProxyItem.length) {
+        var isMatchedAt = hostname.indexOf(noProxyItem)
+        if (isMatchedAt > -1 && isMatchedAt === hostname.length - noProxyItem.length) {
           return null
         }
       }
@@ -1308,7 +1309,7 @@ Request.prototype.onRequestResponse = function (response) {
 
         if (self._json) {
           try {
-            response.body = JSON.parse(response.body)
+            response.body = JSON.parse(response.body, self._jsonReviver)
           } catch (e) {}
         }
         debug('emitting complete', self.uri.href)
@@ -1496,7 +1497,7 @@ Request.prototype.json = function (val) {
 
   self._json = true
   if (typeof val === 'boolean') {
-    if (typeof self.body === 'object') {
+    if (self.body !== undefined && !/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
       self.body = safeStringify(self.body)
       if (!self.hasHeader('content-type')) {
         self.setHeader('content-type', 'application/json')
@@ -1507,6 +1508,10 @@ Request.prototype.json = function (val) {
     if (!self.hasHeader('content-type')) {
       self.setHeader('content-type', 'application/json')
     }
+  }
+
+  if (typeof self.jsonReviver === 'function') {
+    self._jsonReviver = self.jsonReviver
   }
 
   return self

@@ -256,10 +256,11 @@ var formData = {
   my_file: fs.createReadStream(__dirname + '/unicycle.jpg'),
   // Pass multiple values /w an Array
   attachments: [
-    fs.createReadStream(__dirname + '/attacment1.jpg'),
+    fs.createReadStream(__dirname + '/attachment1.jpg'),
     fs.createReadStream(__dirname + '/attachment2.jpg')
   ],
   // Pass optional meta-data with an 'options' object with style: {value: DATA, options: OPTIONS}
+  // Use case: for some types of streams, you'll need to provide "file"-related information manually.
   // See the `form-data` README for more information about options: https://github.com/felixge/node-form-data
   custom_file: {
     value:  fs.createReadStream('/dev/urandom'),
@@ -277,7 +278,7 @@ request.post({url:'http://service.com/upload', formData: formData}, function opt
 });
 ```
 
-For advanced cases, you can the form-data object itself via `r.form()`. This can be modified until the request is fired on the next cycle of the event-loop. (Note that this calling `form()` will clear the currently set form data for that request.)
+For advanced cases, you can access the form-data object itself via `r.form()`. This can be modified until the request is fired on the next cycle of the event-loop. (Note that this calling `form()` will clear the currently set form data for that request.)
 
 ```javascript
 // NOTE: Advanced use-case, for normal use see 'formData' usage above
@@ -313,7 +314,7 @@ Some variations in different HTTP implementations require a newline/CRLF before,
       chunked: false,
       data: [
         {
-          'content-type': 'application/json', 
+          'content-type': 'application/json',
           body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})
         },
         { body: 'I am an attachment' }
@@ -379,7 +380,8 @@ default signing algorithm is
 [HMAC-SHA1](https://tools.ietf.org/html/rfc5849#section-3.4.2):
 
 ```javascript
-// Twitter OAuth
+// OAuth1.0 - 3-legged server side flow (Twitter example)
+// step 1
 var qs = require('querystring')
   , oauth =
     { callback: 'http://mysite.com/callback/'
@@ -393,30 +395,40 @@ request.post({url:url, oauth:oauth}, function (e, r, body) {
   // and construct a URL that a user clicks on (like a sign in button).
   // The verifier is only available in the response after a user has
   // verified with twitter that they are authorizing your app.
-  var access_token = qs.parse(body)
+
+  // step 2
+  var req_data = qs.parse(body)
+  var uri = 'https://api.twitter.com/oauth/authenticate'
+    + '?' + qs.stringify({oauth_token: req_data.oauth_token})
+  // redirect the user to the authorize uri
+
+  // step 3
+  // after the user is redirected back to your server
+  var auth_data = qs.parse(body)
     , oauth =
       { consumer_key: CONSUMER_KEY
       , consumer_secret: CONSUMER_SECRET
-      , token: access_token.oauth_token
-      , verifier: access_token.oauth_verifier
+      , token: auth_data.oauth_token
+      , token_secret: req_data.oauth_token_secret
+      , verifier: auth_data.oauth_verifier
       }
     , url = 'https://api.twitter.com/oauth/access_token'
     ;
   request.post({url:url, oauth:oauth}, function (e, r, body) {
-    var perm_token = qs.parse(body)
+    // ready to make signed requests on behalf of the user
+    var perm_data = qs.parse(body)
       , oauth =
         { consumer_key: CONSUMER_KEY
         , consumer_secret: CONSUMER_SECRET
-        , token: perm_token.oauth_token
-        , token_secret: perm_token.oauth_token_secret
+        , token: perm_data.oauth_token
+        , token_secret: perm_data.oauth_token_secret
         }
-      , url = 'https://api.twitter.com/1.1/users/show.json?'
-      , params =
-        { screen_name: perm_token.screen_name
-        , user_id: perm_token.user_id
+      , url = 'https://api.twitter.com/1.1/users/show.json'
+      , qs =
+        { screen_name: perm_data.screen_name
+        , user_id: perm_data.user_id
         }
       ;
-    url += qs.stringify(params)
     request.get({url:url, oauth:oauth, json:true}, function (e, r, user) {
       console.log(user)
     })
@@ -537,6 +549,7 @@ The first argument can be either a `url` or an `options` object. The only requir
     body streams are not allowed.
 * `auth` - A hash containing values `user` || `username`, `pass` || `password`, and `sendImmediately` (optional).  See documentation above.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
+* `jsonReviver` - a [reviver function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse) that will be passed to `JSON.parse()` when parsing a JSON response body.
 * `preambleCRLF` - append a newline/CRLF before the boundary of your `multipart/form-data` request.
 * `postambleCRLF` - append a newline/CRLF at the end of the boundary of your `multipart/form-data` request.
 * `followRedirect` - follow HTTP 3xx responses as redirects (default: `true`). This property can also be implemented as function which gets `response` object as a single argument and should return `true` if redirects should continue or `false` otherwise.

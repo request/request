@@ -77,6 +77,24 @@ exports.createPostValidator = function (text, reqContentType) {
   }
   return l
 }
+exports.createPostJSONValidator = function (value, reqContentType) {
+  var l = function (req, resp) {
+    var r = ''
+    req.on('data', function (chunk) {r += chunk})
+    req.on('end', function () {
+      var parsedValue = JSON.parse(r)
+      assert.deepEqual(parsedValue, value)
+      if (reqContentType) {
+        assert.ok(req.headers['content-type'])
+        assert.ok(~req.headers['content-type'].indexOf(reqContentType))
+      }
+      resp.writeHead(200, {'content-type':'application/json'})
+      resp.write(r)
+      resp.end()
+    })
+  }
+  return l
+}
 exports.createGetResponse = function (text, contentType) {
   var l = function (req, resp) {
     contentType = contentType || 'text/plain'
