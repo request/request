@@ -256,7 +256,7 @@ function responseToJSON() {
 // encode rfc3986 characters
 function rfc3986 (str) {
   return str.replace(/[!'()*]/g, function(c) {
-    return '%' + c.charCodeAt(0).toString(16)
+    return '%' + c.charCodeAt(0).toString(16).toUpperCase()
   })
 }
 

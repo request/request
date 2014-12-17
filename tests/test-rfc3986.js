@@ -18,21 +18,21 @@ function runTest (t, options) {
 
     req.on('end', function() {
       if (options.qs) {
-        t.equal(req.url, '/?rfc3986=%21%2a%28%29%27')
+        t.equal(req.url, '/?rfc3986=%21%2A%28%29%27')
       }
       if (options.form) {
-        t.equal(data, 'rfc3986=%21%2a%28%29%27')
+        t.equal(data, 'rfc3986=%21%2A%28%29%27')
       }
       if (options.body) {
         if (options.headers) {
-          t.equal(data, 'rfc3986=%21%2a%28%29%27')
+          t.equal(data, 'rfc3986=%21%2A%28%29%27')
         }
         else {
-          t.equal(data, '{"rfc3986":"%21%2a%28%29%27"}')
+          t.equal(data, '{"rfc3986":"%21%2A%28%29%27"}')
         }
       }
       if (typeof options.json === 'object') {
-        t.equal(data, '{"rfc3986":"%21%2a%28%29%27"}')
+        t.equal(data, '{"rfc3986":"%21%2A%28%29%27"}')
       }
 
       res.writeHead(200)
