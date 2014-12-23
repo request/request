@@ -254,6 +254,13 @@ function responseToJSON() {
   }
 }
 
+// encode rfc3986 characters
+function rfc3986 (str) {
+  return str.replace(/[!'()*]/g, function(c) {
+    return '%' + c.charCodeAt(0).toString(16).toUpperCase()
+  })
+}
+
 function Request (options) {
   // if tunnel property of options was not given default to false
   // if given the method property in options, set property explicitMethod to true
@@ -1403,7 +1410,9 @@ Request.prototype.qs = function (q, clobber) {
     return self
   }
 
-  self.uri = url.parse(self.uri.href.split('?')[0] + '?' + self.qsLib.stringify(base))
+  var qs = self.qsLib.stringify(base)
+
+  self.uri = url.parse(self.uri.href.split('?')[0] + '?' + rfc3986(qs))
   self.url = self.uri
   self.path = self.uri.path
 
@@ -1414,6 +1423,7 @@ Request.prototype.form = function (form) {
   if (form) {
     self.setHeader('content-type', 'application/x-www-form-urlencoded')
     self.body = (typeof form === 'string') ? form.toString('utf8') : self.qsLib.stringify(form).toString('utf8')
+    self.body = rfc3986(self.body)
     return self
   }
   // create form-data object
@@ -1497,14 +1507,18 @@ Request.prototype.json = function (val) {
 
   self._json = true
   if (typeof val === 'boolean') {
-    if (self.body !== undefined && !/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
-      self.body = safeStringify(self.body)
+    if (self.body !== undefined) {
+      if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
+        self.body = safeStringify(self.body)
+      }
+      self.body = rfc3986(self.body)
       if (!self.hasHeader('content-type')) {
         self.setHeader('content-type', 'application/json')
       }
     }
   } else {
     self.body = safeStringify(val)
+    self.body = rfc3986(self.body)
     if (!self.hasHeader('content-type')) {
       self.setHeader('content-type', 'application/json')
     }
