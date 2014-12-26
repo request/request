@@ -65,7 +65,6 @@ tape('multipart form append', function(t) {
       res.end('done')
 
       t.equal(FIELDS.length, 0)
-      t.end()
     })
   })
 
@@ -82,7 +81,9 @@ tape('multipart form append', function(t) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.equal(body, 'done')
-      server.close()
+      server.close(function() {
+        t.end()
+      })
     })
     var form = req.form()
 

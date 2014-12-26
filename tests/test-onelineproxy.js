@@ -54,6 +54,7 @@ tape('chained one-line proxying', function(t) {
 })
 
 tape('cleanup', function(t) {
-  server.close()
-  t.end()
+  server.close(function() {
+    t.end()
+  })
 })

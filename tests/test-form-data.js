@@ -97,8 +97,9 @@ function runTest(t, json) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.deepEqual(body, json ? {status: 'done'} : 'done')
-      server.close()
-      t.end()
+      server.close(function() {
+        t.end()
+      })
     })
 
   })
