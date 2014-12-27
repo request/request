@@ -398,6 +398,53 @@ tape('query transport_method with prexisting url params', function(t) {
   })
 })
 
+tape('query transport_method with qs parameter and existing query string in url', function(t) {
+  var r = request.post(
+    { url: 'http://example.com/request?a2=r%20b'
+    , oauth:
+      { consumer_key: '9djdj82h48djs9d2'
+      , nonce: '7d8f3e4a'
+      , signature_method: 'HMAC-SHA1'
+      , token: 'kkk9d7dh3k39sjv7'
+      , timestamp: '137131201'
+      , consumer_secret: 'j49sk3j29djd'
+      , token_secret: 'dh893hdasih9'
+      , realm: 'Example'
+      , transport_method: 'query'
+      }
+    , qs: {
+        b5: '=%3D',
+        a3: ['a', '2 q'],
+        'c@': '',
+        c2: ''
+    }
+  })
+
+  process.nextTick(function() {
+    t.notOk(r.headers.Authorization, 'oauth Authorization header should not be present with transport_method \'query\'')
+    t.notOk(r.path.match(/\?&/), 'there should be no ampersand at the beginning of the query')
+    t.equal('OB33pYjWAnf+xtOHN4Gmbdil168=', qs.parse(r.path).oauth_signature)
+    var matches = r.path.match(/\?(.*?)&(oauth.*$)/)
+    t.ok(matches, 'regex to split oauth parameters from qs parameters matched successfully')
+    var qsParams = qs.parse(matches[1])
+    var oauthParams = qs.parse(matches[2])
+
+    var i, paramNames = ['a2', 'a3[0]', 'a3[1]', 'c@', 'b5', 'c2']
+    for (i = 0; i < paramNames.length; i++) {
+      t.ok(qsParams.hasOwnProperty(paramNames[i]), 'Non-oauth query params should be first in query string: ' + paramNames[i])
+    }
+
+    paramNames = ['consumer_key', 'nonce', 'timestamp', 'version', 'signature', 'token', 'signature_method']
+    for (i = 0; i < paramNames.length; i++) {
+      var paramName = 'oauth_' + paramNames[i]
+      t.ok(oauthParams[paramName], 'OAuth query params should be included after request specific parameters: ' + paramName)
+    }
+
+    r.abort()
+    t.end()
+  })
+})
+
 tape('body transport_method empty body', function(t) {
   var r = request.post(
     { url: 'https://api.twitter.com/oauth/access_token'
