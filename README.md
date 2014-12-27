@@ -442,6 +442,13 @@ the following changes to the OAuth options object:
 * Instead of `consumer_secret`, specify a `private_key` string in
   [PEM format](http://how2ssl.com/articles/working_with_pem_files/)
 
+To send OAuth parameters via query params or in a post body as described in The
+[Consumer Request Parameters](http://oauth.net/core/1.0/#consumer_req_param)
+section of the oauth1 spec:
+* Pass `transport_method : 'query'` or `transport_method : 'body'` in the OAuth
+  options object.
+* `transport_method` defaults to `'header'`
+
 ## Custom HTTP Headers
 
 HTTP Headers, such as `User-Agent`, can be set in the `options` object.

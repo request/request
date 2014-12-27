@@ -301,3 +301,155 @@ tape('rfc5849 RSA example', function(t) {
     t.end()
   })
 })
+
+tape('invalid transport_method', function(t) {
+  t.throws(
+    function () {
+      request.post(
+      { url: 'http://example.com/'
+      , oauth:
+        { transport_method: 'some random string'
+        }
+      })
+    }, /transport_method invalid/)
+  t.end()
+})
+
+tape('invalid method while using transport_method \'body\'', function(t) {
+  t.throws(
+    function () {
+      request.get(
+      { url: 'http://example.com/'
+      , headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' }
+      , oauth:
+        { transport_method: 'body'
+        }
+      })
+    }, /Illegal combination of oauth.transport_method and http method or content-type/)
+  t.end()
+})
+
+tape('invalid content-type while using transport_method \'body\'', function(t) {
+  t.throws(
+    function () {
+      request.post(
+      { url: 'http://example.com/'
+      , headers: { 'content-type': 'application/json; charset=UTF-8' }
+      , oauth:
+        { transport_method: 'body'
+        }
+      })
+    }, /Illegal combination of oauth.transport_method and http method or content-type/)
+  t.end()
+})
+
+tape('query transport_method simple url', function(t) {
+  var r = request.post(
+    { url: 'https://api.twitter.com/oauth/access_token'
+    , oauth:
+      { consumer_key: 'GDdmIQH6jhtmLUypg82g'
+      , nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8'
+      , signature_method: 'HMAC-SHA1'
+      , token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc'
+      , timestamp: '1272323047'
+      , verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY'
+      , version: '1.0'
+      , consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98'
+      , token_secret: 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA'
+      , transport_method: 'query'
+      }
+    })
+
+  process.nextTick(function() {
+    t.notOk(r.headers.Authorization, 'oauth Authorization header should not be present with transport_method \'query\'')
+    t.equal(accsign, qs.parse(r.path).oauth_signature)
+    t.notOk(r.path.match(/\?&/), 'there should be no ampersand at the beginning of the query');
+    r.abort()
+    t.end()
+  })
+})
+
+tape('query transport_method with prexisting url params', function(t) {
+  var r = request.post(
+    { url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b'
+    , oauth:
+      { consumer_key: '9djdj82h48djs9d2'
+      , nonce: '7d8f3e4a'
+      , signature_method: 'HMAC-SHA1'
+      , token: 'kkk9d7dh3k39sjv7'
+      , timestamp: '137131201'
+      , consumer_secret: 'j49sk3j29djd'
+      , token_secret: 'dh893hdasih9'
+      , realm: 'Example'
+      , transport_method: 'query'
+      }
+    , form: {
+        c2: '',
+        a3: '2 q'
+      }
+    })
+
+  process.nextTick(function() {
+    t.notOk(r.headers.Authorization, 'oauth Authorization header should not be present with transport_method \'query\'')
+    t.notOk(r.path.match(/\?&/), 'there should be no ampersand at the beginning of the query');
+    t.equal('OB33pYjWAnf+xtOHN4Gmbdil168=', qs.parse(r.path).oauth_signature)
+    r.abort()
+    t.end()
+  })
+})
+
+tape('body transport_method empty body', function(t) {
+  var r = request.post(
+    { url: 'https://api.twitter.com/oauth/access_token'
+    , headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' }
+    , oauth:
+      { consumer_key: 'GDdmIQH6jhtmLUypg82g'
+      , nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8'
+      , signature_method: 'HMAC-SHA1'
+      , token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc'
+      , timestamp: '1272323047'
+      , verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY'
+      , version: '1.0'
+      , consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98'
+      , token_secret: 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA'
+      , transport_method: 'body'
+      }
+    })
+
+  process.nextTick(function() {
+    t.notOk(r.headers.Authorization, 'oauth Authorization header should not be present with transport_method \'body\'')
+    t.equal(accsign, qs.parse(r.body.toString()).oauth_signature)
+    t.notOk(r.body.toString().match(/^&/), 'there should be no ampersand at the beginning of the body');
+    r.abort()
+    t.end()
+  })
+})
+
+tape('body transport_method with prexisting body params', function(t) {
+  var r = request.post(
+    { url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b'
+    , oauth:
+      { consumer_key: '9djdj82h48djs9d2'
+      , nonce: '7d8f3e4a'
+      , signature_method: 'HMAC-SHA1'
+      , token: 'kkk9d7dh3k39sjv7'
+      , timestamp: '137131201'
+      , consumer_secret: 'j49sk3j29djd'
+      , token_secret: 'dh893hdasih9'
+      , realm: 'Example'
+      , transport_method: 'body'
+      }
+    , form: {
+        c2: '',
+        a3: '2 q'
+      }
+    })
+
+  process.nextTick(function() {
+    t.notOk(r.headers.Authorization, 'oauth Authorization header should not be present with transport_method \'body\'')
+    t.notOk(r.body.toString().match(/^&/), 'there should be no ampersand at the beginning of the body');
+    t.equal('OB33pYjWAnf+xtOHN4Gmbdil168=', qs.parse(r.body.toString()).oauth_signature)
+    r.abort()
+    t.end()
+  })
+})
