@@ -363,7 +363,7 @@ tape('query transport_method simple url', function(t) {
   process.nextTick(function() {
     t.notOk(r.headers.Authorization, 'oauth Authorization header should not be present with transport_method \'query\'')
     t.equal(accsign, qs.parse(r.path).oauth_signature)
-    t.notOk(r.path.match(/\?&/), 'there should be no ampersand at the beginning of the query');
+    t.notOk(r.path.match(/\?&/), 'there should be no ampersand at the beginning of the query')
     r.abort()
     t.end()
   })
@@ -391,7 +391,7 @@ tape('query transport_method with prexisting url params', function(t) {
 
   process.nextTick(function() {
     t.notOk(r.headers.Authorization, 'oauth Authorization header should not be present with transport_method \'query\'')
-    t.notOk(r.path.match(/\?&/), 'there should be no ampersand at the beginning of the query');
+    t.notOk(r.path.match(/\?&/), 'there should be no ampersand at the beginning of the query')
     t.equal('OB33pYjWAnf+xtOHN4Gmbdil168=', qs.parse(r.path).oauth_signature)
     r.abort()
     t.end()
@@ -419,7 +419,7 @@ tape('body transport_method empty body', function(t) {
   process.nextTick(function() {
     t.notOk(r.headers.Authorization, 'oauth Authorization header should not be present with transport_method \'body\'')
     t.equal(accsign, qs.parse(r.body.toString()).oauth_signature)
-    t.notOk(r.body.toString().match(/^&/), 'there should be no ampersand at the beginning of the body');
+    t.notOk(r.body.toString().match(/^&/), 'there should be no ampersand at the beginning of the body')
     r.abort()
     t.end()
   })
@@ -447,7 +447,7 @@ tape('body transport_method with prexisting body params', function(t) {
 
   process.nextTick(function() {
     t.notOk(r.headers.Authorization, 'oauth Authorization header should not be present with transport_method \'body\'')
-    t.notOk(r.body.toString().match(/^&/), 'there should be no ampersand at the beginning of the body');
+    t.notOk(r.body.toString().match(/^&/), 'there should be no ampersand at the beginning of the body')
     t.equal('OB33pYjWAnf+xtOHN4Gmbdil168=', qs.parse(r.body.toString()).oauth_signature)
     r.abort()
     t.end()
