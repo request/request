@@ -1635,8 +1635,8 @@ Request.prototype.hawk = function (opts) {
 
 Request.prototype.oauth = function (_oauth) {
   var self = this
-  var form, query, contentType = ''
-  var formContentType = 'application/x-www-form-urlencoded'
+  var form, query, contentType = '', formContentType = 'application/x-www-form-urlencoded'
+
   if (self.hasHeader('content-type') &&
       self.getHeader('content-type').slice(0, formContentType.length) === formContentType) {
     contentType = formContentType
@@ -1646,21 +1646,12 @@ Request.prototype.oauth = function (_oauth) {
     query = self.uri.query
   }
 
-  var transport = _oauth.transport_method || 'header'
-  if (typeof transport !== 'string' ||
-      (transport !== 'header' &&
-      transport !== 'body' &&
-      transport !== 'query')) {
-
-    throw new Error('oauth.transport_method invalid')
-  }
-
+  var transport = _oauth.transport_method  || 'header'
   if (transport === 'body' && (
       self.method !== 'POST' || contentType !== formContentType)) {
 
-    throw new Error('Illegal combination of oauth.transport_method and http ' +
-        'method or content-type. transport_method \'body\' can only be used ' +
-        'when http method is \'POST\' and content-type is \'' + formContentType + '\'')
+    throw new Error('oauth.transport_method of \'body\' requires \'POST\' ' +
+        'and content-type \'' + formContentType + '\'')
   }
 
   delete _oauth.transport_method
@@ -1702,26 +1693,23 @@ Request.prototype.oauth = function (_oauth) {
     consumer_secret_or_private_key,
     token_secret)
 
-  if (transport === 'header') {
-    var realm = _oauth.realm ? 'realm="' + _oauth.realm + '",' : ''
-    var authHeader = 'OAuth ' + realm +
-      Object.keys(oa).sort().map(function (i) {return i + '="' + oauth.rfc3986(oa[i]) + '"'}).join(',')
-    authHeader += ',oauth_signature="' + oauth.rfc3986(signature) + '"'
-    self.setHeader('Authorization', authHeader)
+  var buildSortedParams = function (sep, wrap) {
+    wrap = wrap || ''
+    return Object.keys(oa).sort().map(function (i) {
+      return i + '=' + wrap + oauth.rfc3986(oa[i]) + wrap
+    }).join(sep) + sep + 'oauth_signature=' + wrap + oauth.rfc3986(signature) + wrap
+  }
+
+  if (transport === 'query') {
+      self.path += (query ? '&' : '?') + buildSortedParams('&')
+  }
+  else if (transport === 'body') {
+      self.body = (form ? form + '&' : '') + buildSortedParams('&')
   }
   else {
-
-    oa.oauth_signature = signature
-    var joinedOauthParameters = Object.keys(oa).sort().map(function (i) {
-      return i + '=' + oauth.rfc3986(oa[i])
-    }).join('&')
-    delete oa.oauth_signature
-
-    if (transport === 'query') {
-      self.path += (query ? '&' : '?') + joinedOauthParameters
-    } else if (transport === 'body') {
-      self.body = (self.body ? self.body + '&' : '') + joinedOauthParameters
-    }
+    // default method is header
+    var realm = _oauth.realm ? 'realm="' + _oauth.realm + '",' : ''
+    self.setHeader('Authorization', 'OAuth ' + realm + buildSortedParams(',', '"'))
   }
 
   return self

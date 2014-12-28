@@ -302,16 +302,14 @@ tape('rfc5849 RSA example', function(t) {
   })
 })
 
-tape('invalid transport_method', function(t) {
-  t.throws(
-    function () {
-      request.post(
+tape('invalid transport_method defaults to header', function(t) {
+      var r = request.post(
       { url: 'http://example.com/'
       , oauth:
         { transport_method: 'some random string'
         }
       })
-    }, /transport_method invalid/)
+  t.ok(r.headers.Authorization)
   t.end()
 })
 
@@ -325,7 +323,7 @@ tape('invalid method while using transport_method \'body\'', function(t) {
         { transport_method: 'body'
         }
       })
-    }, /Illegal combination of oauth.transport_method and http method or content-type/)
+    }, /requires 'POST'/)
   t.end()
 })
 
@@ -339,7 +337,7 @@ tape('invalid content-type while using transport_method \'body\'', function(t) {
         { transport_method: 'body'
         }
       })
-    }, /Illegal combination of oauth.transport_method and http method or content-type/)
+    }, /requires 'POST'/)
   t.end()
 })
 
