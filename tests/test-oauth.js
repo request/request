@@ -302,14 +302,26 @@ tape('rfc5849 RSA example', function(t) {
   })
 })
 
-tape('invalid transport_method defaults to header', function(t) {
-      var r = request.post(
+tape('invalid transport_method', function(t) {
+  t.throws(
+    function () {
+      request.post(
       { url: 'http://example.com/'
       , oauth:
         { transport_method: 'some random string'
         }
       })
-  t.ok(r.headers.Authorization)
+    }, /transport_method invalid/)
+
+  t.throws(
+    function () {
+      request.post(
+      { url: 'http://example.com/'
+      , oauth:
+        { transport_method: 'headerquery'
+        }
+      })
+    }, /transport_method invalid/)
   t.end()
 })
 

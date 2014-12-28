@@ -1700,16 +1700,18 @@ Request.prototype.oauth = function (_oauth) {
     }).join(sep) + sep + 'oauth_signature=' + wrap + oauth.rfc3986(signature) + wrap
   }
 
-  if (transport === 'query') {
-      self.path += (query ? '&' : '?') + buildSortedParams('&')
-  }
-  else if (transport === 'body') {
-      self.body = (form ? form + '&' : '') + buildSortedParams('&')
-  }
-  else {
-    // default method is header
+  if (transport === 'header') {
     var realm = _oauth.realm ? 'realm="' + _oauth.realm + '",' : ''
     self.setHeader('Authorization', 'OAuth ' + realm + buildSortedParams(',', '"'))
+  }
+  else if (transport === 'query') {
+    self.path += (query ? '&' : '?') + buildSortedParams('&')
+  }
+  else if (transport === 'body') {
+    self.body = (form ? form + '&' : '') + buildSortedParams('&')
+  }
+  else {
+    throw new Error('oauth.transport_method invalid')
   }
 
   return self
