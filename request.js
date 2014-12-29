@@ -956,7 +956,7 @@ Request.prototype.start = function () {
     self.emit('socket', socket)
   })
 
-  if (self._isInitEnd) {
+  if (!self._isInitEnd) {
     self._isInitEnd = true
     self.on('end', function() {
       if ( self.req.connection ) {
