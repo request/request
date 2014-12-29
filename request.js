@@ -1321,7 +1321,7 @@ Request.prototype.onRequestResponse = function (response) {
         }
         debug('emitting complete', self.uri.href)
         if(typeof response.body === 'undefined' && !self._json) {
-          response.body = ''
+          response.body = self.encoding === null ? new Buffer(0) : ''
         }
         self.emit('complete', response, response.body)
       })
