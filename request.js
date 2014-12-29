@@ -1646,12 +1646,12 @@ Request.prototype.oauth = function (_oauth) {
     query = self.uri.query
   }
 
-  var transport = _oauth.transport_method  || 'header'
+  var transport = _oauth.transport_method || 'header'
   if (transport === 'body' && (
       self.method !== 'POST' || contentType !== formContentType)) {
 
     throw new Error('oauth.transport_method of \'body\' requires \'POST\' ' +
-        'and content-type \'' + formContentType + '\'')
+      'and content-type \'' + formContentType + '\'')
   }
 
   delete _oauth.transport_method
