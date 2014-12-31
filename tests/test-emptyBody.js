@@ -15,11 +15,23 @@ tape('setup', function(t) {
   })
 })
 
-tape('empty body', function(t) {
+tape('empty body with encoding', function(t) {
   request('http://localhost:6767', function(err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, '')
+    t.end()
+  })
+})
+
+tape('empty body without encoding', function(t) {
+  request({
+    url: 'http://localhost:6767',
+    encoding: null
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.same(body, new Buffer(0))
     t.end()
   })
 })
