@@ -41,9 +41,10 @@
     "isstream": "~0.1.1"
   },
   "scripts": {
-    "test": "npm run lint && node node_modules/.bin/taper tests/test-*.js && npm run test-browser",
+    "test": "npm run lint && node node_modules/.bin/taper tests/test-*.js && npm run test-browser && npm run clean",
     "test-browser": "browserify tests/browser/test.js -o tests/browser/test-browser.js && karma start tests/browser/karma.conf.js",
-    "lint": "node node_modules/.bin/eslint lib/ *.js tests/ && echo Lint passed."
+    "lint": "node node_modules/.bin/eslint lib/ *.js tests/ && echo Lint passed.",
+    "clean": "rm tests/browser/test-browser.js || true"
   },
   "devDependencies": {
     "browserify": "~5.9.1",
