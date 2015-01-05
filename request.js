@@ -451,6 +451,7 @@ Request.prototype.init = function (options) {
     return self.emit('error', new Error(message))
   }
 
+  self._authOnRedirect = options.authOnRedirect === true;
   self._redirectsFollowed = self._redirectsFollowed || 0
   self.maxRedirects = (self.maxRedirects !== undefined) ? self.maxRedirects : 10
   self.allowRedirect = (typeof self.followRedirect === 'function') ? self.followRedirect : function(response) {
@@ -1200,7 +1201,7 @@ Request.prototype.onRequestResponse = function (response) {
         self.removeHeader('host')
         self.removeHeader('content-type')
         self.removeHeader('content-length')
-        if (self.uri.hostname !== self.originalHost.split(':')[0]) {
+        if (self._authOnRedirect === false && self.uri.hostname !== self.originalHost.split(':')[0]) {
           // Remove authorization if changing hostnames (but not if just
           // changing ports or protocols).  This matches the behavior of curl:
           // https://github.com/bagder/curl/blob/6beb0eee/lib/http.c#L710
