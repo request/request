@@ -1,15 +1,27 @@
-var request = require('../index')
-  , assert = require('assert')
-  ;
+'use strict'
 
-request.get({
-  uri: 'http://www.google.com', localAddress: '1.2.3.4' // some invalid address
-}, function(err, res) {
-  assert(!res) // asserting that no response received
+var request = require('../index')
+  , tape = require('tape')
+
+tape('bind to invalid address', function(t) {
+  request.get({
+    uri: 'http://www.google.com',
+    localAddress: '1.2.3.4'
+  }, function(err, res) {
+    t.notEqual(err, null)
+    t.equal(err.message, 'bind EADDRNOTAVAIL')
+    t.equal(res, undefined)
+    t.end()
+  })
 })
 
-request.get({
-  uri: 'http://www.google.com', localAddress: '127.0.0.1'
-}, function(err, res) {
-  assert(!res) // asserting that no response received
+tape('bind to local address', function(t) {
+  request.get({
+    uri: 'http://www.google.com',
+    localAddress: '127.0.0.1'
+  }, function(err, res) {
+    t.notEqual(err, null)
+    t.equal(res, undefined)
+    t.end()
+  })
 })

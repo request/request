@@ -1,8 +1,7 @@
 'use strict'
 
-var optional = require('./lib/optional')
-  , http = require('http')
-  , https = optional('https')
+var http = require('http')
+  , https = require('https')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
@@ -10,34 +9,35 @@ var optional = require('./lib/optional')
   , querystring = require('querystring')
   , zlib = require('zlib')
   , helpers = require('./lib/helpers')
-  , safeStringify = helpers.safeStringify
-  , md5 = helpers.md5
-  , isReadStream = helpers.isReadStream
-  , toBase64 = helpers.toBase64
   , bl = require('bl')
-  , oauth = optional('oauth-sign')
-  , hawk = optional('hawk')
-  , aws = optional('aws-sign2')
-  , httpSignature = optional('http-signature')
+  , oauth = require('oauth-sign')
+  , hawk = require('hawk')
+  , aws = require('aws-sign2')
+  , httpSignature = require('http-signature')
   , uuid = require('node-uuid')
   , mime = require('mime-types')
   , tunnel = require('tunnel-agent')
-  , stringstream = optional('stringstream')
+  , stringstream = require('stringstream')
   , caseless = require('caseless')
-
   , ForeverAgent = require('forever-agent')
-  , FormData = optional('form-data')
-
+  , FormData = require('form-data')
   , cookies = require('./lib/cookies')
-  , globalCookieJar = cookies.jar()
-
   , copy = require('./lib/copy')
   , debug = require('./lib/debug')
   , net = require('net')
+  , CombinedStream = require('combined-stream')
+  , isstream = require('isstream')
+
+var safeStringify = helpers.safeStringify
+  , md5 = helpers.md5
+  , isReadStream = helpers.isReadStream
+  , toBase64 = helpers.toBase64
+  , defer = helpers.defer
+  , globalCookieJar = cookies.jar()
 
 
 var globalPool = {}
-var isUrl = /^https?:|^unix:/
+  , isUrl = /^https?:/
 
 var defaultProxyHeaderWhiteList = [
   'accept',
@@ -58,7 +58,6 @@ var defaultProxyHeaderWhiteList = [
   'expect',
   'max-forwards',
   'pragma',
-  'proxy-authorization',
   'referer',
   'te',
   'transfer-encoding',
@@ -66,7 +65,201 @@ var defaultProxyHeaderWhiteList = [
   'via'
 ]
 
-util.inherits(Request, stream.Stream)
+var defaultProxyHeaderExclusiveList = [
+  'proxy-authorization'
+]
+
+function filterForNonReserved(reserved, options) {
+  // Filter out properties that are not reserved.
+  // Reserved values are passed in at call site.
+
+  var object = {}
+  for (var i in options) {
+    var notReserved = (reserved.indexOf(i) === -1)
+    if (notReserved) {
+      object[i] = options[i]
+    }
+  }
+  return object
+}
+
+function filterOutReservedFunctions(reserved, options) {
+  // Filter out properties that are functions and are reserved.
+  // Reserved values are passed in at call site.
+
+  var object = {}
+  for (var i in options) {
+    var isReserved = !(reserved.indexOf(i) === -1)
+    var isFunction = (typeof options[i] === 'function')
+    if (!(isReserved && isFunction)) {
+      object[i] = options[i]
+    }
+  }
+  return object
+
+}
+
+function constructProxyHost(uriObject) {
+  var port = uriObject.portA
+    , protocol = uriObject.protocol
+    , proxyHost = uriObject.hostname + ':'
+
+  if (port) {
+    proxyHost += port
+  } else if (protocol === 'https:') {
+    proxyHost += '443'
+  } else {
+    proxyHost += '80'
+  }
+
+  return proxyHost
+}
+
+function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList) {
+  var whiteList = proxyHeaderWhiteList
+    .reduce(function (set, header) {
+      set[header.toLowerCase()] = true
+      return set
+    }, {})
+
+  return Object.keys(headers)
+    .filter(function (header) {
+      return whiteList[header.toLowerCase()]
+    })
+    .reduce(function (set, header) {
+      set[header] = headers[header]
+      return set
+    }, {})
+}
+
+function construcTunnelOptions(request) {
+  var proxy = request.proxy
+
+  var tunnelOptions = {
+    proxy: {
+      host: proxy.hostname,
+      port: +proxy.port,
+      proxyAuth: proxy.auth,
+      headers: request.proxyHeaders
+    },
+    rejectUnauthorized: request.rejectUnauthorized,
+    headers: request.headers,
+    ca: request.ca,
+    cert: request.cert,
+    key: request.key
+  }
+
+  return tunnelOptions
+}
+
+function constructTunnelFnName(uri, proxy) {
+  var uriProtocol = (uri.protocol === 'https:' ? 'https' : 'http')
+  var proxyProtocol = (proxy.protocol === 'https:' ? 'Https' : 'Http')
+  return [uriProtocol, proxyProtocol].join('Over')
+}
+
+function getTunnelFn(request) {
+  var uri = request.uri
+  var proxy = request.proxy
+  var tunnelFnName = constructTunnelFnName(uri, proxy)
+  return tunnel[tunnelFnName]
+}
+
+// Decide the proper request proxy to use based on the request URI object and the
+// environmental variables (NO_PROXY, HTTP_PROXY, etc.)
+function getProxyFromURI(uri) {
+  // respect NO_PROXY environment variables (see: http://lynx.isc.org/current/breakout/lynx_help/keystrokes/environments.html)
+  var noProxy = process.env.NO_PROXY || process.env.no_proxy || null
+
+  // easy case first - if NO_PROXY is '*'
+  if (noProxy === '*') {
+    return null
+  }
+
+  // otherwise, parse the noProxy value to see if it applies to the URL
+  if (noProxy !== null) {
+    var noProxyItem, hostname, port, noProxyItemParts, noProxyHost, noProxyPort, noProxyList
+
+    // canonicalize the hostname, so that 'oogle.com' won't match 'google.com'
+    hostname = uri.hostname.replace(/^\.*/, '.').toLowerCase()
+    noProxyList = noProxy.split(',')
+
+    for (var i = 0, len = noProxyList.length; i < len; i++) {
+      noProxyItem = noProxyList[i].trim().toLowerCase()
+
+      // no_proxy can be granular at the port level, which complicates things a bit.
+      if (noProxyItem.indexOf(':') > -1) {
+        noProxyItemParts = noProxyItem.split(':', 2)
+        noProxyHost = noProxyItemParts[0].replace(/^\.*/, '.')
+        noProxyPort = noProxyItemParts[1]
+        port = uri.port || (uri.protocol === 'https:' ? '443' : '80')
+
+        // we've found a match - ports are same and host ends with no_proxy entry.
+        if (port === noProxyPort && hostname.indexOf(noProxyHost) === hostname.length - noProxyHost.length) {
+          return null
+        }
+      } else {
+        noProxyItem = noProxyItem.replace(/^\.*/, '.')
+        var isMatchedAt = hostname.indexOf(noProxyItem)
+        if (isMatchedAt > -1 && isMatchedAt === hostname.length - noProxyItem.length) {
+          return null
+        }
+      }
+    }
+  }
+
+  // check for HTTP(S)_PROXY environment variables
+  if (uri.protocol === 'http:') {
+      return process.env.HTTP_PROXY || process.env.http_proxy || null
+  } else if (uri.protocol === 'https:') {
+      return process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy || null
+  }
+
+  // return null if all else fails (What uri protocol are you using then?)
+  return null
+}
+
+// Function for properly handling a connection error
+function connectionErrorHandler(error) {
+  var socket = this
+  if (socket.res) {
+    if (socket.res.request) {
+      socket.res.request.emit('error', error)
+    } else {
+      socket.res.emit('error', error)
+    }
+  } else {
+    socket._httpMessage.emit('error', error)
+  }
+}
+
+// Return a simpler request object to allow serialization
+function requestToJSON() {
+  var self = this
+  return {
+    uri: self.uri,
+    method: self.method,
+    headers: self.headers
+  }
+}
+
+// Return a simpler response object to allow serialization
+function responseToJSON() {
+  var self = this
+  return {
+    statusCode: self.statusCode,
+    body: self.body,
+    headers: self.headers,
+    request: requestToJSON.call(self.request)
+  }
+}
+
+// encode rfc3986 characters
+function rfc3986 (str) {
+  return str.replace(/[!'()*]/g, function(c) {
+    return '%' + c.charCodeAt(0).toString(16).toUpperCase()
+  })
+}
 
 function Request (options) {
   // if tunnel property of options was not given default to false
@@ -98,6 +291,8 @@ function Request (options) {
   self.init(options)
 }
 
+util.inherits(Request, stream.Stream)
+
 Request.prototype.setupTunnel = function () {
   // Set up the tunneling agent if necessary
   // Only send the proxy whitelisted header names.
@@ -117,13 +312,27 @@ Request.prototype.setupTunnel = function () {
     return false
   }
 
+  // Always include `defaultProxyHeaderExclusiveList`
+
+  if (!self.proxyHeaderExclusiveList) {
+    self.proxyHeaderExclusiveList = []
+  }
+
+  var proxyHeaderExclusiveList = self.proxyHeaderExclusiveList.concat(defaultProxyHeaderExclusiveList)
+
+  // Treat `proxyHeaderExclusiveList` as part of `proxyHeaderWhiteList`
+
   if (!self.proxyHeaderWhiteList) {
     self.proxyHeaderWhiteList = defaultProxyHeaderWhiteList
   }
 
+  var proxyHeaderWhiteList = self.proxyHeaderWhiteList.concat(proxyHeaderExclusiveList)
+
   var proxyHost = constructProxyHost(self.uri)
-  self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, self.proxyHeaderWhiteList)
+  self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, proxyHeaderWhiteList)
   self.proxyHeaders.host = proxyHost
+
+  proxyHeaderExclusiveList.forEach(self.removeHeader, self)
 
   var tunnelFn = getTunnelFn(self)
   var tunnelOptions = construcTunnelOptions(self)
@@ -138,22 +347,26 @@ Request.prototype.init = function (options) {
   // the actual outgoing request is not started until start() is called
   // this function is called from both the constructor and on redirect.
   var self = this
-  if (!options) options = {}
+  if (!options) {
+    options = {}
+  }
   self.headers = self.headers ? copy(self.headers) : {}
 
   caseless.httpify(self, self.headers)
 
-  // Never send proxy-auth to the endpoint!
-  if (self.hasHeader('proxy-authorization')) {
-    self.proxyAuthorization = self.getHeader('proxy-authorization')
-    self.removeHeader('proxy-authorization')
+  if (!self.method) {
+    self.method = options.method || 'GET'
   }
-
-  if (!self.method) self.method = options.method || 'GET'
   self.localAddress = options.localAddress
 
+  if (!self.qsLib) {
+    self.qsLib = (options.useQuerystring ? querystring : qs)
+  }
+
   debug(options)
-  if (!self.pool && self.pool !== false) self.pool = globalPool
+  if (!self.pool && self.pool !== false) {
+    self.pool = globalPool
+  }
   self.dests = self.dests || []
   self.__isRequestRequest = true
 
@@ -161,7 +374,9 @@ Request.prototype.init = function (options) {
   if (!self._callback && self.callback) {
     self._callback = self.callback
     self.callback = function () {
-      if (self._callbackCalled) return // Print a warning maybe?
+      if (self._callbackCalled) {
+        return // Print a warning maybe?
+      }
       self._callbackCalled = true
       self._callback.apply(self, arguments)
     }
@@ -169,17 +384,40 @@ Request.prototype.init = function (options) {
     self.on('complete', self.callback.bind(self, null))
   }
 
-  if (self.url && !self.uri) {
-    // People use this property instead all the time so why not just support it.
+  // People use this property instead all the time, so support it
+  if (!self.uri && self.url) {
     self.uri = self.url
     delete self.url
   }
 
+  // A URI is needed by this point, throw if we haven't been able to get one
   if (!self.uri) {
-    // this will throw if unhandled but is handleable when in a redirect
     return self.emit('error', new Error('options.uri is a required argument'))
-  } else if (typeof self.uri === 'string') {
+  }
+
+  // If a string URI/URL was given, parse it into a URL object
+  if(typeof self.uri === 'string') {
     self.uri = url.parse(self.uri)
+  }
+
+  // DEPRECATED: Warning for users of the old Unix Sockets URL Scheme
+  if (self.uri.protocol === 'unix:') {
+    return self.emit('error', new Error('`unix://` URL scheme is no longer supported. Please use the format `http://unix:SOCKET:PATH`'))
+  }
+
+  // Support Unix Sockets
+  if(self.uri.host === 'unix') {
+    // Get the socket & request paths from the URL
+    var unixParts = self.uri.path.split(':')
+      , host = unixParts[0]
+      , path = unixParts[1]
+    // Apply unix properties to request
+    self.socketPath = host
+    self.uri.pathname = path
+    self.uri.path = path
+    self.uri.host = host
+    self.uri.hostname = host
+    self.uri.isUnix = true
   }
 
   if (self.strictSSL === false) {
@@ -187,52 +425,7 @@ Request.prototype.init = function (options) {
   }
 
   if(!self.hasOwnProperty('proxy')) {
-    // check for HTTP(S)_PROXY environment variables
-    if(self.uri.protocol === 'http:') {
-        self.proxy = process.env.HTTP_PROXY || process.env.http_proxy || null
-    } else if(self.uri.protocol === 'https:') {
-        self.proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
-                     process.env.HTTP_PROXY || process.env.http_proxy || null
-    }
-
-    // respect NO_PROXY environment variables
-    // ref: http://lynx.isc.org/current/breakout/lynx_help/keystrokes/environments.html
-    var noProxy = process.env.NO_PROXY || process.env.no_proxy || null
-
-    // easy case first - if NO_PROXY is '*'
-    if (noProxy === '*') {
-      self.proxy = null
-    } else if (noProxy !== null) {
-      var noProxyItem, hostname, port, noProxyItemParts, noProxyHost, noProxyPort, noProxyList
-
-      // canonicalize the hostname, so that 'oogle.com' won't match 'google.com'
-      hostname = self.uri.hostname.replace(/^\.*/, '.').toLowerCase()
-      noProxyList = noProxy.split(',')
-
-      for (var i = 0, len = noProxyList.length; i < len; i++) {
-        noProxyItem = noProxyList[i].trim().toLowerCase()
-
-        // no_proxy can be granular at the port level, which complicates things a bit.
-        if (noProxyItem.indexOf(':') > -1) {
-          noProxyItemParts = noProxyItem.split(':', 2)
-          noProxyHost = noProxyItemParts[0].replace(/^\.*/, '.')
-          noProxyPort = noProxyItemParts[1]
-
-          port = self.uri.port || (self.uri.protocol === 'https:' ? '443' : '80')
-          if (port === noProxyPort && hostname.indexOf(noProxyHost) === hostname.length - noProxyHost.length) {
-            // we've found a match - ports are same and host ends with no_proxy entry.
-            self.proxy = null
-            break
-          }
-        } else {
-          noProxyItem = noProxyItem.replace(/^\.*/, '.')
-          if (hostname.indexOf(noProxyItem) === hostname.length - noProxyItem.length) {
-            self.proxy = null
-            break
-          }
-        }
-      }
-    }
+    self.proxy = getProxyFromURI(self.uri)
   }
 
   // Pass in `tunnel:true` to *always* tunnel through proxies
@@ -243,7 +436,7 @@ Request.prototype.init = function (options) {
 
   if (!self.uri.pathname) {self.uri.pathname = '/'}
 
-  if (!self.uri.host && self.uri.protocol !== 'unix:') {
+  if (!(self.uri.host || (self.uri.hostname && self.uri.port)) && !self.uri.isUnix) {
     // Invalid URI: it may generate lot of bad errors, like 'TypeError: Cannot call method `indexOf` of undefined' in CookieJar
     // Detect and reject it as soon as possible
     var faultyUri = url.format(self.uri)
@@ -265,16 +458,19 @@ Request.prototype.init = function (options) {
   }
   self.followRedirects = (self.followRedirect !== undefined) ? !!self.followRedirect : true
   self.followAllRedirects = (self.followAllRedirects !== undefined) ? self.followAllRedirects : false
-  if (self.followRedirects || self.followAllRedirects)
+  if (self.followRedirects || self.followAllRedirects) {
     self.redirects = self.redirects || []
+  }
 
   self.setHost = false
   if (!self.hasHeader('host')) {
-    self.setHeader('host', self.uri.hostname)
+    var hostHeaderName = self.originalHostHeaderName || 'host'
+    self.setHeader(hostHeaderName, self.uri.hostname)
     if (self.uri.port) {
       if ( !(self.uri.port === 80 && self.uri.protocol === 'http:') &&
-           !(self.uri.port === 443 && self.uri.protocol === 'https:') )
-      self.setHeader('host', self.getHeader('host') + (':' + self.uri.port) )
+           !(self.uri.port === 443 && self.uri.protocol === 'https:') ) {
+        self.setHeader(hostHeaderName, self.getHeader('host') + (':' + self.uri.port) )
+      }
     }
     self.setHost = true
   }
@@ -294,332 +490,244 @@ Request.prototype.init = function (options) {
     self.host = self.uri.hostname
   }
 
-  self.clientErrorHandler = function (error) {
-    if (self._aborted) return
-    if (self.req && self.req._reusedSocket && error.code === 'ECONNRESET'
-        && self.agent.addRequestNoreuse) {
-      self.agent = { addRequest: self.agent.addRequestNoreuse.bind(self.agent) }
-      self.start()
-      self.req.end()
-      return
-    }
-    if (self.timeout && self.timeoutTimer) {
-      clearTimeout(self.timeoutTimer)
-      self.timeoutTimer = null
-    }
-    self.emit('error', error)
+  if (options.form) {
+    self.form(options.form)
   }
 
-  self._parserErrorHandler = function (error) {
-    if (this.res) {
-      if (this.res.request) {
-        this.res.request.emit('error', error)
+  if (options.formData) {
+    var formData = options.formData
+    var requestForm = self.form()
+    var appendFormValue = function (key, value) {
+      if (value.hasOwnProperty('value') && value.hasOwnProperty('options')) {
+        requestForm.append(key, value.value, value.options)
       } else {
-        this.res.emit('error', error)
-      }
-    } else {
-      this._httpMessage.emit('error', error)
-    }
-  }
-
-  self._buildRequest = function(){
-    var self = this
-
-    if (options.form) {
-      self.form(options.form)
-    }
-
-    if (options.formData) {
-      var formData = options.formData
-      var requestForm = self.form()
-      for (var formKey in formData) {
-        if (formData.hasOwnProperty(formKey)) {
-          requestForm.append(formKey, formData[formKey])
-        }
+        requestForm.append(key, value)
       }
     }
-
-    if (options.qs) self.qs(options.qs)
-
-    if (self.uri.path) {
-      self.path = self.uri.path
-    } else {
-      self.path = self.uri.pathname + (self.uri.search || '')
-    }
-
-    if (self.path.length === 0) self.path = '/'
-
-
-    // Auth must happen last in case signing is dependent on other headers
-    if (options.oauth) {
-      self.oauth(options.oauth)
-    }
-
-    if (options.aws) {
-      self.aws(options.aws)
-    }
-
-    if (options.hawk) {
-      self.hawk(options.hawk)
-    }
-
-    if (options.httpSignature) {
-      self.httpSignature(options.httpSignature)
-    }
-
-    if (options.auth) {
-      if (Object.prototype.hasOwnProperty.call(options.auth, 'username')) options.auth.user = options.auth.username
-      if (Object.prototype.hasOwnProperty.call(options.auth, 'password')) options.auth.pass = options.auth.password
-
-      self.auth(
-        options.auth.user,
-        options.auth.pass,
-        options.auth.sendImmediately,
-        options.auth.bearer
-      )
-    }
-
-    if (self.gzip && !self.hasHeader('accept-encoding')) {
-      self.setHeader('accept-encoding', 'gzip')
-    }
-
-    if (self.uri.auth && !self.hasHeader('authorization')) {
-      var uriAuthPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
-      self.auth(uriAuthPieces[0], uriAuthPieces.slice(1).join(':'), true)
-    }
-
-    if (self.proxy && !self.tunnel) {
-      if (self.proxy.auth && !self.proxyAuthorization) {
-        var proxyAuthPieces = self.proxy.auth.split(':').map(function(item){
-          return querystring.unescape(item)
-        })
-        var authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
-        self.proxyAuthorization = authHeader
-      }
-      if (self.proxyAuthorization)
-        self.setHeader('proxy-authorization', self.proxyAuthorization)
-    }
-
-    if (self.proxy && !self.tunnel) self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
-
-    if (options.json) {
-      self.json(options.json)
-    } else if (options.multipart) {
-      self.boundary = uuid()
-      self.multipart(options.multipart)
-    }
-
-    if (self.body) {
-      var length = 0
-      if (!Buffer.isBuffer(self.body)) {
-        if (Array.isArray(self.body)) {
-          for (var i = 0; i < self.body.length; i++) {
-            length += self.body[i].length
+    for (var formKey in formData) {
+      if (formData.hasOwnProperty(formKey)) {
+        var formValue = formData[formKey]
+        if (formValue instanceof Array) {
+          for (var j = 0; j < formValue.length; j++) {
+            appendFormValue(formKey, formValue[j])
           }
         } else {
-          self.body = new Buffer(self.body)
-          length = self.body.length
+          appendFormValue(formKey, formValue)
+        }
+      }
+    }
+  }
+
+  if (options.qs) {
+    self.qs(options.qs)
+  }
+
+  if (self.uri.path) {
+    self.path = self.uri.path
+  } else {
+    self.path = self.uri.pathname + (self.uri.search || '')
+  }
+
+  if (self.path.length === 0) {
+    self.path = '/'
+  }
+
+  // Auth must happen last in case signing is dependent on other headers
+  if (options.oauth) {
+    self.oauth(options.oauth)
+  }
+
+  if (options.aws) {
+    self.aws(options.aws)
+  }
+
+  if (options.hawk) {
+    self.hawk(options.hawk)
+  }
+
+  if (options.httpSignature) {
+    self.httpSignature(options.httpSignature)
+  }
+
+  if (options.auth) {
+    if (Object.prototype.hasOwnProperty.call(options.auth, 'username')) {
+      options.auth.user = options.auth.username
+    }
+    if (Object.prototype.hasOwnProperty.call(options.auth, 'password')) {
+      options.auth.pass = options.auth.password
+    }
+
+    self.auth(
+      options.auth.user,
+      options.auth.pass,
+      options.auth.sendImmediately,
+      options.auth.bearer
+    )
+  }
+
+  if (self.gzip && !self.hasHeader('accept-encoding')) {
+    self.setHeader('accept-encoding', 'gzip')
+  }
+
+  if (self.uri.auth && !self.hasHeader('authorization')) {
+    var uriAuthPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
+    self.auth(uriAuthPieces[0], uriAuthPieces.slice(1).join(':'), true)
+  }
+
+  if (!self.tunnel && self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization')) {
+    var proxyAuthPieces = self.proxy.auth.split(':').map(function(item){
+      return querystring.unescape(item)
+    })
+    var authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
+    self.setHeader('proxy-authorization', authHeader)
+  }
+
+  if (self.proxy && !self.tunnel) {
+    self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
+  }
+
+  if (options.json) {
+    self.json(options.json)
+  }
+  if (options.multipart) {
+    self.boundary = uuid()
+    self.multipart(options.multipart)
+  }
+
+  if (self.body) {
+    var length = 0
+    if (!Buffer.isBuffer(self.body)) {
+      if (Array.isArray(self.body)) {
+        for (var i = 0; i < self.body.length; i++) {
+          length += self.body[i].length
         }
       } else {
+        self.body = new Buffer(self.body)
         length = self.body.length
       }
-      if (length) {
-        if (!self.hasHeader('content-length')) self.setHeader('content-length', length)
-      } else {
-        throw new Error('Argument error, options.body.')
-      }
-    }
-
-    var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
-      , defaultModules = {'http:':http, 'https:':https, 'unix:':http}
-      , httpModules = self.httpModules || {}
-
-    self.httpModule = httpModules[protocol] || defaultModules[protocol]
-
-    if (!self.httpModule) return this.emit('error', new Error('Invalid protocol: ' + protocol))
-
-    if (options.ca) self.ca = options.ca
-
-    if (!self.agent) {
-      if (options.agentOptions) self.agentOptions = options.agentOptions
-
-      if (options.agentClass) {
-        self.agentClass = options.agentClass
-      } else if (options.forever) {
-        self.agentClass = protocol === 'http:' ? ForeverAgent : ForeverAgent.SSL
-      } else {
-        self.agentClass = self.httpModule.Agent
-      }
-    }
-
-    if (self.pool === false) {
-      self.agent = false
     } else {
-      self.agent = self.agent || self.getAgent()
-      if (self.maxSockets) {
-        // Don't use our pooling if node has the refactored client
-        self.agent.maxSockets = self.maxSockets
-      }
-      if (self.pool.maxSockets) {
-        // Don't use our pooling if node has the refactored client
-        self.agent.maxSockets = self.pool.maxSockets
-      }
+      length = self.body.length
     }
-
-    self.on('pipe', function (src) {
-      if (self.ntick && self._started) throw new Error('You cannot pipe to this stream after the outbound request has started.')
-      self.src = src
-      if (isReadStream(src)) {
-        if (!self.hasHeader('content-type')) self.setHeader('content-type', mime.lookup(src.path))
-      } else {
-        if (src.headers) {
-          for (var i in src.headers) {
-            if (!self.hasHeader(i)) {
-              self.setHeader(i, src.headers[i])
-            }
-          }
-        }
-        if (self._json && !self.hasHeader('content-type'))
-          self.setHeader('content-type', 'application/json')
-        if (src.method && !self.explicitMethod) {
-          self.method = src.method
-        }
+    if (length) {
+      if (!self.hasHeader('content-length')) {
+        self.setHeader('content-length', length)
       }
-
-      // self.on('pipe', function () {
-      //   console.error('You have already piped to this stream. Pipeing twice is likely to break the request.')
-      // })
-    })
-
-    process.nextTick(function () {
-      if (self._aborted) return
-
-      var end = function () {
-        if (self._form) {
-          self._form.pipe(self)
-        }
-        if (self.body) {
-          if (Array.isArray(self.body)) {
-            self.body.forEach(function (part) {
-              self.write(part)
-            })
-          } else {
-            self.write(self.body)
-          }
-          self.end()
-        } else if (self.requestBodyStream) {
-          console.warn('options.requestBodyStream is deprecated, please pass the request object to stream.pipe.')
-          self.requestBodyStream.pipe(self)
-        } else if (!self.src) {
-          if (self.method !== 'GET' && typeof self.method !== 'undefined') {
-            self.setHeader('content-length', 0)
-          }
-          self.end()
-        }
-      }
-
-      if (self._form && !self.hasHeader('content-length')) {
-        // Before ending the request, we had to compute the length of the whole form, asyncly
-        self.setHeader(self._form.getHeaders())
-        self._form.getLength(function (err, length) {
-          if (!err) {
-            self.setHeader('content-length', length)
-          }
-          end()
-        })
-      } else {
-        end()
-      }
-
-      self.ntick = true
-    })
-
-  } // End _buildRequest
-
-  self._handleUnixSocketURI = function(self){
-    // Parse URI and extract a socket path (tested as a valid socket using net.connect), and a http style path suffix
-    // Thus http requests can be made to a socket using the uri unix://tmp/my.socket/urlpath
-    // and a request for '/urlpath' will be sent to the unix socket at /tmp/my.socket
-
-    self.unixsocket = true
-
-    var full_path = self.uri.href.replace(self.uri.protocol + '/', '')
-
-    var lookup = full_path.split('/')
-
-    var lookup_table = {}
-    do { lookup_table[lookup.join('/')] = {} } while(lookup.pop())
-    for (var r in lookup_table){
-      try_next(r)
-    }
-
-    function try_next(table_row) {
-      var client = net.connect( table_row )
-      client.path = table_row
-      client.on('error', function(){
-        lookup_table[this.path].error_connecting = true
-        this.end()
-      })
-      client.on('connect', function(){
-        lookup_table[this.path].error_connecting = false
-        this.end()
-      })
-      table_row.client = client
-    }
-
-    wait_for_socket_response()
-
-    var response_counter = 0
-
-    function wait_for_socket_response(){
-      var detach
-      if(typeof setImmediate === 'undefined') detach = process.nextTick
-      else detach = setImmediate
-      detach(function(){
-        // counter to prevent infinite blocking waiting for an open socket to be found.
-        response_counter++
-        var trying = false
-        for (r in lookup_table){
-          if(typeof lookup_table[r].error_connecting === 'undefined')
-            trying = true
-        }
-        if(trying && response_counter < 1000)
-          wait_for_socket_response()
-        else
-          set_socket_properties()
-      })
-    }
-
-    function set_socket_properties(){
-      var host
-      for (r in lookup_table){
-        if(lookup_table[r].error_connecting === false){
-          host = r
-        }
-      }
-      if(!host){
-        self.emit('error', new Error('Failed to connect to any socket in ' + full_path))
-      }
-      var path = full_path.replace(host, '')
-
-      self.socketPath = host
-      self.uri.pathname = path
-      self.uri.href = path
-      self.uri.path = path
-      self.host = ''
-      self.hostname = ''
-      delete self.host
-      delete self.hostname
-      self._buildRequest()
+    } else {
+      throw new Error('Argument error, options.body.')
     }
   }
 
-  // Intercept UNIX protocol requests to change properties to match socket
-  if(/^unix:/.test(self.uri.protocol)){
-    self._handleUnixSocketURI(self)
+  var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
+    , defaultModules = {'http:':http, 'https:':https}
+    , httpModules = self.httpModules || {}
+
+  self.httpModule = httpModules[protocol] || defaultModules[protocol]
+
+  if (!self.httpModule) {
+    return self.emit('error', new Error('Invalid protocol: ' + protocol))
+  }
+
+  if (options.ca) {
+    self.ca = options.ca
+  }
+
+  if (!self.agent) {
+    if (options.agentOptions) {
+      self.agentOptions = options.agentOptions
+    }
+
+    if (options.agentClass) {
+      self.agentClass = options.agentClass
+    } else if (options.forever) {
+      self.agentClass = protocol === 'http:' ? ForeverAgent : ForeverAgent.SSL
+    } else {
+      self.agentClass = self.httpModule.Agent
+    }
+  }
+
+  if (self.pool === false) {
+    self.agent = false
   } else {
-    self._buildRequest()
+    self.agent = self.agent || self.getNewAgent()
   }
+
+  self.on('pipe', function (src) {
+    if (self.ntick && self._started) {
+      throw new Error('You cannot pipe to this stream after the outbound request has started.')
+    }
+    self.src = src
+    if (isReadStream(src)) {
+      if (!self.hasHeader('content-type')) {
+        self.setHeader('content-type', mime.lookup(src.path))
+      }
+    } else {
+      if (src.headers) {
+        for (var i in src.headers) {
+          if (!self.hasHeader(i)) {
+            self.setHeader(i, src.headers[i])
+          }
+        }
+      }
+      if (self._json && !self.hasHeader('content-type')) {
+        self.setHeader('content-type', 'application/json')
+      }
+      if (src.method && !self.explicitMethod) {
+        self.method = src.method
+      }
+    }
+
+    // self.on('pipe', function () {
+    //   console.error('You have already piped to this stream. Pipeing twice is likely to break the request.')
+    // })
+  })
+
+  defer(function () {
+    if (self._aborted) {
+      return
+    }
+
+    var end = function () {
+      if (self._form) {
+        self._form.pipe(self)
+      }
+      if (self._multipart) {
+        self._multipart.pipe(self)
+      }
+      if (self.body) {
+        if (Array.isArray(self.body)) {
+          self.body.forEach(function (part) {
+            self.write(part)
+          })
+        } else {
+          self.write(self.body)
+        }
+        self.end()
+      } else if (self.requestBodyStream) {
+        console.warn('options.requestBodyStream is deprecated, please pass the request object to stream.pipe.')
+        self.requestBodyStream.pipe(self)
+      } else if (!self.src) {
+        if (self.method !== 'GET' && typeof self.method !== 'undefined') {
+          self.setHeader('content-length', 0)
+        }
+        self.end()
+      }
+    }
+
+    if (self._form && !self.hasHeader('content-length')) {
+      // Before ending the request, we had to compute the length of the whole form, asyncly
+      self.setHeader(self._form.getHeaders())
+      self._form.getLength(function (err, length) {
+        if (!err) {
+          self.setHeader('content-length', length)
+        }
+        end()
+      })
+    } else {
+      end()
+    }
+
+    self.ntick = true
+  })
 
 }
 
@@ -634,7 +742,9 @@ Request.prototype._updateProtocol = function () {
     // previously was doing http, now doing https
     // if it's https, then we might need to tunnel now.
     if (self.proxy) {
-      if (self.setupTunnel()) return
+      if (self.setupTunnel()) {
+        return
+      }
     }
 
     self.httpModule = https
@@ -651,7 +761,9 @@ Request.prototype._updateProtocol = function () {
     }
 
     // if there's an agent, we need to get a new one.
-    if (self.agent) self.agent = self.getAgent()
+    if (self.agent) {
+      self.agent = self.getNewAgent()
+    }
 
   } else {
     // previously was doing https, now doing http
@@ -671,91 +783,114 @@ Request.prototype._updateProtocol = function () {
     // if there's an agent, then get a new one.
     if (self.agent) {
       self.agent = null
-      self.agent = self.getAgent()
+      self.agent = self.getNewAgent()
     }
   }
 }
 
-Request.prototype.getAgent = function () {
-  var Agent = this.agentClass
+Request.prototype.getNewAgent = function () {
+  var self = this
+  var Agent = self.agentClass
   var options = {}
-  if (this.agentOptions) {
-    for (var i in this.agentOptions) {
-      options[i] = this.agentOptions[i]
+  if (self.agentOptions) {
+    for (var i in self.agentOptions) {
+      options[i] = self.agentOptions[i]
     }
   }
-  if (this.ca) options.ca = this.ca
-  if (this.ciphers) options.ciphers = this.ciphers
-  if (this.secureProtocol) options.secureProtocol = this.secureProtocol
-  if (this.secureOptions) options.secureOptions = this.secureOptions
-  if (typeof this.rejectUnauthorized !== 'undefined') options.rejectUnauthorized = this.rejectUnauthorized
+  if (self.ca) {
+    options.ca = self.ca
+  }
+  if (self.ciphers) {
+    options.ciphers = self.ciphers
+  }
+  if (self.secureProtocol) {
+    options.secureProtocol = self.secureProtocol
+  }
+  if (self.secureOptions) {
+    options.secureOptions = self.secureOptions
+  }
+  if (typeof self.rejectUnauthorized !== 'undefined') {
+    options.rejectUnauthorized = self.rejectUnauthorized
+  }
 
-  if (this.cert && this.key) {
-    options.key = this.key
-    options.cert = this.cert
+  if (self.cert && self.key) {
+    options.key = self.key
+    options.cert = self.cert
   }
 
   var poolKey = ''
 
   // different types of agents are in different pools
-  if (Agent !== this.httpModule.Agent) {
+  if (Agent !== self.httpModule.Agent) {
     poolKey += Agent.name
   }
 
-  if (!this.httpModule.globalAgent) {
-    // node 0.4.x
-    options.host = this.host
-    options.port = this.port
-    if (poolKey) poolKey += ':'
-    poolKey += this.host + ':' + this.port
-  }
-
   // ca option is only relevant if proxy or destination are https
-  var proxy = this.proxy
-  if (typeof proxy === 'string') proxy = url.parse(proxy)
+  var proxy = self.proxy
+  if (typeof proxy === 'string') {
+    proxy = url.parse(proxy)
+  }
   var isHttps = (proxy && proxy.protocol === 'https:') || this.uri.protocol === 'https:'
+
   if (isHttps) {
     if (options.ca) {
-      if (poolKey) poolKey += ':'
+      if (poolKey) {
+        poolKey += ':'
+      }
       poolKey += options.ca
     }
 
     if (typeof options.rejectUnauthorized !== 'undefined') {
-      if (poolKey) poolKey += ':'
+      if (poolKey) {
+        poolKey += ':'
+      }
       poolKey += options.rejectUnauthorized
     }
 
-    if (options.cert)
+    if (options.cert) {
       poolKey += options.cert.toString('ascii') + options.key.toString('ascii')
+    }
 
     if (options.ciphers) {
-      if (poolKey) poolKey += ':'
+      if (poolKey) {
+        poolKey += ':'
+      }
       poolKey += options.ciphers
     }
 
     if (options.secureProtocol) {
-      if (poolKey) poolKey += ':'
+      if (poolKey) {
+        poolKey += ':'
+      }
       poolKey += options.secureProtocol
     }
 
     if (options.secureOptions) {
-      if (poolKey) poolKey += ':'
+      if (poolKey) {
+        poolKey += ':'
+      }
       poolKey += options.secureOptions
     }
   }
 
-  if (this.pool === globalPool && !poolKey && Object.keys(options).length === 0 && this.httpModule.globalAgent) {
+  if (self.pool === globalPool && !poolKey && Object.keys(options).length === 0 && self.httpModule.globalAgent) {
     // not doing anything special.  Use the globalAgent
-    return this.httpModule.globalAgent
+    return self.httpModule.globalAgent
   }
 
   // we're using a stored agent.  Make sure it's protocol-specific
-  poolKey = this.uri.protocol + poolKey
+  poolKey = self.uri.protocol + poolKey
 
   // generate a new agent for this setting if none yet exists
-  if (!this.pool[poolKey]) this.pool[poolKey] = new Agent(options)
+  if (!self.pool[poolKey]) {
+    self.pool[poolKey] = new Agent(options)
+    // properly set maxSockets on new agents
+    if (self.pool.maxSockets) {
+      self.pool[poolKey].maxSockets = self.pool.maxSockets
+    }
+  }
 
-  return this.pool[poolKey]
+  return self.pool[poolKey]
 }
 
 Request.prototype.start = function () {
@@ -763,7 +898,9 @@ Request.prototype.start = function () {
   // this is usually called on the first write(), end() or on nextTick()
   var self = this
 
-  if (self._aborted) return
+  if (self._aborted) {
+    return
+  }
 
   self._started = true
   self.method = self.method || 'GET'
@@ -782,7 +919,7 @@ Request.prototype.start = function () {
   delete reqOptions.auth
 
   debug('make request', self.uri.href)
-  self.req = self.httpModule.request(reqOptions, self.onResponse.bind(self))
+  self.req = self.httpModule.request(reqOptions)
 
   if (self.timeout && !self.timeoutTimer) {
     self.timeoutTimer = setTimeout(function () {
@@ -806,7 +943,8 @@ Request.prototype.start = function () {
     }
   }
 
-  self.req.on('error', self.clientErrorHandler)
+  self.req.on('response', self.onRequestResponse.bind(self))
+  self.req.on('error', self.onRequestError.bind(self))
   self.req.on('drain', function() {
     self.emit('drain')
   })
@@ -815,30 +953,55 @@ Request.prototype.start = function () {
   })
 
   self.on('end', function() {
-    if ( self.req.connection ) self.req.connection.removeListener('error', self._parserErrorHandler)
+    if ( self.req.connection ) {
+      self.req.connection.removeListener('error', connectionErrorHandler)
+    }
   })
   self.emit('request', self.req)
 }
-Request.prototype.onResponse = function (response) {
+
+Request.prototype.onRequestError = function (error) {
   var self = this
-  debug('onResponse', self.uri.href, response.statusCode, response.headers)
+  if (self._aborted) {
+    return
+  }
+  if (self.req && self.req._reusedSocket && error.code === 'ECONNRESET'
+      && self.agent.addRequestNoreuse) {
+    self.agent = { addRequest: self.agent.addRequestNoreuse.bind(self.agent) }
+    self.start()
+    self.req.end()
+    return
+  }
+  if (self.timeout && self.timeoutTimer) {
+    clearTimeout(self.timeoutTimer)
+    self.timeoutTimer = null
+  }
+  self.emit('error', error)
+}
+
+Request.prototype.onRequestResponse = function (response) {
+  var self = this
+  debug('onRequestResponse', self.uri.href, response.statusCode, response.headers)
   response.on('end', function() {
     debug('response end', self.uri.href, response.statusCode, response.headers)
   })
 
   // The check on response.connection is a workaround for browserify.
-  if (response.connection && response.connection.listeners('error').indexOf(self._parserErrorHandler) === -1) {
+  if (response.connection && response.connection.listeners('error').indexOf(connectionErrorHandler) === -1) {
     response.connection.setMaxListeners(0)
-    response.connection.once('error', self._parserErrorHandler)
+    response.connection.once('error', connectionErrorHandler)
   }
   if (self._aborted) {
     debug('aborted', self.uri.href)
     response.resume()
     return
   }
-  if (self._paused) response.pause()
-  // response.resume should be defined, but check anyway before calling. Workaround for browserify.
-  else if (response.resume) response.resume()
+  if (self._paused) {
+    response.pause()
+  } else if (response.resume) {
+    // response.resume should be defined, but check anyway before calling. Workaround for browserify.
+    response.resume()
+  }
 
   self.response = response
   response.request = self
@@ -854,7 +1017,17 @@ Request.prototype.onResponse = function (response) {
     return
   }
 
-  if (self.setHost) self.removeHeader('host')
+  // Save the original host before any redirect (if it changes, we need to
+  // remove any authorization headers).  Also remember the case of the header
+  // name because lots of broken servers expect Host instead of host and we
+  // want the caller to be able to specify this.
+  self.originalHost = self.getHeader('host')
+  if (!self.originalHostHeaderName) {
+    self.originalHostHeaderName = self.hasHeader('host')
+  }
+  if (self.setHost) {
+    self.removeHeader('host')
+  }
   if (self.timeout && self.timeoutTimer) {
     clearTimeout(self.timeoutTimer)
     self.timeoutTimer = null
@@ -874,8 +1047,11 @@ Request.prototype.onResponse = function (response) {
 
   if (response.caseless.has('set-cookie') && (!self._disableCookies)) {
     var headerName = response.caseless.has('set-cookie')
-    if (Array.isArray(response.headers[headerName])) response.headers[headerName].forEach(addCookie)
-    else addCookie(response.headers[headerName])
+    if (Array.isArray(response.headers[headerName])) {
+      response.headers[headerName].forEach(addCookie)
+    } else {
+      addCookie(response.headers[headerName])
+    }
   }
 
   var redirectTo = null
@@ -931,7 +1107,9 @@ Request.prototype.onResponse = function (response) {
         var re = /([a-z0-9_-]+)=(?:"([^"]+)"|([a-z0-9_-]+))/gi
         for (;;) {
           var match = re.exec(authHeader)
-          if (!match) break
+          if (!match) {
+            break
+          }
           challenge[match[1]] = match[2] || match[3]
         }
 
@@ -978,7 +1156,9 @@ Request.prototype.onResponse = function (response) {
 
     // ignore any potential response body.  it cannot possibly be useful
     // to us at this point.
-    if (self._paused) response.resume()
+    if (self._paused) {
+      response.resume()
+    }
 
     if (self._redirectsFollowed >= self.maxRedirects) {
       self.emit('error', new Error('Exceeded maxRedirects. Probably stuck in a redirect loop ' + self.uri.href))
@@ -1003,7 +1183,9 @@ Request.prototype.onResponse = function (response) {
       , redirectUri: redirectTo
       }
     )
-    if (self.followAllRedirects && response.statusCode !== 401 && response.statusCode !== 307) self.method = 'GET'
+    if (self.followAllRedirects && response.statusCode !== 401 && response.statusCode !== 307) {
+      self.method = 'GET'
+    }
     // self.method = 'GET' // Force all redirects to use GET || commented out fixes #215
     delete self.src
     delete self.req
@@ -1018,6 +1200,12 @@ Request.prototype.onResponse = function (response) {
         self.removeHeader('host')
         self.removeHeader('content-type')
         self.removeHeader('content-length')
+        if (self.uri.hostname !== self.originalHost.split(':')[0]) {
+          // Remove authorization if changing hostnames (but not if just
+          // changing ports or protocols).  This matches the behavior of curl:
+          // https://github.com/bagder/curl/blob/6beb0eee/lib/http.c#L710
+          self.removeHeader('authorization')
+        }
       }
     }
 
@@ -1030,7 +1218,9 @@ Request.prototype.onResponse = function (response) {
     // Be a good stream and emit end when the response is finished.
     // Hack to emit end on close because of a core bug that never fires end
     response.on('close', function () {
-      if (!self._ended) self.response.emit('end')
+      if (!self._ended) {
+        self.response.emit('end')
+      }
     })
 
     response.on('end', function () {
@@ -1093,8 +1283,11 @@ Request.prototype.onResponse = function (response) {
         , strings = []
 
       self.on('data', function (chunk) {
-        if (Buffer.isBuffer(chunk)) buffer.append(chunk)
-        else strings.push(chunk)
+        if (Buffer.isBuffer(chunk)) {
+          buffer.append(chunk)
+        } else {
+          strings.push(chunk)
+        }
       })
       self.on('end', function () {
         debug('end event', self.uri.href)
@@ -1123,12 +1316,12 @@ Request.prototype.onResponse = function (response) {
 
         if (self._json) {
           try {
-            response.body = JSON.parse(response.body)
+            response.body = JSON.parse(response.body, self._jsonReviver)
           } catch (e) {}
         }
         debug('emitting complete', self.uri.href)
         if(typeof response.body === 'undefined' && !self._json) {
-          response.body = ''
+          response.body = self.encoding === null ? new Buffer(0) : ''
         }
         self.emit('complete', response, response.body)
       })
@@ -1148,195 +1341,265 @@ Request.prototype.onResponse = function (response) {
 }
 
 Request.prototype.abort = function () {
-  this._aborted = true
+  var self = this
+  self._aborted = true
 
-  if (this.req) {
-    this.req.abort()
+  if (self.req) {
+    self.req.abort()
   }
-  else if (this.response) {
-    this.response.abort()
+  else if (self.response) {
+    self.response.abort()
   }
 
-  this.emit('abort')
+  self.emit('abort')
 }
 
 Request.prototype.pipeDest = function (dest) {
-  var response = this.response
+  var self = this
+  var response = self.response
   // Called after the response is received
   if (dest.headers && !dest.headersSent) {
     if (response.caseless.has('content-type')) {
       var ctname = response.caseless.has('content-type')
-      if (dest.setHeader) dest.setHeader(ctname, response.headers[ctname])
-      else dest.headers[ctname] = response.headers[ctname]
+      if (dest.setHeader) {
+        dest.setHeader(ctname, response.headers[ctname])
+      }
+      else {
+        dest.headers[ctname] = response.headers[ctname]
+      }
     }
 
     if (response.caseless.has('content-length')) {
       var clname = response.caseless.has('content-length')
-      if (dest.setHeader) dest.setHeader(clname, response.headers[clname])
-      else dest.headers[clname] = response.headers[clname]
+      if (dest.setHeader) {
+        dest.setHeader(clname, response.headers[clname])
+      } else {
+        dest.headers[clname] = response.headers[clname]
+      }
     }
   }
   if (dest.setHeader && !dest.headersSent) {
     for (var i in response.headers) {
       // If the response content is being decoded, the Content-Encoding header
       // of the response doesn't represent the piped content, so don't pass it.
-      if (!this.gzip || i !== 'content-encoding') {
+      if (!self.gzip || i !== 'content-encoding') {
         dest.setHeader(i, response.headers[i])
       }
     }
     dest.statusCode = response.statusCode
   }
-  if (this.pipefilter) this.pipefilter(response, dest)
+  if (self.pipefilter) {
+    self.pipefilter(response, dest)
+  }
 }
 
 Request.prototype.qs = function (q, clobber) {
+  var self = this
   var base
-  if (!clobber && this.uri.query) base = qs.parse(this.uri.query)
-  else base = {}
+  if (!clobber && self.uri.query) {
+    base = self.qsLib.parse(self.uri.query)
+  } else {
+    base = {}
+  }
 
   for (var i in q) {
     base[i] = q[i]
   }
 
-  if (qs.stringify(base) === ''){
-    return this
+  if (self.qsLib.stringify(base) === ''){
+    return self
   }
 
-  this.uri = url.parse(this.uri.href.split('?')[0] + '?' + qs.stringify(base))
-  this.url = this.uri
-  this.path = this.uri.path
+  var qs = self.qsLib.stringify(base)
 
-  return this
+  self.uri = url.parse(self.uri.href.split('?')[0] + '?' + rfc3986(qs))
+  self.url = self.uri
+  self.path = self.uri.path
+
+  return self
 }
 Request.prototype.form = function (form) {
-  var self = this;
+  var self = this
   if (form) {
-    this.setHeader('content-type', 'application/x-www-form-urlencoded; charset=utf-8')
-    this.body = (typeof form === 'string') ? form.toString('utf8') : qs.stringify(form).toString('utf8')
-    return this
+    self.setHeader('content-type', 'application/x-www-form-urlencoded')
+    self.body = (typeof form === 'string') ? form.toString('utf8') : self.qsLib.stringify(form).toString('utf8')
+    self.body = rfc3986(self.body)
+    return self
   }
   // create form-data object
-  this._form = new FormData()
-  this._form.on('error',function(err) {
+  self._form = new FormData()
+  self._form.on('error',function(err) {
     self.emit('error',err);
   });
-  return this._form
+  return self._form
 }
 Request.prototype.multipart = function (multipart) {
   var self = this
-  self.body = []
 
-  if (!self.hasHeader('content-type')) {
+  var chunked = false
+  var _multipart = multipart.data || multipart
+
+  if (!_multipart.forEach) {
+    throw new Error('Argument error, options.multipart.')
+  }
+
+  if (self.getHeader('transfer-encoding') === 'chunked') {
+    chunked = true
+  }
+  if (multipart.chunked !== undefined) {
+    chunked = multipart.chunked
+  }
+  if (!chunked) {
+    _multipart.forEach(function (part) {
+      if(typeof part.body === 'undefined') {
+        throw new Error('Body attribute missing in multipart.')
+      }
+      if (isstream(part.body)) {
+        chunked = true
+      }
+    })
+  }
+
+  if (chunked && !self.hasHeader('transfer-encoding')) {
+    self.setHeader('transfer-encoding', 'chunked')
+  }
+
+  var headerName = self.hasHeader('content-type')
+  if (!headerName || self.headers[headerName].indexOf('multipart') === -1) {
     self.setHeader('content-type', 'multipart/related; boundary=' + self.boundary)
   } else {
-    var headerName = self.hasHeader('content-type')
     self.setHeader(headerName, self.headers[headerName].split(';')[0] + '; boundary=' + self.boundary)
   }
 
-  if (!multipart.forEach) throw new Error('Argument error, options.multipart.')
-
-  if (self.preambleCRLF) {
-    self.body.push(new Buffer('\r\n'))
+  var parts = chunked ? new CombinedStream() : []
+  function add (part) {
+    return chunked ? parts.append(part) : parts.push(new Buffer(part))
   }
 
-  multipart.forEach(function (part) {
+  if (self.preambleCRLF) {
+    add('\r\n')
+  }
+
+  _multipart.forEach(function (part) {
     var body = part.body
-    if(typeof body === 'undefined') throw new Error('Body attribute missing in multipart.')
-    delete part.body
     var preamble = '--' + self.boundary + '\r\n'
     Object.keys(part).forEach(function (key) {
+      if (key === 'body') { return }
       preamble += key + ': ' + part[key] + '\r\n'
     })
     preamble += '\r\n'
-    self.body.push(new Buffer(preamble))
-    self.body.push(new Buffer(body))
-    self.body.push(new Buffer('\r\n'))
+    add(preamble)
+    add(body)
+    add('\r\n')
   })
-  self.body.push(new Buffer('--' + self.boundary + '--'))
+  add('--' + self.boundary + '--')
 
   if (self.postambleCRLF) {
-    self.body.push(new Buffer('\r\n'))
+    add('\r\n')
   }
 
+  self[chunked ? '_multipart' : 'body'] = parts
   return self
 }
 Request.prototype.json = function (val) {
   var self = this
 
-  if (!self.hasHeader('accept')) self.setHeader('accept', 'application/json')
-
-  this._json = true
-  if (typeof val === 'boolean') {
-    if (typeof this.body === 'object') {
-      this.body = safeStringify(this.body)
-      if (!self.hasHeader('content-type'))
-        self.setHeader('content-type', 'application/json')
-    }
-  } else {
-    this.body = safeStringify(val)
-    if (!self.hasHeader('content-type'))
-      self.setHeader('content-type', 'application/json')
+  if (!self.hasHeader('accept')) {
+    self.setHeader('accept', 'application/json')
   }
 
-  return this
+  self._json = true
+  if (typeof val === 'boolean') {
+    if (self.body !== undefined) {
+      if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
+        self.body = safeStringify(self.body)
+      }
+      self.body = rfc3986(self.body)
+      if (!self.hasHeader('content-type')) {
+        self.setHeader('content-type', 'application/json')
+      }
+    }
+  } else {
+    self.body = safeStringify(val)
+    self.body = rfc3986(self.body)
+    if (!self.hasHeader('content-type')) {
+      self.setHeader('content-type', 'application/json')
+    }
+  }
+
+  if (typeof self.jsonReviver === 'function') {
+    self._jsonReviver = self.jsonReviver
+  }
+
+  return self
 }
 Request.prototype.getHeader = function (name, headers) {
+  var self = this
   var result, re, match
-  if (!headers) headers = this.headers
+  if (!headers) {
+    headers = self.headers
+  }
   Object.keys(headers).forEach(function (key) {
-    if (key.length !== name.length) return
+    if (key.length !== name.length) {
+      return
+    }
     re = new RegExp(name, 'i')
     match = key.match(re)
-    if (match) result = headers[key]
+    if (match) {
+      result = headers[key]
+    }
   })
   return result
 }
 var getHeader = Request.prototype.getHeader
 
 Request.prototype.auth = function (user, pass, sendImmediately, bearer) {
+  var self = this
   if (bearer !== undefined) {
-    this._bearer = bearer
-    this._hasAuth = true
+    self._bearer = bearer
+    self._hasAuth = true
     if (sendImmediately || typeof sendImmediately === 'undefined') {
       if (typeof bearer === 'function') {
         bearer = bearer()
       }
-      this.setHeader('authorization', 'Bearer ' + bearer)
-      this._sentAuth = true
+      self.setHeader('authorization', 'Bearer ' + bearer)
+      self._sentAuth = true
     }
-    return this
+    return self
   }
   if (typeof user !== 'string' || (pass !== undefined && typeof pass !== 'string')) {
     throw new Error('auth() received invalid user or password')
   }
-  this._user = user
-  this._pass = pass
-  this._hasAuth = true
+  self._user = user
+  self._pass = pass
+  self._hasAuth = true
   var header = typeof pass !== 'undefined' ? user + ':' + pass : user
   if (sendImmediately || typeof sendImmediately === 'undefined') {
-    this.setHeader('authorization', 'Basic ' + toBase64(header))
-    this._sentAuth = true
+    self.setHeader('authorization', 'Basic ' + toBase64(header))
+    self._sentAuth = true
   }
-  return this
+  return self
 }
 
 Request.prototype.aws = function (opts, now) {
+  var self = this
+
   if (!now) {
-    this._aws = opts
-    return this
+    self._aws = opts
+    return self
   }
   var date = new Date()
-  this.setHeader('date', date.toUTCString())
+  self.setHeader('date', date.toUTCString())
   var auth =
     { key: opts.key
     , secret: opts.secret
-    , verb: this.method.toUpperCase()
+    , verb: self.method.toUpperCase()
     , date: date
-    , contentType: this.getHeader('content-type') || ''
-    , md5: this.getHeader('content-md5') || ''
-    , amazonHeaders: aws.canonicalizeHeaders(this.headers)
+    , contentType: self.getHeader('content-type') || ''
+    , md5: self.getHeader('content-md5') || ''
+    , amazonHeaders: aws.canonicalizeHeaders(self.headers)
     }
-  var path = this.uri.path
+  var path = self.uri.path
   if (opts.bucket && path) {
     auth.resource = '/' + opts.bucket + path
   } else if (opts.bucket && !path) {
@@ -1347,83 +1610,130 @@ Request.prototype.aws = function (opts, now) {
     auth.resource = '/'
   }
   auth.resource = aws.canonicalizeResource(auth.resource)
-  this.setHeader('authorization', aws.authorization(auth))
+  self.setHeader('authorization', aws.authorization(auth))
 
-  return this
+  return self
 }
 Request.prototype.httpSignature = function (opts) {
-  var req = this
+  var self = this
   httpSignature.signRequest({
     getHeader: function(header) {
-      return getHeader(header, req.headers)
+      return getHeader(header, self.headers)
     },
     setHeader: function(header, value) {
-      req.setHeader(header, value)
+      self.setHeader(header, value)
     },
-    method: this.method,
-    path: this.path
+    method: self.method,
+    path: self.path
   }, opts)
-  debug('httpSignature authorization', this.getHeader('authorization'))
+  debug('httpSignature authorization', self.getHeader('authorization'))
 
-  return this
+  return self
 }
 
 Request.prototype.hawk = function (opts) {
-  this.setHeader('Authorization', hawk.client.header(this.uri, this.method, opts).field)
+  var self = this
+  self.setHeader('Authorization', hawk.client.header(self.uri, self.method, opts).field)
 }
 
 Request.prototype.oauth = function (_oauth) {
-  var form, query
-  if (this.hasHeader('content-type') &&
-      this.getHeader('content-type').slice(0, 'application/x-www-form-urlencoded'.length) ===
-        'application/x-www-form-urlencoded'
-     ) {
-    form = this.body
+  var self = this
+  var form, query, contentType = '', formContentType = 'application/x-www-form-urlencoded'
+
+  if (self.hasHeader('content-type') &&
+      self.getHeader('content-type').slice(0, formContentType.length) === formContentType) {
+    contentType = formContentType
+    form = self.body
   }
-  if (this.uri.query) {
-    query = this.uri.query
+  if (self.uri.query) {
+    query = self.uri.query
   }
+
+  var transport = _oauth.transport_method || 'header'
+  if (transport === 'body' && (
+      self.method !== 'POST' || contentType !== formContentType)) {
+
+    throw new Error('oauth.transport_method of \'body\' requires \'POST\' ' +
+      'and content-type \'' + formContentType + '\'')
+  }
+
+  delete _oauth.transport_method
 
   var oa = {}
-  for (var i in _oauth) oa['oauth_' + i] = _oauth[i]
-  if ('oauth_realm' in oa) delete oa.oauth_realm
+  for (var i in _oauth) {
+    oa['oauth_' + i] = _oauth[i]
+  }
+  if ('oauth_realm' in oa) {
+    delete oa.oauth_realm
+  }
+  if (!oa.oauth_version) {
+    oa.oauth_version = '1.0'
+  }
+  if (!oa.oauth_timestamp) {
+    oa.oauth_timestamp = Math.floor( Date.now() / 1000 ).toString()
+  }
+  if (!oa.oauth_nonce) {
+    oa.oauth_nonce = uuid().replace(/-/g, '')
+  }
+  if (!oa.oauth_signature_method) {
+    oa.oauth_signature_method = 'HMAC-SHA1'
+  }
 
-  if (!oa.oauth_version) oa.oauth_version = '1.0'
-  if (!oa.oauth_timestamp) oa.oauth_timestamp = Math.floor( Date.now() / 1000 ).toString()
-  if (!oa.oauth_nonce) oa.oauth_nonce = uuid().replace(/-/g, '')
-
-  oa.oauth_signature_method = 'HMAC-SHA1'
-
-  var consumer_secret = oa.oauth_consumer_secret
+  var consumer_secret_or_private_key = oa.oauth_consumer_secret || oa.oauth_private_key
   delete oa.oauth_consumer_secret
+  delete oa.oauth_private_key
   var token_secret = oa.oauth_token_secret
   delete oa.oauth_token_secret
 
-  var baseurl = this.uri.protocol + '//' + this.uri.host + this.uri.pathname
-  var params = qs.parse([].concat(query, form, qs.stringify(oa)).join('&'))
-  var signature = oauth.hmacsign(this.method, baseurl, params, consumer_secret, token_secret)
+  var baseurl = self.uri.protocol + '//' + self.uri.host + self.uri.pathname
+  var params = self.qsLib.parse([].concat(query, form, self.qsLib.stringify(oa)).join('&'))
 
-  var realm = _oauth.realm ? 'realm="' + _oauth.realm + '",' : ''
-  var authHeader = 'OAuth ' + realm +
-    Object.keys(oa).sort().map(function (i) {return i + '="' + oauth.rfc3986(oa[i]) + '"'}).join(',')
-  authHeader += ',oauth_signature="' + oauth.rfc3986(signature) + '"'
-  this.setHeader('Authorization', authHeader)
-  return this
+  var signature = oauth.sign(
+    oa.oauth_signature_method,
+    self.method,
+    baseurl,
+    params,
+    consumer_secret_or_private_key,
+    token_secret)
+
+  var buildSortedParams = function (sep, wrap) {
+    wrap = wrap || ''
+    return Object.keys(oa).sort().map(function (i) {
+      return i + '=' + wrap + oauth.rfc3986(oa[i]) + wrap
+    }).join(sep) + sep + 'oauth_signature=' + wrap + oauth.rfc3986(signature) + wrap
+  }
+
+  if (transport === 'header') {
+    var realm = _oauth.realm ? 'realm="' + _oauth.realm + '",' : ''
+    self.setHeader('Authorization', 'OAuth ' + realm + buildSortedParams(',', '"'))
+  }
+  else if (transport === 'query') {
+    self.path += (query ? '&' : '?') + buildSortedParams('&')
+  }
+  else if (transport === 'body') {
+    self.body = (form ? form + '&' : '') + buildSortedParams('&')
+  }
+  else {
+    throw new Error('oauth.transport_method invalid')
+  }
+
+  return self
 }
 Request.prototype.jar = function (jar) {
+  var self = this
   var cookies
 
-  if (this._redirectsFollowed === 0) {
-    this.originalCookieHeader = this.getHeader('cookie')
+  if (self._redirectsFollowed === 0) {
+    self.originalCookieHeader = self.getHeader('cookie')
   }
 
   if (!jar) {
     // disable cookies
     cookies = false
-    this._disableCookies = true
+    self._disableCookies = true
   } else {
     var targetCookieJar = (jar && jar.getCookieString) ? jar : globalCookieJar
-    var urihref = this.uri.href
+    var urihref = self.uri.href
     //fetch cookie in the Specified host
     if (targetCookieJar) {
       cookies = targetCookieJar.getCookieString(urihref)
@@ -1432,181 +1742,85 @@ Request.prototype.jar = function (jar) {
 
   //if need cookie and cookie is not empty
   if (cookies && cookies.length) {
-    if (this.originalCookieHeader) {
+    if (self.originalCookieHeader) {
       // Don't overwrite existing Cookie header
-      this.setHeader('cookie', this.originalCookieHeader + '; ' + cookies)
+      self.setHeader('cookie', self.originalCookieHeader + '; ' + cookies)
     } else {
-      this.setHeader('cookie', cookies)
+      self.setHeader('cookie', cookies)
     }
   }
-  this._jar = jar
-  return this
+  self._jar = jar
+  return self
 }
 
 
 // Stream API
 Request.prototype.pipe = function (dest, opts) {
-  if (this.response) {
-    if (this._destdata) {
+  var self = this
+
+  if (self.response) {
+    if (self._destdata) {
       throw new Error('You cannot pipe after data has been emitted from the response.')
-    } else if (this._ended) {
+    } else if (self._ended) {
       throw new Error('You cannot pipe after the response has been ended.')
     } else {
-      stream.Stream.prototype.pipe.call(this, dest, opts)
-      this.pipeDest(dest)
+      stream.Stream.prototype.pipe.call(self, dest, opts)
+      self.pipeDest(dest)
       return dest
     }
   } else {
-    this.dests.push(dest)
-    stream.Stream.prototype.pipe.call(this, dest, opts)
+    self.dests.push(dest)
+    stream.Stream.prototype.pipe.call(self, dest, opts)
     return dest
   }
 }
 Request.prototype.write = function () {
-  if (!this._started) this.start()
-  return this.req.write.apply(this.req, arguments)
+  var self = this
+  if (!self._started) {
+    self.start()
+  }
+  return self.req.write.apply(self.req, arguments)
 }
 Request.prototype.end = function (chunk) {
-  if (chunk) this.write(chunk)
-  if (!this._started) this.start()
-  this.req.end()
+  var self = this
+  if (chunk) {
+    self.write(chunk)
+  }
+  if (!self._started) {
+    self.start()
+  }
+  self.req.end()
 }
 Request.prototype.pause = function () {
-  if (!this.response) this._paused = true
-  else this.response.pause.apply(this.response, arguments)
+  var self = this
+  if (!self.response) {
+    self._paused = true
+  } else {
+    self.response.pause.apply(self.response, arguments)
+  }
 }
 Request.prototype.resume = function () {
-  if (!this.response) this._paused = false
-  else this.response.resume.apply(this.response, arguments)
+  var self = this
+  if (!self.response) {
+    self._paused = false
+  } else {
+    self.response.resume.apply(self.response, arguments)
+  }
 }
 Request.prototype.destroy = function () {
-  if (!this._ended) this.end()
-  else if (this.response) this.response.destroy()
+  var self = this
+  if (!self._ended) {
+    self.end()
+  } else if (self.response) {
+    self.response.destroy()
+  }
 }
 
 Request.defaultProxyHeaderWhiteList =
   defaultProxyHeaderWhiteList.slice()
 
-// Helpers
-
-// Return a simpler request object to allow serialization
-function requestToJSON() {
-  return {
-    uri: this.uri,
-    method: this.method,
-    headers: this.headers
-  }
-}
-
-// Return a simpler response object to allow serialization
-function responseToJSON() {
-  return {
-    statusCode: this.statusCode,
-    body: this.body,
-    headers: this.headers,
-    request: requestToJSON.call(this.request)
-  }
-}
-
-function constructProxyHost(uriObject) {
-  var port = uriObject.portA
-    , protocol = uriObject.protocol
-    , proxyHost = uriObject.hostname + ':'
-
-  if (port) {
-    proxyHost += port
-  } else if (protocol === 'https:') {
-    proxyHost += '443'
-  } else {
-    proxyHost += '80'
-  }
-
-  return proxyHost
-}
-
-function filterForNonReserved(reserved, options) {
-  // Filter out properties that are not reserved.
-  // Reserved values are passed in at call site.
-
-  var object = {}
-  for (var i in options) {
-    var notReserved = (reserved.indexOf(i) === -1)
-    if (notReserved) {
-      object[i] = options[i]
-    }
-  }
-  return object
-}
-
-function filterOutReservedFunctions(reserved, options) {
-  // Filter out properties that are functions and are reserved.
-  // Reserved values are passed in at call site.
-
-  var object = {}
-  for (var i in options) {
-    var isReserved = !(reserved.indexOf(i) === -1)
-    var isFunction = (typeof options[i] === 'function')
-    if (!(isReserved && isFunction)) {
-      object[i] = options[i]
-    }
-  }
-  return object
-
-}
-
-function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList) {
-  return Object.keys(headers)
-    .filter(function (header) {
-      return proxyHeaderWhiteList.indexOf(header.toLowerCase()) !== -1
-    })
-    .reduce(function (set, header) {
-      set[header] = headers[header]
-      return set
-    }, {})
-}
-
-function construcTunnelOptions(request) {
-  var proxy = request.proxy
-  var proxyHeaders = request.proxyHeaders
-  var proxyAuth
-
-  if (proxy.auth) {
-    proxyAuth = proxy.auth
-  }
-
-  if (!proxy.auth && request.proxyAuthorization) {
-    proxyHeaders['Proxy-Authorization'] = request.proxyAuthorization
-  }
-
-  var tunnelOptions = {
-    proxy: {
-      host: proxy.hostname,
-      port: +proxy.port,
-      proxyAuth: proxyAuth,
-      headers: proxyHeaders
-    },
-    rejectUnauthorized: request.rejectUnauthorized,
-    headers: request.headers,
-    ca: request.ca,
-    cert: request.cert,
-    key: request.key
-  }
-
-  return tunnelOptions
-}
-
-function constructTunnelFnName(uri, proxy) {
-  var uriProtocol = (uri.protocol === 'https:' ? 'https' : 'http')
-  var proxyProtocol = (proxy.protocol === 'https:' ? 'Https' : 'Http')
-  return [uriProtocol, proxyProtocol].join('Over')
-}
-
-function getTunnelFn(request) {
-  var uri = request.uri
-  var proxy = request.proxy
-  var tunnelFnName = constructTunnelFnName(uri, proxy)
-  return tunnel[tunnelFnName]
-}
+Request.defaultProxyHeaderExclusiveList =
+  defaultProxyHeaderExclusiveList.slice()
 
 // Exports
 

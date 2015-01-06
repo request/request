@@ -1,70 +1,113 @@
-var assert = require('assert')
-var http = require('http');
-var path = require('path');
-var mime = require('mime-types');
-var request = require('../index');
-var fs = require('fs');
+'use strict'
 
-var remoteFile = 'http://nodejs.org/images/logo.png';
+var http = require('http')
+  , path = require('path')
+  , mime = require('mime-types')
+  , request = require('../index')
+  , fs = require('fs')
+  , tape = require('tape')
 
-var multipartFormData = {};
+function runTest(t, json) {
+  var remoteFile = path.join(__dirname, 'googledoodle.jpg')
+    , localFile = path.join(__dirname, 'unicycle.jpg')
+    , multipartFormData = {}
 
-var server = http.createServer(function(req, res) {
+  var server = http.createServer(function(req, res) {
+    if (req.url === '/file') {
+      res.writeHead(200, {'content-type': 'image/jpg', 'content-length':7187})
+      res.end(fs.readFileSync(remoteFile), 'binary')
+      return
+    }
 
-  // temp workaround
-  var data = '';
-  req.setEncoding('utf8');
+    // temp workaround
+    var data = ''
+    req.setEncoding('utf8')
 
-  req.on('data', function(d) {
-    data += d;
-  });
+    req.on('data', function(d) {
+      data += d
+    })
 
-  req.on('end', function() {
-    // check for the fields' traces
+    req.on('end', function() {
+      // check for the fields' traces
 
-    // 1st field : my_field
-    assert.ok( data.indexOf('form-data; name="my_field"') != -1 );
-    assert.ok( data.indexOf(multipartFormData.my_field) != -1 );
+      // 1st field : my_field
+      t.ok( data.indexOf('form-data; name="my_field"') !== -1 )
+      t.ok( data.indexOf(multipartFormData.my_field) !== -1 )
 
-    // 2nd field : my_buffer
-    assert.ok( data.indexOf('form-data; name="my_buffer"') != -1 );
-    assert.ok( data.indexOf(multipartFormData.my_buffer) != -1 );
+      // 2nd field : my_buffer
+      t.ok( data.indexOf('form-data; name="my_buffer"') !== -1 )
+      t.ok( data.indexOf(multipartFormData.my_buffer) !== -1 )
 
-    // 3rd field : my_file
-    assert.ok( data.indexOf('form-data; name="my_file"') != -1 );
-    assert.ok( data.indexOf('; filename="'+path.basename(multipartFormData.my_file.path)+'"') != -1 );
-    // check for unicycle.jpg traces
-    assert.ok( data.indexOf('2005:06:21 01:44:12') != -1 );
-    assert.ok( data.indexOf('Content-Type: '+mime.lookup(multipartFormData.my_file.path) ) != -1 );
+      // 3rd field : my_file
+      t.ok( data.indexOf('form-data; name="my_file"') !== -1 )
+      t.ok( data.indexOf('; filename="' + path.basename(multipartFormData.my_file.path) + '"') !== -1 )
+      // check for unicycle.jpg traces
+      t.ok( data.indexOf('2005:06:21 01:44:12') !== -1 )
+      t.ok( data.indexOf('Content-Type: ' + mime.lookup(multipartFormData.my_file.path) ) !== -1 )
 
-    // 4th field : remote_file
-    assert.ok( data.indexOf('form-data; name="remote_file"') != -1 );
-    assert.ok( data.indexOf('; filename="'+path.basename(multipartFormData.remote_file.path)+'"') != -1 );
-    // check for http://nodejs.org/images/logo.png traces
-    assert.ok( data.indexOf('ImageReady') != -1 );
-    assert.ok( data.indexOf('Content-Type: '+mime.lookup(remoteFile) ) != -1 );
+      // 4th field : remote_file
+      t.ok( data.indexOf('form-data; name="remote_file"') !== -1 )
+      t.ok( data.indexOf('; filename="' + path.basename(multipartFormData.remote_file.path) + '"') !== -1 )
 
-    res.writeHead(200);
-    res.end('done');
+      // 5th field : file with metadata
+      t.ok( data.indexOf('form-data; name="secret_file"') !== -1 )
+      t.ok( data.indexOf('Content-Disposition: form-data; name="secret_file"; filename="topsecret.jpg"') !== -1 )
+      t.ok( data.indexOf('Content-Type: image/custom') !== -1 )
 
-  });
+      // 6th field : batch of files
+      t.ok( data.indexOf('form-data; name="batch"') !== -1 )
+      t.ok( data.match(/form-data; name="batch"/g).length === 2 )
 
+      // check for http://localhost:8080/file traces
+      t.ok( data.indexOf('Photoshop ICC') !== -1 )
+      t.ok( data.indexOf('Content-Type: ' + mime.lookup(remoteFile) ) !== -1 )
 
-});
-
-server.listen(8080, function() {
-
-  // @NOTE: multipartFormData properties must be set here so that my_file read stream does not leak in node v0.8
-  multipartFormData.my_field = 'my_value';
-  multipartFormData.my_buffer = new Buffer([1, 2, 3]);
-  multipartFormData.my_file = fs.createReadStream(__dirname + '/unicycle.jpg');
-  multipartFormData.remote_file = request(remoteFile);
-
-  var req = request.post({
-    url: 'http://localhost:8080/upload',
-    formData: multipartFormData
-  }, function () {
-    server.close();
+      res.writeHead(200)
+      res.end(json ? JSON.stringify({status: 'done'}) : 'done')
+    })
   })
 
-});
+  server.listen(8080, function() {
+
+    // @NOTE: multipartFormData properties must be set here so that my_file read stream does not leak in node v0.8
+    multipartFormData.my_field = 'my_value'
+    multipartFormData.my_buffer = new Buffer([1, 2, 3])
+    multipartFormData.my_file = fs.createReadStream(localFile)
+    multipartFormData.remote_file = request('http://localhost:8080/file')
+    multipartFormData.secret_file = {
+      value: fs.createReadStream(localFile),
+      options: {
+        filename: 'topsecret.jpg',
+        contentType: 'image/custom'
+      }
+    }
+    multipartFormData.batch = [
+      fs.createReadStream(localFile),
+      fs.createReadStream(localFile)
+    ]
+
+    var reqOptions = {
+      url: 'http://localhost:8080/upload',
+      formData: multipartFormData
+    }
+    if (json) {
+      reqOptions.json = true
+    }
+    request.post(reqOptions, function (err, res, body) {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.deepEqual(body, json ? {status: 'done'} : 'done')
+      server.close()
+      t.end()
+    })
+
+  })
+}
+
+tape('multipart formData', function(t) {
+  runTest(t, false)
+})
+
+tape('multipart formData + JSON', function(t) {
+  runTest(t, true)
+})

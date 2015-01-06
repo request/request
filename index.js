@@ -17,7 +17,8 @@
 var extend                = require('util')._extend
   , cookies               = require('./lib/cookies')
   , helpers               = require('./lib/helpers')
-  , isFunction            = helpers.isFunction
+
+var isFunction            = helpers.isFunction
   , constructObject       = helpers.constructObject
   , filterForCallback     = helpers.filterForCallback
   , constructOptionsFrom  = helpers.constructOptionsFrom
@@ -37,8 +38,9 @@ function initParams(uri, options, callback) {
 }
 
 function request (uri, options, callback) {
-  if (typeof uri === 'undefined')
+  if (typeof uri === 'undefined') {
     throw new Error('undefined is not a valid uri or options object.')
+  }
 
   var params = initParams(uri, options, callback)
   options = params.options
@@ -49,8 +51,9 @@ function request (uri, options, callback) {
 }
 
 function requester(params) {
-  if(typeof params.options._requester === 'function')
+  if(typeof params.options._requester === 'function') {
     return params.options._requester
+  }
   return request
 }
 
@@ -64,8 +67,9 @@ request.head = function (uri, options, callback) {
   var params = initParams(uri, options, callback)
   params.options.method = 'HEAD'
 
-  if (paramsHaveRequestBody(params))
+  if (paramsHaveRequestBody(params)) {
     throw new Error('HTTP HEAD requests MUST NOT include a request body.')
+  }
 
   return requester(params)(params.uri || null, params.options, params.callback)
 }
@@ -94,8 +98,8 @@ request.del = function (uri, options, callback) {
   return requester(params)(params.uri || null, params.options, params.callback)
 }
 
-request.jar = function () {
-  return cookies.jar()
+request.jar = function (store) {
+  return cookies.jar(store)
 }
 
 request.cookie = function (str) {
@@ -122,8 +126,9 @@ request.defaults = function (options, requester) {
       var params = initParams(uri, opts, callback)
       params.options = extend(headerlessOptions(options), params.options)
 
-      if (options.headers)
+      if (options.headers) {
         params.options.headers = getHeaders(params, options)
+      }
 
       if (isFunction(requester)) {
         if (method === self) {
@@ -152,8 +157,12 @@ request.defaults = function (options, requester) {
 
 request.forever = function (agentOptions, optionsArg) {
   var options = constructObject()
-  if (optionsArg) options.extend(optionsArg)
-  if (agentOptions) options.agentOptions = agentOptions
+  if (optionsArg) {
+    options.extend(optionsArg)
+  }
+  if (agentOptions) {
+    options.agentOptions = agentOptions
+  }
 
   options.extend({forever: true})
   return request.defaults(options.done())
