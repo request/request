@@ -442,6 +442,10 @@ the following changes to the OAuth options object:
 * Instead of `consumer_secret`, specify a `private_key` string in
   [PEM format](http://how2ssl.com/articles/working_with_pem_files/)
 
+For [PLAINTEXT signing](http://oauth.net/core/1.0/#anchor22), make
+the following changes to the OAuth options object:
+* Pass `signature_method : 'PLAINTEXT'`
+
 To send OAuth parameters via query params or in a post body as described in The
 [Consumer Request Parameters](http://oauth.net/core/1.0/#consumer_req_param)
 section of the oauth1 spec:
