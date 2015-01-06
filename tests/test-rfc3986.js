@@ -44,8 +44,9 @@ function runTest (t, options) {
 
     request.post('http://localhost:8080', options, function(err, res, body) {
       t.equal(err, null)
-      server.close()
-      t.end()
+      server.close(function() {
+        t.end()
+      })
     })
   })
 }

@@ -140,6 +140,7 @@ tape('transparently supports gzip error to pipes', function(t) {
 })
 
 tape('cleanup', function(t) {
-  server.close()
-  t.end()
+  server.close(function() {
+    t.end()
+  })
 })

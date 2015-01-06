@@ -38,6 +38,7 @@ tape('followAllRedirects with 303', function(t) {
 })
 
 tape('cleanup', function(t) {
-  server.close()
-  t.end()
+  server.close(function() {
+    t.end()
+  })
 })
