@@ -36,7 +36,9 @@ tape('unix socket connection', function(t) {
 })
 
 tape('cleanup', function(t) {
-  s.close()
-  fs.unlink(socket, function() { })
-  t.end()
+  s.close(function() {
+    fs.unlink(socket, function() {
+      t.end()
+    })
+  })
 })

@@ -41,6 +41,7 @@ tape('with agentOptions should apply to new agent in pool', function(t) {
 })
 
 tape('cleanup', function(t) {
-  s.close()
-  t.end()
+  s.close(function() {
+    t.end()
+  })
 })

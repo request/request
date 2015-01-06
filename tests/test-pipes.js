@@ -275,6 +275,7 @@ tape('request.pipefilter is called correctly', function(t) {
 })
 
 tape('cleanup', function(t) {
-  s.close()
-  t.end()
+  s.close(function() {
+    t.end()
+  })
 })

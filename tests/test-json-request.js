@@ -74,6 +74,7 @@ testJSONValueReviver('jsonReviver', -48269.592, function (k, v) {
 testJSONValueReviver('jsonReviverInvalid', -48269.592, 'invalid reviver', -48269.592)
 
 tape('cleanup', function(t) {
-  s.close()
-  t.end()
+  s.close(function() {
+    t.end()
+  })
 })

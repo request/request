@@ -95,6 +95,7 @@ tape('hostname and port 3', function(t) {
 })
 
 tape('cleanup', function(t) {
-  s.close()
-  t.end()
+  s.close(function() {
+    t.end()
+  })
 })

@@ -109,8 +109,9 @@ function runAllTests(strict, s) {
   })
 
   tape(strictMsg + 'cleanup', function(t) {
-    s.close()
-    t.end()
+    s.close(function() {
+      t.end()
+    })
   })
 }
 

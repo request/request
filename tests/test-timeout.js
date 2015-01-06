@@ -112,7 +112,8 @@ if (process.env.TRAVIS === 'true') {
   })
 
   tape('cleanup', function(t) {
-    s.close()
-    t.end()
+    s.close(function() {
+      t.end()
+    })
   })
 }

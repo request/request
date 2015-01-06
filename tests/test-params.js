@@ -96,6 +96,7 @@ runTest('testPutMultipart', {
 })
 
 tape('cleanup', function(t) {
-  s.close()
-  t.end()
+  s.close(function() {
+    t.end()
+  })
 })

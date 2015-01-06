@@ -148,6 +148,7 @@ tape('', function(t) {
 })
 
 tape('cleanup', function(t) {
-  bearerServer.close()
-  t.end()
+  bearerServer.close(function() {
+    t.end()
+  })
 })

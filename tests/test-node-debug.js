@@ -79,6 +79,7 @@ tape('it should be possible to disable debugging at runtime', function(t) {
 })
 
 tape('cleanup', function(t) {
-  s.close()
-  t.end()
+  s.close(function() {
+    t.end()
+  })
 })

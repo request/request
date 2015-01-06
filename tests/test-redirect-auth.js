@@ -118,7 +118,9 @@ runTest('different host and protocol',
   false)
 
 tape('cleanup', function(t) {
-  s.close()
-  ss.close()
-  t.end()
+  s.close(function() {
+    ss.close(function() {
+      t.end()
+    })
+  })
 })
