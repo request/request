@@ -302,6 +302,23 @@ tape('rfc5849 RSA example', function(t) {
   })
 })
 
+tape('plaintext signature method', function(t) {
+  var plaintext = request.post(
+    { url: 'https://dummy.com'
+    , oauth:
+      { consumer_secret: 'consumer_secret'
+      , token_secret: 'token_secret'
+      , signature_method: 'PLAINTEXT'
+      }
+    })
+
+  process.nextTick(function() {
+    t.equal('consumer_secret&token_secret', getSignature(plaintext))
+    plaintext.abort()
+    t.end()
+  })
+})
+
 tape('invalid transport_method', function(t) {
   t.throws(
     function () {
