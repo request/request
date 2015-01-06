@@ -1429,8 +1429,8 @@ Request.prototype.form = function (form) {
   // create form-data object
   self._form = new FormData()
   self._form.on('error',function(err) {
-    self.emit('error',err);
-  });
+    self.emit('error',err)
+  })
   return self._form
 }
 Request.prototype.multipart = function (multipart) {
