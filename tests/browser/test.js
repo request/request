@@ -16,7 +16,7 @@ var assert = require('assert')
 tape('Request browser test', function(t) {
   t.plan(1)
   request({
-    uri: 'https://api.github.com',
+    uri: 'https://localhost:8000',
     withCredentials: false
   }, function (error, response) {
     t.equal(response.statusCode, 200)
