@@ -16,6 +16,167 @@ request('http://www.google.com', function (error, response, body) {
 })
 ```
 
+## request(options, callback)
+
+The first argument can be either a `url` or an `options` object. The only required option is `uri`; all others are optional.
+
+* `uri` || `url` - fully qualified uri or a parsed url object from `url.parse()`
+* `qs` - object containing querystring values to be appended to the `uri`
+* `useQuerystring` - If true, use `querystring` to stringify and parse
+  querystrings, otherwise use `qs` (default: `false`).  Set this option to
+  `true` if you need arrays to be serialized as `foo=bar&foo=baz` instead of the
+  default `foo[0]=bar&foo[1]=baz`.
+* `method` - http method (default: `"GET"`)
+* `headers` - http headers (default: `{}`)
+* `body` - entity body for PATCH, POST and PUT requests. Must be a `Buffer` or `String`, unless `json` is `true`. If `json` is `true`, then `body` must be a JSON-serializable object.
+* `form` - when passed an object or a querystring, this sets `body` to a querystring representation of value, and adds `Content-type: application/x-www-form-urlencoded` header. When passed no options, a `FormData` instance is returned (and is piped to request). See "Forms" section above.
+* `formData` - Data to pass for a `multipart/form-data` request. See
+  [Forms](#forms) section above.
+* `multipart` - array of objects which contain their own headers and `body`
+  attributes. Sends a `multipart/related` request. See [Forms](#forms) section
+  above.
+  * Alternatively you can pass in an object `{chunked: false, data: []}` where
+    `chunked` is used to specify whether the request is sent in
+    [chunked transfer encoding](https://en.wikipedia.org/wiki/Chunked_transfer_encoding)
+    In non-chunked requests, data items with body streams are not allowed.
+* `auth` - A hash containing values `user` || `username`, `pass` || `password`, and `sendImmediately` (optional).  See documentation above.
+* `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
+* `jsonReviver` - a [reviver function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse) that will be passed to `JSON.parse()` when parsing a JSON response body.
+* `preambleCRLF` - append a newline/CRLF before the boundary of your `multipart/form-data` request.
+* `postambleCRLF` - append a newline/CRLF at the end of the boundary of your `multipart/form-data` request.
+* `followRedirect` - follow HTTP 3xx responses as redirects (default: `true`). This property can also be implemented as function which gets `response` object as a single argument and should return `true` if redirects should continue or `false` otherwise.
+* `followAllRedirects` - follow non-GET HTTP 3xx responses as redirects (default: `false`)
+* `maxRedirects` - the maximum number of redirects to follow (default: `10`)
+* `encoding` - Encoding to be used on `setEncoding` of response data. If `null`, the `body` is returned as a `Buffer`. Anything else **(including the default value of `undefined`)** will be passed as the [encoding](http://nodejs.org/api/buffer.html#buffer_buffer) parameter to `toString()` (meaning this is effectively `utf8` by default).
+* `pool` - An object describing which agents to use for the request. If this option is omitted the request will use the global agent (as long as [your options allow for it](request.js#L747)). Otherwise, request will search the pool for your custom agent. If no custom agent is found, a new agent will be created and added to the pool.
+  * A `maxSockets` property can also be provided on the `pool` object to set the max number of sockets for all agents created (ex: `pool: {maxSockets: Infinity}`).
+  * Note that if you are sending multiple requests in a loop and creating
+    multiple new `pool` objects, `maxSockets` will not work as intended.  To
+    work around this, either use [`request.defaults`](#requestdefaultsoptions)
+    with your pool options or create the pool object with the `maxSockets`
+    property outside of the loop.
+* `timeout` - Integer containing the number of milliseconds to wait for a
+  request to respond before aborting the request.  Note that increasing the
+  timeout beyond the OS-wide TCP connection timeout will not work
+  ([the default in Linux is around 20 seconds](http://www.sekuda.com/overriding_the_default_linux_kernel_20_second_tcp_socket_connect_timeout)).
+* `proxy` - An HTTP proxy to be used. Supports proxy Auth with Basic Auth, identical to support for the `url` parameter (by embedding the auth info in the `uri`)
+* `oauth` - Options for OAuth HMAC-SHA1 signing. See documentation above.
+* `hawk` - Options for [Hawk signing](https://github.com/hueniverse/hawk). The `credentials` key must contain the necessary signing info, [see hawk docs for details](https://github.com/hueniverse/hawk#usage-example).
+* `strictSSL` - If `true`, requires SSL certificates be valid. **Note:** to use your own certificate authority, you need to specify an agent that was created with that CA as an option.
+* `agentOptions` - Object containing user agent options. See documentation above. **Note:** [see tls API doc for TLS/SSL options](http://nodejs.org/api/tls.html#tls_tls_connect_options_callback).
+
+* `jar` - If `true` and `tough-cookie` is installed, remember cookies for future use (or define your custom cookie jar; see examples section)
+* `aws` - `object` containing AWS signing information. Should have the properties `key`, `secret`. Also requires the property `bucket`, unless you’re specifying your `bucket` as part of the path, or the request doesn’t use a bucket (i.e. GET Services)
+* `httpSignature` - Options for the [HTTP Signature Scheme](https://github.com/joyent/node-http-signature/blob/master/http_signing.md) using [Joyent's library](https://github.com/joyent/node-http-signature). The `keyId` and `key` properties must be specified. See the docs for other options.
+* `localAddress` - Local interface to bind for network connections.
+* `gzip` - If `true`, add an `Accept-Encoding` header to request compressed content encodings from the server (if not already present) and decode supported content encodings in the response.  **Note:** Automatic decoding of the response content is performed on the body data returned through `request` (both through the `request` stream and passed to the callback function) but is not performed on the `response` stream (available from the `response` event) which is the unmodified `http.IncomingMessage` object which may contain compressed data. See example below.
+* `tunnel` - If `true`, then *always* use a tunneling proxy.  If
+  `false` (default), then tunneling will only be used if the
+  destination is `https`, or if a previous request in the redirect
+  chain used a tunneling proxy.
+* `proxyHeaderWhiteList` - A whitelist of headers to send to a
+  tunneling proxy.
+* `proxyHeaderExclusiveList` - A whitelist of headers to send
+  exclusively to a tunneling proxy and not to destination.
+
+
+The callback argument gets 3 arguments:
+
+1. An `error` when applicable (usually from [`http.ClientRequest`](http://nodejs.org/api/http.html#http_class_http_clientrequest) object)
+2. An [`http.IncomingMessage`](http://nodejs.org/api/http.html#http_http_incomingmessage) object
+3. The third is the `response` body (`String` or `Buffer`, or JSON object if the `json` option is supplied)
+
+## Convenience methods
+
+There are also shorthand methods for different HTTP METHODs and some other conveniences.
+
+### request.defaults(options)
+
+This method **returns a wrapper** around the normal request API that defaults
+to whatever options you pass to it.
+
+**Note:** `request.defaults()` **does not** modify the global request API;
+instead, it **returns a wrapper** that has your default settings applied to it.
+
+**Note:** You can call `.defaults()` on the wrapper that is returned from
+`request.defaults` to add/override defaults that were previously defaulted.
+
+For example:
+```javascript
+//requests using baseRequest() will set the 'x-token' header
+var baseRequest = request.defaults({
+  headers: {x-token: 'my-token'}
+})
+
+//requests using specialRequest() will include the 'x-token' header set in
+//baseRequest and will also include the 'special' header
+var specialRequest = baseRequest.defaults({
+  headers: {special: 'special value'}
+})
+```
+
+### request.put
+
+Same as `request()`, but defaults to `method: "PUT"`.
+
+```javascript
+request.put(url)
+```
+
+### request.patch
+
+Same as `request()`, but defaults to `method: "PATCH"`.
+
+```javascript
+request.patch(url)
+```
+
+### request.post
+
+Same as `request()`, but defaults to `method: "POST"`.
+
+```javascript
+request.post(url)
+```
+
+### request.head
+
+Same as request() but defaults to `method: "HEAD"`.
+
+```javascript
+request.head(url)
+```
+
+### request.del
+
+Same as `request()`, but defaults to `method: "DELETE"`.
+
+```javascript
+request.del(url)
+```
+
+### request.get
+
+Same as `request()` (for uniformity).
+
+```javascript
+request.get(url)
+```
+### request.cookie
+
+Function that creates a new cookie.
+
+```javascript
+request.cookie('key1=value1')
+```
+### request.jar()
+
+Function that creates a new cookie jar.
+
+```javascript
+request.jar()
+```
+
 ## Streaming
 
 You can stream any response to a file stream.
@@ -552,168 +713,6 @@ request.get({
     }
 });
 ```
-
-## request(options, callback)
-
-The first argument can be either a `url` or an `options` object. The only required option is `uri`; all others are optional.
-
-* `uri` || `url` - fully qualified uri or a parsed url object from `url.parse()`
-* `qs` - object containing querystring values to be appended to the `uri`
-* `useQuerystring` - If true, use `querystring` to stringify and parse
-  querystrings, otherwise use `qs` (default: `false`).  Set this option to
-  `true` if you need arrays to be serialized as `foo=bar&foo=baz` instead of the
-  default `foo[0]=bar&foo[1]=baz`.
-* `method` - http method (default: `"GET"`)
-* `headers` - http headers (default: `{}`)
-* `body` - entity body for PATCH, POST and PUT requests. Must be a `Buffer` or `String`, unless `json` is `true`. If `json` is `true`, then `body` must be a JSON-serializable object.
-* `form` - when passed an object or a querystring, this sets `body` to a querystring representation of value, and adds `Content-type: application/x-www-form-urlencoded` header. When passed no options, a `FormData` instance is returned (and is piped to request). See "Forms" section above.
-* `formData` - Data to pass for a `multipart/form-data` request. See
-  [Forms](#forms) section above.
-* `multipart` - array of objects which contain their own headers and `body`
-  attributes. Sends a `multipart/related` request. See [Forms](#forms) section
-  above.
-  * Alternatively you can pass in an object `{chunked: false, data: []}` where
-    `chunked` is used to specify whether the request is sent in
-    [chunked transfer encoding](https://en.wikipedia.org/wiki/Chunked_transfer_encoding)
-    In non-chunked requests, data items with body streams are not allowed.
-* `auth` - A hash containing values `user` || `username`, `pass` || `password`, and `sendImmediately` (optional).  See documentation above.
-* `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
-* `jsonReviver` - a [reviver function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse) that will be passed to `JSON.parse()` when parsing a JSON response body.
-* `preambleCRLF` - append a newline/CRLF before the boundary of your `multipart/form-data` request.
-* `postambleCRLF` - append a newline/CRLF at the end of the boundary of your `multipart/form-data` request.
-* `followRedirect` - follow HTTP 3xx responses as redirects (default: `true`). This property can also be implemented as function which gets `response` object as a single argument and should return `true` if redirects should continue or `false` otherwise.
-* `followAllRedirects` - follow non-GET HTTP 3xx responses as redirects (default: `false`)
-* `maxRedirects` - the maximum number of redirects to follow (default: `10`)
-* `encoding` - Encoding to be used on `setEncoding` of response data. If `null`, the `body` is returned as a `Buffer`. Anything else **(including the default value of `undefined`)** will be passed as the [encoding](http://nodejs.org/api/buffer.html#buffer_buffer) parameter to `toString()` (meaning this is effectively `utf8` by default).
-* `pool` - An object describing which agents to use for the request. If this option is omitted the request will use the global agent (as long as [your options allow for it](request.js#L747)). Otherwise, request will search the pool for your custom agent. If no custom agent is found, a new agent will be created and added to the pool.
-  * A `maxSockets` property can also be provided on the `pool` object to set the max number of sockets for all agents created (ex: `pool: {maxSockets: Infinity}`).
-  * Note that if you are sending multiple requests in a loop and creating
-    multiple new `pool` objects, `maxSockets` will not work as intended.  To
-    work around this, either use [`request.defaults`](#requestdefaultsoptions)
-    with your pool options or create the pool object with the `maxSockets`
-    property outside of the loop.
-* `timeout` - Integer containing the number of milliseconds to wait for a
-  request to respond before aborting the request.  Note that increasing the
-  timeout beyond the OS-wide TCP connection timeout will not work
-  ([the default in Linux is around 20 seconds](http://www.sekuda.com/overriding_the_default_linux_kernel_20_second_tcp_socket_connect_timeout)).
-* `proxy` - An HTTP proxy to be used. Supports proxy Auth with Basic Auth, identical to support for the `url` parameter (by embedding the auth info in the `uri`)
-* `oauth` - Options for OAuth HMAC-SHA1 signing. See documentation above.
-* `hawk` - Options for [Hawk signing](https://github.com/hueniverse/hawk). The `credentials` key must contain the necessary signing info, [see hawk docs for details](https://github.com/hueniverse/hawk#usage-example).
-* `strictSSL` - If `true`, requires SSL certificates be valid. **Note:** to use your own certificate authority, you need to specify an agent that was created with that CA as an option.
-* `agentOptions` - Object containing user agent options. See documentation above. **Note:** [see tls API doc for TLS/SSL options](http://nodejs.org/api/tls.html#tls_tls_connect_options_callback).
-
-* `jar` - If `true` and `tough-cookie` is installed, remember cookies for future use (or define your custom cookie jar; see examples section)
-* `aws` - `object` containing AWS signing information. Should have the properties `key`, `secret`. Also requires the property `bucket`, unless you’re specifying your `bucket` as part of the path, or the request doesn’t use a bucket (i.e. GET Services)
-* `httpSignature` - Options for the [HTTP Signature Scheme](https://github.com/joyent/node-http-signature/blob/master/http_signing.md) using [Joyent's library](https://github.com/joyent/node-http-signature). The `keyId` and `key` properties must be specified. See the docs for other options.
-* `localAddress` - Local interface to bind for network connections.
-* `gzip` - If `true`, add an `Accept-Encoding` header to request compressed content encodings from the server (if not already present) and decode supported content encodings in the response.  **Note:** Automatic decoding of the response content is performed on the body data returned through `request` (both through the `request` stream and passed to the callback function) but is not performed on the `response` stream (available from the `response` event) which is the unmodified `http.IncomingMessage` object which may contain compressed data. See example below.
-* `tunnel` - If `true`, then *always* use a tunneling proxy.  If
-  `false` (default), then tunneling will only be used if the
-  destination is `https`, or if a previous request in the redirect
-  chain used a tunneling proxy.
-* `proxyHeaderWhiteList` - A whitelist of headers to send to a
-  tunneling proxy.
-* `proxyHeaderExclusiveList` - A whitelist of headers to send
-  exclusively to a tunneling proxy and not to destination.
-
-
-The callback argument gets 3 arguments:
-
-1. An `error` when applicable (usually from [`http.ClientRequest`](http://nodejs.org/api/http.html#http_class_http_clientrequest) object)
-2. An [`http.IncomingMessage`](http://nodejs.org/api/http.html#http_http_incomingmessage) object
-3. The third is the `response` body (`String` or `Buffer`, or JSON object if the `json` option is supplied)
-
-## Convenience methods
-
-There are also shorthand methods for different HTTP METHODs and some other conveniences.
-
-### request.defaults(options)
-
-This method **returns a wrapper** around the normal request API that defaults
-to whatever options you pass to it.
-
-**Note:** `request.defaults()` **does not** modify the global request API;
-instead, it **returns a wrapper** that has your default settings applied to it.
-
-**Note:** You can call `.defaults()` on the wrapper that is returned from
-`request.defaults` to add/override defaults that were previously defaulted.
-
-For example:
-```javascript
-//requests using baseRequest() will set the 'x-token' header
-var baseRequest = request.defaults({
-  headers: {x-token: 'my-token'}
-})
-
-//requests using specialRequest() will include the 'x-token' header set in
-//baseRequest and will also include the 'special' header
-var specialRequest = baseRequest.defaults({
-  headers: {special: 'special value'}
-})
-```
-
-### request.put
-
-Same as `request()`, but defaults to `method: "PUT"`.
-
-```javascript
-request.put(url)
-```
-
-### request.patch
-
-Same as `request()`, but defaults to `method: "PATCH"`.
-
-```javascript
-request.patch(url)
-```
-
-### request.post
-
-Same as `request()`, but defaults to `method: "POST"`.
-
-```javascript
-request.post(url)
-```
-
-### request.head
-
-Same as request() but defaults to `method: "HEAD"`.
-
-```javascript
-request.head(url)
-```
-
-### request.del
-
-Same as `request()`, but defaults to `method: "DELETE"`.
-
-```javascript
-request.del(url)
-```
-
-### request.get
-
-Same as `request()` (for uniformity).
-
-```javascript
-request.get(url)
-```
-### request.cookie
-
-Function that creates a new cookie.
-
-```javascript
-request.cookie('key1=value1')
-```
-### request.jar()
-
-Function that creates a new cookie jar.
-
-```javascript
-request.jar()
-```
-
 
 ## Examples:
 
