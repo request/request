@@ -45,7 +45,9 @@ tape('piped redirect', function(t) {
 })
 
 tape('cleanup', function(t) {
-  s1.close()
-  s2.close()
-  t.end()
+  s1.close(function() {
+    s2.close(function() {
+      t.end()
+    })
+  })
 })

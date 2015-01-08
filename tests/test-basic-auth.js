@@ -179,6 +179,7 @@ tape('', function(t) {
 })
 
 tape('cleanup', function(t) {
-  basicServer.close()
-  t.end()
+  basicServer.close(function() {
+    t.end()
+  })
 })
