@@ -1,25 +1,34 @@
 'use strict'
 
 var request = require('../index')
+  , server = require('./server')
   , tape = require('tape')
 
-function runTest(t) {
-  var req
-    , form
-    , reqOptions = {
-      url: 'http://localhost:8080/'
-    }
+var s = server.createServer()
 
-    req = request.post(reqOptions, function (err, res, body) {
-      t.equal(err.message,'Arrays are not supported.')
-      t.end()
-    })
-
-    form = req.form()
-    form.append('field',['value1','value2'])
-}
-
+tape('setup', function(t) {
+  s.listen(s.port, function() {
+    t.end()
+  })
+})
 
 tape('re-emit formData errors', function(t) {
-  runTest(t)
+  s.on('/', function(req, res) {
+    res.writeHead(400)
+    res.end()
+    t.fail('The form-data error did not abort the request.')
+  })
+
+  request.post(s.url, function (err, res, body) {
+    t.equal(err.message, 'form-data: Arrays are not supported.')
+    setTimeout(function() {
+      t.end()
+    }, 10)
+  }).form().append('field', ['value1', 'value2'])
+})
+
+tape('cleanup', function(t) {
+  s.close(function() {
+    t.end()
+  })
 })
