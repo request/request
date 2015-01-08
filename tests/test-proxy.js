@@ -7,11 +7,13 @@ var server = require('./server')
 var s = server.createServer()
   , currResponseHandler
 
-s.on('http://google.com/', function(req, res) {
+function handleRequest(req, res) {
   currResponseHandler(req, res)
   res.writeHeader(200)
   res.end('ok')
-})
+}
+s.on('http://google.com/', handleRequest)
+s.on('https://google.com/', handleRequest)
 
 var proxyEnvVars = [
   'http_proxy',
@@ -234,6 +236,12 @@ if (process.env.TEST_PROXY_HARNESS) {
     t.equal(req.headers['proxy-authorization'], undefined)
     t.equal(req.headers.authorization, 'Basic dXNlcjpwYXNz')
   })
+
+  runTest('proxy https over http', {
+    url    : 'https://google.com',
+    proxy  : s.url,
+    tunnel : false
+  }, true)
 }
 
 
