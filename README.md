@@ -110,7 +110,7 @@ You can still use intermediate proxies, the requests will still follow HTTP forw
 If you specify a `proxy` option, then the request (and any subsequent
 redirects) will be sent via a connection to the proxy server.
 
-If your endpoint is an `https` url, and you are using a proxy, then
+If your endpoint is an `https` url, the `tunnel` option is not `false`, and you are using a proxy, then
 request will send a `CONNECT` request to the proxy server *first*, and
 then use the supplied connection to connect to the endpoint.
 
@@ -607,10 +607,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `httpSignature` - Options for the [HTTP Signature Scheme](https://github.com/joyent/node-http-signature/blob/master/http_signing.md) using [Joyent's library](https://github.com/joyent/node-http-signature). The `keyId` and `key` properties must be specified. See the docs for other options.
 * `localAddress` - Local interface to bind for network connections.
 * `gzip` - If `true`, add an `Accept-Encoding` header to request compressed content encodings from the server (if not already present) and decode supported content encodings in the response.  **Note:** Automatic decoding of the response content is performed on the body data returned through `request` (both through the `request` stream and passed to the callback function) but is not performed on the `response` stream (available from the `response` event) which is the unmodified `http.IncomingMessage` object which may contain compressed data. See example below.
-* `tunnel` - If `true`, then *always* use a tunneling proxy.  If
-  `false` (default), then tunneling will only be used if the
-  destination is `https`, or if a previous request in the redirect
-  chain used a tunneling proxy.
+* `tunnel` - If `true`, then *always* use a tunneling proxy. If `false`, then tunneling will only be used if a previous request in the redirect chain used a tunneling proxy. If not set, then tunneling will only be used if the destination is `https`, or if a previous request in the redirect chain used a tunneling proxy.
 * `proxyHeaderWhiteList` - A whitelist of headers to send to a
   tunneling proxy.
 * `proxyHeaderExclusiveList` - A whitelist of headers to send

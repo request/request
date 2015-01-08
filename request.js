@@ -283,6 +283,8 @@ function Request (options) {
   self.writable = true
   if (typeof options.tunnel === 'undefined') {
     options.tunnel = false
+  } else {
+    self.explicitTunnel = true
   }
   if (options.method) {
     self.explicitMethod = true
@@ -308,7 +310,7 @@ Request.prototype.setupTunnel = function () {
     return false
   }
 
-  if (!self.tunnel) {
+  if (!self.tunnel && (self.explicitTunnel === true || self.uri.protocol !== 'https:')) {
     return false
   }
 
@@ -736,8 +738,9 @@ Request.prototype.init = function (options) {
 // httpModule, Tunneling agent, and/or Forever Agent in use.
 Request.prototype._updateProtocol = function () {
   var self = this
+  var protocol = self.uri.protocol
 
-  if (self.tunnel) {
+  if ((self.explicitTunnel !== true && protocol === 'https:') || self.tunnel) {
     // previously was doing http, now doing https
     // if it's https, then we might need to tunnel now.
     if (self.proxy) {

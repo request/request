@@ -237,7 +237,7 @@ if (process.env.TEST_PROXY_HARNESS) {
     t.equal(req.headers.authorization, 'Basic dXNlcjpwYXNz')
   })
 
-  runTest('proxy https over http', {
+  runTest('proxy https over http without tunneling', {
     url    : 'https://google.com',
     proxy  : s.url,
     tunnel : false
