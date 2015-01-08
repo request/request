@@ -678,7 +678,7 @@ request.post(url)
 
 ### request.head
 
-Same as request() but defaults to `method: "HEAD"`.
+Same as `request()`, but defaults to `method: "HEAD"`.
 
 ```javascript
 request.head(url)
