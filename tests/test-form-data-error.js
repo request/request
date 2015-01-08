@@ -7,7 +7,7 @@ function runTest(t) {
   var req
     , form
     , reqOptions = {
-      url: 'http://localhost:8080/',
+      url: 'http://localhost:8080/'
     }
 
     req = request.post(reqOptions, function (err, res, body) {
