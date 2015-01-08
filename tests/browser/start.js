@@ -4,6 +4,8 @@ var https = require('https')
 var fs = require('fs')
 var path = require('path')
 
+var port = 6767
+
 var server = https.createServer({
     key: fs.readFileSync(path.join(__dirname, '/ssl/server.key')),
     cert: fs.readFileSync(path.join(__dirname, '/ssl/server.crt')),
@@ -16,8 +18,8 @@ var server = https.createServer({
     res.writeHead(200)
     res.end('Can you hear the sound of an enormous door slamming in the depths of hell?\n')
 })
-server.listen(8000, function() {
-  console.log('Started https server for karma tests on port 8000')
+server.listen(port, function() {
+  console.log('Started https server for karma tests on port ' + port)
   // Spawn process for karma.
   var c = spawn('karma', [
     'start',
