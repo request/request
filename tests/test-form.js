@@ -55,7 +55,7 @@ tape('multipart form append', function(t) {
       field = FIELDS.shift()
       t.ok( data.indexOf('form-data; name="' + field.name + '"') !== -1 )
       t.ok( data.indexOf('; filename="' + path.basename(field.value.path) + '"') !== -1 )
-      // check for http://localhost:8080/file traces
+      // check for http://localhost:6767/file traces
       t.ok( data.indexOf('Photoshop ICC') !== -1 )
       t.ok( data.indexOf('Content-Type: ' + mime.lookup(remoteFile) ) !== -1 )
 
@@ -68,16 +68,16 @@ tape('multipart form append', function(t) {
     })
   })
 
-  server.listen(8080, function() {
+  server.listen(6767, function() {
 
     FIELDS = [
       { name: 'my_field', value: 'my_value' },
       { name: 'my_buffer', value: new Buffer([1, 2, 3]) },
       { name: 'my_file', value: fs.createReadStream(localFile) },
-      { name: 'remote_file', value: request('http://localhost:8080/file') }
+      { name: 'remote_file', value: request('http://localhost:6767/file') }
     ]
 
-    var req = request.post('http://localhost:8080/upload', function(err, res, body) {
+    var req = request.post('http://localhost:6767/upload', function(err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.equal(body, 'done')

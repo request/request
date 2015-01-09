@@ -58,7 +58,7 @@ function runTest(t, json) {
       t.ok( data.indexOf('form-data; name="batch"') !== -1 )
       t.ok( data.match(/form-data; name="batch"/g).length === 2 )
 
-      // check for http://localhost:8080/file traces
+      // check for http://localhost:6767/file traces
       t.ok( data.indexOf('Photoshop ICC') !== -1 )
       t.ok( data.indexOf('Content-Type: ' + mime.lookup(remoteFile) ) !== -1 )
 
@@ -67,13 +67,13 @@ function runTest(t, json) {
     })
   })
 
-  server.listen(8080, function() {
+  server.listen(6767, function() {
 
     // @NOTE: multipartFormData properties must be set here so that my_file read stream does not leak in node v0.8
     multipartFormData.my_field = 'my_value'
     multipartFormData.my_buffer = new Buffer([1, 2, 3])
     multipartFormData.my_file = fs.createReadStream(localFile)
-    multipartFormData.remote_file = request('http://localhost:8080/file')
+    multipartFormData.remote_file = request('http://localhost:6767/file')
     multipartFormData.secret_file = {
       value: fs.createReadStream(localFile),
       options: {
@@ -87,7 +87,7 @@ function runTest(t, json) {
     ]
 
     var reqOptions = {
-      url: 'http://localhost:8080/upload',
+      url: 'http://localhost:6767/upload',
       formData: multipartFormData
     }
     if (json) {
