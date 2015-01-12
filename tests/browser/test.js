@@ -13,7 +13,18 @@ var assert = require('assert')
   , tape = require('tape')
   , request = require('../../index')
 
-tape('Request browser test', function(t) {
+tape('returns on error', function(t) {
+  t.plan(1)
+  request({
+    uri: 'https://stupid.nonexistent.path:port123/\\<-great-idea',
+    withCredentials: false
+  }, function (error, response) {
+    t.equal(response.statusCode, 0)
+    t.end()
+  })
+})
+
+tape('succeeds on valid URLs (with https and CORS)', function(t) {
   t.plan(1)
   request({
     uri: 'https://localhost:6767',
