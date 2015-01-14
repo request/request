@@ -12,11 +12,12 @@ var s = http.createServer(function(req, res) {
 var stderr = []
   , prevStderrLen = 0
 
-process.stderr.write = function(string, encoding, fd) {
-  stderr.push(string)
-}
-
 tape('setup', function(t) {
+  process.stderr._oldWrite = process.stderr.write
+  process.stderr.write = function(string, encoding, fd) {
+    stderr.push(string)
+  }
+
   s.listen(6767, function() {
     t.end()
   })
@@ -83,6 +84,9 @@ tape('it should be possible to disable debugging at runtime', function(t) {
 })
 
 tape('cleanup', function(t) {
+  process.stderr.write = process.stderr._oldWrite
+  delete process.stderr._oldWrite
+
   s.close(function() {
     t.end()
   })
