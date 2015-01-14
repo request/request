@@ -1,7 +1,7 @@
 # Request — Simplified HTTP client
 [![npm package](https://nodei.co/npm/request.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/request/)
 
-[![Build status](https://img.shields.io/travis/nylen/chronolog.svg?style=flat)](https://travis-ci.org/nylen/chronolog)
+[![Build status](https://img.shields.io/travis/request/request.svg?style=flat)](https://travis-ci.org/request/request)
 [![Coverage](https://img.shields.io/coveralls/request/request.svg?style=flat)](https://coveralls.io/r/request/request)
 [![Gitter](https://img.shields.io/badge/gitter-join_chat-blue.svg?style=flat)](https://gitter.im/request/request?utm_source=badge)
 
