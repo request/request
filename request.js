@@ -23,7 +23,6 @@ var http = require('http')
   , FormData = require('form-data')
   , cookies = require('./lib/cookies')
   , copy = require('./lib/copy')
-  , debug = require('./lib/debug')
   , net = require('net')
   , CombinedStream = require('combined-stream')
   , isstream = require('isstream')
@@ -239,6 +238,14 @@ function Request (options) {
 }
 
 util.inherits(Request, stream.Stream)
+
+// Debugging
+Request.debug = process.env.NODE_DEBUG && /\brequest\b/.test(process.env.NODE_DEBUG)
+function debug() {
+  if (Request.debug) {
+    console.error('REQUEST %s', util.format.apply(util, arguments))
+  }
+}
 
 Request.prototype.setupTunnel = function () {
   // Set up the tunneling agent if necessary
