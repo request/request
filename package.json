@@ -34,7 +34,7 @@
     "tough-cookie": ">=0.12.0",
     "http-signature": "~0.10.0",
     "oauth-sign": "~0.6.0",
-    "hawk": "1.1.1",
+    "hawk": "~2.3.0",
     "aws-sign2": "~0.5.0",
     "stringstream": "~0.0.4",
     "combined-stream": "~0.0.5",
