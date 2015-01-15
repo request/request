@@ -1038,61 +1038,7 @@ Request.prototype.onRequestResponse = function (response) {
         break
 
       case 'digest':
-        // TODO: More complete implementation of RFC 2617.
-        //   - check challenge.algorithm
-        //   - support algorithm="MD5-sess"
-        //   - handle challenge.domain
-        //   - support qop="auth-int" only
-        //   - handle Authentication-Info (not necessarily?)
-        //   - check challenge.stale (not necessarily?)
-        //   - increase nc (not necessarily?)
-        // For reference:
-        // http://tools.ietf.org/html/rfc2617#section-3
-        // https://github.com/bagder/curl/blob/master/lib/http_digest.c
-
-        var challenge = {}
-        var re = /([a-z0-9_-]+)=(?:"([^"]+)"|([a-z0-9_-]+))/gi
-        for (;;) {
-          var match = re.exec(authHeader)
-          if (!match) {
-            break
-          }
-          challenge[match[1]] = match[2] || match[3]
-        }
-
-        var ha1 = md5(self._user + ':' + challenge.realm + ':' + self._pass)
-        var ha2 = md5(self.method + ':' + self.uri.path)
-        var qop = /(^|,)\s*auth\s*($|,)/.test(challenge.qop) && 'auth'
-        var nc = qop && '00000001'
-        var cnonce = qop && uuid().replace(/-/g, '')
-        var digestResponse = qop ? md5(ha1 + ':' + challenge.nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2) : md5(ha1 + ':' + challenge.nonce + ':' + ha2)
-        var authValues = {
-          username: self._user,
-          realm: challenge.realm,
-          nonce: challenge.nonce,
-          uri: self.uri.path,
-          qop: qop,
-          response: digestResponse,
-          nc: nc,
-          cnonce: cnonce,
-          algorithm: challenge.algorithm,
-          opaque: challenge.opaque
-        }
-
-        authHeader = []
-        for (var k in authValues) {
-          if (authValues[k]) {
-            if (k === 'qop' || k === 'nc' || k === 'algorithm') {
-              authHeader.push(k + '=' + authValues[k])
-            } else {
-              authHeader.push(k + '="' + authValues[k] + '"')
-            }
-          }
-        }
-        authHeader = 'Digest ' + authHeader.join(', ')
-        self.setHeader('authorization', authHeader)
-        self._sentAuth = true
-
+        self._digest(authHeader)
         redirectTo = self.uri
         break
     }
@@ -1527,6 +1473,66 @@ Request.prototype.auth = function (user, pass, sendImmediately, bearer) {
     self.setHeader('authorization', 'Basic ' + toBase64(header))
     self._sentAuth = true
   }
+  return self
+}
+Request.prototype._digest = function (authHeader) {
+  // TODO: More complete implementation of RFC 2617.
+  //   - check challenge.algorithm
+  //   - support algorithm="MD5-sess"
+  //   - handle challenge.domain
+  //   - support qop="auth-int" only
+  //   - handle Authentication-Info (not necessarily?)
+  //   - check challenge.stale (not necessarily?)
+  //   - increase nc (not necessarily?)
+  // For reference:
+  // http://tools.ietf.org/html/rfc2617#section-3
+  // https://github.com/bagder/curl/blob/master/lib/http_digest.c
+
+  var self = this
+
+  var challenge = {}
+  var re = /([a-z0-9_-]+)=(?:"([^"]+)"|([a-z0-9_-]+))/gi
+  for (;;) {
+    var match = re.exec(authHeader)
+    if (!match) {
+      break
+    }
+    challenge[match[1]] = match[2] || match[3]
+  }
+
+  var ha1 = md5(self._user + ':' + challenge.realm + ':' + self._pass)
+  var ha2 = md5(self.method + ':' + self.uri.path)
+  var qop = /(^|,)\s*auth\s*($|,)/.test(challenge.qop) && 'auth'
+  var nc = qop && '00000001'
+  var cnonce = qop && uuid().replace(/-/g, '')
+  var digestResponse = qop ? md5(ha1 + ':' + challenge.nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2) : md5(ha1 + ':' + challenge.nonce + ':' + ha2)
+  var authValues = {
+    username: self._user,
+    realm: challenge.realm,
+    nonce: challenge.nonce,
+    uri: self.uri.path,
+    qop: qop,
+    response: digestResponse,
+    nc: nc,
+    cnonce: cnonce,
+    algorithm: challenge.algorithm,
+    opaque: challenge.opaque
+  }
+
+  authHeader = []
+  for (var k in authValues) {
+    if (authValues[k]) {
+      if (k === 'qop' || k === 'nc' || k === 'algorithm') {
+        authHeader.push(k + '=' + authValues[k])
+      } else {
+        authHeader.push(k + '="' + authValues[k] + '"')
+      }
+    }
+  }
+  authHeader = 'Digest ' + authHeader.join(', ')
+  self.setHeader('authorization', authHeader)
+  self._sentAuth = true
+
   return self
 }
 
