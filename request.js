@@ -27,6 +27,7 @@ var http = require('http')
   , CombinedStream = require('combined-stream')
   , isstream = require('isstream')
   , getProxyFromURI = require('./lib/getProxyFromURI')
+  , Auth = require('./lib/auth').Auth
 
 var safeStringify = helpers.safeStringify
   , md5 = helpers.md5
@@ -487,6 +488,8 @@ Request.prototype.init = function (options) {
   }
 
   // Auth must happen last in case signing is dependent on other headers
+  self._auth = new Auth()
+
   if (options.oauth) {
     self.oauth(options.oauth)
   }
@@ -1028,26 +1031,11 @@ Request.prototype.onRequestResponse = function (response) {
           break
       }
     }
-  } else if (response.statusCode === 401 && self._hasAuth && !self._sentAuth) {
-    var authHeader = response.caseless.get('www-authenticate')
-    var authVerb = authHeader && authHeader.split(' ')[0].toLowerCase()
-    debug('reauth', authVerb)
-
-    switch (authVerb) {
-      case 'basic':
-        self.auth(self._user, self._pass, true)
-        redirectTo = self.uri
-        break
-
-      case 'bearer':
-        self.auth(null, null, true, self._bearer)
-        redirectTo = self.uri
-        break
-
-      case 'digest':
-        self._digest(authHeader)
-        redirectTo = self.uri
-        break
+  } else if (response.statusCode === 401) {
+    var authHeader = self._auth.response(self.method, self.uri.path, response.headers)
+    if (authHeader) {
+      self.setHeader('authorization', authHeader)
+      redirectTo = self.uri
     }
   }
 
@@ -1457,88 +1445,16 @@ var getHeader = Request.prototype.getHeader
 
 Request.prototype.auth = function (user, pass, sendImmediately, bearer) {
   var self = this
+
+  var authHeader
   if (bearer !== undefined) {
-    self._bearer = bearer
-    self._hasAuth = true
-    if (sendImmediately || typeof sendImmediately === 'undefined') {
-      if (typeof bearer === 'function') {
-        bearer = bearer()
-      }
-      self.setHeader('authorization', 'Bearer ' + bearer)
-      self._sentAuth = true
-    }
-    return self
+    authHeader = self._auth.bearer(bearer, sendImmediately)
+  } else {
+    authHeader = self._auth.basic(user, pass, sendImmediately)
   }
-  if (typeof user !== 'string' || (pass !== undefined && typeof pass !== 'string')) {
-    throw new Error('auth() received invalid user or password')
+  if (authHeader) {
+    self.setHeader('authorization', authHeader)
   }
-  self._user = user
-  self._pass = pass
-  self._hasAuth = true
-  var header = typeof pass !== 'undefined' ? user + ':' + pass : user
-  if (sendImmediately || typeof sendImmediately === 'undefined') {
-    self.setHeader('authorization', 'Basic ' + toBase64(header))
-    self._sentAuth = true
-  }
-  return self
-}
-Request.prototype._digest = function (authHeader) {
-  // TODO: More complete implementation of RFC 2617.
-  //   - check challenge.algorithm
-  //   - support algorithm="MD5-sess"
-  //   - handle challenge.domain
-  //   - support qop="auth-int" only
-  //   - handle Authentication-Info (not necessarily?)
-  //   - check challenge.stale (not necessarily?)
-  //   - increase nc (not necessarily?)
-  // For reference:
-  // http://tools.ietf.org/html/rfc2617#section-3
-  // https://github.com/bagder/curl/blob/master/lib/http_digest.c
-
-  var self = this
-
-  var challenge = {}
-  var re = /([a-z0-9_-]+)=(?:"([^"]+)"|([a-z0-9_-]+))/gi
-  for (;;) {
-    var match = re.exec(authHeader)
-    if (!match) {
-      break
-    }
-    challenge[match[1]] = match[2] || match[3]
-  }
-
-  var ha1 = md5(self._user + ':' + challenge.realm + ':' + self._pass)
-  var ha2 = md5(self.method + ':' + self.uri.path)
-  var qop = /(^|,)\s*auth\s*($|,)/.test(challenge.qop) && 'auth'
-  var nc = qop && '00000001'
-  var cnonce = qop && uuid().replace(/-/g, '')
-  var digestResponse = qop ? md5(ha1 + ':' + challenge.nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2) : md5(ha1 + ':' + challenge.nonce + ':' + ha2)
-  var authValues = {
-    username: self._user,
-    realm: challenge.realm,
-    nonce: challenge.nonce,
-    uri: self.uri.path,
-    qop: qop,
-    response: digestResponse,
-    nc: nc,
-    cnonce: cnonce,
-    algorithm: challenge.algorithm,
-    opaque: challenge.opaque
-  }
-
-  authHeader = []
-  for (var k in authValues) {
-    if (authValues[k]) {
-      if (k === 'qop' || k === 'nc' || k === 'algorithm') {
-        authHeader.push(k + '=' + authValues[k])
-      } else {
-        authHeader.push(k + '="' + authValues[k] + '"')
-      }
-    }
-  }
-  authHeader = 'Digest ' + authHeader.join(', ')
-  self.setHeader('authorization', authHeader)
-  self._sentAuth = true
 
   return self
 }
