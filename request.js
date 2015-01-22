@@ -10,7 +10,6 @@ var http = require('http')
   , zlib = require('zlib')
   , helpers = require('./lib/helpers')
   , bl = require('bl')
-  , oauth = require('oauth-sign')
   , hawk = require('hawk')
   , aws = require('aws-sign2')
   , httpSignature = require('http-signature')
@@ -28,6 +27,7 @@ var http = require('http')
   , isstream = require('isstream')
   , getProxyFromURI = require('./lib/getProxyFromURI')
   , Auth = require('./lib/auth').Auth
+  , oauth = require('./lib/oauth')
 
 var safeStringify = helpers.safeStringify
   , md5 = helpers.md5
@@ -1516,87 +1516,29 @@ Request.prototype.hawk = function (opts) {
 
 Request.prototype.oauth = function (_oauth) {
   var self = this
-  var form, query, contentType = '', formContentType = 'application/x-www-form-urlencoded'
 
-  if (self.hasHeader('content-type') &&
-      self.getHeader('content-type').slice(0, formContentType.length) === formContentType) {
-    contentType = formContentType
-    form = self.body
-  }
-  if (self.uri.query) {
-    query = self.uri.query
-  }
+  var result = oauth.oauth({
+    uri: self.uri,
+    method: self.method,
+    headers: self.headers,
+    body: self.body,
+    oauth: _oauth,
+    qsLib: self.qsLib
+  })
 
-  var transport = _oauth.transport_method || 'header'
-  if (transport === 'body' && (
-      self.method !== 'POST' || contentType !== formContentType)) {
-
-    throw new Error('oauth.transport_method of \'body\' requires \'POST\' ' +
-      'and content-type \'' + formContentType + '\'')
+  if (result.transport === 'header') {
+    self.setHeader('Authorization', result.oauth)
   }
-
-  delete _oauth.transport_method
-
-  var oa = {}
-  for (var i in _oauth) {
-    oa['oauth_' + i] = _oauth[i]
+  else if (result.transport === 'query') {
+    self.path += result.oauth
   }
-  if ('oauth_realm' in oa) {
-    delete oa.oauth_realm
-  }
-  if (!oa.oauth_version) {
-    oa.oauth_version = '1.0'
-  }
-  if (!oa.oauth_timestamp) {
-    oa.oauth_timestamp = Math.floor( Date.now() / 1000 ).toString()
-  }
-  if (!oa.oauth_nonce) {
-    oa.oauth_nonce = uuid().replace(/-/g, '')
-  }
-  if (!oa.oauth_signature_method) {
-    oa.oauth_signature_method = 'HMAC-SHA1'
-  }
-
-  var consumer_secret_or_private_key = oa.oauth_consumer_secret || oa.oauth_private_key
-  delete oa.oauth_consumer_secret
-  delete oa.oauth_private_key
-  var token_secret = oa.oauth_token_secret
-  delete oa.oauth_token_secret
-
-  var baseurl = self.uri.protocol + '//' + self.uri.host + self.uri.pathname
-  var params = self.qsLib.parse([].concat(query, form, self.qsLib.stringify(oa)).join('&'))
-
-  var signature = oauth.sign(
-    oa.oauth_signature_method,
-    self.method,
-    baseurl,
-    params,
-    consumer_secret_or_private_key,
-    token_secret)
-
-  var buildSortedParams = function (sep, wrap) {
-    wrap = wrap || ''
-    return Object.keys(oa).sort().map(function (i) {
-      return i + '=' + wrap + oauth.rfc3986(oa[i]) + wrap
-    }).join(sep) + sep + 'oauth_signature=' + wrap + oauth.rfc3986(signature) + wrap
-  }
-
-  if (transport === 'header') {
-    var realm = _oauth.realm ? 'realm="' + _oauth.realm + '",' : ''
-    self.setHeader('Authorization', 'OAuth ' + realm + buildSortedParams(',', '"'))
-  }
-  else if (transport === 'query') {
-    self.path += (query ? '&' : '?') + buildSortedParams('&')
-  }
-  else if (transport === 'body') {
-    self.body = (form ? form + '&' : '') + buildSortedParams('&')
-  }
-  else {
-    throw new Error('oauth.transport_method invalid')
+  else if (result.transport === 'body') {
+    self.body = result.oauth
   }
 
   return self
 }
+
 Request.prototype.jar = function (jar) {
   var self = this
   var cookies
