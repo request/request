@@ -27,7 +27,8 @@ var s = server.createServer()
   , ss = server.createSSLServer(null, sslOpts)
 
 // XXX when tunneling https over https, connections get left open so the server
-// doesn't want to close normally
+// doesn't want to close normally (and same issue with http server on v0.8.x)
+destroyable(s)
 destroyable(ss)
 
 function event() {
@@ -230,7 +231,7 @@ runTest('https over https, tunnel=default', {
 
 
 tape('cleanup', function(t) {
-  s.close(function() {
+  s.destroy(function() {
     ss.destroy(function() {
       t.end()
     })
