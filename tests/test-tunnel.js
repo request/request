@@ -231,7 +231,7 @@ runTest('https over https, tunnel=default', {
 
 
 tape('cleanup', function(t) {
-  s.destroy(function() {
+  s.close(function() {
     ss.destroy(function() {
       t.end()
     })
