@@ -30,7 +30,7 @@ var s = server.createServer()
 // doesn't want to close normally
 destroyable(ss)
 
-function event(msg) {
+function event() {
   events.push(util.format.apply(null, arguments))
 }
 
