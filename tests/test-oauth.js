@@ -451,20 +451,20 @@ tape('query transport_method with qs parameter and existing query string in url'
     t.notOk(r.headers.Authorization, 'oauth Authorization header should not be present with transport_method \'query\'')
     t.notOk(r.path.match(/\?&/), 'there should be no ampersand at the beginning of the query')
     t.equal('OB33pYjWAnf+xtOHN4Gmbdil168=', qs.parse(r.path).oauth_signature)
-    var matches = r.path.match(/\?(.*?)&(oauth.*$)/)
-    t.ok(matches, 'regex to split oauth parameters from qs parameters matched successfully')
-    var qsParams = qs.parse(matches[1])
-    var oauthParams = qs.parse(matches[2])
+    
+    var params = qs.parse(r.path.split('?')[1])
+      , keys = Object.keys(params)
 
-    var i, paramNames = ['a2', 'a3[0]', 'a3[1]', 'c@', 'b5', 'c2']
-    for (i = 0; i < paramNames.length; i++) {
-      t.ok(qsParams.hasOwnProperty(paramNames[i]), 'Non-oauth query params should be first in query string: ' + paramNames[i])
-    }
+    var paramNames = [
+      'a2', 'b5', 'a3[0]', 'a3[1]', 'c@', 'c2',
+      'realm', 'oauth_nonce', 'oauth_signature_method', 'oauth_timestamp',
+      'oauth_token', 'oauth_version', 'oauth_signature'
+    ]
 
-    paramNames = ['consumer_key', 'nonce', 'timestamp', 'version', 'signature', 'token', 'signature_method']
-    for (i = 0; i < paramNames.length; i++) {
-      var paramName = 'oauth_' + paramNames[i]
-      t.ok(oauthParams[paramName], 'OAuth query params should be included after request specific parameters: ' + paramName)
+    for (var i = 0; i < keys.length; i++) {
+      t.ok(keys[i] === paramNames[i],
+        'Non-oauth query params should be first, ' +
+        'OAuth query params should be second in query string')
     }
 
     r.abort()
