@@ -1,91 +1,239 @@
 'use strict'
 
-// test that we can tunnel a https request over an http proxy
-// keeping all the CA and whatnot intact.
-//
-// Note: this requires that squid is installed.
-// If the proxy fails to start, we'll just log a warning and assume success.
-
 var server = require('./server')
+  , tape = require('tape')
   , request = require('../index')
+  , https = require('https')
+  , net = require('net')
   , fs = require('fs')
   , path = require('path')
-  , child_process = require('child_process')
-  , tape = require('tape')
+  , util = require('util')
+  , url = require('url')
+  , destroyable = require('server-destroy')
 
-var sqConf = path.resolve(__dirname, 'squid.conf')
-  , sqArgs = ['-f', sqConf, '-N', '-d', '5']
-  , proxy = 'http://localhost:3128'
-  , squid
-  , ready = false
-  , installed = true
-  , squidError = null
+var events = []
+  , caFile = path.resolve(__dirname, 'ssl/ca/ca.crt')
+  , ca = fs.readFileSync(caFile)
+  , sslOpts = {
+    key  : path.resolve(__dirname, 'ssl/ca/localhost.key'),
+    cert : path.resolve(__dirname, 'ssl/ca/localhost.crt')
+  }
 
-// This test doesn't fit into tape very well...
+var httpsOpts = https.globalAgent.options
+httpsOpts.ca = httpsOpts.ca || []
+httpsOpts.ca.push(ca)
+
+var s = server.createServer()
+  , ss = server.createSSLServer(null, sslOpts)
+
+// XXX when tunneling https over https, connections get left open so the server
+// doesn't want to close normally (and same issue with http server on v0.8.x)
+destroyable(s)
+destroyable(ss)
+
+function event() {
+  events.push(util.format.apply(null, arguments))
+}
+
+function setListeners(server, type) {
+  server.on('/', function(req, res) {
+    event('%s response', type)
+    res.end(type + ' ok')
+  })
+
+  server.on(s.url + '/', function(req, res) {
+    event('%s proxy to http', type)
+    request(s.url).pipe(res)
+  })
+
+  server.on(ss.url + '/', function(req, res) {
+    event('%s proxy to https', type)
+    request(ss.url).pipe(res)
+  })
+
+  server.on('connect', function(req, client, head) {
+    var u = url.parse(req.url)
+    var server = net.connect(u.host, u.port, function() {
+      event('%s connect to %s', type, req.url)
+      client.write('HTTP/1.1 200 Connection established\r\n\r\n')
+      client.pipe(server)
+      server.write(head)
+      server.pipe(client)
+    })
+  })
+}
+
+setListeners(s, 'http')
+setListeners(ss, 'https')
 
 tape('setup', function(t) {
-  squid = child_process.spawn('squid', sqArgs)
-
-  squid.stderr.on('data', function(c) {
-    console.error('SQUIDERR ' + c.toString().trim().split('\n').join('\nSQUIDERR '))
-    ready = c.toString().match(/ready to serve requests|Accepting HTTP Socket connections/i)
-  })
-
-  squid.stdout.on('data', function(c) {
-    console.error('SQUIDOUT ' + c.toString().trim().split('\n').join('\nSQUIDOUT '))
-  })
-
-  squid.on('error', function(c) {
-    console.error('squid: error ' + c)
-    if (c && !ready) {
-      installed = false
-    }
-  })
-
-  squid.on('exit', function(c) {
-    console.error('squid: exit ' + c)
-    if (c && !ready) {
-      installed = false
-      return
-    }
-
-    if (c) {
-      squidError = squidError || new Error('Squid exited with code ' + c)
-    }
-    if (squidError) {
-      throw squidError
-    }
-  })
-
-  t.end()
-})
-
-tape('tunnel', function(t) {
-  setTimeout(function F() {
-    if (!installed) {
-      console.error('squid must be installed to run this test.')
-      console.error('skipping this test. please install squid and run again if you need to test tunneling.')
-      t.skip()
-      t.end()
-      return
-    }
-    if (!ready) {
-      setTimeout(F, 100)
-      return
-    }
-    request({
-      uri: 'https://registry.npmjs.org/',
-      proxy: 'http://localhost:3128',
-      strictSSL: true,
-      json: true
-    }, function(err, body) {
-      t.equal(err, null)
+  s.listen(s.port, function() {
+    ss.listen(ss.port, function() {
       t.end()
     })
-  }, 100)
+  })
 })
 
+// monkey-patch since you can't set a custom certificate authority for the
+// proxy in tunnel-agent (this is necessary for "* over https" tests)
+var customCaCount = 0
+var httpsRequestOld = https.request
+https.request = function(options) {
+  if (customCaCount) {
+    options.ca = ca
+    customCaCount--
+  }
+  return httpsRequestOld.apply(this, arguments)
+}
+
+function runTest(name, opts, expected) {
+  tape(name, function(t) {
+    opts.ca = ca
+    if (opts.proxy === ss.url) {
+      customCaCount = (opts.url === ss.url ? 2 : 1)
+    }
+    request(opts, function(err, res, body) {
+      event(err ? 'err ' + err.message : res.statusCode + ' ' + body)
+      t.deepEqual(events, expected)
+      events = []
+      t.end()
+    })
+  })
+}
+
+
+// HTTP OVER HTTP TESTS
+
+runTest('http over http, tunnel=true', {
+  url    : s.url,
+  proxy  : s.url,
+  tunnel : true
+}, [
+  'http connect to localhost:' + s.port,
+  'http response',
+  '200 http ok'
+])
+
+runTest('http over http, tunnel=false', {
+  url    : s.url,
+  proxy  : s.url,
+  tunnel : false
+}, [
+  'http proxy to http',
+  'http response',
+  '200 http ok'
+])
+
+runTest('http over http, tunnel=default', {
+  url    : s.url,
+  proxy  : s.url
+}, [
+  'http proxy to http',
+  'http response',
+  '200 http ok'
+])
+
+
+// HTTP OVER HTTPS TESTS
+
+runTest('http over https, tunnel=true', {
+  url    : s.url,
+  proxy  : ss.url,
+  tunnel : true
+}, [
+  'https connect to localhost:' + s.port,
+  'http response',
+  '200 http ok'
+])
+
+runTest('http over https, tunnel=false', {
+  url    : s.url,
+  proxy  : ss.url,
+  tunnel : false
+}, [
+  'https proxy to http',
+  'http response',
+  '200 http ok'
+])
+
+runTest('http over https, tunnel=default', {
+  url    : s.url,
+  proxy  : ss.url
+}, [
+  'https proxy to http',
+  'http response',
+  '200 http ok'
+])
+
+
+// HTTPS OVER HTTP TESTS
+
+runTest('https over http, tunnel=true', {
+  url    : ss.url,
+  proxy  : s.url,
+  tunnel : true
+}, [
+  'http connect to localhost:' + ss.port,
+  'https response',
+  '200 https ok'
+])
+
+runTest('https over http, tunnel=false', {
+  url    : ss.url,
+  proxy  : s.url,
+  tunnel : false // currently has no effect
+}, [
+  'http connect to localhost:' + ss.port,
+  'https response',
+  '200 https ok'
+])
+
+runTest('https over http, tunnel=default', {
+  url    : ss.url,
+  proxy  : s.url
+}, [
+  'http connect to localhost:' + ss.port,
+  'https response',
+  '200 https ok'
+])
+
+
+// HTTPS OVER HTTPS TESTS
+
+runTest('https over https, tunnel=true', {
+  url    : ss.url,
+  proxy  : ss.url,
+  tunnel : true
+}, [
+  'https connect to localhost:' + ss.port,
+  'https response',
+  '200 https ok'
+])
+
+runTest('https over https, tunnel=false', {
+  url    : ss.url,
+  proxy  : ss.url,
+  tunnel : false // currently has no effect
+}, [
+  'https connect to localhost:' + ss.port,
+  'https response',
+  '200 https ok'
+])
+
+runTest('https over https, tunnel=default', {
+  url    : ss.url,
+  proxy  : ss.url
+}, [
+  'https connect to localhost:' + ss.port,
+  'https response',
+  '200 https ok'
+])
+
+
 tape('cleanup', function(t) {
-  squid.kill('SIGKILL')
-  t.end()
+  s.destroy(function() {
+    ss.destroy(function() {
+      t.end()
+    })
+  })
 })
