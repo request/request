@@ -26,6 +26,7 @@ server.listen(port, function() {
     path.join(__dirname, '/karma.conf.js')
   ])
   c.stdout.pipe(process.stdout)
+  c.stderr.pipe(process.stderr)
   c.on('exit', function(c) {
     // Exit process with karma exit code.
     if (c !== 0) {
