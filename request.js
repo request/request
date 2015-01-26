@@ -1077,7 +1077,6 @@ Request.prototype.onRequestResponse = function (response) {
     // self.method = 'GET' // Force all redirects to use GET || commented out fixes #215
     delete self.src
     delete self.req
-    delete self.agent
     delete self._started
     if (response.statusCode !== 401 && response.statusCode !== 307) {
       // Remove parameters from the previous response, unless this is the second request
