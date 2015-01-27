@@ -14,9 +14,19 @@ var server = require('./server')
 var events = []
   , caFile = path.resolve(__dirname, 'ssl/ca/ca.crt')
   , ca = fs.readFileSync(caFile)
+  , clientCert = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.crt'))
+  , clientKey = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client-enc.key'))
+  , clientPassword = 'password'
   , sslOpts = {
     key  : path.resolve(__dirname, 'ssl/ca/localhost.key'),
-    cert : path.resolve(__dirname, 'ssl/ca/localhost.crt')
+    cert : path.resolve(__dirname, 'ssl/ca/localhost.crt'),
+  }
+  , mutualSSLOpts = {
+    key  : path.resolve(__dirname, 'ssl/ca/localhost.key'),
+    cert : path.resolve(__dirname, 'ssl/ca/localhost.crt'),
+    ca: caFile,
+    requestCert: true,
+    rejectUnauthorized: true
   }
 
 // this is needed for 'https over http, tunnel=false' test
@@ -27,11 +37,13 @@ httpsOpts.ca.push(ca)
 
 var s = server.createServer()
   , ss = server.createSSLServer(null, sslOpts)
+  , sss = server.createSSLServer(ss.port + 1, mutualSSLOpts)
 
 // XXX when tunneling https over https, connections get left open so the server
 // doesn't want to close normally (and same issue with http server on v0.8.x)
 destroyable(s)
 destroyable(ss)
+destroyable(sss)
 
 function event() {
   events.push(util.format.apply(null, arguments))
@@ -87,11 +99,14 @@ function setListeners(server, type) {
 
 setListeners(s, 'http')
 setListeners(ss, 'https')
+setListeners(sss, 'https')
 
 tape('setup', function(t) {
   s.listen(s.port, function() {
     ss.listen(ss.port, function() {
-      t.end()
+      sss.listen(sss.port, 'localhost', function() {
+        t.end();
+      })
     })
   })
 })
@@ -219,6 +234,45 @@ runTest('https over http, tunnel=default', {
   '200 https ok'
 ])
 
+// MUTUAL HTTPS OVER HTTP TESTS
+
+runTest('mutual https over http, tunnel=true', {
+  url    : sss.url,
+  proxy  : s.url,
+  tunnel : true,
+  cert: clientCert,
+  key: clientKey,
+  passphrase: clientPassword
+}, [
+  'http connect to localhost:' + sss.port,
+  'https response',
+  '200 https ok'
+])
+
+runTest('mutual https over http, tunnel=false', {
+  url    : sss.url,
+  proxy  : s.url,
+  tunnel : false, // currently has no effect
+  cert: clientCert,
+  key: clientKey,
+  passphrase: clientPassword
+}, [
+  'http connect to localhost:' + sss.port,
+  'https response',
+  '200 https ok'
+])
+
+runTest('mutual https over http, tunnel=default', {
+  url    : sss.url,
+  proxy  : s.url,
+  cert: clientCert,
+  key: clientKey,
+  passphrase: clientPassword
+}, [
+  'http connect to localhost:' + sss.port,
+  'https response',
+  '200 https ok'
+])
 
 // HTTPS OVER HTTPS
 
@@ -408,7 +462,9 @@ runTest('https->https over http, tunnel=default', {
 tape('cleanup', function(t) {
   s.destroy(function() {
     ss.destroy(function() {
-      t.end()
+      sss.destroy(function() {
+        t.end();
+      })
     })
   })
 })

@@ -169,11 +169,16 @@ function constructTunnelOptions(request) {
       proxyAuth: proxy.auth,
       headers: request.proxyHeaders
     },
-    rejectUnauthorized: request.rejectUnauthorized,
     headers: request.headers,
     ca: request.ca,
     cert: request.cert,
-    key: request.key
+    key: request.key,
+    passphrase: request.passphrase,
+    pfx: request.pfx,
+    ciphers: request.ciphers,
+    rejectUnauthorized: request.rejectUnauthorized,
+    secureOptions: request.secureOptions,
+    secureProtocol: request.secureProtocol
   }
 
   return tunnelOptions
@@ -793,6 +798,14 @@ Request.prototype.getNewAgent = function () {
     options.key = self.key
     options.cert = self.cert
   }
+  
+  if (self.pfx) {
+    options.pfx = self.pfx
+  }
+
+  if (self.passphrase) {
+    options.passphrase = self.passphrase
+  }
 
   var poolKey = ''
 
@@ -824,7 +837,17 @@ Request.prototype.getNewAgent = function () {
     }
 
     if (options.cert) {
+      if (poolKey) {
+        poolKey += ':'
+      }
       poolKey += options.cert.toString('ascii') + options.key.toString('ascii')
+    }
+    
+    if (options.pfx) {
+      if (poolKey) {
+        poolKey += ':'
+      }
+      poolKey += options.pfx.toString('ascii')
     }
 
     if (options.ciphers) {
