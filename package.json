@@ -43,8 +43,7 @@
   "scripts": {
     "test": "npm run lint && node node_modules/.bin/taper tests/test-*.js && npm run test-browser && npm run clean",
     "test-browser": "node tests/browser/start.js",
-    "lint": "node node_modules/.bin/eslint lib/ *.js tests/ && echo Lint passed.",
-    "clean": "rm -r coverage || true"
+    "lint": "node node_modules/.bin/eslint lib/ *.js tests/ && echo Lint passed."
   },
   "devDependencies": {
     "browserify": "~5.9.1",
