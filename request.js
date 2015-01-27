@@ -159,7 +159,7 @@ function getTunnelOption(self, options) {
   return undefined
 }
 
-function construcTunnelOptions(request) {
+function constructTunnelOptions(request) {
   var proxy = request.proxy
 
   var tunnelOptions = {
@@ -311,7 +311,7 @@ Request.prototype.setupTunnel = function () {
   proxyHeaderExclusiveList.forEach(self.removeHeader, self)
 
   var tunnelFn = getTunnelFn(self)
-  var tunnelOptions = construcTunnelOptions(self)
+  var tunnelOptions = constructTunnelOptions(self)
 
   self.agent = tunnelFn(tunnelOptions)
   return true
