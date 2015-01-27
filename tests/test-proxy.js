@@ -7,10 +7,12 @@ var server = require('./server')
 var s = server.createServer()
   , currResponseHandler
 
-s.on('http://google.com/', function(req, res) {
-  currResponseHandler(req, res)
-  res.writeHeader(200)
-  res.end('ok')
+['http://google.com/', 'https://google.com/'].forEach(function(url) {
+  s.on(url, function(req, res) {
+    currResponseHandler(req, res)
+    res.writeHeader(200)
+    res.end('ok')
+  })
 })
 
 var proxyEnvVars = [
@@ -57,14 +59,8 @@ function runTest(name, options, responseHandler) {
       }
     }
 
-    var requestOpts = {
-      url: 'http://google.com'
-    }
-    for (var k in options) {
-      requestOpts[k] = options[k]
-    }
-
-    request(requestOpts, function(err, res, body) {
+    options.url = options.url || 'http://google.com'
+    request(options, function(err, res, body) {
       if (responseHandler && !called) {
         t.fail('proxy response should be called')
       }
@@ -123,25 +119,80 @@ if (process.env.TEST_PROXY_HARNESS) {
     t.equal(req.headers['proxy-authorization'], 'Basic dXNlcjpwYXNz')
   })
 
-  runTest('HTTP_PROXY environment variable', {
+  // http: urls and basic proxy settings
+
+  runTest('HTTP_PROXY environment variable and http: url', {
     env : { HTTP_PROXY : s.url }
   }, true)
 
-  runTest('http_proxy environment variable', {
+  runTest('http_proxy environment variable and http: url', {
     env : { http_proxy : s.url }
   }, true)
 
-  runTest('http_proxy with length of one more than the URL', {
-    env: {
-      HTTP_PROXY : s.url,
-      NO_PROXY: 'elgoog1.com' // one more char than google.com
-    }
+  runTest('HTTPS_PROXY environment variable and http: url', {
+    env : { HTTPS_PROXY : s.url }
+  }, false)
+
+  runTest('https_proxy environment variable and http: url', {
+    env : { https_proxy : s.url }
+  }, false)
+
+  // https: urls and basic proxy settings
+
+  runTest('HTTP_PROXY environment variable and https: url', {
+    env    : { HTTP_PROXY : s.url },
+    url    : 'https://google.com',
+    tunnel : false,
+    pool   : false
   }, true)
+
+  runTest('http_proxy environment variable and https: url', {
+    env    : { http_proxy : s.url },
+    url    : 'https://google.com',
+    tunnel : false
+  }, true)
+
+  runTest('HTTPS_PROXY environment variable and https: url', {
+    env    : { HTTPS_PROXY : s.url },
+    url    : 'https://google.com',
+    tunnel : false
+  }, true)
+
+  runTest('https_proxy environment variable and https: url', {
+    env    : { https_proxy : s.url },
+    url    : 'https://google.com',
+    tunnel : false
+  }, true)
+
+  runTest('multiple environment variables and https: url', {
+    env : {
+      HTTPS_PROXY : s.url,
+      HTTP_PROXY  : 'http://localhost:4/'
+    },
+    url    : 'https://google.com',
+    tunnel : false
+  }, true)
+
+  // no_proxy logic
 
   runTest('NO_PROXY hostnames are case insensitive', {
     env : {
       HTTP_PROXY : s.url,
       NO_PROXY   : 'GOOGLE.COM'
+    }
+  }, false)
+
+  runTest('NO_PROXY hostnames are case insensitive 2', {
+    env : {
+      http_proxy : s.url,
+      NO_PROXY   : 'GOOGLE.COM'
+    }
+  }, false)
+
+  runTest('NO_PROXY hostnames are case insensitive 3', {
+    env : {
+      HTTP_PROXY : s.url,
+      no_proxy   : 'GOOGLE.COM'
     }
   }, false)
 
@@ -218,6 +269,17 @@ if (process.env.TEST_PROXY_HARNESS) {
     env : {
       HTTP_PROXY : s.url,
       NO_PROXY   : 'oogle.com:80'
+    }
+  }, true)
+
+  // misc
+
+  // this fails if the check 'isMatchedAt > -1' in lib/getProxyFromURI.js is
+  // missing or broken
+  runTest('http_proxy with length of one more than the URL', {
+    env : {
+      HTTP_PROXY : s.url,
+      NO_PROXY   : 'elgoog1.com' // one more char than google.com
     }
   }, true)
 

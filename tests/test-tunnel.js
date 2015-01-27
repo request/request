@@ -19,6 +19,8 @@ var events = []
     cert : path.resolve(__dirname, 'ssl/ca/localhost.crt')
   }
 
+// this is needed for 'https over http, tunnel=false' test
+// from https://github.com/coolaj86/node-ssl-root-cas/blob/v1.1.9-beta/ssl-root-cas.js#L4267-L4281
 var httpsOpts = https.globalAgent.options
 httpsOpts.ca = httpsOpts.ca || []
 httpsOpts.ca.push(ca)
@@ -41,14 +43,34 @@ function setListeners(server, type) {
     res.end(type + ' ok')
   })
 
-  server.on(s.url + '/', function(req, res) {
-    event('%s proxy to http', type)
-    request(s.url).pipe(res)
+  server.on('request', function(req, res) {
+    if (/^https?:/.test(req.url)) {
+      // This is a proxy request
+      var dest = req.url.split(':')[0]
+      // Is it a redirect?
+      var match = req.url.match(/\/redirect\/(https?)$/)
+      if (match) {
+        dest += '->' + match[1]
+      }
+      event('%s proxy to %s', type, dest)
+      request(req.url, { followRedirect : false }).pipe(res)
+    }
   })
 
-  server.on(ss.url + '/', function(req, res) {
-    event('%s proxy to https', type)
-    request(ss.url).pipe(res)
+  server.on('/redirect/http', function(req, res) {
+    event('%s redirect to http', type)
+    res.writeHead(301, {
+      location : s.url
+    })
+    res.end()
+  })
+
+  server.on('/redirect/https', function(req, res) {
+    event('%s redirect to https', type)
+    res.writeHead(301, {
+      location : ss.url
+    })
+    res.end()
   })
 
   server.on('connect', function(req, client, head) {
@@ -102,7 +124,7 @@ function runTest(name, opts, expected) {
 }
 
 
-// HTTP OVER HTTP TESTS
+// HTTP OVER HTTP
 
 runTest('http over http, tunnel=true', {
   url    : s.url,
@@ -134,7 +156,7 @@ runTest('http over http, tunnel=default', {
 ])
 
 
-// HTTP OVER HTTPS TESTS
+// HTTP OVER HTTPS
 
 runTest('http over https, tunnel=true', {
   url    : s.url,
@@ -166,7 +188,7 @@ runTest('http over https, tunnel=default', {
 ])
 
 
-// HTTPS OVER HTTP TESTS
+// HTTPS OVER HTTP
 
 runTest('https over http, tunnel=true', {
   url    : ss.url,
@@ -181,9 +203,9 @@ runTest('https over http, tunnel=true', {
 runTest('https over http, tunnel=false', {
   url    : ss.url,
   proxy  : s.url,
-  tunnel : false // currently has no effect
+  tunnel : false
 }, [
-  'http connect to localhost:' + ss.port,
+  'http proxy to https',
   'https response',
   '200 https ok'
 ])
@@ -198,7 +220,7 @@ runTest('https over http, tunnel=default', {
 ])
 
 
-// HTTPS OVER HTTPS TESTS
+// HTTPS OVER HTTPS
 
 runTest('https over https, tunnel=true', {
   url    : ss.url,
@@ -213,9 +235,10 @@ runTest('https over https, tunnel=true', {
 runTest('https over https, tunnel=false', {
   url    : ss.url,
   proxy  : ss.url,
-  tunnel : false // currently has no effect
+  tunnel : false,
+  pool   : false // must disable pooling here or Node.js hangs
 }, [
-  'https connect to localhost:' + ss.port,
+  'https proxy to https',
   'https response',
   '200 https ok'
 ])
@@ -225,6 +248,158 @@ runTest('https over https, tunnel=default', {
   proxy  : ss.url
 }, [
   'https connect to localhost:' + ss.port,
+  'https response',
+  '200 https ok'
+])
+
+
+// HTTP->HTTP OVER HTTP
+
+runTest('http->http over http, tunnel=true', {
+  url    : s.url + '/redirect/http',
+  proxy  : s.url,
+  tunnel : true
+}, [
+  'http connect to localhost:' + s.port,
+  'http redirect to http',
+  'http connect to localhost:' + s.port,
+  'http response',
+  '200 http ok'
+])
+
+runTest('http->http over http, tunnel=false', {
+  url    : s.url + '/redirect/http',
+  proxy  : s.url,
+  tunnel : false
+}, [
+  'http proxy to http->http',
+  'http redirect to http',
+  'http proxy to http',
+  'http response',
+  '200 http ok'
+])
+
+runTest('http->http over http, tunnel=default', {
+  url    : s.url + '/redirect/http',
+  proxy  : s.url
+}, [
+  'http proxy to http->http',
+  'http redirect to http',
+  'http proxy to http',
+  'http response',
+  '200 http ok'
+])
+
+
+// HTTP->HTTPS OVER HTTP
+
+runTest('http->https over http, tunnel=true', {
+  url    : s.url + '/redirect/https',
+  proxy  : s.url,
+  tunnel : true
+}, [
+  'http connect to localhost:' + s.port,
+  'http redirect to https',
+  'http connect to localhost:' + ss.port,
+  'https response',
+  '200 https ok'
+])
+
+runTest('http->https over http, tunnel=false', {
+  url    : s.url + '/redirect/https',
+  proxy  : s.url,
+  tunnel : false
+}, [
+  'http proxy to http->https',
+  'http redirect to https',
+  'http proxy to https',
+  'https response',
+  '200 https ok'
+])
+
+runTest('http->https over http, tunnel=default', {
+  url    : s.url + '/redirect/https',
+  proxy  : s.url
+}, [
+  'http proxy to http->https',
+  'http redirect to https',
+  'http connect to localhost:' + ss.port,
+  'https response',
+  '200 https ok'
+])
+
+
+// HTTPS->HTTP OVER HTTP
+
+runTest('https->http over http, tunnel=true', {
+  url    : ss.url + '/redirect/http',
+  proxy  : s.url,
+  tunnel : true
+}, [
+  'http connect to localhost:' + ss.port,
+  'https redirect to http',
+  'http connect to localhost:' + s.port,
+  'http response',
+  '200 http ok'
+])
+
+runTest('https->http over http, tunnel=false', {
+  url    : ss.url + '/redirect/http',
+  proxy  : s.url,
+  tunnel : false
+}, [
+  'http proxy to https->http',
+  'https redirect to http',
+  'http proxy to http',
+  'http response',
+  '200 http ok'
+])
+
+runTest('https->http over http, tunnel=default', {
+  url    : ss.url + '/redirect/http',
+  proxy  : s.url
+}, [
+  'http connect to localhost:' + ss.port,
+  'https redirect to http',
+  'http connect to localhost:' + s.port,
+  'http response',
+  '200 http ok'
+])
+
+
+// HTTPS->HTTPS OVER HTTP
+
+runTest('https->https over http, tunnel=true', {
+  url    : ss.url + '/redirect/https',
+  proxy  : s.url,
+  tunnel : true
+}, [
+  'http connect to localhost:' + ss.port,
+  'https redirect to https',
+  'http connect to localhost:' + ss.port,
+  'https response',
+  '200 https ok'
+])
+
+runTest('https->https over http, tunnel=false', {
+  url    : ss.url + '/redirect/https',
+  proxy  : s.url,
+  tunnel : false
+}, [
+  'http proxy to https->https',
+  'https redirect to https',
+  'http proxy to https',
+  'https response',
+  '200 https ok'
+])
+
+runTest('https->https over http, tunnel=default', {
+  url    : ss.url + '/redirect/https',
+  proxy  : s.url
+}, [
+  'http connect to localhost:' + ss.port,
+  'https redirect to https',
+  'http connect to localhost:' + ss.port,
   'https response',
   '200 https ok'
 ])

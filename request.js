@@ -133,7 +133,33 @@ function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList) {
     }, {})
 }
 
-function construcTunnelOptions(request) {
+function getTunnelOption(self, options) {
+  // Tunnel HTTPS by default, or if a previous request in the redirect chain
+  // was tunneled.  Allow the user to override this setting.
+
+  // If self.tunnel is already set (because this is a redirect), use the
+  // existing value.
+  if (typeof self.tunnel !== 'undefined') {
+    return self.tunnel
+  }
+
+  // If options.tunnel is set (the user specified a value), use it.
+  if (typeof options.tunnel !== 'undefined') {
+    return options.tunnel
+  }
+
+  // If the destination is HTTPS, tunnel.
+  if (self.uri.protocol === 'https:') {
+    return true
+  }
+
+  // Otherwise, leave tunnel unset, because if a later request in the redirect
+  // chain is HTTPS then that request (and any subsequent ones) should be
+  // tunneled.
+  return undefined
+}
+
+function constructTunnelOptions(request) {
   var proxy = request.proxy
 
   var tunnelOptions = {
@@ -209,7 +235,6 @@ function rfc3986 (str) {
 }
 
 function Request (options) {
-  // if tunnel property of options was not given default to false
   // if given the method property in options, set property explicitMethod to true
 
   // extend the Request instance with any non-reserved properties
@@ -228,13 +253,9 @@ function Request (options) {
 
   self.readable = true
   self.writable = true
-  if (typeof options.tunnel === 'undefined') {
-    options.tunnel = false
-  }
   if (options.method) {
     self.explicitMethod = true
   }
-  self.canTunnel = options.tunnel !== false && tunnel
   self.init(options)
 }
 
@@ -263,7 +284,7 @@ Request.prototype.setupTunnel = function () {
     return false
   }
 
-  if (!self.tunnel && self.uri.protocol !== 'https:') {
+  if (!self.tunnel) {
     return false
   }
 
@@ -290,10 +311,9 @@ Request.prototype.setupTunnel = function () {
   proxyHeaderExclusiveList.forEach(self.removeHeader, self)
 
   var tunnelFn = getTunnelFn(self)
-  var tunnelOptions = construcTunnelOptions(self)
+  var tunnelOptions = constructTunnelOptions(self)
 
   self.agent = tunnelFn(tunnelOptions)
-  self.tunnel = true
   return true
 }
 
@@ -383,8 +403,7 @@ Request.prototype.init = function (options) {
     self.proxy = getProxyFromURI(self.uri)
   }
 
-  // Pass in `tunnel:true` to *always* tunnel through proxies
-  self.tunnel = !!options.tunnel
+  self.tunnel = getTunnelOption(self, options)
   if (self.proxy) {
     self.setupTunnel()
   }
