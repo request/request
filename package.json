@@ -42,18 +42,20 @@
   },
   "scripts": {
     "test": "npm run lint && node node_modules/.bin/taper tests/test-*.js && npm run test-browser && npm run clean",
-    "test-browser": "browserify tests/browser/test.js -o tests/browser/test-browser.js && node tests/browser/start.js",
-    "lint": "node node_modules/.bin/eslint lib/ *.js tests/ && echo Lint passed.",
-    "clean": "rm tests/browser/test-browser.js || true"
+    "test-browser": "node tests/browser/start.js",
+    "lint": "node node_modules/.bin/eslint lib/ *.js tests/ && echo Lint passed."
   },
   "devDependencies": {
     "browserify": "~5.9.1",
+    "browserify-istanbul": "~0.1.3",
     "coveralls": "~2.11.2",
     "eslint": "0.5.1",
     "function-bind": "~1.0.0",
     "istanbul": "~0.3.2",
     "karma": "~0.12.21",
+    "karma-browserify": "~3.0.1",
     "karma-cli": "0.0.4",
+    "karma-coverage": "0.2.6",
     "karma-phantomjs-launcher": "~0.1.4",
     "karma-tap": "~1.0.1",
     "rimraf": "~2.2.8",

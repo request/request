@@ -1,15 +1,20 @@
 'use strict'
+var istanbul = require('browserify-istanbul')
 
 module.exports = function(config) {
   config.set({
-    basePath: '',
-    frameworks: ['tap'],
+    basePath: '../..',
+    frameworks: ['tap', 'browserify'],
+    preprocessors: {
+      'tests/browser/test.js': ['browserify'],
+      '*.js,!(tests)/**/*.js': ['coverage']
+    },
     files: [
-      'test-browser.js'
+      'tests/browser/test.js'
     ],
     port: 9876,
 
-    reporters: ['dots'],
+    reporters: ['dots', 'coverage'],
 
     colors: true,
 
@@ -20,6 +25,23 @@ module.exports = function(config) {
     browsers: ['PhantomJS_without_security'],
 
     singleRun: true,
+
+    plugins: [
+      'karma-phantomjs-launcher',
+      'karma-coverage',
+      'karma-browserify',
+      'karma-tap'
+    ],
+    browserify: {
+      debug: true,
+      transform: [istanbul({
+        ignore: ['**/node_modules/**', '**/tests/**']
+      })]
+    },
+    coverageReporter: {
+      type: 'lcov',
+      dir: 'coverage/'
+    },
 
     // Custom launcher to allowe self signed certs.
     customLaunchers: {
