@@ -270,50 +270,35 @@ function debug() {
 }
 
 Request.prototype.setupTunnel = function () {
-  // Set up the tunneling agent if necessary
-  // Only send the proxy whitelisted header names.
-  // Turn on tunneling for the rest of request.
-
   var self = this
 
   if (typeof self.proxy === 'string') {
     self.proxy = url.parse(self.proxy)
   }
-
-  if (!self.proxy) {
+  
+  if (!self.proxy || !self.tunnel) {
     return false
   }
 
-  if (!self.tunnel) {
-    return false
-  }
-
-  // Always include `defaultProxyHeaderExclusiveList`
-
-  if (!self.proxyHeaderExclusiveList) {
-    self.proxyHeaderExclusiveList = []
-  }
-
+  // Setup Proxy Header Exclusive List and White List
+  self.proxyHeaderExclusiveList = self.proxyHeaderExclusiveList || []
+  self.proxyHeaderWhiteList = self.proxyHeaderWhiteList || defaultProxyHeaderWhiteList
   var proxyHeaderExclusiveList = self.proxyHeaderExclusiveList.concat(defaultProxyHeaderExclusiveList)
-
-  // Treat `proxyHeaderExclusiveList` as part of `proxyHeaderWhiteList`
-
-  if (!self.proxyHeaderWhiteList) {
-    self.proxyHeaderWhiteList = defaultProxyHeaderWhiteList
-  }
-
   var proxyHeaderWhiteList = self.proxyHeaderWhiteList.concat(proxyHeaderExclusiveList)
 
+  // Setup Proxy Headers and Proxy Headers Host
+  // Only send the Proxy White Listed Header names
   var proxyHost = constructProxyHost(self.uri)
-  self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, proxyHeaderWhiteList)
+  var proxyHeaders = constructProxyHeaderWhiteList(self.headers, proxyHeaderWhiteList)
+  self.proxyHeaders = proxyHeaders
   self.proxyHeaders.host = proxyHost
-
   proxyHeaderExclusiveList.forEach(self.removeHeader, self)
-
+ 
+  // Set Agent from Tunnel Data
   var tunnelFn = getTunnelFn(self)
   var tunnelOptions = constructTunnelOptions(self)
-
   self.agent = tunnelFn(tunnelOptions)
+
   return true
 }
 
