@@ -288,10 +288,8 @@ Request.prototype.setupTunnel = function () {
 
   // Setup Proxy Headers and Proxy Headers Host
   // Only send the Proxy White Listed Header names
-  var proxyHost = constructProxyHost(self.uri)
-  var proxyHeaders = constructProxyHeaderWhiteList(self.headers, proxyHeaderWhiteList)
-  self.proxyHeaders = proxyHeaders
-  self.proxyHeaders.host = proxyHost
+  self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, proxyHeaderWhiteList)
+  self.proxyHeaders.host = constructProxyHost(self.uri)
   proxyHeaderExclusiveList.forEach(self.removeHeader, self)
  
   // Set Agent from Tunnel Data
