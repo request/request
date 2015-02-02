@@ -20,20 +20,7 @@ function runTest (t, options) {
       if (options.qs) {
         t.equal(req.url, '/?rfc3986=%21%2A%28%29%27')
       }
-      if (options.form) {
-        t.equal(data, 'rfc3986=%21%2A%28%29%27')
-      }
-      if (options.body) {
-        if (options.headers) {
-          t.equal(data, 'rfc3986=%21%2A%28%29%27')
-        }
-        else {
-          t.equal(data, '{"rfc3986":"!*()\'"}')
-        }
-      }
-      if (typeof options.json === 'object') {
-        t.equal(data, '{"rfc3986":"!*()\'"}')
-      }
+      t.equal(data, options._expectBody)
 
       res.writeHead(200)
       res.end('done')
@@ -51,28 +38,67 @@ function runTest (t, options) {
   })
 }
 
+var bodyEscaped = 'rfc3986=%21%2A%28%29%27'
+  , bodyJson    = '{"rfc3986":"!*()\'"}'
+
 var cases = [
-  {qs: {rfc3986: '!*()\''}},
-  {qs: {rfc3986: '!*()\''}, json: true},
-  {form: {rfc3986: '!*()\''}},
-  {form: {rfc3986: '!*()\''}, json: true},
-  {qs: {rfc3986: '!*()\''}, form: {rfc3986: '!*()\''}},
-  {qs: {rfc3986: '!*()\''}, form: {rfc3986: '!*()\''}, json: true},
   {
+    _name: 'qs',
+    qs: {rfc3986: '!*()\''},
+    _expectBody: ''
+  },
+  {
+    _name: 'qs + json',
+    qs: {rfc3986: '!*()\''},
+    json: true,
+    _expectBody: ''
+  },
+  {
+    _name: 'form',
+    form: {rfc3986: '!*()\''},
+    _expectBody: bodyEscaped
+  },
+  {
+    _name: 'form + json',
+    form: {rfc3986: '!*()\''},
+    json: true,
+    _expectBody: bodyEscaped
+  },
+  {
+    _name: 'qs + form',
+    qs: {rfc3986: '!*()\''},
+    form: {rfc3986: '!*()\''},
+    _expectBody: bodyEscaped
+  },
+  {
+    _name: 'qs + form + json',
+    qs: {rfc3986: '!*()\''},
+    form: {rfc3986: '!*()\''},
+    json: true,
+    _expectBody: bodyEscaped
+  },
+  {
+    _name: 'body + header + json',
     headers: {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'},
     body: 'rfc3986=!*()\'',
-    json: true
+    json: true,
+    _expectBody: bodyEscaped
   },
   {
-    body: {rfc3986: '!*()\''}, json: true
+    _name: 'body + json',
+    body: {rfc3986: '!*()\''},
+    json: true,
+    _expectBody: bodyJson
   },
   {
-    json: {rfc3986: '!*()\''}
+    _name: 'json object',
+    json: {rfc3986: '!*()\''},
+    _expectBody: bodyJson
   }
 ]
 
-cases.forEach(function (options, index) {
-  tape('rfc3986 ' + index, function(t) {
+cases.forEach(function (options) {
+  tape('rfc3986 ' + options._name, function(t) {
     runTest(t, options)
   })
 })
