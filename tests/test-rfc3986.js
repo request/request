@@ -28,11 +28,11 @@ function runTest (t, options) {
           t.equal(data, 'rfc3986=%21%2A%28%29%27')
         }
         else {
-          t.equal(data, '{"rfc3986":"%21%2A%28%29%27"}')
+          t.equal(data, '{"rfc3986":"!*()\'"}')
         }
       }
       if (typeof options.json === 'object') {
-        t.equal(data, '{"rfc3986":"%21%2A%28%29%27"}')
+        t.equal(data, '{"rfc3986":"!*()\'"}')
       }
 
       res.writeHead(200)
