@@ -266,14 +266,6 @@ function Request (options) {
 
 util.inherits(Request, stream.Stream)
 
-// Debugging
-Request.debug = process.env.NODE_DEBUG && /\brequest\b/.test(process.env.NODE_DEBUG)
-function debug() {
-  if (Request.debug) {
-    console.error('REQUEST %s', util.format.apply(util, arguments))
-  }
-}
-
 Request.prototype.setupTunnel = function () {
   var self = this
 
@@ -326,7 +318,7 @@ Request.prototype.init = function (options) {
     self.qsLib = (options.useQuerystring ? querystring : qs)
   }
 
-  debug(options)
+  self.debug(options)
   if (!self.pool && self.pool !== false) {
     self.pool = globalPool
   }
@@ -495,7 +487,7 @@ Request.prototype.init = function (options) {
   }
 
   // Auth must happen last in case signing is dependent on other headers
-  self._auth = new Auth()
+  self._auth = new Auth(self)
 
   if (options.oauth) {
     self.oauth(options.oauth)
@@ -900,7 +892,7 @@ Request.prototype.start = function () {
   var reqOptions = copy(self)
   delete reqOptions.auth
 
-  debug('make request', self.uri.href)
+  self.debug('make request', self.uri.href)
   self.req = self.httpModule.request(reqOptions)
 
   if (self.timeout && !self.timeoutTimer) {
@@ -963,9 +955,9 @@ Request.prototype.onRequestError = function (error) {
 
 Request.prototype.onRequestResponse = function (response) {
   var self = this
-  debug('onRequestResponse', self.uri.href, response.statusCode, response.headers)
+  self.debug('onRequestResponse', self.uri.href, response.statusCode, response.headers)
   response.on('end', function() {
-    debug('response end', self.uri.href, response.statusCode, response.headers)
+    self.debug('response end', self.uri.href, response.statusCode, response.headers)
   })
 
   // The check on response.connection is a workaround for browserify.
@@ -974,7 +966,7 @@ Request.prototype.onRequestResponse = function (response) {
     response.connection.once('error', connectionErrorHandler)
   }
   if (self._aborted) {
-    debug('aborted', self.uri.href)
+    self.debug('aborted', self.uri.href)
     response.resume()
     return
   }
@@ -993,7 +985,7 @@ Request.prototype.onRequestResponse = function (response) {
   if (self.httpModule === https &&
       self.strictSSL && (!response.hasOwnProperty('client') ||
       !response.client.authorized)) {
-    debug('strict ssl error', self.uri.href)
+    self.debug('strict ssl error', self.uri.href)
     var sslErr = response.hasOwnProperty('client') ? response.client.authorizationError : self.uri.href + ' does not support SSL'
     self.emit('error', new Error('SSL Error: ' + sslErr))
     return
@@ -1039,7 +1031,7 @@ Request.prototype.onRequestResponse = function (response) {
   var redirectTo = null
   if (response.statusCode >= 300 && response.statusCode < 400 && response.caseless.has('location')) {
     var location = response.caseless.get('location')
-    debug('redirect', location)
+    self.debug('redirect', location)
 
     if (self.followAllRedirects) {
       redirectTo = location
@@ -1065,7 +1057,7 @@ Request.prototype.onRequestResponse = function (response) {
   }
 
   if (redirectTo && self.allowRedirect.call(self, response)) {
-    debug('redirect to', redirectTo)
+    self.debug('redirect to', redirectTo)
 
     // ignore any potential response body.  it cannot possibly be useful
     // to us at this point.
@@ -1152,7 +1144,7 @@ Request.prototype.onRequestResponse = function (response) {
         // Since previous versions didn't check for Content-Encoding header,
         // ignore any invalid values to preserve backwards-compatibility
         if (contentEncoding !== 'identity') {
-          debug('ignoring unrecognized Content-Encoding ' + contentEncoding)
+          self.debug('ignoring unrecognized Content-Encoding ' + contentEncoding)
         }
         dataStream = response
       }
@@ -1203,14 +1195,14 @@ Request.prototype.onRequestResponse = function (response) {
         }
       })
       self.on('end', function () {
-        debug('end event', self.uri.href)
+        self.debug('end event', self.uri.href)
         if (self._aborted) {
-          debug('aborted', self.uri.href)
+          self.debug('aborted', self.uri.href)
           return
         }
 
         if (buffer.length) {
-          debug('has body', self.uri.href, buffer.length)
+          self.debug('has body', self.uri.href, buffer.length)
           if (self.encoding === null) {
             // response.body = buffer
             // can't move to this until https://github.com/rvagg/bl/issues/13
@@ -1232,7 +1224,7 @@ Request.prototype.onRequestResponse = function (response) {
             response.body = JSON.parse(response.body, self._jsonReviver)
           } catch (e) {}
         }
-        debug('emitting complete', self.uri.href)
+        self.debug('emitting complete', self.uri.href)
         if(typeof response.body === 'undefined' && !self._json) {
           response.body = self.encoding === null ? new Buffer(0) : ''
         }
@@ -1243,14 +1235,14 @@ Request.prototype.onRequestResponse = function (response) {
     else{
       self.on('end', function () {
         if (self._aborted) {
-          debug('aborted', self.uri.href)
+          self.debug('aborted', self.uri.href)
           return
         }
         self.emit('complete', response)
       })
     }
   }
-  debug('finish init function', self.uri.href)
+  self.debug('finish init function', self.uri.href)
 }
 
 Request.prototype.abort = function () {
@@ -1529,7 +1521,7 @@ Request.prototype.httpSignature = function (opts) {
     method: self.method,
     path: self.path
   }, opts)
-  debug('httpSignature authorization', self.getHeader('authorization'))
+  self.debug('httpSignature authorization', self.getHeader('authorization'))
 
   return self
 }
@@ -1660,6 +1652,18 @@ Request.prototype.destroy = function () {
     self.response.destroy()
   }
 }
+
+
+// Debugging
+
+Request.debug = process.env.NODE_DEBUG && /\brequest\b/.test(process.env.NODE_DEBUG)
+
+Request.prototype.debug = function() {
+  if (Request.debug) {
+    console.error('REQUEST %s', util.format.apply(util, arguments))
+  }
+}
+
 
 Request.defaultProxyHeaderWhiteList =
   defaultProxyHeaderWhiteList.slice()
