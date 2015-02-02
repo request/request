@@ -34,7 +34,9 @@ exports.createSSLServer = function(port, opts) {
   }
 
   for (i in options) {
-    options[i] = fs.readFileSync(options[i])
+    if (i !== 'requestCert' && i !== 'rejectUnauthorized') {
+      options[i] = fs.readFileSync(options[i])
+    }
   }
 
   var s = https.createServer(options, function (req, resp) {

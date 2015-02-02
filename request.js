@@ -163,17 +163,22 @@ function constructTunnelOptions(request) {
   var proxy = request.proxy
 
   var tunnelOptions = {
-    proxy: {
-      host: proxy.hostname,
-      port: +proxy.port,
-      proxyAuth: proxy.auth,
-      headers: request.proxyHeaders
+    proxy : {
+      host      : proxy.hostname,
+      port      : +proxy.port,
+      proxyAuth : proxy.auth,
+      headers   : request.proxyHeaders
     },
-    rejectUnauthorized: request.rejectUnauthorized,
-    headers: request.headers,
-    ca: request.ca,
-    cert: request.cert,
-    key: request.key
+    headers            : request.headers,
+    ca                 : request.ca,
+    cert               : request.cert,
+    key                : request.key,
+    passphrase         : request.passphrase,
+    pfx                : request.pfx,
+    ciphers            : request.ciphers,
+    rejectUnauthorized : request.rejectUnauthorized,
+    secureOptions      : request.secureOptions,
+    secureProtocol     : request.secureProtocol
   }
 
   return tunnelOptions
@@ -777,6 +782,14 @@ Request.prototype.getNewAgent = function () {
     options.cert = self.cert
   }
 
+  if (self.pfx) {
+    options.pfx = self.pfx
+  }
+
+  if (self.passphrase) {
+    options.passphrase = self.passphrase
+  }
+
   var poolKey = ''
 
   // different types of agents are in different pools
@@ -807,7 +820,17 @@ Request.prototype.getNewAgent = function () {
     }
 
     if (options.cert) {
+      if (poolKey) {
+        poolKey += ':'
+      }
       poolKey += options.cert.toString('ascii') + options.key.toString('ascii')
+    }
+
+    if (options.pfx) {
+      if (poolKey) {
+        poolKey += ':'
+      }
+      poolKey += options.pfx.toString('ascii')
     }
 
     if (options.ciphers) {

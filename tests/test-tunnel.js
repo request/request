@@ -14,9 +14,19 @@ var server = require('./server')
 var events = []
   , caFile = path.resolve(__dirname, 'ssl/ca/ca.crt')
   , ca = fs.readFileSync(caFile)
+  , clientCert = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.crt'))
+  , clientKey = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client-enc.key'))
+  , clientPassword = 'password'
   , sslOpts = {
     key  : path.resolve(__dirname, 'ssl/ca/localhost.key'),
     cert : path.resolve(__dirname, 'ssl/ca/localhost.crt')
+  }
+  , mutualSSLOpts = {
+    key  : path.resolve(__dirname, 'ssl/ca/localhost.key'),
+    cert : path.resolve(__dirname, 'ssl/ca/localhost.crt'),
+    ca   : caFile,
+    requestCert        : true,
+    rejectUnauthorized : true
   }
 
 // this is needed for 'https over http, tunnel=false' test
@@ -27,11 +37,13 @@ httpsOpts.ca.push(ca)
 
 var s = server.createServer()
   , ss = server.createSSLServer(null, sslOpts)
+  , ss2 = server.createSSLServer(ss.port + 1, mutualSSLOpts)
 
 // XXX when tunneling https over https, connections get left open so the server
 // doesn't want to close normally (and same issue with http server on v0.8.x)
 destroyable(s)
 destroyable(ss)
+destroyable(ss2)
 
 function event() {
   events.push(util.format.apply(null, arguments))
@@ -87,11 +99,14 @@ function setListeners(server, type) {
 
 setListeners(s, 'http')
 setListeners(ss, 'https')
+setListeners(ss2, 'https')
 
 tape('setup', function(t) {
   s.listen(s.port, function() {
     ss.listen(ss.port, function() {
-      t.end()
+      ss2.listen(ss2.port, 'localhost', function() {
+        t.end()
+      })
     })
   })
 })
@@ -405,10 +420,54 @@ runTest('https->https over http, tunnel=default', {
 ])
 
 
+// MUTUAL HTTPS OVER HTTP
+
+runTest('mutual https over http, tunnel=true', {
+  url        : ss2.url,
+  proxy      : s.url,
+  tunnel     : true,
+  cert       : clientCert,
+  key        : clientKey,
+  passphrase : clientPassword
+}, [
+  'http connect to localhost:' + ss2.port,
+  'https response',
+  '200 https ok'
+])
+
+// XXX causes 'Error: socket hang up'
+// runTest('mutual https over http, tunnel=false', {
+//   url        : ss2.url,
+//   proxy      : s.url,
+//   tunnel     : false,
+//   cert       : clientCert,
+//   key        : clientKey,
+//   passphrase : clientPassword
+// }, [
+//   'http connect to localhost:' + ss2.port,
+//   'https response',
+//   '200 https ok'
+// ])
+
+runTest('mutual https over http, tunnel=default', {
+  url        : ss2.url,
+  proxy      : s.url,
+  cert       : clientCert,
+  key        : clientKey,
+  passphrase : clientPassword
+}, [
+  'http connect to localhost:' + ss2.port,
+  'https response',
+  '200 https ok'
+])
+
+
 tape('cleanup', function(t) {
   s.destroy(function() {
     ss.destroy(function() {
-      t.end()
+      ss2.destroy(function() {
+        t.end()
+      })
     })
   })
 })
