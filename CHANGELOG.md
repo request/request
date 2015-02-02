@@ -1,5 +1,9 @@
 ## Change Log
 
+### v2.53.0 (2015/02/02)
+- [#1396](https://github.com/request/request/pull/1396) Do not rfc3986 escape JSON bodies (@nylen, @simov)
+- [#1392](https://github.com/request/request/pull/1392) Improve `timeout` option description (@watson)
+
 ### v2.52.0 (2015/02/02)
 - [#1383](https://github.com/request/request/pull/1383) Add missing HTTPS options that were not being passed to tunnel (@brichard19) (@nylen, @brichard19)
 - [#1388](https://github.com/request/request/pull/1388) Upgrade mime-types package version (@roderickhsiao)
