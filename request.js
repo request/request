@@ -1428,15 +1428,15 @@ Request.prototype.json = function (val) {
     if (self.body !== undefined) {
       if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
         self.body = safeStringify(self.body)
+      } else {
+        self.body = rfc3986(self.body)
       }
-      self.body = rfc3986(self.body)
       if (!self.hasHeader('content-type')) {
         self.setHeader('content-type', 'application/json')
       }
     }
   } else {
     self.body = safeStringify(val)
-    self.body = rfc3986(self.body)
     if (!self.hasHeader('content-type')) {
       self.setHeader('content-type', 'application/json')
     }
