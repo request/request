@@ -132,16 +132,37 @@ tape('piping from a request object', function(t) {
   }
 })
 
-tape('piping from a file', function(t) {
-  s.once('/pushjs', function(req, res) {
-    if (req.method === 'PUT') {
-      t.equal(req.headers['content-type'], 'application/javascript')
-      t.end()
-      res.end()
+var fileContents = fs.readFileSync(__filename).toString()
+function testPipeFromFile(testName, hasContentLength) {
+  tape(testName, function(t) {
+    s.once('/pushjs', function(req, res) {
+      if (req.method === 'PUT') {
+        t.equal(req.headers['content-type'], 'application/javascript')
+        t.equal(
+          req.headers['content-length'],
+          (hasContentLength ? '' + fileContents.length : undefined))
+        var body = ''
+        req.on('data', function(data) {
+          body += data
+        })
+        req.on('end', function() {
+          t.equal(body, fileContents)
+          t.end()
+        })
+        res.end()
+      }
+    })
+    var r = request.put(s.url + '/pushjs')
+    fs.createReadStream(__filename).pipe(r)
+    if (hasContentLength) {
+      r.setHeader('content-length', fileContents.length)
     }
   })
-  fs.createReadStream(__filename).pipe(request.put(s.url + '/pushjs'))
-})
+}
+
+// TODO Piping from a file does not send content-length header
+testPipeFromFile('piping from a file', false)
+testPipeFromFile('piping from a file with content-length', true)
 
 tape('piping to and from same URL', function(t) {
   s.once('catDone', function(req, res, body) {
