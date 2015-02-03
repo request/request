@@ -23,11 +23,10 @@ var http = require('http')
   , cookies = require('./lib/cookies')
   , copy = require('./lib/copy')
   , net = require('net')
-  , CombinedStream = require('combined-stream')
-  , isstream = require('isstream')
   , getProxyFromURI = require('./lib/getProxyFromURI')
   , Auth = require('./lib/auth').Auth
   , oauth = require('./lib/oauth')
+  , Multipart = require('./lib/multipart').Multipart
 
 var safeStringify = helpers.safeStringify
   , md5 = helpers.md5
@@ -554,7 +553,7 @@ Request.prototype.init = function (options) {
     self.json(options.json)
   }
   if (options.multipart) {
-    self.boundary = uuid()
+    self._multipart = new Multipart()
     self.multipart(options.multipart)
   }
 
@@ -654,8 +653,8 @@ Request.prototype.init = function (options) {
       if (self._form) {
         self._form.pipe(self)
       }
-      if (self._multipart) {
-        self._multipart.pipe(self)
+      if (self._multipart && self._multipart.chunked) {
+        self._multipart.body.pipe(self)
       }
       if (self.body) {
         if (Array.isArray(self.body)) {
@@ -1351,69 +1350,12 @@ Request.prototype.form = function (form) {
 Request.prototype.multipart = function (multipart) {
   var self = this
 
-  var chunked = false
-  var _multipart = multipart.data || multipart
+  self._multipart.related(self, multipart)
 
-  if (!_multipart.forEach) {
-    throw new Error('Argument error, options.multipart.')
+  if (!self._multipart.chunked) {
+    self.body = self._multipart.body
   }
 
-  if (self.getHeader('transfer-encoding') === 'chunked') {
-    chunked = true
-  }
-  if (multipart.chunked !== undefined) {
-    chunked = multipart.chunked
-  }
-  if (!chunked) {
-    _multipart.forEach(function (part) {
-      if(typeof part.body === 'undefined') {
-        throw new Error('Body attribute missing in multipart.')
-      }
-      if (isstream(part.body)) {
-        chunked = true
-      }
-    })
-  }
-
-  if (chunked && !self.hasHeader('transfer-encoding')) {
-    self.setHeader('transfer-encoding', 'chunked')
-  }
-
-  var headerName = self.hasHeader('content-type')
-  if (!headerName || self.headers[headerName].indexOf('multipart') === -1) {
-    self.setHeader('content-type', 'multipart/related; boundary=' + self.boundary)
-  } else {
-    self.setHeader(headerName, self.headers[headerName].split(';')[0] + '; boundary=' + self.boundary)
-  }
-
-  var parts = chunked ? new CombinedStream() : []
-  function add (part) {
-    return chunked ? parts.append(part) : parts.push(new Buffer(part))
-  }
-
-  if (self.preambleCRLF) {
-    add('\r\n')
-  }
-
-  _multipart.forEach(function (part) {
-    var body = part.body
-    var preamble = '--' + self.boundary + '\r\n'
-    Object.keys(part).forEach(function (key) {
-      if (key === 'body') { return }
-      preamble += key + ': ' + part[key] + '\r\n'
-    })
-    preamble += '\r\n'
-    add(preamble)
-    add(body)
-    add('\r\n')
-  })
-  add('--' + self.boundary + '--')
-
-  if (self.postambleCRLF) {
-    add('\r\n')
-  }
-
-  self[chunked ? '_multipart' : 'body'] = parts
   return self
 }
 Request.prototype.json = function (val) {
