@@ -13,7 +13,6 @@ var http = require('http')
   , hawk = require('hawk')
   , aws = require('aws-sign2')
   , httpSignature = require('http-signature')
-  , uuid = require('node-uuid')
   , mime = require('mime-types')
   , tunnel = require('tunnel-agent')
   , stringstream = require('stringstream')
@@ -553,7 +552,7 @@ Request.prototype.init = function (options) {
     self.json(options.json)
   }
   if (options.multipart) {
-    self._multipart = new Multipart()
+    self._multipart = new Multipart(self)
     self.multipart(options.multipart)
   }
 
@@ -1350,7 +1349,7 @@ Request.prototype.form = function (form) {
 Request.prototype.multipart = function (multipart) {
   var self = this
 
-  self._multipart.related(self, multipart)
+  self._multipart.related(multipart)
 
   if (!self._multipart.chunked) {
     self.body = self._multipart.body
