@@ -1310,7 +1310,6 @@ Request.prototype.getHeader = function (name, headers) {
   })
   return result
 }
-var getHeader = Request.prototype.getHeader
 
 Request.prototype.auth = function (user, pass, sendImmediately, bearer) {
   var self = this
@@ -1327,7 +1326,6 @@ Request.prototype.auth = function (user, pass, sendImmediately, bearer) {
 
   return self
 }
-
 Request.prototype.aws = function (opts, now) {
   var self = this
 
@@ -1365,7 +1363,7 @@ Request.prototype.httpSignature = function (opts) {
   var self = this
   httpSignature.signRequest({
     getHeader: function(header) {
-      return getHeader(header, self.headers)
+      return self.getHeader(header, self.headers)
     },
     setHeader: function(header, value) {
       self.setHeader(header, value)
@@ -1377,12 +1375,10 @@ Request.prototype.httpSignature = function (opts) {
 
   return self
 }
-
 Request.prototype.hawk = function (opts) {
   var self = this
   self.setHeader('Authorization', hawk.client.header(self.uri, self.method, opts).field)
 }
-
 Request.prototype.oauth = function (_oauth) {
   var self = this
 
