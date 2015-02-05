@@ -24,7 +24,7 @@ var http = require('http')
   , net = require('net')
   , getProxyFromURI = require('./lib/getProxyFromURI')
   , Auth = require('./lib/auth').Auth
-  , oauth = require('./lib/oauth')
+  , OAuth = require('./lib/oauth').OAuth
   , Multipart = require('./lib/multipart').Multipart
   , Redirect = require('./lib/redirect').Redirect
 
@@ -485,7 +485,8 @@ Request.prototype.init = function (options) {
   }
 
   // Auth must happen last in case signing is dependent on other headers
-  self._auth = new Auth()
+  self._auth = new Auth(self)
+  self._oauth = new OAuth(self)
 
   if (options.oauth) {
     self.oauth(options.oauth)
@@ -1252,7 +1253,7 @@ Request.prototype.form = function (form) {
 Request.prototype.multipart = function (multipart) {
   var self = this
 
-  self._multipart.related(multipart)
+  self._multipart.onRequest(multipart)
 
   if (!self._multipart.chunked) {
     self.body = self._multipart.body
@@ -1314,15 +1315,7 @@ Request.prototype.getHeader = function (name, headers) {
 Request.prototype.auth = function (user, pass, sendImmediately, bearer) {
   var self = this
 
-  var authHeader
-  if (bearer !== undefined) {
-    authHeader = self._auth.bearer(bearer, sendImmediately)
-  } else {
-    authHeader = self._auth.basic(user, pass, sendImmediately)
-  }
-  if (authHeader) {
-    self.setHeader('authorization', authHeader)
-  }
+  self._auth.onRequest(user, pass, sendImmediately, bearer)
 
   return self
 }
@@ -1382,24 +1375,7 @@ Request.prototype.hawk = function (opts) {
 Request.prototype.oauth = function (_oauth) {
   var self = this
 
-  var result = oauth.oauth({
-    uri: self.uri,
-    method: self.method,
-    headers: self.headers,
-    body: self.body,
-    oauth: _oauth,
-    qsLib: self.qsLib
-  })
-
-  if (result.transport === 'header') {
-    self.setHeader('Authorization', result.oauth)
-  }
-  else if (result.transport === 'query') {
-    self.path += result.oauth
-  }
-  else if (result.transport === 'body') {
-    self.body = result.oauth
-  }
+  self._oauth.onRequest(_oauth)
 
   return self
 }
