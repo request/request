@@ -1059,7 +1059,7 @@ Request.prototype.onRequestResponse = function (response) {
   } else if (response.statusCode === 401) {
     var authHeader = self._auth.response(self.method, self.uri.path, response.headers)
     if (authHeader) {
-      self.setHeader('authorization', authHeader)
+      self.setHeader('Authorization', authHeader)
       redirectTo = self.uri
     }
   }
