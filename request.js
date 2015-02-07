@@ -259,6 +259,9 @@ function Request (options) {
   if (options.method) {
     self.explicitMethod = true
   }
+  self._auth = new Auth(self)
+  self._oauth = new OAuth(self)
+  self._multipart = new Multipart(self)
   self._redirect = new Redirect(self)
   self.init(options)
 }
@@ -485,9 +488,6 @@ Request.prototype.init = function (options) {
   }
 
   // Auth must happen last in case signing is dependent on other headers
-  self._auth = new Auth(self)
-  self._oauth = new OAuth(self)
-
   if (options.oauth) {
     self.oauth(options.oauth)
   }
@@ -545,7 +545,6 @@ Request.prototype.init = function (options) {
     self.json(options.json)
   }
   if (options.multipart) {
-    self._multipart = new Multipart(self)
     self.multipart(options.multipart)
   }
 

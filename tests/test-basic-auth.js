@@ -16,13 +16,13 @@ tape('setup', function(t) {
     var ok
 
     if (req.headers.authorization) {
-      if (req.headers.authorization === 'Basic ' + new Buffer('test:testing2').toString('base64')) {
+      if (req.headers.authorization === 'Basic ' + new Buffer('user:pass').toString('base64')) {
         ok = true
-      } else if ( req.headers.authorization === 'Basic ' + new Buffer('test:').toString('base64')) {
+      } else if ( req.headers.authorization === 'Basic ' + new Buffer('user:').toString('base64')) {
         ok = true
-      } else if ( req.headers.authorization === 'Basic ' + new Buffer(':apassword').toString('base64')) {
+      } else if ( req.headers.authorization === 'Basic ' + new Buffer(':pass').toString('base64')) {
         ok = true
-      } else if ( req.headers.authorization === 'Basic ' + new Buffer('justauser').toString('base64')) {
+      } else if ( req.headers.authorization === 'Basic ' + new Buffer('user').toString('base64')) {
         ok = true
       } else {
         // Bad auth header, don't send back WWW-Authenticate header
@@ -35,7 +35,7 @@ tape('setup', function(t) {
     }
 
     if (req.url === '/post/') {
-      var expectedContent = 'data_key=data_value'
+      var expectedContent = 'key=value'
       req.on('data', function(data) {
         assert.equal(data, expectedContent)
       })
@@ -55,77 +55,82 @@ tape('setup', function(t) {
   })
 })
 
-tape('', function(t) {
-  request({
+tape('sendImmediately - false', function(t) {
+  var r = request({
     'method': 'GET',
     'uri': 'http://localhost:6767/test/',
     'auth': {
-      'user': 'test',
-      'pass': 'testing2',
+      'user': 'user',
+      'pass': 'pass',
       'sendImmediately': false
     }
   }, function(error, res, body) {
+    t.equal(r._auth.user, 'user')
     t.equal(res.statusCode, 200)
     t.equal(numBasicRequests, 2)
     t.end()
   })
 })
 
-tape('', function(t) {
+tape('sendImmediately - true', function(t) {
   // If we don't set sendImmediately = false, request will send basic auth
-  request({
+  var r = request({
     'method': 'GET',
     'uri': 'http://localhost:6767/test2/',
     'auth': {
-      'user': 'test',
-      'pass': 'testing2'
+      'user': 'user',
+      'pass': 'pass'
     }
   }, function(error, res, body) {
+    t.equal(r._auth.user, 'user')
     t.equal(res.statusCode, 200)
     t.equal(numBasicRequests, 3)
     t.end()
   })
 })
 
-tape('', function(t) {
-  request({
+tape('credentials in url', function(t) {
+  var r = request({
     'method': 'GET',
-    'uri': 'http://test:testing2@localhost:6767/test2/'
+    'uri': 'http://user:pass@localhost:6767/test2/'
   }, function(error, res, body) {
+    t.equal(r._auth.user, 'user')
     t.equal(res.statusCode, 200)
     t.equal(numBasicRequests, 4)
     t.end()
   })
 })
 
-tape('', function(t) {
-  request({
+tape('POST request', function(t) {
+  var r = request({
     'method': 'POST',
-    'form': { 'data_key': 'data_value' },
+    'form': { 'key': 'value' },
     'uri': 'http://localhost:6767/post/',
     'auth': {
-      'user': 'test',
-      'pass': 'testing2',
+      'user': 'user',
+      'pass': 'pass',
       'sendImmediately': false
     }
   }, function(error, res, body) {
+    t.equal(r._auth.user, 'user')
     t.equal(res.statusCode, 200)
     t.equal(numBasicRequests, 6)
     t.end()
   })
 })
 
-tape('', function(t) {
+tape('user - empty string', function(t) {
   t.doesNotThrow( function() {
-    request({
+    var r = request({
       'method': 'GET',
       'uri': 'http://localhost:6767/allow_empty_user/',
       'auth': {
         'user': '',
-        'pass': 'apassword',
+        'pass': 'pass',
         'sendImmediately': false
       }
     }, function(error, res, body ) {
+      t.equal(r._auth.user, '')
       t.equal(res.statusCode, 200)
       t.equal(numBasicRequests, 8)
       t.end()
@@ -133,17 +138,18 @@ tape('', function(t) {
   })
 })
 
-tape('', function(t) {
+tape('pass - undefined', function(t) {
   t.doesNotThrow( function() {
-    request({
+    var r = request({
       'method': 'GET',
       'uri': 'http://localhost:6767/allow_undefined_password/',
       'auth': {
-        'user': 'justauser',
+        'user': 'user',
         'pass': undefined,
         'sendImmediately': false
       }
     }, function(error, res, body ) {
+      t.equal(r._auth.user, 'user')
       t.equal(res.statusCode, 200)
       t.equal(numBasicRequests, 10)
       t.end()
@@ -151,26 +157,28 @@ tape('', function(t) {
   })
 })
 
-tape('', function(t) {
-  request
+tape('auth method', function(t) {
+  var r = request
     .get('http://localhost:6767/test/')
-    .auth('test','',false)
+    .auth('user','',false)
     .on('response', function (res) {
+      t.equal(r._auth.user, 'user')
       t.equal(res.statusCode, 200)
       t.equal(numBasicRequests, 12)
       t.end()
     })
 })
 
-tape('', function(t) {
-  request.get('http://localhost:6767/test/',
+tape('get method', function(t) {
+  var r = request.get('http://localhost:6767/test/',
     {
       auth: {
-        user: 'test',
+        user: 'user',
         pass: '',
         sendImmediately: false
       }
     }, function (err, res) {
+      t.equal(r._auth.user, 'user')
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.equal(numBasicRequests, 14)
