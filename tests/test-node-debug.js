@@ -12,11 +12,12 @@ var s = http.createServer(function(req, res) {
 var stderr = []
   , prevStderrLen = 0
 
-process.stderr.write = function(string, encoding, fd) {
-  stderr.push(string)
-}
-
 tape('setup', function(t) {
+  process.stderr._oldWrite = process.stderr.write
+  process.stderr.write = function(string, encoding, fd) {
+    stderr.push(string)
+  }
+
   s.listen(6767, function() {
     t.end()
   })
@@ -24,6 +25,9 @@ tape('setup', function(t) {
 
 tape('a simple request should not fail with debugging enabled', function(t) {
   request.debug = true
+  t.equal(request.Request.debug, true, 'request.debug sets request.Request.debug')
+  t.equal(request.debug, true, 'request.debug gets request.Request.debug')
+  stderr = []
 
   request('http://localhost:6767', function(err, res, body) {
     t.ifError(err, 'the request did not fail')
@@ -67,6 +71,8 @@ tape('there should be no further lookups on process.env', function(t) {
 
 tape('it should be possible to disable debugging at runtime', function(t) {
   request.debug = false
+  t.equal(request.Request.debug, false, 'request.debug sets request.Request.debug')
+  t.equal(request.debug, false, 'request.debug gets request.Request.debug')
   stderr = []
 
   request('http://localhost:6767', function(err, res, body) {
@@ -78,6 +84,10 @@ tape('it should be possible to disable debugging at runtime', function(t) {
 })
 
 tape('cleanup', function(t) {
-  s.close()
-  t.end()
+  process.stderr.write = process.stderr._oldWrite
+  delete process.stderr._oldWrite
+
+  s.close(function() {
+    t.end()
+  })
 })

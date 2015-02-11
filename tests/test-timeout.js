@@ -1,41 +1,39 @@
 'use strict'
 
-if (process.env.TRAVIS === 'true') {
-  console.error('This test is unreliable on Travis; skipping.')
-  /*eslint no-process-exit:0*/
-  process.exit(0)
-}
-
-var server = require('./server')
-  , events = require('events')
-  , stream = require('stream')
-  , request = require('../index')
-  , tape = require('tape')
-
-var s = server.createServer()
-
-// Request that waits for 200ms
-s.on('/timeout', function(req, res) {
-  setTimeout(function() {
-    res.writeHead(200, {'content-type':'text/plain'})
-    res.write('waited')
-    res.end()
-  }, 200)
-})
-
 function checkErrCode(t, err) {
   t.notEqual(err, null)
   t.ok(err.code === 'ETIMEDOUT' || err.code === 'ESOCKETTIMEDOUT',
     'Error ETIMEDOUT or ESOCKETTIMEDOUT')
 }
 
-tape('setup', function(t) {
+if (process.env.TRAVIS === 'true') {
+  console.error('This test is unreliable on Travis; skipping.')
+  /*eslint no-process-exit:0*/
+} else {
+  var server = require('./server')
+  , events = require('events')
+  , stream = require('stream')
+  , request = require('../index')
+  , tape = require('tape')
+
+  var s = server.createServer()
+
+  // Request that waits for 200ms
+  s.on('/timeout', function(req, res) {
+  setTimeout(function() {
+    res.writeHead(200, {'content-type':'text/plain'})
+    res.write('waited')
+    res.end()
+  }, 200)
+  })
+
+  tape('setup', function(t) {
   s.listen(s.port, function() {
     t.end()
   })
-})
+  })
 
-tape('should timeout', function(t) {
+  tape('should timeout', function(t) {
   var shouldTimeout = {
     url: s.url + '/timeout',
     timeout: 100
@@ -45,9 +43,9 @@ tape('should timeout', function(t) {
     checkErrCode(t, err)
     t.end()
   })
-})
+  })
 
-tape('should timeout with events', function(t) {
+  tape('should timeout with events', function(t) {
   t.plan(3)
 
   var shouldTimeoutWithEvents = {
@@ -62,9 +60,9 @@ tape('should timeout with events', function(t) {
       t.equal(1, eventsEmitted)
       checkErrCode(t, err)
     })
-})
+  })
 
-tape('should not timeout', function(t) {
+  tape('should not timeout', function(t) {
   var shouldntTimeout = {
     url: s.url + '/timeout',
     timeout: 1200
@@ -75,9 +73,9 @@ tape('should not timeout', function(t) {
     t.equal(body, 'waited')
     t.end()
   })
-})
+  })
 
-tape('should have no timeout when manually abort', function(t) {
+  tape('should have no timeout when manually abort', function(t) {
   t.plan(1)
   var shouldntTimeout = {
     url: s.url + '/timeout',
@@ -99,9 +97,9 @@ tape('should have no timeout when manually abort', function(t) {
   setTimeout(function(){
     req.abort()
   }, 10)
-})
+  })
 
-tape('no timeout', function(t) {
+  tape('no timeout', function(t) {
   var noTimeout = {
     url: s.url + '/timeout'
   }
@@ -111,9 +109,9 @@ tape('no timeout', function(t) {
     t.equal(body, 'waited')
     t.end()
   })
-})
+  })
 
-tape('negative timeout', function(t) { // should be treated a zero or the minimum delay
+  tape('negative timeout', function(t) { // should be treated a zero or the minimum delay
   var negativeTimeout = {
     url: s.url + '/timeout',
     timeout: -1000
@@ -123,9 +121,9 @@ tape('negative timeout', function(t) { // should be treated a zero or the minimu
     checkErrCode(t, err)
     t.end()
   })
-})
+  })
 
-tape('float timeout', function(t) { // should be rounded by setTimeout anyway
+  tape('float timeout', function(t) { // should be rounded by setTimeout anyway
   var floatTimeout = {
     url: s.url + '/timeout',
     timeout: 100.76
@@ -135,9 +133,11 @@ tape('float timeout', function(t) { // should be rounded by setTimeout anyway
     checkErrCode(t, err)
     t.end()
   })
-})
+  })
 
-tape('cleanup', function(t) {
-  s.close()
+  tape('cleanup', function(t) {
+    s.close(function() {
   t.end()
-})
+    })
+  })
+}

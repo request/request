@@ -1,7 +1,9 @@
 #!/bin/sh
 
 if [ -z "`which github-changes`" ]; then
-  echo "First, do: [sudo] npm install -g github-changes"
+  # specify version because github-changes "is under heavy development. Things
+  # may break between releases" until 0.1.0
+  echo "First, do: [sudo] npm install -g github-changes@0.0.14"
   exit 1
 fi
 
@@ -19,6 +21,7 @@ github-changes -o request -r request \
   --auth --verbose \
   --file CHANGELOG.md \
   --only-pulls --use-commit-body \
+  --date-format '(YYYY/MM/DD)' \
   || exit 1
 
 # Since the tag for the new version hasn't been pushed yet, any changes in it

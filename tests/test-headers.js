@@ -130,6 +130,7 @@ tape('upper-case Host header and redirect', function(t) {
 })
 
 tape('cleanup', function(t) {
-  s.close()
-  t.end()
+  s.close(function() {
+    t.end()
+  })
 })

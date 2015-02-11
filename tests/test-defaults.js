@@ -254,6 +254,7 @@ tape('test only setting undefined properties', function(t) {
 })
 
 tape('cleanup', function(t) {
-  s.close()
-  t.end()
+  s.close(function() {
+    t.end()
+  })
 })

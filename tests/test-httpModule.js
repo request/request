@@ -100,7 +100,9 @@ run_tests('https only', { 'https:': faux_https })
 run_tests('http and https', { 'http:': faux_http, 'https:': faux_https })
 
 tape('cleanup', function(t) {
-  plain_server.close()
-  https_server.close()
-  t.end()
+  plain_server.close(function() {
+    https_server.close(function() {
+      t.end()
+    })
+  })
 })

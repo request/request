@@ -34,7 +34,9 @@ exports.createSSLServer = function(port, opts) {
   }
 
   for (i in options) {
-    options[i] = fs.readFileSync(options[i])
+    if (i !== 'requestCert' && i !== 'rejectUnauthorized') {
+      options[i] = fs.readFileSync(options[i])
+    }
   }
 
   var s = https.createServer(options, function (req, resp) {
@@ -72,6 +74,24 @@ exports.createPostValidator = function (text, reqContentType) {
       }
       resp.writeHead(200, {'content-type':'text/plain'})
       resp.write('OK')
+      resp.end()
+    })
+  }
+  return l
+}
+exports.createPostJSONValidator = function (value, reqContentType) {
+  var l = function (req, resp) {
+    var r = ''
+    req.on('data', function (chunk) {r += chunk})
+    req.on('end', function () {
+      var parsedValue = JSON.parse(r)
+      assert.deepEqual(parsedValue, value)
+      if (reqContentType) {
+        assert.ok(req.headers['content-type'])
+        assert.ok(~req.headers['content-type'].indexOf(reqContentType))
+      }
+      resp.writeHead(200, {'content-type':'application/json'})
+      resp.write(r)
       resp.end()
     })
   }

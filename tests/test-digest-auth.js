@@ -157,6 +157,7 @@ tape('with different credentials', function(t) {
 })
 
 tape('cleanup', function(t) {
-  digestServer.close()
-  t.end()
+  digestServer.close(function() {
+    t.end()
+  })
 })

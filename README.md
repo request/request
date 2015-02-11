@@ -1,7 +1,9 @@
 # Request — Simplified HTTP client
-[![NPM](https://nodei.co/npm/request.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/request/)
+[![npm package](https://nodei.co/npm/request.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/request/)
 
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/request/request?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build status](https://img.shields.io/travis/request/request.svg?style=flat)](https://travis-ci.org/request/request)
+[![Coverage](https://img.shields.io/coveralls/request/request.svg?style=flat)](https://coveralls.io/r/request/request)
+[![Gitter](https://img.shields.io/badge/gitter-join_chat-blue.svg?style=flat)](https://gitter.im/request/request?utm_source=badge)
 
 ## Super simple to use
 
@@ -11,7 +13,7 @@ Request is designed to be the simplest way possible to make http calls. It suppo
 var request = require('request');
 request('http://www.google.com', function (error, response, body) {
   if (!error && response.statusCode == 200) {
-    console.log(body) // Print the google web page.
+    console.log(body) // Show the HTML for the Google homepage.
   }
 })
 ```
@@ -46,6 +48,17 @@ request
     console.log(response.headers['content-type']) // 'image/png'
   })
   .pipe(request.put('http://mysite.com/img.png'))
+```
+
+To easily handle errors when streaming requests, listen to the `error` event before piping:
+
+```javascript
+request
+  .get('http://mysite.com/doodle.png')
+  .on('error', function(err) {
+    console.log(err)
+  })
+  .pipe(fs.createWriteStream('doodle.png'))
 ```
 
 Now let’s get fancy.
@@ -143,6 +156,10 @@ Because a pure "http over http" tunnel offers no additional security
 or other features, it is generally simpler to go with a
 straightforward HTTP proxy in this case.  However, if you would like
 to force a tunneling proxy, you may set the `tunnel` option to `true`.
+
+You can also make a standard proxied `http` request by explicitly setting
+`tunnel : false`, but **note that this will allow the proxy to see the traffic
+to/from the destination server**.
 
 If you are using a tunneling proxy, you may set the
 `proxyHeaderWhiteList` to share certain headers with the proxy.
@@ -245,10 +262,11 @@ var formData = {
   my_file: fs.createReadStream(__dirname + '/unicycle.jpg'),
   // Pass multiple values /w an Array
   attachments: [
-    fs.createReadStream(__dirname + '/attacment1.jpg')
+    fs.createReadStream(__dirname + '/attachment1.jpg'),
     fs.createReadStream(__dirname + '/attachment2.jpg')
   ],
   // Pass optional meta-data with an 'options' object with style: {value: DATA, options: OPTIONS}
+  // Use case: for some types of streams, you'll need to provide "file"-related information manually.
   // See the `form-data` README for more information about options: https://github.com/felixge/node-form-data
   custom_file: {
     value:  fs.createReadStream('/dev/urandom'),
@@ -266,7 +284,7 @@ request.post({url:'http://service.com/upload', formData: formData}, function opt
 });
 ```
 
-For advanced cases, you can the form-data object itself via `r.form()`. This can be modified until the request is fired on the next cycle of the event-loop. (Note that this calling `form()` will clear the currently set form data for that request.)
+For advanced cases, you can access the form-data object itself via `r.form()`. This can be modified until the request is fired on the next cycle of the event-loop. (Note that this calling `form()` will clear the currently set form data for that request.)
 
 ```javascript
 // NOTE: Advanced use-case, for normal use see 'formData' usage above
@@ -284,25 +302,37 @@ See the [form-data README](https://github.com/felixge/node-form-data) for more i
 Some variations in different HTTP implementations require a newline/CRLF before, after, or both before and after the boundary of a `multipart/related` request (using the multipart option). This has been observed in the .NET WebAPI version 4.0. You can turn on a boundary preambleCRLF or postamble by passing them as `true` to your request options.
 
 ```javascript
-  request(
-    { method: 'PUT'
-    , preambleCRLF: true
-    , postambleCRLF: true
-    , uri: 'http://service.com/upload'
-    , multipart:
-      [ { 'content-type': 'application/json'
-        ,  body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})
-        }
-      , { body: 'I am an attachment' }
+  request({
+    method: 'PUT',
+    preambleCRLF: true,
+    postambleCRLF: true,
+    uri: 'http://service.com/upload',
+    multipart: [
+      {
+        'content-type': 'application/json'
+        body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})
+      },
+      { body: 'I am an attachment' },
+      { body: fs.createReadStream('image.png') }
+    ],
+    // alternatively pass an object containing additional options
+    multipart: {
+      chunked: false,
+      data: [
+        {
+          'content-type': 'application/json',
+          body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})
+        },
+        { body: 'I am an attachment' }
       ]
     }
-  , function (error, response, body) {
-      if (err) {
-        return console.error('upload failed:', err);
-      }
-      console.log('Upload successful!  Server responded with:', body);
+  },
+  function (error, response, body) {
+    if (error) {
+      return console.error('upload failed:', error);
     }
-  )
+    console.log('Upload successful!  Server responded with:', body);
+  })
 ```
 
 
@@ -328,12 +358,25 @@ request.get('http://some.server.com/', {
 });
 ```
 
-If passed as an option, `auth` should be a hash containing values `user` || `username`, `pass` || `password`, and `sendImmediately` (optional).  The method form takes parameters `auth(username, password, sendImmediately)`.
+If passed as an option, `auth` should be a hash containing values:
 
-`sendImmediately` defaults to `true`, which causes a basic authentication header to be sent.  If `sendImmediately` is `false`, then `request` will retry with a proper authentication header after receiving a `401` response from the server (which must contain a `WWW-Authenticate` header indicating the required authentication method).
+- `user` || `username`
+- `pass` || `password`
+- `sendImmediately` (optional)
+- `bearer` (optional)
 
-Note that you can also use for basic authentication a trick using the URL itself, as specified in [RFC 1738](http://www.ietf.org/rfc/rfc1738.txt).
-Simply pass the `user:password` before the host with an `@` sign.
+The method form takes parameters
+`auth(username, password, sendImmediately, bearer)`.
+
+`sendImmediately` defaults to `true`, which causes a basic or bearer
+authentication header to be sent.  If `sendImmediately` is `false`, then
+`request` will retry with a proper authentication header after receiving a
+`401` response from the server (which must contain a `WWW-Authenticate` header
+indicating the required authentication method).
+
+Note that you can also specify basic authentication using the URL itself, as
+detailed in [RFC 1738](http://www.ietf.org/rfc/rfc1738.txt).  Simply pass the
+`user:password` before the host with an `@` sign:
 
 ```javascript
 var username = 'username',
@@ -345,9 +388,15 @@ request({url: url}, function (error, response, body) {
 });
 ```
 
-Digest authentication is supported, but it only works with `sendImmediately` set to `false`; otherwise `request` will send basic authentication on the initial request, which will probably cause the request to fail.
+Digest authentication is supported, but it only works with `sendImmediately`
+set to `false`; otherwise `request` will send basic authentication on the
+initial request, which will probably cause the request to fail.
 
-Bearer authentication is supported, and is activated when the `bearer` value is available. The value may be either a `String` or a `Function` returning a `String`. Using a function to supply the bearer token is particularly useful if used in conjuction with `defaults` to allow a single function to supply the last known token at the time or sending a request or to compute one on the fly.
+Bearer authentication is supported, and is activated when the `bearer` value is
+available. The value may be either a `String` or a `Function` returning a
+`String`. Using a function to supply the bearer token is particularly useful if
+used in conjuction with `defaults` to allow a single function to supply the
+last known token at the time of sending a request, or to compute one on the fly.
 
 ## OAuth Signing
 
@@ -356,7 +405,8 @@ default signing algorithm is
 [HMAC-SHA1](https://tools.ietf.org/html/rfc5849#section-3.4.2):
 
 ```javascript
-// Twitter OAuth
+// OAuth1.0 - 3-legged server side flow (Twitter example)
+// step 1
 var qs = require('querystring')
   , oauth =
     { callback: 'http://mysite.com/callback/'
@@ -370,30 +420,40 @@ request.post({url:url, oauth:oauth}, function (e, r, body) {
   // and construct a URL that a user clicks on (like a sign in button).
   // The verifier is only available in the response after a user has
   // verified with twitter that they are authorizing your app.
-  var access_token = qs.parse(body)
+
+  // step 2
+  var req_data = qs.parse(body)
+  var uri = 'https://api.twitter.com/oauth/authenticate'
+    + '?' + qs.stringify({oauth_token: req_data.oauth_token})
+  // redirect the user to the authorize uri
+
+  // step 3
+  // after the user is redirected back to your server
+  var auth_data = qs.parse(body)
     , oauth =
       { consumer_key: CONSUMER_KEY
       , consumer_secret: CONSUMER_SECRET
-      , token: access_token.oauth_token
-      , verifier: access_token.oauth_verifier
+      , token: auth_data.oauth_token
+      , token_secret: req_data.oauth_token_secret
+      , verifier: auth_data.oauth_verifier
       }
     , url = 'https://api.twitter.com/oauth/access_token'
     ;
   request.post({url:url, oauth:oauth}, function (e, r, body) {
-    var perm_token = qs.parse(body)
+    // ready to make signed requests on behalf of the user
+    var perm_data = qs.parse(body)
       , oauth =
         { consumer_key: CONSUMER_KEY
         , consumer_secret: CONSUMER_SECRET
-        , token: perm_token.oauth_token
-        , token_secret: perm_token.oauth_token_secret
+        , token: perm_data.oauth_token
+        , token_secret: perm_data.oauth_token_secret
         }
-      , url = 'https://api.twitter.com/1.1/users/show.json?'
-      , params =
-        { screen_name: perm_token.screen_name
-        , user_id: perm_token.user_id
+      , url = 'https://api.twitter.com/1.1/users/show.json'
+      , qs =
+        { screen_name: perm_data.screen_name
+        , user_id: perm_data.user_id
         }
       ;
-    url += qs.stringify(params)
     request.get({url:url, oauth:oauth, json:true}, function (e, r, user) {
       console.log(user)
     })
@@ -406,6 +466,17 @@ the following changes to the OAuth options object:
 * Pass `signature_method : 'RSA-SHA1'`
 * Instead of `consumer_secret`, specify a `private_key` string in
   [PEM format](http://how2ssl.com/articles/working_with_pem_files/)
+
+For [PLAINTEXT signing](http://oauth.net/core/1.0/#anchor22), make
+the following changes to the OAuth options object:
+* Pass `signature_method : 'PLAINTEXT'`
+
+To send OAuth parameters via query params or in a post body as described in The
+[Consumer Request Parameters](http://oauth.net/core/1.0/#consumer_req_param)
+section of the oauth1 spec:
+* Pass `transport_method : 'query'` or `transport_method : 'body'` in the OAuth
+  options object.
+* `transport_method` defaults to `'header'`
 
 ## Custom HTTP Headers
 
@@ -502,11 +573,18 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `headers` - http headers (default: `{}`)
 * `body` - entity body for PATCH, POST and PUT requests. Must be a `Buffer` or `String`, unless `json` is `true`. If `json` is `true`, then `body` must be a JSON-serializable object.
 * `form` - when passed an object or a querystring, this sets `body` to a querystring representation of value, and adds `Content-type: application/x-www-form-urlencoded` header. When passed no options, a `FormData` instance is returned (and is piped to request). See "Forms" section above.
-* `formData` - Data to pass for a `multipart/form-data` request. See "Forms" section above.
-* `multipart` - (experimental) Data to pass for a `multipart/related` request. See "Forms" section above
+* `formData` - Data to pass for a `multipart/form-data` request. See
+  [Forms](#forms) section above.
+* `multipart` - array of objects which contain their own headers and `body`
+  attributes. Sends a `multipart/related` request. See [Forms](#forms) section
+  above.
+  * Alternatively you can pass in an object `{chunked: false, data: []}` where
+    `chunked` is used to specify whether the request is sent in
+    [chunked transfer encoding](https://en.wikipedia.org/wiki/Chunked_transfer_encoding)
+    In non-chunked requests, data items with body streams are not allowed.
 * `auth` - A hash containing values `user` || `username`, `pass` || `password`, and `sendImmediately` (optional).  See documentation above.
 * `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
-* `multipart` - (experimental) array of objects which contains their own headers and `body` attribute. Sends `multipart/related` request. See example below.
+* `jsonReviver` - a [reviver function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse) that will be passed to `JSON.parse()` when parsing a JSON response body.
 * `preambleCRLF` - append a newline/CRLF before the boundary of your `multipart/form-data` request.
 * `postambleCRLF` - append a newline/CRLF at the end of the boundary of your `multipart/form-data` request.
 * `followRedirect` - follow HTTP 3xx responses as redirects (default: `true`). This property can also be implemented as function which gets `response` object as a single argument and should return `true` if redirects should continue or `false` otherwise.
@@ -515,7 +593,15 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `encoding` - Encoding to be used on `setEncoding` of response data. If `null`, the `body` is returned as a `Buffer`. Anything else **(including the default value of `undefined`)** will be passed as the [encoding](http://nodejs.org/api/buffer.html#buffer_buffer) parameter to `toString()` (meaning this is effectively `utf8` by default).
 * `pool` - An object describing which agents to use for the request. If this option is omitted the request will use the global agent (as long as [your options allow for it](request.js#L747)). Otherwise, request will search the pool for your custom agent. If no custom agent is found, a new agent will be created and added to the pool.
   * A `maxSockets` property can also be provided on the `pool` object to set the max number of sockets for all agents created (ex: `pool: {maxSockets: Infinity}`).
-* `timeout` - Integer containing the number of milliseconds to wait for a request to respond before aborting the request
+  * Note that if you are sending multiple requests in a loop and creating
+    multiple new `pool` objects, `maxSockets` will not work as intended.  To
+    work around this, either use [`request.defaults`](#requestdefaultsoptions)
+    with your pool options or create the pool object with the `maxSockets`
+    property outside of the loop.
+* `timeout` - Integer containing the number of milliseconds to wait for a
+  request to respond before aborting the request.  Note that if the underlying
+  TCP connection cannot be established, the OS-wide TCP connection timeout will
+  overrule the `timeout` option ([the default in Linux is around 20 seconds](http://www.sekuda.com/overriding_the_default_linux_kernel_20_second_tcp_socket_connect_timeout)).
 * `proxy` - An HTTP proxy to be used. Supports proxy Auth with Basic Auth, identical to support for the `url` parameter (by embedding the auth info in the `uri`)
 * `oauth` - Options for OAuth HMAC-SHA1 signing. See documentation above.
 * `hawk` - Options for [Hawk signing](https://github.com/hueniverse/hawk). The `credentials` key must contain the necessary signing info, [see hawk docs for details](https://github.com/hueniverse/hawk#usage-example).
@@ -527,10 +613,14 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `httpSignature` - Options for the [HTTP Signature Scheme](https://github.com/joyent/node-http-signature/blob/master/http_signing.md) using [Joyent's library](https://github.com/joyent/node-http-signature). The `keyId` and `key` properties must be specified. See the docs for other options.
 * `localAddress` - Local interface to bind for network connections.
 * `gzip` - If `true`, add an `Accept-Encoding` header to request compressed content encodings from the server (if not already present) and decode supported content encodings in the response.  **Note:** Automatic decoding of the response content is performed on the body data returned through `request` (both through the `request` stream and passed to the callback function) but is not performed on the `response` stream (available from the `response` event) which is the unmodified `http.IncomingMessage` object which may contain compressed data. See example below.
-* `tunnel` - If `true`, then *always* use a tunneling proxy.  If
-  `false` (default), then tunneling will only be used if the
-  destination is `https`, or if a previous request in the redirect
-  chain used a tunneling proxy.
+* `tunnel` - controls the behavior of
+  [HTTP `CONNECT` tunneling](https://en.wikipedia.org/wiki/HTTP_tunnel#HTTP_CONNECT_tunneling)
+  as follows:
+   * `undefined` (default) - `true` if the destination is `https` or a previous
+     request in the redirect chain used a tunneling proxy, `false` otherwise
+   * `true` - always tunnel to the destination by making a `CONNECT` request to
+     the proxy
+   * `false` - request the destination as a `GET` request.
 * `proxyHeaderWhiteList` - A whitelist of headers to send to a
   tunneling proxy.
 * `proxyHeaderExclusiveList` - A whitelist of headers to send
@@ -549,9 +639,14 @@ There are also shorthand methods for different HTTP METHODs and some other conve
 
 ### request.defaults(options)
 
-This method returns a wrapper around the normal request API that defaults to whatever options you pass in to it.
+This method **returns a wrapper** around the normal request API that defaults
+to whatever options you pass to it.
 
-**Note:** You can call `.defaults()` on the wrapper that is returned from `request.defaults` to add/override defaults that were previously defaulted.
+**Note:** `request.defaults()` **does not** modify the global request API;
+instead, it **returns a wrapper** that has your default settings applied to it.
+
+**Note:** You can call `.defaults()` on the wrapper that is returned from
+`request.defaults` to add/override defaults that were previously defaulted.
 
 For example:
 ```javascript
@@ -593,7 +688,7 @@ request.post(url)
 
 ### request.head
 
-Same as request() but defaults to `method: "HEAD"`.
+Same as `request()`, but defaults to `method: "HEAD"`.
 
 ```javascript
 request.head(url)

@@ -4,8 +4,8 @@ var http = require('http')
   , request = require('../index')
   , tape = require('tape')
 
-var port1 = 8968
-  , port2 = 8969
+var port1 = 6767
+  , port2 = 6768
 
 var s1 = http.createServer(function(req, resp) {
   if (req.url === '/original') {
@@ -45,7 +45,9 @@ tape('piped redirect', function(t) {
 })
 
 tape('cleanup', function(t) {
-  s1.close()
-  s2.close()
-  t.end()
+  s1.close(function() {
+    s2.close(function() {
+      t.end()
+    })
+  })
 })
