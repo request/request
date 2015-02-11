@@ -83,8 +83,8 @@ if (process.env.TRAVIS === 'true') {
   }
 
   var req = request(shouldntTimeout, function(err, res, body) {
-    t.equal(err, null)
     t.fail('aborted but callback invoked')
+		checkErrCode(err)
   })
 
   var abortCount = 0
