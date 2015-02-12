@@ -93,10 +93,21 @@ tape('upper-case Host header and redirect', function(t) {
   // Horrible hack to observe the raw data coming to the server (before Node
   // core lower-cases the headers)
   var rawData = ''
+
   s.on('connection', function(socket) {
-    socket.on('data', function(d) {
-      rawData += d
-    })
+    if (socket.ondata) {
+      var ondata = socket.ondata
+    }
+    function handledata (d, start, end) {
+      if (ondata) {
+        rawData += d.slice(start, end).toString()
+        return ondata.apply(this, arguments)
+      } else {
+        rawData += d
+      }
+    }
+    socket.on('data', handledata)
+    socket.ondata = handledata
   })
 
   function checkHostHeader(host) {
