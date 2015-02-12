@@ -66,7 +66,7 @@ tape('proxy', function(t) {
       'dont-send-to-proxy: ok',
       'accept: yo',
       'user-agent: just another foobar',
-      'host: google.com',
+      'host: google.com'
     ].join('\r\n'))
     t.equal(true, re.test(data))
     t.equal(called, true, 'the request must be made to the proxy server')
