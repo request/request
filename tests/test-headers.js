@@ -94,11 +94,9 @@ tape('upper-case Host header and redirect', function(t) {
   // core lower-cases the headers)
   var rawData = ''
   s.on('connection', function(socket) {
-    var ondata = socket.ondata
-    socket.ondata = function(d, start, end) {
-      rawData += d.slice(start, end).toString()
-      return ondata.apply(this, arguments)
-    }
+    socket.on('data', function(d) {
+      rawData += d
+    })
   })
 
   function checkHostHeader(host) {
