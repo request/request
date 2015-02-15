@@ -47,6 +47,10 @@ function request (uri, options, callback) {
   options.callback = params.callback
   options.uri = params.uri
 
+  if (params.options.method === 'HEAD' && paramsHaveRequestBody(params)) {
+    throw new Error('HTTP HEAD requests MUST NOT include a request body.')
+  }
+
   return new request.Request(options)
 }
 
@@ -66,11 +70,6 @@ request.get = function (uri, options, callback) {
 request.head = function (uri, options, callback) {
   var params = initParams(uri, options, callback)
   params.options.method = 'HEAD'
-
-  if (paramsHaveRequestBody(params)) {
-    throw new Error('HTTP HEAD requests MUST NOT include a request body.')
-  }
-
   return requester(params)(params.uri || null, params.options, params.callback)
 }
 
