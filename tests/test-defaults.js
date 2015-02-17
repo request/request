@@ -213,6 +213,35 @@ tape('recursive defaults', function(t) {
   })
 })
 
+tape('recursive defaults requester', function(t) {
+  t.plan(4)
+
+  var defaultsOne = request.defaults({}, function(options, callback) {
+      var headers = options.headers || {}
+      headers.foo = 'bar1'
+      options.headers = headers
+
+      request(options, callback)
+    })
+    , defaultsTwo = defaultsOne.defaults({}, function(options, callback) {
+      var headers = options.headers || {}
+      headers.baz = 'bar2'
+      options.headers = headers
+
+      defaultsOne(options, callback)
+    })
+
+  defaultsOne.get(s.url + '/get_recursive1', function (e, r, b) {
+    t.equal(e, null)
+    t.equal(b, 'TESTING!')
+  })
+
+  defaultsTwo.get(s.url + '/get_recursive2', function (e, r, b) {
+    t.equal(e, null)
+    t.equal(b, 'TESTING!')
+  })
+})
+
 tape('test custom request handler function', function(t) {
   t.plan(2)
 
