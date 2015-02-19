@@ -43,8 +43,6 @@ tape('bind to local address on redirect', function (t) {
         localAddress: localIPS[0]
     }, function (err, res) {
         t.equal(err, null)
-        res.body = "";
-        console.log(res.request.method);
         t.equal(res.request.localAddress, localIPS[0])
         t.end()
     })
