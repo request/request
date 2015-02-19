@@ -54,41 +54,16 @@ function request (uri, options, callback) {
   return new request.Request(options)
 }
 
-request.get = function (uri, options, callback) {
-  var params = initParams(uri, options, callback)
-  params.options.method = 'GET'
-  return this(params.uri || null, params.options, params.callback)
-}
+var verbs = ['get', 'head', 'post', 'put', 'patch', 'del']
 
-request.head = function (uri, options, callback) {
-  var params = initParams(uri, options, callback)
-  params.options.method = 'HEAD'
-  return this(params.uri || null, params.options, params.callback)
-}
-
-request.post = function (uri, options, callback) {
-  var params = initParams(uri, options, callback)
-  params.options.method = 'POST'
-  return this(params.uri || null, params.options, params.callback)
-}
-
-request.put = function (uri, options, callback) {
-  var params = initParams(uri, options, callback)
-  params.options.method = 'PUT'
-  return this(params.uri || null, params.options, params.callback)
-}
-
-request.patch = function (uri, options, callback) {
-  var params = initParams(uri, options, callback)
-  params.options.method = 'PATCH'
-  return this(params.uri || null, params.options, params.callback)
-}
-
-request.del = function (uri, options, callback) {
-  var params = initParams(uri, options, callback)
-  params.options.method = 'DELETE'
-  return this(params.uri || null, params.options, params.callback)
-}
+verbs.forEach(function(verb){
+  var method = verb === 'del' ? 'DELETE' : verb.toUpperCase()
+  request[verb] = function(uri, options, callback){
+    var params = initParams(uri, options, callback)
+    params.options.method = method
+    return this(params.uri || null, params.options, params.callback)
+  }
+})
 
 request.jar = function (store) {
   return cookies.jar(store)
