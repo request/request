@@ -74,6 +74,12 @@ request.cookie = function (str) {
 }
 
 request.defaults = function (options, requester) {
+
+  if (typeof options === 'function') {
+    requester = options
+    options = {}
+  }
+
   var self = this
   var wrap = function (method) {
     var headerlessOptions = function (options) {

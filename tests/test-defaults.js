@@ -266,6 +266,23 @@ tape('test custom request handler function', function(t) {
   })
 })
 
+tape('test custom request handler function without options', function(t) {
+  t.plan(1)
+
+  var customHandlerWithoutOptions = request.defaults(function(uri, options, callback) {
+    var params = request.initParams(uri, options, callback)
+    var headers = params.options.headers || {}
+    headers.x = 'y'
+    headers.foo = 'bar'
+    params.options.headers = headers
+    return request(params.uri, params.options, params.callback)
+  })
+
+  customHandlerWithoutOptions.get(s.url + '/get_custom', function(e, r, b) {
+    t.equal(e, null)
+  })
+})
+
 tape('test only setting undefined properties', function(t) {
   request.defaults({
     method: 'post',
