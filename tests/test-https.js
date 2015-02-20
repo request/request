@@ -13,6 +13,7 @@ var s = server.createSSLServer()
   , caFile = path.resolve(__dirname, 'ssl/ca/ca.crt')
   , ca = fs.readFileSync(caFile)
   , opts = {
+    ciphers: 'AES256-SHA',
     key: path.resolve(__dirname, 'ssl/ca/server.key'),
     cert: path.resolve(__dirname, 'ssl/ca/server.crt')
   }
