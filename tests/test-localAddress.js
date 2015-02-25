@@ -28,16 +28,16 @@ tape('bind to local address', function (t) {
 tape('bind to local address on redirect', function (t) {
     var os = require('os')
     var localInterfaces = os.networkInterfaces()
-    var localIPS=[]
+    var localIPS = []
     Object.keys(localInterfaces).forEach(function (ifname) {
         localInterfaces[ifname].forEach(function (iface) {
-            if ('IPv4' !== iface.family || iface.internal !== false) {
+            if (iface.family !== 'IPv4' || iface.internal !== false) {
                 // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
-                return;
+                return
             }
-                localIPS.push(iface.address);
-        });
-    });
+                localIPS.push(iface.address)
+        })
+    })
     request.get({
         uri: 'http://google.com', //redirects to 'http://google.com'
         localAddress: localIPS[0]
