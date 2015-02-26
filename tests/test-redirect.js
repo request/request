@@ -312,6 +312,40 @@ tape('http to https redirect', function(t) {
   })
 })
 
+tape('should have the referer when following redirect by default', function(t) {
+  request.post({
+    uri: s.url + '/temp',
+    jar: jar,
+    followAllRedirects: true,
+    headers: { cookie: 'foo=bar' }
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.end()
+  })
+  .on('redirect',function() {
+	t.notEqual(this.headers.referer,undefined)
+	t.equal(this.headers.referer.substring(this.headers.referer.lastIndexOf('/')),'/temp_landing');
+  })
+})
+
+tape('should not have a referer when removeRefererHeader is true', function(t) {
+  request.post({
+    uri: s.url + '/temp',
+    jar: jar,
+    followAllRedirects: true,
+    removeRefererHeader: true,
+    headers: { cookie: 'foo=bar' }
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.end()
+  })
+  .on('redirect',function() {
+	t.equal(this.headers.referer,undefined)
+  })
+})
+
 tape('cleanup', function(t) {
   s.close(function() {
     ss.close(function() {
