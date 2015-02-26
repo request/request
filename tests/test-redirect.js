@@ -4,6 +4,7 @@ var server = require('./server')
   , assert = require('assert')
   , request = require('../index')
   , tape = require('tape')
+  , http = require('http')
 
 var s = server.createServer()
   , ss = server.createSSLServer()
@@ -308,6 +309,45 @@ tape('http to https redirect', function(t) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, 'SSL', 'Got SSL redirect')
+    t.end()
+  })
+})
+
+tape('should use same agent class on redirect', function(t) {
+  var agent
+  var calls = 0
+  var agentOptions = {}
+
+  function Agent(agentOptions) {
+    var createConnection
+
+    agent = new http.Agent(agentOptions)
+    createConnection = agent.createConnection
+
+    agent.createConnection = function() {
+      calls++
+      return createConnection.apply(agent, arguments)
+    }
+
+	return agent
+  }
+
+  Agent.name = 'fake-agent'
+
+  hits = {}
+  request.get({
+    uri: s.url + '/temp',
+    jar: jar,
+    headers: { cookie: 'foo=bar' },
+    agentOptions: agentOptions,
+    agentClass: Agent
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'GET temp_landing', 'Got temporary landing content')
+    t.equal(calls, 2)
+    t.ok(this.agent === agent, 'Reinstantiated the user-specified agent')
+    t.ok(this.agentOptions === agentOptions, 'Reused agent options')
     t.end()
   })
 })

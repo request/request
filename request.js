@@ -585,11 +585,11 @@ Request.prototype.init = function (options) {
     self.ca = options.ca
   }
 
-  if (!self.agent) {
-    if (options.agentOptions) {
-      self.agentOptions = options.agentOptions
-    }
+  if (!self.agent && options.agentOptions) {
+    self.agentOptions = options.agentOptions
+  }
 
+  if (!self.agent && !self.agentClass) {
     if (options.agentClass) {
       self.agentClass = options.agentClass
     } else if (options.forever) {
