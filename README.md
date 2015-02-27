@@ -633,6 +633,7 @@ The first argument can be either a `url` or an `options` object. The only requir
   tunneling proxy.
 * `proxyHeaderExclusiveList` - A whitelist of headers to send
   exclusively to a tunneling proxy and not to destination.
+* `removeRefererHeader` - removes the referer header when a redirect happens (default: `false`).
 
 
 The callback argument gets 3 arguments:
