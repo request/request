@@ -213,6 +213,35 @@ tape('recursive defaults', function(t) {
   })
 })
 
+tape('recursive defaults requester', function(t) {
+  t.plan(4)
+
+  var defaultsOne = request.defaults({}, function(options, callback) {
+      var headers = options.headers || {}
+      headers.foo = 'bar1'
+      options.headers = headers
+
+      request(options, callback)
+    })
+    , defaultsTwo = defaultsOne.defaults({}, function(options, callback) {
+      var headers = options.headers || {}
+      headers.baz = 'bar2'
+      options.headers = headers
+
+      defaultsOne(options, callback)
+    })
+
+  defaultsOne.get(s.url + '/get_recursive1', function (e, r, b) {
+    t.equal(e, null)
+    t.equal(b, 'TESTING!')
+  })
+
+  defaultsTwo.get(s.url + '/get_recursive2', function (e, r, b) {
+    t.equal(e, null)
+    t.equal(b, 'TESTING!')
+  })
+})
+
 tape('test custom request handler function', function(t) {
   t.plan(2)
 
@@ -233,6 +262,23 @@ tape('test custom request handler function', function(t) {
   }, /HTTP HEAD requests MUST NOT include a request body/)
 
   requestWithCustomHandler.get(s.url + '/get_custom', function(e, r, b) {
+    t.equal(e, null)
+  })
+})
+
+tape('test custom request handler function without options', function(t) {
+  t.plan(1)
+
+  var customHandlerWithoutOptions = request.defaults(function(uri, options, callback) {
+    var params = request.initParams(uri, options, callback)
+    var headers = params.options.headers || {}
+    headers.x = 'y'
+    headers.foo = 'bar'
+    params.options.headers = headers
+    return request(params.uri, params.options, params.callback)
+  })
+
+  customHandlerWithoutOptions.get(s.url + '/get_custom', function(e, r, b) {
     t.equal(e, null)
   })
 })
