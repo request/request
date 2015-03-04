@@ -282,7 +282,7 @@ Request.prototype.setupTunnel = function () {
   if (typeof self.proxy === 'string') {
     self.proxy = url.parse(self.proxy)
   }
-  
+
   if (!self.proxy || !self.tunnel) {
     return false
   }
@@ -298,7 +298,7 @@ Request.prototype.setupTunnel = function () {
   self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, proxyHeaderWhiteList)
   self.proxyHeaders.host = constructProxyHost(self.uri)
   proxyHeaderExclusiveList.forEach(self.removeHeader, self)
- 
+
   // Set Agent from Tunnel Data
   var tunnelFn = getTunnelFn(self)
   var tunnelOptions = constructTunnelOptions(self)
@@ -1411,6 +1411,28 @@ Request.prototype.jar = function (jar) {
   }
   self._jar = jar
   return self
+}
+
+Request.prototype.cloneJar = function (cookieJar) {
+  var self = this
+  var newJar, cookieString, cookieStore, domains, domainPaths, cookieUrl
+
+  newJar = self.jar()
+  cookieStore = cookieJar._jar.store.idx
+  domains = Object.keys(cookieStore)
+
+  domains.forEach(function (domain) {
+    domainPaths = Object.keys(cookieStore[domain])
+
+    domainPaths.forEach(function (domainPath) {
+      cookieUrl = 'http://' + domain + domainPath
+      cookieString = cookieJar.getCookieString(cookieUrl)
+
+      newJar.setCookie(cookieString, cookieUrl)
+    })
+  })
+
+  return newJar
 }
 
 
