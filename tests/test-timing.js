@@ -7,7 +7,6 @@ var http = require('http')
 
 var plain_server = server.createServer()
   , redirect_mock_time = 10
-  , non_redirect_time
 
 tape('setup', function(t) {
   plain_server.listen(plain_server.port, function() {
@@ -41,7 +40,6 @@ tape('non-redirected request is timed', function(t) {
     t.equal(err, null)
     t.equal(typeof res.elapsedTime, 'number')
     t.equal((res.elapsedTime > 0), true)
-    non_redirect_time = res.elapsedTime
     t.end()
   })
 })
@@ -52,7 +50,6 @@ tape('redirected request is timed with rollup', function(t) {
     t.equal(err, null)
     t.equal(typeof res.elapsedTime, 'number')
     t.equal((res.elapsedTime > 0), true)
-    t.equal((res.elapsedTime > non_redirect_time), true)
     t.equal((res.elapsedTime > redirect_mock_time), true)
     t.end()
   })
