@@ -20,4 +20,4 @@ openssl x509 -req \
     -out client.crt
 
 # Encrypt with password
-openssl rsa -aes128 -in client.key -out client-enc.key -passout 'password'
+openssl rsa -aes128 -in client.key -out client-enc.key -passout 'pass:password'

@@ -52,7 +52,7 @@ tape('proxy', function(t) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, 'derp\n')
-    t.equal(data, [
+    var re = new RegExp([
       'CONNECT google.com:80 HTTP/1.1',
       'Proxy-Authorization: Basic dXNlcjpwYXNz',
       'dont-send-to-dest: ok',
@@ -66,11 +66,9 @@ tape('proxy', function(t) {
       'dont-send-to-proxy: ok',
       'accept: yo',
       'user-agent: just another foobar',
-      'host: google.com',
-      'Connection: keep-alive',
-      '',
-      ''
+      'host: google.com'
     ].join('\r\n'))
+    t.equal(true, re.test(data))
     t.equal(called, true, 'the request must be made to the proxy server')
     t.end()
   })
