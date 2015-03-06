@@ -5,12 +5,12 @@
 [![Coverage](https://img.shields.io/coveralls/request/request.svg?style=flat)](https://coveralls.io/r/request/request)
 [![Gitter](https://img.shields.io/badge/gitter-join_chat-blue.svg?style=flat)](https://gitter.im/request/request?utm_source=badge)
 
-## !!! Does not work with Node v0.12.x !!!
+## !!! We have a failing test with Node v0.12.x and io.js !!!
 
 We're working on this.  Want to help?  See the
 [contribution guidelines](https://github.com/request/request/blob/master/CONTRIBUTING.md),
 help us fix the
-[failing tests](https://travis-ci.org/request/request/jobs/49916823),
+[failing test](https://travis-ci.org/request/request/builds/53174289),
 and [submit a PR](https://github.com/request/request/pulls)!
 
 ## Super simple to use
