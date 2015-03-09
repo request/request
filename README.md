@@ -572,6 +572,7 @@ request.get({
 The first argument can be either a `url` or an `options` object. The only required option is `uri`; all others are optional.
 
 * `uri` || `url` - fully qualified uri or a parsed url object from `url.parse()`
+* `baseUrl` - fully qualified uri used as the base url. Most useful with `request.defaults`, for example when you want to do many requests to the same domain.  If `baseUrl` is `https://example.com/api/`, then requesting `end/point?test=true` will fetch `https://example.com/api/end/point?test=true`.
 * `qs` - object containing querystring values to be appended to the `uri`
 * `useQuerystring` - If true, use `querystring` to stringify and parse
   querystrings, otherwise use `qs` (default: `false`).  Set this option to

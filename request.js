@@ -357,6 +357,28 @@ Request.prototype.init = function (options) {
     delete self.url
   }
 
+  // If there's a baseUrl, then use it as the base URL (i.e. uri must be
+  // specified as a relative path and is appended to baseUrl).
+  if (self.baseUrl) {
+    if (typeof self.baseUrl !== 'string') {
+      return self.emit('error', new Error('options.baseUrl must be a string'))
+    }
+
+    if (typeof self.uri !== 'string') {
+      return self.emit('error', new Error('options.uri must be a string when using options.baseUrl'))
+    }
+
+    if (self.uri.indexOf('/') === 0 || self.uri.indexOf('://') !== -1) {
+      return self.emit('error', new Error('options.uri must be a relative path when using options.baseUrl'))
+    }
+
+    if (self.baseUrl.lastIndexOf('/') === self.baseUrl.length - 1) {
+      self.uri = self.baseUrl + self.uri
+    } else {
+      self.uri = self.baseUrl + '/' + self.uri
+    }
+  }
+
   // A URI is needed by this point, throw if we haven't been able to get one
   if (!self.uri) {
     return self.emit('error', new Error('options.uri is a required argument'))
