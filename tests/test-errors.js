@@ -77,3 +77,22 @@ tape('multipart without body 2', function(t) {
   }, /^Error: Body attribute missing in multipart\.$/)
   t.end()
 })
+
+tape('head method with a body', function(t) {
+  t.throws(function() {
+    request(local, {
+      method: 'HEAD',
+      body: 'foo'
+    })
+  }, /HTTP HEAD requests MUST NOT include a request body/)
+  t.end()
+})
+
+tape('head method with a body 2', function(t) {
+  t.throws(function() {
+    request.head(local, {
+      body: 'foo'
+    })
+  }, /HTTP HEAD requests MUST NOT include a request body/)
+  t.end()
+})
