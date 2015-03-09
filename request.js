@@ -322,7 +322,9 @@ Request.prototype.init = function (options) {
   if (!self.method) {
     self.method = options.method || 'GET'
   }
-  self.localAddress = options.localAddress
+  if (!self.localAddress) {
+    self.localAddress = options.localAddress
+  }
 
   if (!self.qsLib) {
     self.qsLib = (options.useQuerystring ? querystring : qs)
