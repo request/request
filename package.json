@@ -41,7 +41,7 @@
     "isstream": "~0.1.1"
   },
   "scripts": {
-    "test": "npm run lint && node node_modules/.bin/taper tests/test-*.js && npm run test-browser && npm run clean",
+    "test": "npm run lint && node node_modules/.bin/taper tests/test-*.js && npm run test-browser",
     "test-browser": "node tests/browser/start.js",
     "lint": "node node_modules/.bin/eslint lib/ *.js tests/ && echo Lint passed."
   },
