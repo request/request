@@ -22,10 +22,6 @@ tape('setup', function(t) {
       }, redirect_mock_time)
     })
 
-    request('http://localhost:' + plain_server.port + '/', {}, function(err, res, body) {
-      t.equal(err, null)
-    })
-
     t.end()
   })
 })
