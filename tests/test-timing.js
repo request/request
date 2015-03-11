@@ -30,10 +30,6 @@ tape('setup', function(t) {
   })
 })
 
-tape('no-op', function(t) {
-  t.end()
-})
-
 tape('non-redirected request is timed', function(t) {
   var options = {time: true}
   request('http://localhost:' + plain_server.port + '/', options, function(err, res, body) {

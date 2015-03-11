@@ -874,7 +874,6 @@ Request.prototype.start = function () {
   // start() is called once we are ready to send the outgoing HTTP request.
   // this is usually called on the first write(), end() or on nextTick()
   var self = this
-    , startTime
 
   if (self._aborted) {
     return
@@ -898,11 +897,10 @@ Request.prototype.start = function () {
 
   debug('make request', self.uri.href)
 
-  startTime = new Date().getTime()
   self.req = self.httpModule.request(reqOptions)
 
   if (self.timing) {
-    self.startTime = startTime
+    self.startTime = new Date().getTime()
   }
 
   if (self.timeout && !self.timeoutTimer) {
