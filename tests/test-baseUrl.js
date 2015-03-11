@@ -3,6 +3,7 @@
 var http = require('http')
   , request = require('../index')
   , tape = require('tape')
+  , url = require('url')
 
 var s = http.createServer(function(req, res) {
   res.statusCode = 200
@@ -99,6 +100,42 @@ tape('baseUrl with trailing slash and empty uri', function(t) {
     t.equal(err, null)
     t.equal(body, 'ok')
     t.equal(resp.headers['x-path'], '/path/to/')
+    t.end()
+  })
+})
+
+tape('error on parsed URL baseUrl', function(t) {
+  request('resource', {
+    baseUrl: url.parse('http://localhost:6767/path')
+  }, function(err, resp, body) {
+    t.notEqual(err, null)
+    t.end()
+  })
+})
+
+tape('error on baseUrl and parsed URL uri', function(t) {
+  request(url.parse('resource'), {
+    baseUrl: 'http://localhost:6767/path'
+  }, function(err, resp, body) {
+    t.notEqual(err, null)
+    t.end()
+  })
+})
+
+tape('error on baseUrl and absolute path uri', function(t) {
+  request('/end/point', {
+    baseUrl: 'http://localhost:6767/path/'
+  }, function(err, resp, body) {
+    t.notEqual(err, null)
+    t.end()
+  })
+})
+
+tape('error on baseUrl and uri with scheme', function(t) {
+  request('http://localhost:6767/path/ignoring/baseUrl', {
+    baseUrl: 'http://localhost:6767/path/'
+  }, function(err, resp, body) {
+    t.notEqual(err, null)
     t.end()
   })
 })
