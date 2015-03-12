@@ -71,6 +71,7 @@ tape('error on parsed URL baseUrl', function(t) {
     baseUrl: url.parse('http://localhost:6767/path')
   }, function(err, resp, body) {
     t.notEqual(err, null)
+    t.equal(err.message, 'options.baseUrl must be a string')
     t.end()
   })
 })
@@ -80,15 +81,7 @@ tape('error on baseUrl and parsed URL uri', function(t) {
     baseUrl: 'http://localhost:6767/path'
   }, function(err, resp, body) {
     t.notEqual(err, null)
-    t.end()
-  })
-})
-
-tape('error on baseUrl and absolute path uri', function(t) {
-  request('/end/point', {
-    baseUrl: 'http://localhost:6767/path/'
-  }, function(err, resp, body) {
-    t.notEqual(err, null)
+    t.equal(err.message, 'options.uri must be a string when using options.baseUrl')
     t.end()
   })
 })
@@ -98,6 +91,17 @@ tape('error on baseUrl and uri with scheme', function(t) {
     baseUrl: 'http://localhost:6767/path/'
   }, function(err, resp, body) {
     t.notEqual(err, null)
+    t.equal(err.message, 'options.uri must be a path when using options.baseUrl')
+    t.end()
+  })
+})
+
+tape('error on baseUrl and uri with scheme-relative url', function(t) {
+  request('//localhost:6767/path/ignoring/baseUrl', {
+    baseUrl: 'http://localhost:6767/path/'
+  }, function(err, resp, body) {
+    t.notEqual(err, null)
+    t.equal(err.message, 'options.uri must be a path when using options.baseUrl')
     t.end()
   })
 })
