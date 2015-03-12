@@ -38,71 +38,33 @@ tape('baseUrl defaults', function(t) {
   })
 })
 
-tape('baseUrl without path', function(t) {
-  request('resource', {
-    baseUrl: 'http://localhost:6767'
-  }, function(err, resp, body) {
-    t.equal(err, null)
-    t.equal(body, 'ok')
-    t.equal(resp.headers['x-path'], '/resource')
-    t.end()
+function addTest(baseUrl, uri, expected) {
+  tape('test baseurl="' + baseUrl + '" uri="' + uri + '"', function(t) {
+    request(uri, { baseUrl: baseUrl }, function(err, resp, body) {
+      t.equal(err, null)
+      t.equal(body, 'ok')
+      t.equal(resp.headers['x-path'], expected)
+      t.end()
+    })
   })
-})
+}
 
-tape('baseUrl without path, with trailing slash', function(t) {
-  request('resource', {
-    baseUrl: 'http://localhost:6767/'
-  }, function(err, resp, body) {
-    t.equal(err, null)
-    t.equal(body, 'ok')
-    t.equal(resp.headers['x-path'], '/resource')
-    t.end()
-  })
-})
-
-tape('baseUrl with path', function(t) {
-  request('resource', {
-    baseUrl: 'http://localhost:6767/path/to'
-  }, function(err, resp, body) {
-    t.equal(err, null)
-    t.equal(body, 'ok')
-    t.equal(resp.headers['x-path'], '/path/to/resource')
-    t.end()
-  })
-})
-
-tape('baseUrl with path and trailing slash', function(t) {
-  request('resource', {
-    baseUrl: 'http://localhost:6767/path/to/'
-  }, function(err, resp, body) {
-    t.equal(err, null)
-    t.equal(body, 'ok')
-    t.equal(resp.headers['x-path'], '/path/to/resource')
-    t.end()
-  })
-})
-
-tape('baseUrl with empty uri', function(t) {
-  request('', {
-    baseUrl: 'http://localhost:6767/path/to'
-  }, function(err, resp, body) {
-    t.equal(err, null)
-    t.equal(body, 'ok')
-    t.equal(resp.headers['x-path'], '/path/to/')
-    t.end()
-  })
-})
-
-tape('baseUrl with trailing slash and empty uri', function(t) {
-  request('', {
-    baseUrl: 'http://localhost:6767/path/to/'
-  }, function(err, resp, body) {
-    t.equal(err, null)
-    t.equal(body, 'ok')
-    t.equal(resp.headers['x-path'], '/path/to/')
-    t.end()
-  })
-})
+addTest('http://localhost:6767', '', '/')
+addTest('http://localhost:6767/', '', '/')
+addTest('http://localhost:6767', '/', '/')
+addTest('http://localhost:6767/', '/', '/')
+addTest('http://localhost:6767/api', '', '/api')
+addTest('http://localhost:6767/api/', '', '/api/')
+addTest('http://localhost:6767/api', '/', '/api/')
+addTest('http://localhost:6767/api/', '/', '/api/')
+addTest('http://localhost:6767/api', 'resource', '/api/resource')
+addTest('http://localhost:6767/api/', 'resource', '/api/resource')
+addTest('http://localhost:6767/api', '/resource', '/api/resource')
+addTest('http://localhost:6767/api/', '/resource', '/api/resource')
+addTest('http://localhost:6767/api', 'resource/', '/api/resource/')
+addTest('http://localhost:6767/api/', 'resource/', '/api/resource/')
+addTest('http://localhost:6767/api', '/resource/', '/api/resource/')
+addTest('http://localhost:6767/api/', '/resource/', '/api/resource/')
 
 tape('error on parsed URL baseUrl', function(t) {
   request('resource', {

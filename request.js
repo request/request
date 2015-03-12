@@ -368,12 +368,21 @@ Request.prototype.init = function (options) {
       return self.emit('error', new Error('options.uri must be a string when using options.baseUrl'))
     }
 
-    if (self.uri.indexOf('/') === 0 || self.uri.indexOf('://') !== -1) {
-      return self.emit('error', new Error('options.uri must be a relative path when using options.baseUrl'))
+    if (self.uri.indexOf('//') === 0 || self.uri.indexOf('://') !== -1) {
+      return self.emit('error', new Error('options.uri must be a path when using options.baseUrl'))
     }
 
-    if (self.baseUrl.lastIndexOf('/') === self.baseUrl.length - 1) {
+    // Handle all cases to make sure that there's only one slash between
+    // baseUrl and uri.
+    var baseUrlEndsWithSlash = self.baseUrl.lastIndexOf('/') === self.baseUrl.length - 1
+    var uriStartsWithSlash = self.uri.indexOf('/') === 0
+
+    if (baseUrlEndsWithSlash && uriStartsWithSlash) {
+      self.uri = self.baseUrl + self.uri.slice(1)
+    } else if (baseUrlEndsWithSlash || uriStartsWithSlash) {
       self.uri = self.baseUrl + self.uri
+    } else if (self.uri === '') {
+      self.uri = self.baseUrl
     } else {
       self.uri = self.baseUrl + '/' + self.uri
     }
