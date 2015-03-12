@@ -66,7 +66,7 @@ addTest('http://localhost:6767/api/', 'resource/', '/api/resource/')
 addTest('http://localhost:6767/api', '/resource/', '/api/resource/')
 addTest('http://localhost:6767/api/', '/resource/', '/api/resource/')
 
-tape('error on parsed URL baseUrl', function(t) {
+tape('error when baseUrl is not a String', function(t) {
   request('resource', {
     baseUrl: url.parse('http://localhost:6767/path')
   }, function(err, resp, body) {
@@ -76,7 +76,7 @@ tape('error on parsed URL baseUrl', function(t) {
   })
 })
 
-tape('error on baseUrl and parsed URL uri', function(t) {
+tape('error when uri is not a String', function(t) {
   request(url.parse('resource'), {
     baseUrl: 'http://localhost:6767/path'
   }, function(err, resp, body) {
