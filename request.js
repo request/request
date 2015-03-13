@@ -282,7 +282,7 @@ Request.prototype.setupTunnel = function () {
   if (typeof self.proxy === 'string') {
     self.proxy = url.parse(self.proxy)
   }
-  
+
   if (!self.proxy || !self.tunnel) {
     return false
   }
@@ -298,7 +298,7 @@ Request.prototype.setupTunnel = function () {
   self.proxyHeaders = constructProxyHeaderWhiteList(self.headers, proxyHeaderWhiteList)
   self.proxyHeaders.host = constructProxyHost(self.uri)
   proxyHeaderExclusiveList.forEach(self.removeHeader, self)
- 
+
   // Set Agent from Tunnel Data
   var tunnelFn = getTunnelFn(self)
   var tunnelOptions = constructTunnelOptions(self)
@@ -548,6 +548,11 @@ Request.prototype.init = function (options) {
   }
   if (options.multipart) {
     self.multipart(options.multipart)
+  }
+
+  if (options.time) {
+    self.timing = true
+    self.elapsedTime = self.elapsedTime || 0
   }
 
   if (self.body) {
@@ -893,7 +898,12 @@ Request.prototype.start = function () {
   delete reqOptions.auth
 
   debug('make request', self.uri.href)
+
   self.req = self.httpModule.request(reqOptions)
+
+  if (self.timing) {
+    self.startTime = new Date().getTime()
+  }
 
   if (self.timeout && !self.timeoutTimer) {
     var timeout = self.timeout < 0 ? 0 : self.timeout
@@ -958,6 +968,11 @@ Request.prototype.onRequestResponse = function (response) {
   var self = this
   debug('onRequestResponse', self.uri.href, response.statusCode, response.headers)
   response.on('end', function() {
+    if (self.timing) {
+      self.elapsedTime += (new Date().getTime() - self.startTime)
+      debug('elapsed time', self.elapsedTime)
+      response.elapsedTime = self.elapsedTime
+    }
     debug('response end', self.uri.href, response.statusCode, response.headers)
   })
 
