@@ -6,13 +6,15 @@ var request = require('../index')
 // Run a querystring test.  `options` can have the following keys:
 //   - suffix              : a string to be added to the URL
 //   - qs                  : an object to be passed to request's `qs` option
+//   - qsOptions           : an object to be passed to request's `qsOptions` option
 //   - afterRequest        : a function to execute after creating the request
 //   - expected            : the expected path of the request
 //   - expectedQuerystring : expected path when using the querystring library
 function runTest(name, options) {
   var uri = 'http://www.google.com' + (options.suffix || '')
     , requestOptsQs = {
-      uri : uri
+      uri : uri,
+      qsOptions: options.qsOptions
     }
     , requestOptsQuerystring = {
       uri : uri,
@@ -99,5 +101,12 @@ runTest('a query with an object for a value', {
 runTest('a query with an array for a value', {
   qs       : { order : ['bar', 'desc'] },
   expected : esc('/?order[0]=bar&order[1]=desc'),
+  expectedQuerystring : '/?order=bar&order=desc'
+})
+
+runTest('pass options to the qs module via the qsOptions key', {
+  qs       : { order : ['bar', 'desc'] },
+  qsOptions: { arrayFormat : 'brackets' },
+  expected : esc('/?order[]=bar&order[]=desc'),
   expectedQuerystring : '/?order=bar&order=desc'
 })

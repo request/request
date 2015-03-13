@@ -565,6 +565,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 
 * `uri` || `url` - fully qualified uri or a parsed url object from `url.parse()`
 * `qs` - object containing querystring values to be appended to the `uri`
+* `qsOptions` - object containing options to pass to the `qs` or `querystring` module
 * `useQuerystring` - If true, use `querystring` to stringify and parse
   querystrings, otherwise use `qs` (default: `false`).  Set this option to
   `true` if you need arrays to be serialized as `foo=bar&foo=baz` instead of the
