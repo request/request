@@ -22,8 +22,6 @@ tape('setup', function(t) {
         ok = true
       } else if ( req.headers.authorization === 'Basic ' + new Buffer(':pass').toString('base64')) {
         ok = true
-      } else if ( req.headers.authorization === 'Basic ' + new Buffer('user').toString('base64')) {
-        ok = true
       } else {
         // Bad auth header, don't send back WWW-Authenticate header
         ok = false
