@@ -6,8 +6,14 @@ var http = require('http')
   , url = require('url')
 
 var s = http.createServer(function(req, res) {
-  res.statusCode = 200
-  res.setHeader('X-PATH', req.url)
+  if(req.url === '/redirect/') {
+    res.writeHead(302, {
+      location : '/'
+    })
+  } else {
+    res.statusCode = 200
+    res.setHeader('X-PATH', req.url)
+  }
   res.end('ok')
 })
 
@@ -34,6 +40,17 @@ tape('baseUrl defaults', function(t) {
   withDefaults('resource', function(err, resp, body) {
     t.equal(err, null)
     t.equal(body, 'ok')
+    t.end()
+  })
+})
+
+tape('baseUrl and redirects', function(t) {
+  request('/', {
+    baseUrl: 'http://localhost:6767/redirect'
+  }, function(err, resp, body) {
+    t.equal(err, null)
+    t.equal(body, 'ok')
+    t.equal(resp.headers['x-path'], '/')
     t.end()
   })
 })

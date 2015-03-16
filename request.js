@@ -386,6 +386,7 @@ Request.prototype.init = function (options) {
     } else {
       self.uri = self.baseUrl + '/' + self.uri
     }
+    delete self.baseUrl
   }
 
   // A URI is needed by this point, throw if we haven't been able to get one
