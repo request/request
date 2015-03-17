@@ -509,7 +509,7 @@ request(options, callback);
 ## TLS/SSL Protocol
 
 TLS/SSL Protocol options, such as `cert`, `key` and `passphrase`, can be
-set in the `agentOptions` property of the `options` object.
+set in the `options` object.
 In the example below, we call an API requires client side SSL certificate
 (in PEM format) with passphrase protected private key (in PEM format) and disable the SSLv3 protocol:
 
@@ -522,13 +522,13 @@ var fs = require('fs')
 
 var options = {
     url: 'https://api.some-server.com/',
+    cert: fs.readFileSync(certFile),
+    key: fs.readFileSync(keyFile),
+    // Or use `pfx` property replacing `cert` and `key` when using private key, certificate and CA certs in PFX or PKCS12 format:
+    // pfx: fs.readFileSync(pfxFilePath),
+    passphrase: 'password',
     agentOptions: {
-        cert: fs.readFileSync(certFile),
-        key: fs.readFileSync(keyFile),
-        // Or use `pfx` property replacing `cert` and `key` when using private key, certificate and CA certs in PFX or PKCS12 format:
-        // pfx: fs.readFileSync(pfxFilePath),
-        passphrase: 'password',
-        securityOptions: 'SSL_OP_NO_SSLv3'
+       securityOptions: 'SSL_OP_NO_SSLv3'
     }
 };
 
