@@ -308,63 +308,7 @@ Request.prototype.setupTunnel = function () {
 var constructObject = require('./lib/helpers').constructObject
 var extend = require('util')._extend
 
-Request.prototype.init = function (options) {
-  // init() contains all the code to setup the request object.
-  // the actual outgoing request is not started until start() is called
-  // this function is called from both the constructor and on redirect.
-  var self = this
-  var props = constructObject({})
-
-  options = options || {}
-
-  var method = self.method || options.method || 'GET'
-  var requestHeaders = self.headers
-  var headers = requestHeaders ? copy(requestHeaders) : {}
-
-  var localAddress = self.localAddress || options.localAddress
-  var qsLib = self.qsLib || (options.useQuerystring ? querystring : qs)
-
-  var poolNotSpecified = (!self.pool && self.pool !== false)
-  var pool = poolNotSpecified ? globalPool : self.pool
-  var dests = self.dests || []
-
-  var __isRequestRequest = true
-  
-  props.extend({
-    method: method,
-    headers: headers,
-    localAddress: localAddress,
-    pool: pool,
-    qsLib: qsLib,
-    dests: dests,
-    __isRequestRequest: __isRequestRequest
-  })
-
-  extend(self, props.done())
-
-  caseless.httpify(self, self.headers)
-  debug(options)
-
-  // Protect against double callback
-  if (!self._callback && self.callback) {
-    self._callback = self.callback
-    self.callback = function () {
-      if (self._callbackCalled) {
-        return // Print a warning maybe?
-      }
-      self._callbackCalled = true
-      self._callback.apply(self, arguments)
-    }
-    self.on('error', self.callback.bind())
-    self.on('complete', self.callback.bind(self, null))
-  }
-
-  // People use this property instead all the time, so support it
-  if (!self.uri && self.url) {
-    self.uri = self.url
-    delete self.url
-  }
-
+function handleBaseUrl(self) {
   // If there's a baseUrl, then use it as the base URL (i.e. uri must be
   // specified as a relative path and is appended to baseUrl).
   if (self.baseUrl) {
@@ -396,6 +340,73 @@ Request.prototype.init = function (options) {
     }
     delete self.baseUrl
   }
+}
+
+function getUri(self) {
+  var uri = self.uri
+
+  if (!self.uri && self.url) {
+    uri = self.url
+    delete self.url
+  }
+
+  return uri
+}
+
+Request.prototype.init = function (options) {
+  // init() contains all the code to setup the request object.
+  // the actual outgoing request is not started until start() is called
+  // this function is called from both the constructor and on redirect.
+  var self = this
+  var props = constructObject({})
+
+  options = options || {}
+
+  var method = self.method || options.method || 'GET'
+  var requestHeaders = self.headers
+  var headers = requestHeaders ? copy(requestHeaders) : {}
+
+  var localAddress = self.localAddress || options.localAddress
+  var qsLib = self.qsLib || (options.useQuerystring ? querystring : qs)
+
+  var poolNotSpecified = (!self.pool && self.pool !== false)
+  var pool = poolNotSpecified ? globalPool : self.pool
+  var dests = self.dests || []
+  var uri = getUri(self)
+
+  var __isRequestRequest = true
+  
+  props.extend({
+    method: method,
+    headers: headers,
+    localAddress: localAddress,
+    pool: pool,
+    qsLib: qsLib,
+    dests: dests,
+    uri: uri,
+    __isRequestRequest: __isRequestRequest
+  })
+
+  extend(self, props.done())
+
+  caseless.httpify(self, self.headers)
+  debug(options)
+
+  // Protect against double callback
+  if (!self._callback && self.callback) {
+    self._callback = self.callback
+    self.callback = function () {
+      if (self._callbackCalled) {
+        return // Print a warning maybe?
+      }
+      self._callbackCalled = true
+      self._callback.apply(self, arguments)
+    }
+    self.on('error', self.callback.bind())
+    self.on('complete', self.callback.bind(self, null))
+  }
+
+  handleBaseUrl(self)
 
   // A URI is needed by this point, throw if we haven't been able to get one
   if (!self.uri) {
@@ -513,10 +524,6 @@ Request.prototype.init = function (options) {
         }
       }
     }
-  }
-
-  if (options.qs) {
-    self.qs(options.qs)
   }
 
   if (self.uri.path) {
