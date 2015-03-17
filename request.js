@@ -308,40 +308,6 @@ Request.prototype.setupTunnel = function () {
 var constructObject = require('./lib/helpers').constructObject
 var extend = require('util')._extend
 
-function handleBaseUrl(self) {
-  // If there's a baseUrl, then use it as the base URL (i.e. uri must be
-  // specified as a relative path and is appended to baseUrl).
-  if (self.baseUrl) {
-    if (typeof self.baseUrl !== 'string') {
-      return self.emit('error', new Error('options.baseUrl must be a string'))
-    }
-
-    if (typeof self.uri !== 'string') {
-      return self.emit('error', new Error('options.uri must be a string when using options.baseUrl'))
-    }
-
-    if (self.uri.indexOf('//') === 0 || self.uri.indexOf('://') !== -1) {
-      return self.emit('error', new Error('options.uri must be a path when using options.baseUrl'))
-    }
-
-    // Handle all cases to make sure that there's only one slash between
-    // baseUrl and uri.
-    var baseUrlEndsWithSlash = self.baseUrl.lastIndexOf('/') === self.baseUrl.length - 1
-    var uriStartsWithSlash = self.uri.indexOf('/') === 0
-
-    if (baseUrlEndsWithSlash && uriStartsWithSlash) {
-      self.uri = self.baseUrl + self.uri.slice(1)
-    } else if (baseUrlEndsWithSlash || uriStartsWithSlash) {
-      self.uri = self.baseUrl + self.uri
-    } else if (self.uri === '') {
-      self.uri = self.baseUrl
-    } else {
-      self.uri = self.baseUrl + '/' + self.uri
-    }
-    delete self.baseUrl
-  }
-}
-
 function urlToUri(self) {
   var uri = self.uri
 
@@ -353,14 +319,54 @@ function urlToUri(self) {
   return uri
 }
 
-function getUri(self) {
-  var uri = urlToUri(self)
-
+function getUriObject(uri) {
   if(typeof uri === 'string') {
     uri = url.parse(uri)
   }
   
   return uri
+}
+
+function handleBaseUrl(self) {
+  // If there's a baseUrl, then use it as the base URL (i.e. uri must be
+  // specified as a relative path and is appended to baseUrl).
+  var path = self.uri.path || ''
+  var href = self.uri.href
+
+  if (self.baseUrl) {
+    if (typeof self.baseUrl !== 'string') {
+      return self.emit('error', new Error('options.baseUrl must be a string'))
+    }
+
+    if (typeof path !== 'string') {
+      return self.emit('error', new Error('options.uri must be a string when using options.baseUrl'))
+    }
+
+    if (href.indexOf('//') === 0 || href.indexOf('://') !== -1) {
+      return self.emit('error', new Error('options.uri must be a path when using options.baseUrl'))
+    }
+
+    // Handle all cases to make sure that there's only one slash between
+    // baseUrl and uri.
+    var uri
+    var baseUrlEndsWithSlash = self.baseUrl.lastIndexOf('/') === self.baseUrl.length - 1
+    var uriStartsWithSlash = path.indexOf('/') === 0
+
+    if (baseUrlEndsWithSlash && uriStartsWithSlash) {
+      uri = self.baseUrl + path.slice(1)
+      self.uri = getUriObject(uri)
+    } else if (baseUrlEndsWithSlash || uriStartsWithSlash) {
+      uri = self.baseUrl + path
+      self.uri = getUriObject(uri)
+    } else if (path === '') {
+      uri = self.baseUrl
+      self.uri = getUriObject(uri)
+    } else {
+      uri = self.baseUrl + '/' + path
+      self.uri = getUriObject(uri)
+    }
+    delete self.baseUrl
+  }
 }
 
 function setupCallback(self) {
@@ -398,7 +404,9 @@ Request.prototype.init = function (options) {
   var poolNotSpecified = (!self.pool && self.pool !== false)
   var pool = poolNotSpecified ? globalPool : self.pool
   var dests = self.dests || []
-  var uri = getUri(self)
+
+  var uri = urlToUri(self)
+  var uriObject = getUriObject(uri)
 
   var __isRequestRequest = true
   
@@ -409,7 +417,7 @@ Request.prototype.init = function (options) {
     pool: pool,
     qsLib: qsLib,
     dests: dests,
-    uri: uri,
+    uri: uriObject,
     __isRequestRequest: __isRequestRequest
   })
 
@@ -419,15 +427,14 @@ Request.prototype.init = function (options) {
   debug(options)
 
   setupCallback(self)
-  handleBaseUrl(self)
-
+  
   // A URI is needed by this point, throw if we haven't been able to get one
   if (!self.uri) {
     return self.emit('error', new Error('options.uri is a required argument'))
   }
- 
-  self.tunnel = getTunnelOption(self, options)
 
+  handleBaseUrl(self)
+ 
   // DEPRECATED: Warning for users of the old Unix Sockets URL Scheme
   if (self.uri.protocol === 'unix:') {
     return self.emit('error', new Error('`unix://` URL scheme is no longer supported. Please use the format `http://unix:SOCKET:PATH`'))
@@ -456,6 +463,7 @@ Request.prototype.init = function (options) {
     self.proxy = getProxyFromURI(self.uri)
   }
 
+  self.tunnel = getTunnelOption(self, options)
   if (self.proxy) {
     self.setupTunnel()
   }
