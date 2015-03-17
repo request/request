@@ -342,15 +342,41 @@ function handleBaseUrl(self) {
   }
 }
 
-function getUri(self) {
+function urlToUri(self) {
   var uri = self.uri
 
-  if (!self.uri && self.url) {
+  if (!uri && self.url) {
     uri = self.url
     delete self.url
   }
 
   return uri
+}
+
+function getUri(self) {
+  var uri = urlToUri(self)
+
+  if(typeof uri === 'string') {
+    uri = url.parse(uri)
+  }
+  
+  return uri
+}
+
+function setupCallback(self) {
+  // Protect against double callback
+  if (!self._callback && self.callback) {
+    self._callback = self.callback
+    self.callback = function () {
+      if (self._callbackCalled) {
+        return // Print a warning maybe?
+      }
+      self._callbackCalled = true
+      self._callback.apply(self, arguments)
+    }
+    self.on('error', self.callback.bind())
+    self.on('complete', self.callback.bind(self, null))
+  }
 }
 
 Request.prototype.init = function (options) {
@@ -392,31 +418,15 @@ Request.prototype.init = function (options) {
   caseless.httpify(self, self.headers)
   debug(options)
 
-  // Protect against double callback
-  if (!self._callback && self.callback) {
-    self._callback = self.callback
-    self.callback = function () {
-      if (self._callbackCalled) {
-        return // Print a warning maybe?
-      }
-      self._callbackCalled = true
-      self._callback.apply(self, arguments)
-    }
-    self.on('error', self.callback.bind())
-    self.on('complete', self.callback.bind(self, null))
-  }
-
+  setupCallback(self)
   handleBaseUrl(self)
 
   // A URI is needed by this point, throw if we haven't been able to get one
   if (!self.uri) {
     return self.emit('error', new Error('options.uri is a required argument'))
   }
-
-  // If a string URI/URL was given, parse it into a URL object
-  if(typeof self.uri === 'string') {
-    self.uri = url.parse(self.uri)
-  }
+ 
+  self.tunnel = getTunnelOption(self, options)
 
   // DEPRECATED: Warning for users of the old Unix Sockets URL Scheme
   if (self.uri.protocol === 'unix:') {
@@ -446,7 +456,6 @@ Request.prototype.init = function (options) {
     self.proxy = getProxyFromURI(self.uri)
   }
 
-  self.tunnel = getTunnelOption(self, options)
   if (self.proxy) {
     self.setupTunnel()
   }
@@ -524,6 +533,10 @@ Request.prototype.init = function (options) {
         }
       }
     }
+  }
+
+  if (options.qs) {
+    self.qs(options.qs)
   }
 
   if (self.uri.path) {
