@@ -305,41 +305,45 @@ Request.prototype.setupTunnel = function () {
   return true
 }
 
+var constructObject = require('./lib/helpers').constructObject
+var extend = require('util')._extend
+
 Request.prototype.init = function (options) {
   // init() contains all the code to setup the request object.
   // the actual outgoing request is not started until start() is called
   // this function is called from both the constructor and on redirect.
   var self = this
-  if (!options) {
-    options = {}
-  }
-  self.headers = self.headers ? copy(self.headers) : {}
+  var props = constructObject({})
+
+  options = options || {}
+
+  var method = self.method || options.method || 'GET'
+  var requestHeaders = self.headers
+  var headers = requestHeaders ? copy(requestHeaders) : {}
+
+  var localAddress = self.localAddress || options.localAddress
+  var qsLib = self.qsLib || (options.useQuerystring ? querystring : qs)
+
+  var poolNotSpecified = (!self.pool && self.pool !== false)
+  var pool = poolNotSpecified ? globalPool : self.pool
+  var dests = self.dests || []
+
+  var __isRequestRequest = true
+  
+  props.extend({
+    method: method,
+    headers: headers,
+    localAddress: localAddress,
+    pool: pool,
+    qsLib: qsLib,
+    dests: dests,
+    __isRequestRequest: __isRequestRequest
+  })
+
+  extend(self, props.done())
 
   caseless.httpify(self, self.headers)
-
-  if (!self.method) {
-    self.method = options.method || 'GET'
-  }
-  if (!self.localAddress) {
-    self.localAddress = options.localAddress
-  }
-
-  if (!self.qsLib) {
-    self.qsLib = (options.useQuerystring ? querystring : qs)
-  }
-  if (!self.qsParseOptions) {
-    self.qsParseOptions = options.qsParseOptions
-  }
-  if (!self.qsStringifyOptions) {
-    self.qsStringifyOptions = options.qsStringifyOptions
-  }
-
   debug(options)
-  if (!self.pool && self.pool !== false) {
-    self.pool = globalPool
-  }
-  self.dests = self.dests || []
-  self.__isRequestRequest = true
 
   // Protect against double callback
   if (!self._callback && self.callback) {
