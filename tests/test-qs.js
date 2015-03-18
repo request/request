@@ -6,7 +6,8 @@ var request = require('../index')
 // Run a querystring test.  `options` can have the following keys:
 //   - suffix              : a string to be added to the URL
 //   - qs                  : an object to be passed to request's `qs` option
-//   - qsOptions           : an object to be passed to request's `qsOptions` option
+//   - qsParseOptions      : an object to be passed to request's `qsParseOptions` option
+//   - qsStringifyOptions  : an object to be passed to request's `qsStringifyOptions` option
 //   - afterRequest        : a function to execute after creating the request
 //   - expected            : the expected path of the request
 //   - expectedQuerystring : expected path when using the querystring library
@@ -14,7 +15,8 @@ function runTest(name, options) {
   var uri = 'http://www.google.com' + (options.suffix || '')
     , requestOptsQs = {
       uri : uri,
-      qsOptions: options.qsOptions
+      qsParseOptions: options.qsParseOptions,
+      qsStringifyOptions: options.qsStringifyOptions
     }
     , requestOptsQuerystring = {
       uri : uri,
@@ -104,9 +106,18 @@ runTest('a query with an array for a value', {
   expectedQuerystring : '/?order=bar&order=desc'
 })
 
-runTest('pass options to the qs module via the qsOptions key', {
+runTest('pass options to the qs module via the qsParseOptions key', {
+  suffix   : '?a=1;b=2',
+  qs: {},
+  qsParseOptions: { delimiter : ';' },
+  qsStringifyOptions: { delimiter : ';' },
+  expected : esc('/?a=1;b=2'),
+  expectedQuerystring : '/?a=1%3Bb%3D2'
+})
+
+runTest('pass options to the qs module via the qsStringifyOptions key', {
   qs       : { order : ['bar', 'desc'] },
-  qsOptions: { arrayFormat : 'brackets' },
+  qsStringifyOptions: { arrayFormat : 'brackets' },
   expected : esc('/?order[]=bar&order[]=desc'),
   expectedQuerystring : '/?order=bar&order=desc'
 })
