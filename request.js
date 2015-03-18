@@ -327,46 +327,44 @@ function getUriObject(uri) {
   return uri
 }
 
-function handleBaseUrl(self) {
+function handleBaseUrl(uri, baseUrl) {
   // If there's a baseUrl, then use it as the base URL (i.e. uri must be
   // specified as a relative path and is appended to baseUrl).
-  var path = self.uri.path || ''
-  var href = self.uri.href
+  var path = uri.path || ''
+  var href = uri.href
 
-  if (self.baseUrl) {
-    if (typeof self.baseUrl !== 'string') {
-      return self.emit('error', new Error('options.baseUrl must be a string'))
+  if (baseUrl) {
+    if (typeof baseUrl !== 'string') {
+      return new Error('options.baseUrl must be a string')
     }
 
     if (typeof path !== 'string') {
-      return self.emit('error', new Error('options.uri must be a string when using options.baseUrl'))
+      return new Error('options.uri must be a string when using options.baseUrl')
     }
 
     if (href.indexOf('//') === 0 || href.indexOf('://') !== -1) {
-      return self.emit('error', new Error('options.uri must be a path when using options.baseUrl'))
+      return new Error('options.uri must be a path when using options.baseUrl')
     }
 
     // Handle all cases to make sure that there's only one slash between
     // baseUrl and uri.
-    var uri
-    var baseUrlEndsWithSlash = self.baseUrl.lastIndexOf('/') === self.baseUrl.length - 1
+    var tempUri
+    var baseUrlEndsWithSlash = baseUrl.lastIndexOf('/') === baseUrl.length - 1
     var uriStartsWithSlash = path.indexOf('/') === 0
 
     if (baseUrlEndsWithSlash && uriStartsWithSlash) {
-      uri = self.baseUrl + path.slice(1)
-      self.uri = getUriObject(uri)
+      uri = getUriObject(baseUrl + path.slice(1))
     } else if (baseUrlEndsWithSlash || uriStartsWithSlash) {
-      uri = self.baseUrl + path
-      self.uri = getUriObject(uri)
+      uri = getUriObject(baseUrl + path)
     } else if (path === '') {
-      uri = self.baseUrl
-      self.uri = getUriObject(uri)
+      uri = getUriObject(baseUrl)
     } else {
-      uri = self.baseUrl + '/' + path
-      self.uri = getUriObject(uri)
+      tempUri = baseUrl + '/' + path
+      uri = getUriObject(tempUri)
     }
-    delete self.baseUrl
   }
+
+  return uri
 }
 
 function setupCallback(self) {
@@ -391,8 +389,59 @@ Request.prototype.init = function (options) {
   // this function is called from both the constructor and on redirect.
   var self = this
   var props = constructObject({})
+  setupCallback(self)
 
   options = options || {}
+  
+  var uri = getUriObject(urlToUri(self))
+  props.extend({uri: uri})
+  extend(self, props.done()) 
+  
+  // A URI is needed by this point, throw if we haven't been able to get one
+  if (!uri) {
+    return self.emit('error', new Error('options.uri is a required argument'))
+  }
+  
+  // DEPRECATED: Warning for users of the old Unix Sockets URL Scheme
+  if (uri.protocol === 'unix:') {
+    return self.emit('error', new Error('`unix://` URL scheme is no longer supported. Please use the format `http://unix:SOCKET:PATH`'))
+  }
+  
+  var uriOrError = handleBaseUrl(uri, self.baseUrl)
+
+  if(uriOrError.constructor === Error) {
+    return self.emit('error', uriOrError)
+  } else {
+    uri = uriOrError
+  }
+
+  if(self.baseUrl) {
+    delete self.baseUrl
+  }
+  
+  // Support Unix Sockets
+  // setupUnixSocketSupport()
+  if(uri.host === 'unix') {
+    // Get the socket & request paths from the URL
+    var unixParts = uri.path.split(':')
+      , host = unixParts[0]
+      , path = unixParts[1]
+
+    // Apply unix properties to request
+    props.extend({socketPath: host})
+    var uriProps = constructObject(uri)
+    uriProps.extend({
+      pathname: path,
+      path: path,
+      host: host,
+      hostname: host,
+      isUnix: true
+    })
+  }
+
+  if (!self.uri.pathname) {
+    self.uri.pathname = '/'
+  }
 
   var method = self.method || options.method || 'GET'
   var requestHeaders = self.headers
@@ -404,12 +453,18 @@ Request.prototype.init = function (options) {
   var poolNotSpecified = (!self.pool && self.pool !== false)
   var pool = poolNotSpecified ? globalPool : self.pool
   var dests = self.dests || []
-
-  var uri = urlToUri(self)
-  var uriObject = getUriObject(uri)
-
   var __isRequestRequest = true
   
+  var proxy = self.proxy
+  if(!self.hasOwnProperty('proxy')) {
+    proxy = getProxyFromURI(self.uri)
+  }
+  
+  var rejectUnauthorized = self.rejectUnauthorized
+  if (self.strictSSL === false) {
+    rejectUnauthorized = false
+  }
+ 
   props.extend({
     method: method,
     headers: headers,
@@ -417,7 +472,9 @@ Request.prototype.init = function (options) {
     pool: pool,
     qsLib: qsLib,
     dests: dests,
-    uri: uriObject,
+    uri: uri,
+    proxy: proxy,
+    rejectUnauthorized: rejectUnauthorized,
     __isRequestRequest: __isRequestRequest
   })
 
@@ -425,55 +482,17 @@ Request.prototype.init = function (options) {
 
   caseless.httpify(self, self.headers)
   debug(options)
-
-  setupCallback(self)
-  
-  // A URI is needed by this point, throw if we haven't been able to get one
-  if (!self.uri) {
-    return self.emit('error', new Error('options.uri is a required argument'))
-  }
-
-  handleBaseUrl(self)
  
-  // DEPRECATED: Warning for users of the old Unix Sockets URL Scheme
-  if (self.uri.protocol === 'unix:') {
-    return self.emit('error', new Error('`unix://` URL scheme is no longer supported. Please use the format `http://unix:SOCKET:PATH`'))
-  }
-
-  // Support Unix Sockets
-  if(self.uri.host === 'unix') {
-    // Get the socket & request paths from the URL
-    var unixParts = self.uri.path.split(':')
-      , host = unixParts[0]
-      , path = unixParts[1]
-    // Apply unix properties to request
-    self.socketPath = host
-    self.uri.pathname = path
-    self.uri.path = path
-    self.uri.host = host
-    self.uri.hostname = host
-    self.uri.isUnix = true
-  }
-
-  if (self.strictSSL === false) {
-    self.rejectUnauthorized = false
-  }
-
-  if(!self.hasOwnProperty('proxy')) {
-    self.proxy = getProxyFromURI(self.uri)
-  }
-
   self.tunnel = getTunnelOption(self, options)
   if (self.proxy) {
     self.setupTunnel()
   }
-
-  if (!self.uri.pathname) {self.uri.pathname = '/'}
-
-  if (!(self.uri.host || (self.uri.hostname && self.uri.port)) && !self.uri.isUnix) {
+ 
+  if (!(uri.host || (uri.hostname && uri.port)) && !uri.isUnix) {
     // Invalid URI: it may generate lot of bad errors, like 'TypeError: Cannot call method `indexOf` of undefined' in CookieJar
     // Detect and reject it as soon as possible
-    var faultyUri = url.format(self.uri)
+
+    var faultyUri = url.format(uri)
     var message = 'Invalid URI "' + faultyUri + '"'
     if (Object.keys(options).length === 0) {
       // No option ? This can be the sign of a redirect
@@ -484,9 +503,7 @@ Request.prototype.init = function (options) {
     // This error was fatal
     return self.emit('error', new Error(message))
   }
-
-  self._redirect.onRequest()
-
+  
   self.setHost = false
   if (!self.hasHeader('host')) {
     var hostHeaderName = self.originalHostHeaderName || 'host'
@@ -514,6 +531,8 @@ Request.prototype.init = function (options) {
     self.port = self.uri.port
     self.host = self.uri.hostname
   }
+
+  self._redirect.onRequest()
 
   if (options.form) {
     self.form(options.form)
