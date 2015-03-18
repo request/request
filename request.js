@@ -1215,6 +1215,11 @@ Request.prototype.abort = function () {
     self.response.abort()
   }
 
+  if (self.timeout && self.timeoutTimer) {
+    clearTimeout(self.timeoutTimer)
+    self.timeoutTimer = null
+  }
+
   self.emit('abort')
 }
 
