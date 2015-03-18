@@ -323,6 +323,10 @@ function getUriObject(uri) {
   if(typeof uri === 'string') {
     uri = url.parse(uri)
   }
+
+  if (uri && !uri.pathname) {
+    uri.pathname = '/'
+  }
   
   return uri
 }
@@ -332,39 +336,47 @@ function handleBaseUrl(uri, baseUrl) {
   // specified as a relative path and is appended to baseUrl).
   var path = uri.path || ''
   var href = uri.href
+  var error
+
+  var props = constructObject({uri: uri})
 
   if (baseUrl) {
     if (typeof baseUrl !== 'string') {
-      return new Error('options.baseUrl must be a string')
+      error = new Error('options.baseUrl must be a string')
+      return props.extend({error: error}).done()
     }
 
     if (typeof path !== 'string') {
-      return new Error('options.uri must be a string when using options.baseUrl')
+      error = new Error('options.uri must be a string when using options.baseUrl')
+      return props.extend({error: error}).done()
     }
 
     if (href.indexOf('//') === 0 || href.indexOf('://') !== -1) {
-      return new Error('options.uri must be a path when using options.baseUrl')
+      error = new Error('options.uri must be a path when using options.baseUrl')
+      return props.extend({error: error}).done()
     }
 
     // Handle all cases to make sure that there's only one slash between
     // baseUrl and uri.
-    var tempUri
     var baseUrlEndsWithSlash = baseUrl.lastIndexOf('/') === baseUrl.length - 1
     var uriStartsWithSlash = path.indexOf('/') === 0
 
     if (baseUrlEndsWithSlash && uriStartsWithSlash) {
-      uri = getUriObject(baseUrl + path.slice(1))
+      uri = baseUrl + path.slice(1)
+      props.extend({uri: getUriObject(uri)})
     } else if (baseUrlEndsWithSlash || uriStartsWithSlash) {
-      uri = getUriObject(baseUrl + path)
+      uri = baseUrl + path
+      props.extend({uri: getUriObject(uri)})
     } else if (path === '') {
-      uri = getUriObject(baseUrl)
+      uri = baseUrl
+      props.extend({uri: getUriObject(uri)})
     } else {
-      tempUri = baseUrl + '/' + path
-      uri = getUriObject(tempUri)
+      uri = baseUrl + '/' + path
+      props.extend({uri: getUriObject(uri)})
     }
   }
 
-  return uri
+  return props.done()
 }
 
 function setupCallback(self) {
@@ -383,53 +395,15 @@ function setupCallback(self) {
   }
 }
 
-Request.prototype.init = function (options) {
-  // init() contains all the code to setup the request object.
-  // the actual outgoing request is not started until start() is called
-  // this function is called from both the constructor and on redirect.
-  var self = this
-  var props = constructObject({})
-  setupCallback(self)
+function unixSocketSupport(uri) {
+  var props = constructObject({uri: uri})
 
-  options = options || {}
-  
-  var uri = getUriObject(urlToUri(self))
-  props.extend({uri: uri})
-  extend(self, props.done()) 
-  
-  // A URI is needed by this point, throw if we haven't been able to get one
-  if (!uri) {
-    return self.emit('error', new Error('options.uri is a required argument'))
-  }
-  
-  // DEPRECATED: Warning for users of the old Unix Sockets URL Scheme
-  if (uri.protocol === 'unix:') {
-    return self.emit('error', new Error('`unix://` URL scheme is no longer supported. Please use the format `http://unix:SOCKET:PATH`'))
-  }
-  
-  var uriOrError = handleBaseUrl(uri, self.baseUrl)
-
-  if(uriOrError.constructor === Error) {
-    return self.emit('error', uriOrError)
-  } else {
-    uri = uriOrError
-  }
-
-  if(self.baseUrl) {
-    delete self.baseUrl
-  }
-  
-  // Support Unix Sockets
-  // setupUnixSocketSupport()
   if(uri.host === 'unix') {
-    // Get the socket & request paths from the URL
-    var unixParts = uri.path.split(':')
+    var uriProps = constructObject(uri)
+      , unixParts = uri.path.split(':')
       , host = unixParts[0]
       , path = unixParts[1]
 
-    // Apply unix properties to request
-    props.extend({socketPath: host})
-    var uriProps = constructObject(uri)
     uriProps.extend({
       pathname: path,
       path: path,
@@ -437,57 +411,80 @@ Request.prototype.init = function (options) {
       hostname: host,
       isUnix: true
     })
+    
+    props.extend({
+      uri: uriProps.done(),
+      socketPath: host
+    })
   }
 
-  if (!self.uri.pathname) {
-    self.uri.pathname = '/'
+  return props.done()
+}
+
+function getPort(uri) {
+  var port
+
+  if (uri.protocol === 'http:') {
+    port = 80
+  } else if (uri.protocol === 'https:') {
+    port = 443
   }
 
-  var method = self.method || options.method || 'GET'
-  var requestHeaders = self.headers
-  var headers = requestHeaders ? copy(requestHeaders) : {}
+  return port
+}
 
-  var localAddress = self.localAddress || options.localAddress
-  var qsLib = self.qsLib || (options.useQuerystring ? querystring : qs)
+function uriErrors(uri) {
+  var props = constructObject({})
+  var error
 
-  var poolNotSpecified = (!self.pool && self.pool !== false)
-  var pool = poolNotSpecified ? globalPool : self.pool
-  var dests = self.dests || []
-  var __isRequestRequest = true
+  if (!uri) {
+    error = new Error('options.uri is a required argument')
+    return props.extend({error: error}).done()
+  }
   
-  var proxy = self.proxy
-  if(!self.hasOwnProperty('proxy')) {
-    proxy = getProxyFromURI(self.uri)
+  if (uri.protocol === 'unix:') {
+    error = new Error('`unix://` URL scheme is no longer supported. Please use the format `http://unix:SOCKET:PATH`')
+    return props.extend({error: error}).done()
   }
+
+  return props.done()
+}
+
+Request.prototype.init = function (options) {
+  // init() contains all the code to setup the request object.
+  // the actual outgoing request is not started until start() is called
+  // this function is called from both the constructor and on redirect.
+
+  var self = this
+  options = options || {}
+  setupCallback(self)
+
+  var selfProps = constructObject(self)
+  var props = constructObject({})
+  var uri = getUriObject(urlToUri(self))
   
-  var rejectUnauthorized = self.rejectUnauthorized
-  if (self.strictSSL === false) {
-    rejectUnauthorized = false
+  var uriError = uriErrors(uri).error
+  if(uriError) {
+    return self.emit('error', uriError)
+  }
+
+  // Handle BaseUrl option
+  var baseUrlProps = handleBaseUrl(uri, self.baseUrl)
+  if(baseUrlProps.error) {
+    return self.emit('error', baseUrlProps.error)
+  } 
+  props.extend(baseUrlProps)
+  uri = props.done().uri
+
+  if(self.baseUrl) {
+    delete self.baseUrl
   }
  
-  props.extend({
-    method: method,
-    headers: headers,
-    localAddress: localAddress,
-    pool: pool,
-    qsLib: qsLib,
-    dests: dests,
-    uri: uri,
-    proxy: proxy,
-    rejectUnauthorized: rejectUnauthorized,
-    __isRequestRequest: __isRequestRequest
-  })
-
-  extend(self, props.done())
-
-  caseless.httpify(self, self.headers)
-  debug(options)
- 
-  self.tunnel = getTunnelOption(self, options)
-  if (self.proxy) {
-    self.setupTunnel()
-  }
- 
+  // Support Unix Sockets
+  var unixSocketProps = unixSocketSupport(uri)
+  props.extend(unixSocketProps)
+  uri = props.done().uri
+  
   if (!(uri.host || (uri.hostname && uri.port)) && !uri.isUnix) {
     // Invalid URI: it may generate lot of bad errors, like 'TypeError: Cannot call method `indexOf` of undefined' in CookieJar
     // Detect and reject it as soon as possible
@@ -502,6 +499,62 @@ Request.prototype.init = function (options) {
     }
     // This error was fatal
     return self.emit('error', new Error(message))
+  }
+ 
+  var proxy = self.proxy
+  if(!self.hasOwnProperty('proxy')) {
+    proxy = getProxyFromURI(uri)
+  }
+  props.extend({proxy: proxy})
+  
+  var method = self.method || options.method || 'GET'
+  var requestHeaders = self.headers
+  var headers = requestHeaders ? copy(requestHeaders) : {}
+  
+  var localAddress = self.localAddress || options.localAddress
+  var qsLib = self.qsLib || (options.useQuerystring ? querystring : qs)
+
+  var poolNotSpecified = (!self.pool && self.pool !== false)
+  var pool = poolNotSpecified ? globalPool : self.pool
+  var dests = self.dests || []
+  var __isRequestRequest = true
+
+  var port = uri.port || getPort(uri)
+   
+  var rejectUnauthorized = self.rejectUnauthorized
+  if (self.strictSSL === false) {
+    rejectUnauthorized = false
+  }
+   
+  props.extend({
+    headers: headers,
+    port: port,
+    method: method,
+    localAddress: localAddress,
+    pool: pool,
+    qsLib: qsLib,
+    dests: dests,
+    rejectUnauthorized: rejectUnauthorized,
+    __isRequestRequest: __isRequestRequest
+  })
+
+
+  selfProps.extend(props.done())
+
+  caseless.httpify(self, self.headers)
+  debug(options)
+
+  self.tunnel = getTunnelOption(self, options)
+  if (self.proxy) {
+    self.setupTunnel()
+  }
+
+  if (self.proxy && !self.tunnel) {
+    self.port = self.proxy.port
+    self.host = self.proxy.hostname
+  } else {
+    self.port = self.uri.port
+    self.host = self.uri.hostname
   }
   
   self.setHost = false
@@ -518,20 +571,6 @@ Request.prototype.init = function (options) {
   }
 
   self.jar(self._jar || options.jar)
-
-  if (!self.uri.port) {
-    if (self.uri.protocol === 'http:') {self.uri.port = 80}
-    else if (self.uri.protocol === 'https:') {self.uri.port = 443}
-  }
-
-  if (self.proxy && !self.tunnel) {
-    self.port = self.proxy.port
-    self.host = self.proxy.hostname
-  } else {
-    self.port = self.uri.port
-    self.host = self.uri.hostname
-  }
-
   self._redirect.onRequest()
 
   if (options.form) {
@@ -574,6 +613,22 @@ Request.prototype.init = function (options) {
 
   if (self.path.length === 0) {
     self.path = '/'
+  }
+  
+  if (self.proxy && !self.tunnel) {
+    self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
+  }
+
+  if (options.json) {
+    self.json(options.json)
+  }
+  if (options.multipart) {
+    self.multipart(options.multipart)
+  }
+
+  if (options.time) {
+    self.timing = true
+    self.elapsedTime = self.elapsedTime || 0
   }
 
   // Auth must happen last in case signing is dependent on other headers
@@ -624,22 +679,6 @@ Request.prototype.init = function (options) {
     })
     var authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
     self.setHeader('proxy-authorization', authHeader)
-  }
-
-  if (self.proxy && !self.tunnel) {
-    self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
-  }
-
-  if (options.json) {
-    self.json(options.json)
-  }
-  if (options.multipart) {
-    self.multipart(options.multipart)
-  }
-
-  if (options.time) {
-    self.timing = true
-    self.elapsedTime = self.elapsedTime || 0
   }
 
   if (self.body) {
@@ -698,6 +737,9 @@ Request.prototype.init = function (options) {
   } else {
     self.agent = self.agent || self.getNewAgent()
   }
+
+
+
 
   self.on('pipe', function (src) {
     if (self.ntick && self._started) {
