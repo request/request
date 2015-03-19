@@ -472,6 +472,29 @@ function invalidUri(uri, options) {
   return props.done()
 }
 
+function formData(self, formData) {
+  var requestForm = self.form()
+  var appendFormValue = function (key, value) {
+    if (value.hasOwnProperty('value') && value.hasOwnProperty('options')) {
+      requestForm.append(key, value.value, value.options)
+    } else {
+      requestForm.append(key, value)
+    }
+  }
+  for (var formKey in formData) {
+    if (formData.hasOwnProperty(formKey)) {
+      var formValue = formData[formKey]
+      if (formValue instanceof Array) {
+        for (var j = 0; j < formValue.length; j++) {
+          appendFormValue(formKey, formValue[j])
+        }
+      } else {
+        appendFormValue(formKey, formValue)
+      }
+    }
+  }
+}
+
 Request.prototype.init = function (options) {
   // init() contains all the code to setup the request object.
   // the actual outgoing request is not started until start() is called
@@ -599,27 +622,7 @@ Request.prototype.init = function (options) {
   }
 
   if (options.formData) {
-    var formData = options.formData
-    var requestForm = self.form()
-    var appendFormValue = function (key, value) {
-      if (value.hasOwnProperty('value') && value.hasOwnProperty('options')) {
-        requestForm.append(key, value.value, value.options)
-      } else {
-        requestForm.append(key, value)
-      }
-    }
-    for (var formKey in formData) {
-      if (formData.hasOwnProperty(formKey)) {
-        var formValue = formData[formKey]
-        if (formValue instanceof Array) {
-          for (var j = 0; j < formValue.length; j++) {
-            appendFormValue(formKey, formValue[j])
-          }
-        } else {
-          appendFormValue(formKey, formValue)
-        }
-      }
-    }
+    formData(self, options.formData)
   }
 
   if (options.qs) {
