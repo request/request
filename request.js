@@ -495,6 +495,92 @@ function formData(self, formData) {
   }
 }
 
+function onPipe(src) {
+  var self = this
+
+  if (self.ntick && self._started) {
+    throw new Error('You cannot pipe to this stream after the outbound request has started.')
+  }
+
+  self.src = src
+
+  if (isReadStream(src)) {
+    if (!self.hasHeader('content-type')) {
+      self.setHeader('content-type', mime.lookup(src.path))
+    }
+  } else {
+    if (src.headers) {
+      for (var i in src.headers) {
+        if (!self.hasHeader(i)) {
+          self.setHeader(i, src.headers[i])
+        }
+      }
+    }
+
+    if (self._json && !self.hasHeader('content-type')) {
+      self.setHeader('content-type', 'application/json')
+    }
+
+    if (src.method && !self.explicitMethod) {
+      self.method = src.method
+    }
+  }
+
+  // self.on('pipe', function () {
+  //   console.error('You have already piped to this stream. Pipeing twice is likely to break the request.')
+  // })
+}
+
+function deferred() {
+  var self = this
+
+  if (self._aborted) {
+    return
+  }
+
+  var end = function () {
+    if (self._form) {
+      self._form.pipe(self)
+    }
+    if (self._multipart && self._multipart.chunked) {
+      self._multipart.body.pipe(self)
+    }
+    if (self.body) {
+      if (Array.isArray(self.body)) {
+        self.body.forEach(function (part) {
+          self.write(part)
+        })
+      } else {
+        self.write(self.body)
+      }
+      self.end()
+    } else if (self.requestBodyStream) {
+      console.warn('options.requestBodyStream is deprecated, please pass the request object to stream.pipe.')
+      self.requestBodyStream.pipe(self)
+    } else if (!self.src) {
+      if (self.method !== 'GET' && typeof self.method !== 'undefined') {
+        self.setHeader('content-length', 0)
+      }
+      self.end()
+    }
+  }
+
+  if (self._form && !self.hasHeader('content-length')) {
+    // Before ending the request, we had to compute the length of the whole form, asyncly
+    self.setHeader(self._form.getHeaders())
+    self._form.getLength(function (err, length) {
+      if (!err) {
+        self.setHeader('content-length', length)
+      }
+      end()
+    })
+  } else {
+    end()
+  }
+
+  self.ntick = true
+}
+
 Request.prototype.init = function (options) {
   // init() contains all the code to setup the request object.
   // the actual outgoing request is not started until start() is called
@@ -762,87 +848,8 @@ Request.prototype.init = function (options) {
     self.agent = self.agent || self.getNewAgent()
   }
 
-
-
-
-  self.on('pipe', function (src) {
-    if (self.ntick && self._started) {
-      throw new Error('You cannot pipe to this stream after the outbound request has started.')
-    }
-    self.src = src
-    if (isReadStream(src)) {
-      if (!self.hasHeader('content-type')) {
-        self.setHeader('content-type', mime.lookup(src.path))
-      }
-    } else {
-      if (src.headers) {
-        for (var i in src.headers) {
-          if (!self.hasHeader(i)) {
-            self.setHeader(i, src.headers[i])
-          }
-        }
-      }
-      if (self._json && !self.hasHeader('content-type')) {
-        self.setHeader('content-type', 'application/json')
-      }
-      if (src.method && !self.explicitMethod) {
-        self.method = src.method
-      }
-    }
-
-    // self.on('pipe', function () {
-    //   console.error('You have already piped to this stream. Pipeing twice is likely to break the request.')
-    // })
-  })
-
-  defer(function () {
-    if (self._aborted) {
-      return
-    }
-
-    var end = function () {
-      if (self._form) {
-        self._form.pipe(self)
-      }
-      if (self._multipart && self._multipart.chunked) {
-        self._multipart.body.pipe(self)
-      }
-      if (self.body) {
-        if (Array.isArray(self.body)) {
-          self.body.forEach(function (part) {
-            self.write(part)
-          })
-        } else {
-          self.write(self.body)
-        }
-        self.end()
-      } else if (self.requestBodyStream) {
-        console.warn('options.requestBodyStream is deprecated, please pass the request object to stream.pipe.')
-        self.requestBodyStream.pipe(self)
-      } else if (!self.src) {
-        if (self.method !== 'GET' && typeof self.method !== 'undefined') {
-          self.setHeader('content-length', 0)
-        }
-        self.end()
-      }
-    }
-
-    if (self._form && !self.hasHeader('content-length')) {
-      // Before ending the request, we had to compute the length of the whole form, asyncly
-      self.setHeader(self._form.getHeaders())
-      self._form.getLength(function (err, length) {
-        if (!err) {
-          self.setHeader('content-length', length)
-        }
-        end()
-      })
-    } else {
-      end()
-    }
-
-    self.ntick = true
-  })
-
+  self.on('pipe', onPipe.bind(self))
+  defer(deferred.bind(self))
 }
 
 // Must call this when following a redirect from https to http or vice versa
