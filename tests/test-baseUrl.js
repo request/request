@@ -93,17 +93,15 @@ tape('error when baseUrl is not a String', function(t) {
   })
 })
 
-// Pending Deletion
-
-// tape('error when uri is not a String', function(t) {
-//   request(url.parse('resource'), {
-//     baseUrl: 'http://localhost:6767/path'
-//   }, function(err, resp, body) {
-//     t.notEqual(err, null)
-//     t.equal(err.message, 'options.uri must be a string when using options.baseUrl')
-//     t.end()
-//   })
-// })
+tape('error when uri is not a String', function(t) {
+  request(url.parse('resource'), {
+    baseUrl: 'http://localhost:6767/path'
+  }, function(err, resp, body) {
+    t.notEqual(err, null)
+    t.equal(err.message, 'options.uri must be a string when using options.baseUrl')
+    t.end()
+  })
+})
 
 tape('error on baseUrl and uri with scheme', function(t) {
   request('http://localhost:6767/path/ignoring/baseUrl', {
