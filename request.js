@@ -129,14 +129,14 @@ function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList) {
     }, {})
 }
 
-function getTunnelOption(self, options) {
+function getTunnelOption(uri, tunnel, options) {
   // Tunnel HTTPS by default, or if a previous request in the redirect chain
   // was tunneled.  Allow the user to override this setting.
 
   // If self.tunnel is already set (because this is a redirect), use the
   // existing value.
-  if (typeof self.tunnel !== 'undefined') {
-    return self.tunnel
+  if (typeof tunnel !== 'undefined') {
+    return tunnel
   }
 
   // If options.tunnel is set (the user specified a value), use it.
@@ -145,7 +145,7 @@ function getTunnelOption(self, options) {
   }
 
   // If the destination is HTTPS, tunnel.
-  if (self.uri.protocol === 'https:') {
+  if (uri.protocol === 'https:') {
     return true
   }
 
@@ -308,12 +308,9 @@ Request.prototype.setupTunnel = function () {
 var constructObject = require('./lib/helpers').constructObject
 var extend = require('util')._extend
 
-function urlToUri(self) {
-  var uri = self.uri
-
-  if (!uri && self.url) {
-    uri = self.url
-    delete self.url
+function urlToUri(uri, url) {
+  if (!uri && url) {
+    uri = url
   }
 
   return uri
@@ -379,6 +376,7 @@ function handleBaseUrl(uri, baseUrl) {
   return props.done()
 }
 
+// Dirty Function
 function setupCallback(self) {
   // Protect against double callback
   if (!self._callback && self.callback) {
@@ -450,41 +448,9 @@ function uriErrors(uri) {
   return props.done()
 }
 
-Request.prototype.init = function (options) {
-  // init() contains all the code to setup the request object.
-  // the actual outgoing request is not started until start() is called
-  // this function is called from both the constructor and on redirect.
-
-  var self = this
-  options = options || {}
-  setupCallback(self)
-
-  var selfProps = constructObject(self)
+function invalidUri(uri, options) {
   var props = constructObject({})
-  var uri = getUriObject(urlToUri(self))
-  
-  var uriError = uriErrors(uri).error
-  if(uriError) {
-    return self.emit('error', uriError)
-  }
 
-  // Handle BaseUrl option
-  var baseUrlProps = handleBaseUrl(uri, self.baseUrl)
-  if(baseUrlProps.error) {
-    return self.emit('error', baseUrlProps.error)
-  } 
-  props.extend(baseUrlProps)
-  uri = props.done().uri
-
-  if(self.baseUrl) {
-    delete self.baseUrl
-  }
- 
-  // Support Unix Sockets
-  var unixSocketProps = unixSocketSupport(uri)
-  props.extend(unixSocketProps)
-  uri = props.done().uri
-  
   if (!(uri.host || (uri.hostname && uri.port)) && !uri.isUnix) {
     // Invalid URI: it may generate lot of bad errors, like 'TypeError: Cannot call method `indexOf` of undefined' in CookieJar
     // Detect and reject it as soon as possible
@@ -497,15 +463,68 @@ Request.prototype.init = function (options) {
       // they should be warned that it can be caused by a redirection (can save some hair)
       message += '. This can be caused by a crappy redirection.'
     }
+
     // This error was fatal
-    return self.emit('error', new Error(message))
+    var error = new Error(message)
+    props.extend({error: error})
   }
- 
+
+  return props.done()
+}
+
+Request.prototype.init = function (options) {
+  // init() contains all the code to setup the request object.
+  // the actual outgoing request is not started until start() is called
+  // this function is called from both the constructor and on redirect.
+
+  var self = this
+  options = options || {}
+  setupCallback(self)
+
+  var selfProps = constructObject(self)
+  var props = constructObject({})
+  var uri = getUriObject(urlToUri(self.uri, self.url))
+  
+  var uriError = uriErrors(uri).error
+  if(uriError) {
+    return self.emit('error', uriError)
+  }
+  
+  // Support Unix Sockets
+  var unixSocketProps = unixSocketSupport(uri)
+  
+  // set latest URI manually for now
+  props.extend(unixSocketProps)
+  uri = props.done().uri
+
+  // Handle BaseUrl option
+  var baseUrlProps = handleBaseUrl(uri, self.baseUrl)
+  if(baseUrlProps.error) {
+    return self.emit('error', baseUrlProps.error)
+  }
+  
+  // set latest URI manually for now
+  props.extend(baseUrlProps)
+  uri = props.done().uri
+
+  // Cleanup
+  if(self.baseUrl) {
+    delete self.baseUrl
+  }
+  if(self.url) {
+    delete self.url
+  }
+
+  // Handle Invalid URI
+  var invalidUriError = invalidUri(uri, options).error
+  if(invalidUriError) {
+    return self.emit('error', invalidUriError)
+  } 
+   
   var proxy = self.proxy
   if(!self.hasOwnProperty('proxy')) {
     proxy = getProxyFromURI(uri)
   }
-  props.extend({proxy: proxy})
   
   var method = self.method || options.method || 'GET'
   var requestHeaders = self.headers
@@ -520,13 +539,14 @@ Request.prototype.init = function (options) {
   var __isRequestRequest = true
 
   var port = uri.port || getPort(uri)
-   
+ 
   var rejectUnauthorized = self.rejectUnauthorized
   if (self.strictSSL === false) {
     rejectUnauthorized = false
   }
    
   props.extend({
+    proxy: proxy,
     headers: headers,
     port: port,
     method: method,
@@ -543,20 +563,21 @@ Request.prototype.init = function (options) {
 
   caseless.httpify(self, self.headers)
   debug(options)
-
-  self.tunnel = getTunnelOption(self, options)
+  
+  var tunnel = getTunnelOption(uri, self.tunnel, options)
+  self.tunnel = tunnel
   if (self.proxy) {
     self.setupTunnel()
   }
 
-  if (self.proxy && !self.tunnel) {
+  if (proxy && !self.tunnel) {
     self.port = self.proxy.port
     self.host = self.proxy.hostname
   } else {
     self.port = self.uri.port
     self.host = self.uri.hostname
   }
-  
+ 
   self.setHost = false
   if (!self.hasHeader('host')) {
     var hostHeaderName = self.originalHostHeaderName || 'host'
