@@ -1,7 +1,6 @@
 'use strict'
 
 var server = require('./server')
-  , stream = require('stream')
   , request = require('../index')
   , tape = require('tape')
 

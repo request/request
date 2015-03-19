@@ -1,7 +1,6 @@
 'use strict'
 
-var http = require('http')
-  , server = require('./server')
+var server = require('./server')
   , request = require('../index')
   , tape = require('tape')
 

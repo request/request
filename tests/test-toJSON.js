@@ -25,12 +25,12 @@ tape('request().toJSON()', function(t) {
 
     t.equal(err, null)
 
-    t.equal(json_r.uri.href   , r.uri.href)
-    t.equal(json_r.method     , r.method)
+    t.equal(json_r.uri.href, r.uri.href)
+    t.equal(json_r.method, r.method)
     t.equal(json_r.headers.foo, r.headers.foo)
 
-    t.equal(json_res.statusCode  , res.statusCode)
-    t.equal(json_res.body        , res.body)
+    t.equal(json_res.statusCode, res.statusCode)
+    t.equal(json_res.body, res.body)
     t.equal(json_res.headers.date, res.headers.date)
 
     t.end()

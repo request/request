@@ -451,7 +451,7 @@ tape('query transport_method with qs parameter and existing query string in url'
     t.notOk(r.headers.Authorization, 'oauth Authorization header should not be present with transport_method \'query\'')
     t.notOk(r.path.match(/\?&/), 'there should be no ampersand at the beginning of the query')
     t.equal('OB33pYjWAnf+xtOHN4Gmbdil168=', qs.parse(r.path).oauth_signature)
-    
+
     var params = qs.parse(r.path.split('?')[1])
       , keys = Object.keys(params)
 

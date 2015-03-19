@@ -323,9 +323,9 @@ tape('should have the referer when following redirect by default', function(t) {
     t.equal(res.statusCode, 200)
     t.end()
   })
-  .on('redirect',function() {
+  .on('redirect', function() {
     t.notEqual(this.headers.referer, undefined)
-    t.equal(this.headers.referer.substring(this.headers.referer.lastIndexOf('/')),'/temp_landing')
+    t.equal(this.headers.referer.substring(this.headers.referer.lastIndexOf('/')), '/temp_landing')
   })
 })
 
@@ -341,7 +341,7 @@ tape('should not have a referer when removeRefererHeader is true', function(t) {
     t.equal(res.statusCode, 200)
     t.end()
   })
-  .on('redirect',function() {
+  .on('redirect', function() {
     t.equal(this.headers.referer, undefined)
   })
 })

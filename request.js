@@ -21,7 +21,6 @@ var http = require('http')
   , FormData = require('form-data')
   , cookies = require('./lib/cookies')
   , copy = require('./lib/copy')
-  , net = require('net')
   , getProxyFromURI = require('./lib/getProxyFromURI')
   , Auth = require('./lib/auth').Auth
   , OAuth = require('./lib/oauth').OAuth
@@ -29,7 +28,6 @@ var http = require('http')
   , Redirect = require('./lib/redirect').Redirect
 
 var safeStringify = helpers.safeStringify
-  , md5 = helpers.md5
   , isReadStream = helpers.isReadStream
   , toBase64 = helpers.toBase64
   , defer = helpers.defer
@@ -1292,7 +1290,7 @@ Request.prototype.form = function (form) {
   }
   // create form-data object
   self._form = new FormData()
-  self._form.on('error',function(err) {
+  self._form.on('error', function(err) {
     err.message = 'form-data: ' + err.message
     self.emit('error', err)
     self.abort()

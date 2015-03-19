@@ -1,7 +1,6 @@
 'use strict'
 
-var net = require('net')
-  , request = require('../index')
+var request = require('../index')
   , tape = require('tape')
 
 var port = 6768

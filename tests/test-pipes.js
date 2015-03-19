@@ -1,7 +1,6 @@
 'use strict'
 
 var server = require('./server')
-  , events = require('events')
   , stream = require('stream')
   , fs = require('fs')
   , request = require('../index')
@@ -238,7 +237,7 @@ tape('piping after response', function(t) {
 
 tape('piping through a redirect', function(t) {
   s.once('/forward1', function(req, res) {
-   res.writeHead(302, { location: '/forward2' })
+    res.writeHead(302, { location: '/forward2' })
     res.end()
   })
   s.once('/forward2', function(req, res) {
