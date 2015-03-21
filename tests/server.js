@@ -4,14 +4,13 @@ var fs = require('fs')
   , http = require('http')
   , path = require('path')
   , https = require('https')
-  , events = require('events')
   , stream = require('stream')
   , assert = require('assert')
 
 exports.port = 6767
 exports.portSSL = 16167
 
-exports.createServer =  function (port) {
+exports.createServer = function (port) {
   port = port || exports.port
   var s = http.createServer(function (req, resp) {
     s.emit(req.url, req, resp)

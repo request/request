@@ -107,9 +107,10 @@ var testHeaders = [
   'multipart/related; boundary=XXX; type=text/xml; start="<root>"'
 ]
 
-var suite = ['post', 'get'].forEach(function(method) {
+var methods = ['post', 'get']
+methods.forEach(function(method) {
   testHeaders.forEach(function(header) {
-    [true, false].forEach(function(json) {  
+    [true, false].forEach(function(json) {
       var name = [
         'multipart-related', method.toUpperCase(),
         (header || 'default'),

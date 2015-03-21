@@ -1,8 +1,6 @@
 'use strict'
 
 var server = require('./server')
-  , events = require('events')
-  , stream = require('stream')
   , request = require('../index')
   , tape = require('tape')
 
@@ -146,6 +144,6 @@ addTest('testPutMultipartPostambleCRLF', {
 
 tape('cleanup', function(t) {
   s.close(function() {
-   t.end()
+    t.end()
   })
 })

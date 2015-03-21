@@ -9,8 +9,7 @@ if (!Function.prototype.bind) {
 }
 
 
-var assert = require('assert')
-  , tape = require('tape')
+var tape = require('tape')
   , request = require('../../index')
 
 tape('returns on error', function(t) {

@@ -64,7 +64,7 @@ tape('setup', function(t) {
 
 function run_tests(name, httpModules) {
   tape(name, function(t) {
-    var to_https =  'http://localhost:' + plain_server.port + '/to_https'
+    var to_https = 'http://localhost:' + plain_server.port + '/to_https'
       , to_plain = 'https://localhost:' + https_server.port + '/to_plain'
       , options = { httpModules: httpModules, strictSSL: false }
       , modulesTest = httpModules || {}

@@ -158,7 +158,7 @@ tape('pass - undefined', function(t) {
 tape('auth method', function(t) {
   var r = request
     .get('http://localhost:6767/test/')
-    .auth('user','',false)
+    .auth('user', '', false)
     .on('response', function (res) {
       t.equal(r._auth.user, 'user')
       t.equal(res.statusCode, 200)

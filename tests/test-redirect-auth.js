@@ -3,7 +3,6 @@
 var server = require('./server')
   , request = require('../index')
   , util = require('util')
-  , events = require('events')
   , tape = require('tape')
 
 var s = server.createServer()
