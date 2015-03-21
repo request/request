@@ -566,6 +566,8 @@ The first argument can be either a `url` or an `options` object. The only requir
 * `uri` || `url` - fully qualified uri or a parsed url object from `url.parse()`
 * `baseUrl` - fully qualified uri string used as the base url. Most useful with `request.defaults`, for example when you want to do many requests to the same domain.  If `baseUrl` is `https://example.com/api/`, then requesting `/end/point?test=true` will fetch `https://example.com/api/end/point?test=true`. When `baseUrl` is given, `uri` must also be a string.
 * `qs` - object containing querystring values to be appended to the `uri`
+* `qsParseOptions` - object containing options to pass to the [qs.parse](https://github.com/hapijs/qs#parsing-objects) method or [querystring.parse](https://nodejs.org/docs/v0.12.0/api/querystring.html#querystring_querystring_parse_str_sep_eq_options) method
+* `qsStringifyOptions` - object containing options to pass to the [qs.stringify](https://github.com/hapijs/qs#stringifying) method or to the [querystring.stringify](https://nodejs.org/docs/v0.12.0/api/querystring.html#querystring_querystring_stringify_obj_sep_eq_options) method. For example, to change the way arrays are converted to query strings pass the `arrayFormat` option with one of `indices|brackets|repeat`
 * `useQuerystring` - If true, use `querystring` to stringify and parse
   querystrings, otherwise use `qs` (default: `false`).  Set this option to
   `true` if you need arrays to be serialized as `foo=bar&foo=baz` instead of the

@@ -327,6 +327,12 @@ Request.prototype.init = function (options) {
   if (!self.qsLib) {
     self.qsLib = (options.useQuerystring ? querystring : qs)
   }
+  if (!self.qsParseOptions) {
+    self.qsParseOptions = options.qsParseOptions
+  }
+  if (!self.qsStringifyOptions) {
+    self.qsStringifyOptions = options.qsStringifyOptions
+  }
 
   debug(options)
   if (!self.pool && self.pool !== false) {
@@ -1259,7 +1265,7 @@ Request.prototype.qs = function (q, clobber) {
   var self = this
   var base
   if (!clobber && self.uri.query) {
-    base = self.qsLib.parse(self.uri.query)
+    base = self.qsLib.parse(self.uri.query, self.qsParseOptions)
   } else {
     base = {}
   }
@@ -1268,11 +1274,11 @@ Request.prototype.qs = function (q, clobber) {
     base[i] = q[i]
   }
 
-  if (self.qsLib.stringify(base) === ''){
+  if (self.qsLib.stringify(base, self.qsStringifyOptions) === ''){
     return self
   }
 
-  var qs = self.qsLib.stringify(base)
+  var qs = self.qsLib.stringify(base, self.qsStringifyOptions)
 
   self.uri = url.parse(self.uri.href.split('?')[0] + '?' + rfc3986(qs))
   self.url = self.uri
@@ -1284,7 +1290,9 @@ Request.prototype.form = function (form) {
   var self = this
   if (form) {
     self.setHeader('content-type', 'application/x-www-form-urlencoded')
-    self.body = (typeof form === 'string') ? form.toString('utf8') : self.qsLib.stringify(form).toString('utf8')
+    self.body = (typeof form === 'string')
+      ? form.toString('utf8')
+      : self.qsLib.stringify(form, self.qsStringifyOptions).toString('utf8')
     self.body = rfc3986(self.body)
     return self
   }
