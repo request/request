@@ -22,6 +22,8 @@ tape('setup', function(t) {
         ok = true
       } else if ( req.headers.authorization === 'Basic ' + new Buffer(':pass').toString('base64')) {
         ok = true
+      } else if ( req.headers.authorization === 'Basic ' + new Buffer('user:pâss').toString('base64')) {
+        ok = true
       } else {
         // Bad auth header, don't send back WWW-Authenticate header
         ok = false
@@ -155,6 +157,27 @@ tape('pass - undefined', function(t) {
   })
 })
 
+
+tape('pass - utf8', function(t) {
+  t.doesNotThrow( function() {
+    var r = request({
+      'method': 'GET',
+      'uri': 'http://localhost:6767/allow_undefined_password/',
+      'auth': {
+        'user': 'user',
+        'pass': 'pâss',
+        'sendImmediately': false
+      }
+    }, function(error, res, body ) {
+      t.equal(r._auth.user, 'user')
+      t.equal(r._auth.pass, 'pâss')
+      t.equal(res.statusCode, 200)
+      t.equal(numBasicRequests, 12)
+      t.end()
+    })
+  })
+})
+
 tape('auth method', function(t) {
   var r = request
     .get('http://localhost:6767/test/')
@@ -162,7 +185,7 @@ tape('auth method', function(t) {
     .on('response', function (res) {
       t.equal(r._auth.user, 'user')
       t.equal(res.statusCode, 200)
-      t.equal(numBasicRequests, 12)
+      t.equal(numBasicRequests, 14)
       t.end()
     })
 })
@@ -179,7 +202,7 @@ tape('get method', function(t) {
       t.equal(r._auth.user, 'user')
       t.equal(err, null)
       t.equal(res.statusCode, 200)
-      t.equal(numBasicRequests, 14)
+      t.equal(numBasicRequests, 16)
       t.end()
     })
 })
