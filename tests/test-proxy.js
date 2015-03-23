@@ -286,7 +286,7 @@ if (process.env.TEST_PROXY_HARNESS) {
   runTest('proxy: null should override HTTP_PROXY', {
     env     : { HTTP_PROXY : s.url },
     proxy   : null,
-    timeout : 500
+    timeout : 1000
   }, false)
 
   runTest('uri auth without proxy auth', {

@@ -5,15 +5,12 @@ var http = require('http')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
-  , qs = require('qs')
-  , querystring = require('querystring')
   , zlib = require('zlib')
   , helpers = require('./lib/helpers')
   , bl = require('bl')
   , hawk = require('hawk')
   , aws = require('aws-sign2')
   , httpSignature = require('http-signature')
-  , mime = require('mime-types')
   , tunnel = require('tunnel-agent')
   , stringstream = require('stringstream')
   , caseless = require('caseless')
@@ -21,20 +18,15 @@ var http = require('http')
   , FormData = require('form-data')
   , cookies = require('./lib/cookies')
   , copy = require('./lib/copy')
-  , getProxyFromURI = require('./lib/getProxyFromURI')
   , Auth = require('./lib/auth').Auth
   , OAuth = require('./lib/oauth').OAuth
   , Multipart = require('./lib/multipart').Multipart
   , Redirect = require('./lib/redirect').Redirect
+  , InitRequest = require('./lib/request-init')
 
 var safeStringify = helpers.safeStringify
-  , isReadStream = helpers.isReadStream
-  , toBase64 = helpers.toBase64
-  , defer = helpers.defer
   , globalCookieJar = cookies.jar()
-
-
-var globalPool = {}
+  , globalPool = {}
 
 var defaultProxyHeaderWhiteList = [
   'accept',
@@ -127,32 +119,6 @@ function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList) {
       set[header] = headers[header]
       return set
     }, {})
-}
-
-function getTunnelOption(self, options) {
-  // Tunnel HTTPS by default, or if a previous request in the redirect chain
-  // was tunneled.  Allow the user to override this setting.
-
-  // If self.tunnel is already set (because this is a redirect), use the
-  // existing value.
-  if (typeof self.tunnel !== 'undefined') {
-    return self.tunnel
-  }
-
-  // If options.tunnel is set (the user specified a value), use it.
-  if (typeof options.tunnel !== 'undefined') {
-    return options.tunnel
-  }
-
-  // If the destination is HTTPS, tunnel.
-  if (self.uri.protocol === 'https:') {
-    return true
-  }
-
-  // Otherwise, leave tunnel unset, because if a later request in the redirect
-  // chain is HTTPS then that request (and any subsequent ones) should be
-  // tunneled.
-  return undefined
 }
 
 function constructTunnelOptions(request) {
@@ -274,6 +240,13 @@ function debug() {
   }
 }
 
+Request.prototype.init = function(options) {
+  var self = this
+  var extras = {globalPool: globalPool}
+  InitRequest.call(self, options, extras)
+  debug(options)
+}
+
 Request.prototype.setupTunnel = function () {
   var self = this
 
@@ -303,429 +276,6 @@ Request.prototype.setupTunnel = function () {
   self.agent = tunnelFn(tunnelOptions)
 
   return true
-}
-
-Request.prototype.init = function (options) {
-  // init() contains all the code to setup the request object.
-  // the actual outgoing request is not started until start() is called
-  // this function is called from both the constructor and on redirect.
-  var self = this
-  if (!options) {
-    options = {}
-  }
-  self.headers = self.headers ? copy(self.headers) : {}
-
-  caseless.httpify(self, self.headers)
-
-  if (!self.method) {
-    self.method = options.method || 'GET'
-  }
-  if (!self.localAddress) {
-    self.localAddress = options.localAddress
-  }
-
-  if (!self.qsLib) {
-    self.qsLib = (options.useQuerystring ? querystring : qs)
-  }
-  if (!self.qsParseOptions) {
-    self.qsParseOptions = options.qsParseOptions
-  }
-  if (!self.qsStringifyOptions) {
-    self.qsStringifyOptions = options.qsStringifyOptions
-  }
-
-  debug(options)
-  if (!self.pool && self.pool !== false) {
-    self.pool = globalPool
-  }
-  self.dests = self.dests || []
-  self.__isRequestRequest = true
-
-  // Protect against double callback
-  if (!self._callback && self.callback) {
-    self._callback = self.callback
-    self.callback = function () {
-      if (self._callbackCalled) {
-        return // Print a warning maybe?
-      }
-      self._callbackCalled = true
-      self._callback.apply(self, arguments)
-    }
-    self.on('error', self.callback.bind())
-    self.on('complete', self.callback.bind(self, null))
-  }
-
-  // People use this property instead all the time, so support it
-  if (!self.uri && self.url) {
-    self.uri = self.url
-    delete self.url
-  }
-
-  // If there's a baseUrl, then use it as the base URL (i.e. uri must be
-  // specified as a relative path and is appended to baseUrl).
-  if (self.baseUrl) {
-    if (typeof self.baseUrl !== 'string') {
-      return self.emit('error', new Error('options.baseUrl must be a string'))
-    }
-
-    if (typeof self.uri !== 'string') {
-      return self.emit('error', new Error('options.uri must be a string when using options.baseUrl'))
-    }
-
-    if (self.uri.indexOf('//') === 0 || self.uri.indexOf('://') !== -1) {
-      return self.emit('error', new Error('options.uri must be a path when using options.baseUrl'))
-    }
-
-    // Handle all cases to make sure that there's only one slash between
-    // baseUrl and uri.
-    var baseUrlEndsWithSlash = self.baseUrl.lastIndexOf('/') === self.baseUrl.length - 1
-    var uriStartsWithSlash = self.uri.indexOf('/') === 0
-
-    if (baseUrlEndsWithSlash && uriStartsWithSlash) {
-      self.uri = self.baseUrl + self.uri.slice(1)
-    } else if (baseUrlEndsWithSlash || uriStartsWithSlash) {
-      self.uri = self.baseUrl + self.uri
-    } else if (self.uri === '') {
-      self.uri = self.baseUrl
-    } else {
-      self.uri = self.baseUrl + '/' + self.uri
-    }
-    delete self.baseUrl
-  }
-
-  // A URI is needed by this point, throw if we haven't been able to get one
-  if (!self.uri) {
-    return self.emit('error', new Error('options.uri is a required argument'))
-  }
-
-  // If a string URI/URL was given, parse it into a URL object
-  if(typeof self.uri === 'string') {
-    self.uri = url.parse(self.uri)
-  }
-
-  // DEPRECATED: Warning for users of the old Unix Sockets URL Scheme
-  if (self.uri.protocol === 'unix:') {
-    return self.emit('error', new Error('`unix://` URL scheme is no longer supported. Please use the format `http://unix:SOCKET:PATH`'))
-  }
-
-  // Support Unix Sockets
-  if(self.uri.host === 'unix') {
-    // Get the socket & request paths from the URL
-    var unixParts = self.uri.path.split(':')
-      , host = unixParts[0]
-      , path = unixParts[1]
-    // Apply unix properties to request
-    self.socketPath = host
-    self.uri.pathname = path
-    self.uri.path = path
-    self.uri.host = host
-    self.uri.hostname = host
-    self.uri.isUnix = true
-  }
-
-  if (self.strictSSL === false) {
-    self.rejectUnauthorized = false
-  }
-
-  if(!self.hasOwnProperty('proxy')) {
-    self.proxy = getProxyFromURI(self.uri)
-  }
-
-  self.tunnel = getTunnelOption(self, options)
-  if (self.proxy) {
-    self.setupTunnel()
-  }
-
-  if (!self.uri.pathname) {self.uri.pathname = '/'}
-
-  if (!(self.uri.host || (self.uri.hostname && self.uri.port)) && !self.uri.isUnix) {
-    // Invalid URI: it may generate lot of bad errors, like 'TypeError: Cannot call method `indexOf` of undefined' in CookieJar
-    // Detect and reject it as soon as possible
-    var faultyUri = url.format(self.uri)
-    var message = 'Invalid URI "' + faultyUri + '"'
-    if (Object.keys(options).length === 0) {
-      // No option ? This can be the sign of a redirect
-      // As this is a case where the user cannot do anything (they didn't call request directly with this URL)
-      // they should be warned that it can be caused by a redirection (can save some hair)
-      message += '. This can be caused by a crappy redirection.'
-    }
-    // This error was fatal
-    return self.emit('error', new Error(message))
-  }
-
-  self._redirect.onRequest()
-
-  self.setHost = false
-  if (!self.hasHeader('host')) {
-    var hostHeaderName = self.originalHostHeaderName || 'host'
-    self.setHeader(hostHeaderName, self.uri.hostname)
-    if (self.uri.port) {
-      if ( !(self.uri.port === 80 && self.uri.protocol === 'http:') &&
-           !(self.uri.port === 443 && self.uri.protocol === 'https:') ) {
-        self.setHeader(hostHeaderName, self.getHeader('host') + (':' + self.uri.port) )
-      }
-    }
-    self.setHost = true
-  }
-
-  self.jar(self._jar || options.jar)
-
-  if (!self.uri.port) {
-    if (self.uri.protocol === 'http:') {self.uri.port = 80}
-    else if (self.uri.protocol === 'https:') {self.uri.port = 443}
-  }
-
-  if (self.proxy && !self.tunnel) {
-    self.port = self.proxy.port
-    self.host = self.proxy.hostname
-  } else {
-    self.port = self.uri.port
-    self.host = self.uri.hostname
-  }
-
-  if (options.form) {
-    self.form(options.form)
-  }
-
-  if (options.formData) {
-    var formData = options.formData
-    var requestForm = self.form()
-    var appendFormValue = function (key, value) {
-      if (value.hasOwnProperty('value') && value.hasOwnProperty('options')) {
-        requestForm.append(key, value.value, value.options)
-      } else {
-        requestForm.append(key, value)
-      }
-    }
-    for (var formKey in formData) {
-      if (formData.hasOwnProperty(formKey)) {
-        var formValue = formData[formKey]
-        if (formValue instanceof Array) {
-          for (var j = 0; j < formValue.length; j++) {
-            appendFormValue(formKey, formValue[j])
-          }
-        } else {
-          appendFormValue(formKey, formValue)
-        }
-      }
-    }
-  }
-
-  if (options.qs) {
-    self.qs(options.qs)
-  }
-
-  if (self.uri.path) {
-    self.path = self.uri.path
-  } else {
-    self.path = self.uri.pathname + (self.uri.search || '')
-  }
-
-  if (self.path.length === 0) {
-    self.path = '/'
-  }
-
-  // Auth must happen last in case signing is dependent on other headers
-  if (options.oauth) {
-    self.oauth(options.oauth)
-  }
-
-  if (options.aws) {
-    self.aws(options.aws)
-  }
-
-  if (options.hawk) {
-    self.hawk(options.hawk)
-  }
-
-  if (options.httpSignature) {
-    self.httpSignature(options.httpSignature)
-  }
-
-  if (options.auth) {
-    if (Object.prototype.hasOwnProperty.call(options.auth, 'username')) {
-      options.auth.user = options.auth.username
-    }
-    if (Object.prototype.hasOwnProperty.call(options.auth, 'password')) {
-      options.auth.pass = options.auth.password
-    }
-
-    self.auth(
-      options.auth.user,
-      options.auth.pass,
-      options.auth.sendImmediately,
-      options.auth.bearer
-    )
-  }
-
-  if (self.gzip && !self.hasHeader('accept-encoding')) {
-    self.setHeader('accept-encoding', 'gzip')
-  }
-
-  if (self.uri.auth && !self.hasHeader('authorization')) {
-    var uriAuthPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
-    self.auth(uriAuthPieces[0], uriAuthPieces.slice(1).join(':'), true)
-  }
-
-  if (!self.tunnel && self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization')) {
-    var proxyAuthPieces = self.proxy.auth.split(':').map(function(item){
-      return querystring.unescape(item)
-    })
-    var authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
-    self.setHeader('proxy-authorization', authHeader)
-  }
-
-  if (self.proxy && !self.tunnel) {
-    self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
-  }
-
-  if (options.json) {
-    self.json(options.json)
-  }
-  if (options.multipart) {
-    self.multipart(options.multipart)
-  }
-
-  if (options.time) {
-    self.timing = true
-    self.elapsedTime = self.elapsedTime || 0
-  }
-
-  if (self.body) {
-    var length = 0
-    if (!Buffer.isBuffer(self.body)) {
-      if (Array.isArray(self.body)) {
-        for (var i = 0; i < self.body.length; i++) {
-          length += self.body[i].length
-        }
-      } else {
-        self.body = new Buffer(self.body)
-        length = self.body.length
-      }
-    } else {
-      length = self.body.length
-    }
-    if (length) {
-      if (!self.hasHeader('content-length')) {
-        self.setHeader('content-length', length)
-      }
-    } else {
-      throw new Error('Argument error, options.body.')
-    }
-  }
-
-  var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
-    , defaultModules = {'http:':http, 'https:':https}
-    , httpModules = self.httpModules || {}
-
-  self.httpModule = httpModules[protocol] || defaultModules[protocol]
-
-  if (!self.httpModule) {
-    return self.emit('error', new Error('Invalid protocol: ' + protocol))
-  }
-
-  if (options.ca) {
-    self.ca = options.ca
-  }
-
-  if (!self.agent) {
-    if (options.agentOptions) {
-      self.agentOptions = options.agentOptions
-    }
-
-    if (options.agentClass) {
-      self.agentClass = options.agentClass
-    } else if (options.forever) {
-      self.agentClass = protocol === 'http:' ? ForeverAgent : ForeverAgent.SSL
-    } else {
-      self.agentClass = self.httpModule.Agent
-    }
-  }
-
-  if (self.pool === false) {
-    self.agent = false
-  } else {
-    self.agent = self.agent || self.getNewAgent()
-  }
-
-  self.on('pipe', function (src) {
-    if (self.ntick && self._started) {
-      throw new Error('You cannot pipe to this stream after the outbound request has started.')
-    }
-    self.src = src
-    if (isReadStream(src)) {
-      if (!self.hasHeader('content-type')) {
-        self.setHeader('content-type', mime.lookup(src.path))
-      }
-    } else {
-      if (src.headers) {
-        for (var i in src.headers) {
-          if (!self.hasHeader(i)) {
-            self.setHeader(i, src.headers[i])
-          }
-        }
-      }
-      if (self._json && !self.hasHeader('content-type')) {
-        self.setHeader('content-type', 'application/json')
-      }
-      if (src.method && !self.explicitMethod) {
-        self.method = src.method
-      }
-    }
-
-    // self.on('pipe', function () {
-    //   console.error('You have already piped to this stream. Pipeing twice is likely to break the request.')
-    // })
-  })
-
-  defer(function () {
-    if (self._aborted) {
-      return
-    }
-
-    var end = function () {
-      if (self._form) {
-        self._form.pipe(self)
-      }
-      if (self._multipart && self._multipart.chunked) {
-        self._multipart.body.pipe(self)
-      }
-      if (self.body) {
-        if (Array.isArray(self.body)) {
-          self.body.forEach(function (part) {
-            self.write(part)
-          })
-        } else {
-          self.write(self.body)
-        }
-        self.end()
-      } else if (self.requestBodyStream) {
-        console.warn('options.requestBodyStream is deprecated, please pass the request object to stream.pipe.')
-        self.requestBodyStream.pipe(self)
-      } else if (!self.src) {
-        if (self.method !== 'GET' && typeof self.method !== 'undefined') {
-          self.setHeader('content-length', 0)
-        }
-        self.end()
-      }
-    }
-
-    if (self._form && !self.hasHeader('content-length')) {
-      // Before ending the request, we had to compute the length of the whole form, asyncly
-      self.setHeader(self._form.getHeaders())
-      self._form.getLength(function (err, length) {
-        if (!err) {
-          self.setHeader('content-length', length)
-        }
-        end()
-      })
-    } else {
-      end()
-    }
-
-    self.ntick = true
-  })
-
 }
 
 // Must call this when following a redirect from https to http or vice versa
