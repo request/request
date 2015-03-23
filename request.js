@@ -25,11 +25,8 @@ var http = require('http')
   , InitRequest = require('./lib/request-init')
 
 var safeStringify = helpers.safeStringify
-  , toBase64 = helpers.toBase64
   , globalCookieJar = cookies.jar()
-
-
-var globalPool = {}
+  , globalPool = {}
 
 var defaultProxyHeaderWhiteList = [
   'accept',
@@ -122,32 +119,6 @@ function constructProxyHeaderWhiteList(headers, proxyHeaderWhiteList) {
       set[header] = headers[header]
       return set
     }, {})
-}
-
-function getTunnelOption(uri, tunnel, options) {
-  // Tunnel HTTPS by default, or if a previous request in the redirect chain
-  // was tunneled.  Allow the user to override this setting.
-
-  // If self.tunnel is already set (because this is a redirect), use the
-  // existing value.
-  if (typeof tunnel !== 'undefined') {
-    return tunnel
-  }
-
-  // If options.tunnel is set (the user specified a value), use it.
-  if (typeof options.tunnel !== 'undefined') {
-    return options.tunnel
-  }
-
-  // If the destination is HTTPS, tunnel.
-  if (uri.protocol === 'https:') {
-    return true
-  }
-
-  // Otherwise, leave tunnel unset, because if a later request in the redirect
-  // chain is HTTPS then that request (and any subsequent ones) should be
-  // tunneled.
-  return undefined
 }
 
 function constructTunnelOptions(request) {
