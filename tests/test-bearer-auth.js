@@ -49,7 +49,7 @@ tape('setup', function(t) {
   })
 })
 
-tape('', function(t) {
+tape('bearer auth', function(t) {
   request({
     'method': 'GET',
     'uri': 'http://localhost:6767/test/',
@@ -64,7 +64,7 @@ tape('', function(t) {
   })
 })
 
-tape('', function(t) {
+tape('bearer auth with default sendImmediately', function(t) {
   // If we don't set sendImmediately = false, request will send bearer auth
   request({
     'method': 'GET',
@@ -95,7 +95,7 @@ tape('', function(t) {
   })
 })
 
-tape('', function(t) {
+tape('using .auth, sendImmediately = false', function(t) {
   request
     .get('http://localhost:6767/test/')
     .auth(null, null, false, 'theToken')
@@ -106,7 +106,7 @@ tape('', function(t) {
     })
 })
 
-tape('', function(t) {
+tape('using .auth, sendImmediately = true', function(t) {
   request
     .get('http://localhost:6767/test/')
     .auth(null, null, true, 'theToken')
@@ -117,7 +117,7 @@ tape('', function(t) {
     })
 })
 
-tape('', function(t) {
+tape('bearer is a function', function(t) {
   request({
     'method': 'GET',
     'uri': 'http://localhost:6767/test/',
@@ -132,7 +132,7 @@ tape('', function(t) {
   })
 })
 
-tape('', function(t) {
+tape('bearer is a function, path = test2', function(t) {
   // If we don't set sendImmediately = false, request will send bearer auth
   request({
     'method': 'GET',
@@ -143,6 +143,36 @@ tape('', function(t) {
   }, function(error, res, body) {
     t.equal(res.statusCode, 200)
     t.equal(numBearerRequests, 11)
+    t.end()
+  })
+})
+
+tape('no auth method', function(t) {
+  t.throws(function() {
+    request({
+      'method': 'GET',
+      'uri': 'http://localhost:6767/test2/',
+      'auth': {
+        'bearer': undefined
+      }
+    }, function(error, res, body) {
+      t.fail('Requests without a valid auth mechanism are not valid')
+      t.end()
+    })
+  }, /no auth mechanism defined/)
+  t.end()
+})
+
+tape('null bearer', function(t) {
+  request({
+    'method': 'GET',
+    'uri': 'http://localhost:6767/test2/',
+    'auth': {
+      'bearer': null
+    }
+  }, function(error, res, body) {
+    t.equal(res.statusCode, 401)
+    t.equal(numBearerRequests, 12)
     t.end()
   })
 })
