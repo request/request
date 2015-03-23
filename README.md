@@ -32,7 +32,7 @@ request('http://www.google.com', function (error, response, body) {
 - [Proxies](#proxies)
 - [Unix Domain Sockets](#unix-domain-sockets)
 - [TLS/SSL Protocol](#tlsssl-protocol)
-- [Support for HAR 1.2](#support-for-har-1.2)
+- [Support for HAR 1.2](#support-for-har-12)
 - [**All Available Options**](#requestoptions-callback)
 
 Request also offers [convenience methods](#convenience-methods) like
