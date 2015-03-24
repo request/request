@@ -21,6 +21,28 @@ exports.createServer = function (port) {
   return s
 }
 
+exports.createEchoServer = function (port) {
+  port = port || exports.port
+  var s = http.createServer(function (req, resp) {
+    var b = ''
+    req.on('data', function (chunk) {b += chunk})
+    req.on('end', function () {
+      resp.writeHead(200, {'content-type':'application/json'})
+      resp.write(JSON.stringify({
+        url: req.url,
+        method: req.method,
+        headers: req.headers,
+        body: b
+      }))
+      resp.end()
+    })
+  })
+  s.port = port
+  s.url = 'http://localhost:' + port
+  s.protocol = 'http'
+  return s
+}
+
 exports.createSSLServer = function(port, opts) {
   port = port || exports.portSSL
 

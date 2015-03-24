@@ -22,6 +22,7 @@ var http = require('http')
   , cookies = require('./lib/cookies')
   , copy = require('./lib/copy')
   , getProxyFromURI = require('./lib/getProxyFromURI')
+  , Har = require('./lib/har').Har
   , Auth = require('./lib/auth').Auth
   , OAuth = require('./lib/oauth').OAuth
   , Multipart = require('./lib/multipart').Multipart
@@ -244,6 +245,13 @@ function Request (options) {
   // call init
 
   var self = this
+
+  // start with HAR, then override with additional options
+  if (options.har) {
+    self._har = new Har(self)
+    options = self._har.options(options)
+  }
+
   stream.Stream.call(self)
   var reserved = Object.keys(Request.prototype)
   var nonReserved = filterForNonReserved(reserved, options)

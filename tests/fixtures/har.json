@@ -1,0 +1,158 @@
+{
+  "application-form-encoded": {
+    "method": "POST",
+    "headers": [
+      {
+        "name": "content-type",
+        "value": "application/x-www-form-urlencoded"
+      }
+    ],
+    "postData": {
+      "mimeType": "application/x-www-form-urlencoded",
+      "params": [
+        {
+          "name": "foo",
+          "value": "bar"
+        },
+        {
+          "name": "hello",
+          "value": "world"
+        }
+      ]
+    }
+  },
+
+  "application-json": {
+    "method": "POST",
+    "headers": [
+      {
+        "name": "content-type",
+        "value": "application/json"
+      }
+    ],
+    "postData": {
+      "mimeType": "application/json",
+      "text": "{\"number\":1,\"string\":\"f\\\"oo\",\"arr\":[1,2,3],\"nested\":{\"a\":\"b\"},\"arr_mix\":[1,\"a\",{\"arr_mix_nested\":{}}]}"
+    }
+  },
+
+  "cookies": {
+    "method": "POST",
+    "cookies":  [
+      {
+        "name": "foo",
+        "value": "bar"
+      },
+      {
+        "name": "bar",
+        "value": "baz"
+      }
+    ]
+  },
+
+  "custom-method": {
+    "method": "PROPFIND"
+  },
+
+  "headers": {
+    "method": "GET",
+    "headers": [
+      {
+        "name": "x-foo",
+        "value": "Bar"
+      }
+    ]
+  },
+
+  "multipart-data": {
+    "method": "POST",
+    "headers": [
+      {
+        "name": "content-type",
+        "value": "multipart/form-data"
+      }
+    ],
+    "postData": {
+      "mimeType": "multipart/form-data",
+      "params": [
+        {
+          "name": "foo",
+          "value": "Hello World",
+          "fileName": "hello.txt",
+          "contentType": "text/plain"
+        }
+      ]
+    }
+  },
+
+  "multipart-file": {
+    "method": "POST",
+    "headers": [
+      {
+        "name": "content-type",
+        "value": "multipart/form-data"
+      }
+    ],
+    "postData": {
+      "mimeType": "multipart/form-data",
+      "params": [
+        {
+          "name": "foo",
+          "fileName": "../tests/unicycle.jpg",
+          "contentType": "image/jpeg"
+        }
+      ]
+    }
+  },
+
+  "multipart-form-data": {
+    "method": "POST",
+    "headers": [
+      {
+        "name": "content-type",
+        "value": "multipart/form-data"
+      }
+    ],
+    "postData": {
+      "mimeType": "multipart/form-data",
+      "params": [
+        {
+          "name": "foo",
+          "value": "bar"
+        }
+      ]
+    }
+  },
+
+  "query": {
+    "method": "GET",
+    "queryString": [
+      {
+        "name": "foo",
+        "value": "bar"
+      },
+      {
+        "name": "foo",
+        "value": "baz"
+      },
+      {
+        "name": "baz",
+        "value": "abc"
+      }
+    ]
+  },
+
+  "text-plain": {
+    "method": "POST",
+    "headers": [
+      {
+        "name": "content-type",
+        "value": "text/plain"
+      }
+    ],
+    "postData": {
+      "mimeType": "text/plain",
+      "text": "Hello World"
+    }
+  }
+}
