@@ -61,7 +61,7 @@ verbs.forEach(function(verb){
   request[verb] = function(uri, options, callback){
     var params = initParams(uri, options, callback)
     params.options.method = method
-    return this(params.uri || null, params.options, params.callback)
+    return (this || request)(params.uri || null, params.options, params.callback)
   }
 })
 

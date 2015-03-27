@@ -105,6 +105,11 @@ tape('setup', function(t) {
       })
     })
 
+    s.on('/function', function(req, resp) {
+      resp.writeHead(200, {'Content-Type': 'text/plain'})
+      resp.end()
+    })
+
     t.end()
   })
 })
@@ -296,6 +301,16 @@ tape('test only setting undefined properties', function(t) {
     t.equal(e, null)
     t.deepEqual(b, { foo: 'bar' })
     t.end()
+  })
+})
+
+tape('test only function', function(t) {
+  var post = request.post
+  t.doesNotThrow(function () {
+    post(s.url + '/function', function (e, r, b) {
+      t.equal(r.statusCode, 200)
+      t.end()
+    })
   })
 })
 
