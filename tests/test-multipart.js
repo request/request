@@ -59,8 +59,8 @@ function runTest(t, a) {
       // check for http://localhost:6767/file traces
       t.ok(data.indexOf('Photoshop ICC') !== -1)
 
-      if (a.header && a.header.indexOf('mixed') !== -1) {
-        t.ok(data.indexOf('boundary=XXX'))
+      if (a.header && a.header.indexOf('boundary=XXX') !== -1) {
+        t.ok(data.indexOf('--XXX') !== -1)
       }
 
       res.writeHead(200)
