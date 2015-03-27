@@ -693,7 +693,12 @@ Request.prototype.init = function (options) {
 
     var end = function () {
       if (self._form) {
-        self._form.pipe(self)
+        if (!self._auth.hasAuth) {
+          self._form.pipe(self)
+        }
+        else if (self._auth.hasAuth && self._auth.sentAuth) {
+          self._form.pipe(self)
+        }
       }
       if (self._multipart && self._multipart.chunked) {
         self._multipart.body.pipe(self)
@@ -711,6 +716,10 @@ Request.prototype.init = function (options) {
         console.warn('options.requestBodyStream is deprecated, please pass the request object to stream.pipe.')
         self.requestBodyStream.pipe(self)
       } else if (!self.src) {
+        if (self._auth.hasAuth && !self._auth.sentAuth) {
+          self.end()
+          return
+        }
         if (self.method !== 'GET' && typeof self.method !== 'undefined') {
           self.setHeader('content-length', 0)
         }

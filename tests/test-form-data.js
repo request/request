@@ -7,7 +7,7 @@ var http = require('http')
   , fs = require('fs')
   , tape = require('tape')
 
-function runTest(t, json) {
+function runTest(t, options) {
   var remoteFile = path.join(__dirname, 'googledoodle.jpg')
     , localFile = path.join(__dirname, 'unicycle.jpg')
     , multipartFormData = {}
@@ -17,6 +17,16 @@ function runTest(t, json) {
       res.writeHead(200, {'content-type': 'image/jpg', 'content-length':7187})
       res.end(fs.readFileSync(remoteFile), 'binary')
       return
+    }
+
+    if (options.auth) {
+      if (!req.headers.authorization) {
+        res.writeHead(401, {'www-authenticate': 'Basic realm="Private"'})
+        res.end()
+        return
+      } else {
+        t.ok(req.headers.authorization === 'Basic ' + new Buffer('user:pass').toString('base64'))
+      }
     }
 
     // temp workaround
@@ -63,7 +73,7 @@ function runTest(t, json) {
       t.ok( data.indexOf('Content-Type: ' + mime.lookup(remoteFile) ) !== -1 )
 
       res.writeHead(200)
-      res.end(json ? JSON.stringify({status: 'done'}) : 'done')
+      res.end(options.json ? JSON.stringify({status: 'done'}) : 'done')
     })
   })
 
@@ -90,13 +100,16 @@ function runTest(t, json) {
       url: 'http://localhost:6767/upload',
       formData: multipartFormData
     }
-    if (json) {
+    if (options.json) {
       reqOptions.json = true
+    }
+    if (options.auth) {
+      reqOptions.auth = {user: 'user', pass: 'pass', sendImmediately: false}
     }
     request.post(reqOptions, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
-      t.deepEqual(body, json ? {status: 'done'} : 'done')
+      t.deepEqual(body, options.json ? {status: 'done'} : 'done')
       server.close(function() {
         t.end()
       })
@@ -106,9 +119,13 @@ function runTest(t, json) {
 }
 
 tape('multipart formData', function(t) {
-  runTest(t, false)
+  runTest(t, {json: false})
 })
 
 tape('multipart formData + JSON', function(t) {
-  runTest(t, true)
+  runTest(t, {json: true})
+})
+
+tape('multipart formData + basic auth', function(t) {
+  runTest(t, {json: false, auth: true})
 })
