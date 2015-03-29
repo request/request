@@ -112,13 +112,13 @@ request.defaults = function (options, requester) {
   }
 
   var defaults      = wrap(self)
-  defaults.get      = self.get
-  defaults.patch    = self.patch
-  defaults.post     = self.post
-  defaults.put      = self.put
-  defaults.head     = self.head
-  defaults.del      = self.del
-  defaults.cookie   = self.cookie
+  defaults.get      = wrap(self.get)
+  defaults.patch    = wrap(self.patch)
+  defaults.post     = wrap(self.post)
+  defaults.put      = wrap(self.put)
+  defaults.head     = wrap(self.head)
+  defaults.del      = wrap(self.del)
+  defaults.cookie   = wrap(self.cookie)
   defaults.jar      = self.jar
   defaults.defaults = self.defaults
   return defaults
