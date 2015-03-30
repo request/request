@@ -99,6 +99,15 @@ request.defaults = function (options, requester) {
       var params = initParams(uri, opts, callback)
       params.options = extend(headerlessOptions(options), params.options)
 
+      if (typeof method === 'string') {
+        params.options.method = (method === 'del' ? 'DELETE' : method.toUpperCase())
+        method = request[method]
+      }
+
+      if (params.options.method === 'HEAD' && paramsHaveRequestBody(params)) {
+        throw new Error('HTTP HEAD requests MUST NOT include a request body.')
+      }
+
       if (options.headers) {
         params.options.headers = getHeaders(params, options)
       }
@@ -112,13 +121,13 @@ request.defaults = function (options, requester) {
   }
 
   var defaults      = wrap(self)
-  defaults.get      = self.get
-  defaults.patch    = self.patch
-  defaults.post     = self.post
-  defaults.put      = self.put
-  defaults.head     = self.head
-  defaults.del      = self.del
-  defaults.cookie   = self.cookie
+  defaults.get      = wrap('get')
+  defaults.patch    = wrap('patch')
+  defaults.post     = wrap('post')
+  defaults.put      = wrap('put')
+  defaults.head     = wrap('head')
+  defaults.del      = wrap('del')
+  defaults.cookie   = wrap(self.cookie)
   defaults.jar      = self.jar
   defaults.defaults = self.defaults
   return defaults

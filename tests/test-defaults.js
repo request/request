@@ -314,6 +314,30 @@ tape('test only function', function(t) {
   })
 })
 
+tape('invoke defaults', function(t) {
+  var d = request.defaults({
+    uri: s.url + '/get',
+    headers: { foo: 'bar' }
+  })
+  d({}, function (e, r, b) {
+    t.equal(e, null)
+    t.equal(b, 'TESTING!')
+    t.end()
+  })
+})
+
+tape('invoke convenience method from defaults', function(t) {
+  var d = request.defaults({
+    uri: s.url + '/get',
+    headers: { foo: 'bar' }
+  })
+  d.get({}, function (e, r, b) {
+    t.equal(e, null)
+    t.equal(b, 'TESTING!')
+    t.end()
+  })
+})
+
 tape('cleanup', function(t) {
   s.close(function() {
     t.end()
