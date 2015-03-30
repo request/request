@@ -19,22 +19,30 @@ var extend                = require('util')._extend
   , helpers               = require('./lib/helpers')
 
 var isFunction            = helpers.isFunction
-  , constructObject       = helpers.constructObject
-  , filterForCallback     = helpers.filterForCallback
-  , constructOptionsFrom  = helpers.constructOptionsFrom
   , paramsHaveRequestBody = helpers.paramsHaveRequestBody
 
 
 // organize params for patch, post, put, head, del
 function initParams(uri, options, callback) {
-  callback = filterForCallback([options, callback])
-  options = constructOptionsFrom(uri, options)
+  if (typeof options === 'function') {
+    callback = options
+  }
 
-  return constructObject()
-    .extend({callback: callback})
-    .extend({options: options})
-    .extend({uri: options.uri})
-    .done()
+  var params
+  if (typeof options === 'object') {
+    params = extend({}, options)
+    params = extend(params, {uri: uri})
+  } else if (typeof uri === 'string') {
+    params = extend({}, {uri: uri})
+  } else {
+    params = extend({}, uri)
+  }
+
+  return {
+    uri: params.uri,
+    options: params,
+    callback: callback
+  }
 }
 
 function request (uri, options, callback) {
@@ -56,9 +64,9 @@ function request (uri, options, callback) {
 
 var verbs = ['get', 'head', 'post', 'put', 'patch', 'del']
 
-verbs.forEach(function(verb){
+verbs.forEach(function(verb) {
   var method = verb === 'del' ? 'DELETE' : verb.toUpperCase()
-  request[verb] = function(uri, options, callback){
+  request[verb] = function (uri, options, callback) {
     var params = initParams(uri, options, callback)
     params.options.method = method
     return (this || request)(params.uri || null, params.options, params.callback)
@@ -73,77 +81,65 @@ request.cookie = function (str) {
   return cookies.parse(str)
 }
 
+function wrap (method, options, requester) {
+
+  return function (uri, opts, callback) {
+    var params = initParams(uri, opts, callback)
+
+    var headerlessOptions = extend({}, options)
+    delete headerlessOptions.headers
+    params.options = extend(headerlessOptions, params.options)
+
+    if (typeof method === 'string') {
+      params.options.method = (method === 'del' ? 'DELETE' : method.toUpperCase())
+      method = request[method]
+    }
+
+    if (options.headers) {
+      var headers = extend({}, options.headers)
+      params.options.headers = extend(headers, params.options.headers)
+    }
+
+    if (isFunction(requester)) {
+      method = requester
+    }
+
+    return method(params.options, params.callback)
+  }
+}
+
 request.defaults = function (options, requester) {
+  var self = this
 
   if (typeof options === 'function') {
     requester = options
     options = {}
   }
 
-  var self = this
-  var wrap = function (method) {
-    var headerlessOptions = function (options) {
-      options = extend({}, options)
-      delete options.headers
-      return options
-    }
+  var defaults      = wrap(self, options, requester)
 
-    var getHeaders = function (params, options) {
-      return constructObject()
-        .extend(options.headers)
-        .extend(params.options.headers)
-        .done()
-    }
+  var verbs = ['get', 'head', 'post', 'put', 'patch', 'del']
+  verbs.forEach(function(verb) {
+    defaults[verb]  = wrap(verb, options, requester)
+  })
 
-    return function (uri, opts, callback) {
-      var params = initParams(uri, opts, callback)
-      params.options = extend(headerlessOptions(options), params.options)
-
-      if (typeof method === 'string') {
-        params.options.method = (method === 'del' ? 'DELETE' : method.toUpperCase())
-        method = request[method]
-      }
-
-      if (params.options.method === 'HEAD' && paramsHaveRequestBody(params)) {
-        throw new Error('HTTP HEAD requests MUST NOT include a request body.')
-      }
-
-      if (options.headers) {
-        params.options.headers = getHeaders(params, options)
-      }
-
-      if (isFunction(requester)) {
-        method = requester
-      }
-
-      return method(params.options, params.callback)
-    }
-  }
-
-  var defaults      = wrap(self)
-  defaults.get      = wrap('get')
-  defaults.patch    = wrap('patch')
-  defaults.post     = wrap('post')
-  defaults.put      = wrap('put')
-  defaults.head     = wrap('head')
-  defaults.del      = wrap('del')
-  defaults.cookie   = wrap(self.cookie)
+  defaults.cookie   = wrap(self.cookie, options, requester)
   defaults.jar      = self.jar
   defaults.defaults = self.defaults
   return defaults
 }
 
 request.forever = function (agentOptions, optionsArg) {
-  var options = constructObject()
+  var options = {}
   if (optionsArg) {
-    options.extend(optionsArg)
+    options = extend({}, optionsArg)
   }
   if (agentOptions) {
     options.agentOptions = agentOptions
   }
 
-  options.extend({forever: true})
-  return request.defaults(options.done())
+  options = extend(options, {forever: true})
+  return request.defaults(options)
 }
 
 // Exports
