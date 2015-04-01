@@ -62,6 +62,7 @@
     "rimraf": "~2.2.8",
     "server-destroy": "~1.0.0",
     "tape": "~3.0.0",
-    "taper": "~0.4.0"
+    "taper": "~0.4.0",
+    "bluebird": "~2.9.21"
   }
 }
