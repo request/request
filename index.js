@@ -28,7 +28,7 @@ function initParams(uri, options, callback) {
     callback = options
   }
 
-  var params
+  var params = {}
   if (typeof options === 'object') {
     params = extend({}, options)
     params = extend(params, {uri: uri})
@@ -38,11 +38,8 @@ function initParams(uri, options, callback) {
     params = extend({}, uri)
   }
 
-  return {
-    uri: params.uri,
-    options: params,
-    callback: callback
-  }
+  params.callback = callback
+  return params
 }
 
 function request (uri, options, callback) {
@@ -51,15 +48,12 @@ function request (uri, options, callback) {
   }
 
   var params = initParams(uri, options, callback)
-  options = params.options
-  options.callback = params.callback
-  options.uri = params.uri
 
-  if (params.options.method === 'HEAD' && paramsHaveRequestBody(params)) {
+  if (params.method === 'HEAD' && paramsHaveRequestBody(params)) {
     throw new Error('HTTP HEAD requests MUST NOT include a request body.')
   }
 
-  return new request.Request(options)
+  return new request.Request(params)
 }
 
 var verbs = ['get', 'head', 'post', 'put', 'patch', 'del']
@@ -68,8 +62,8 @@ verbs.forEach(function(verb) {
   var method = verb === 'del' ? 'DELETE' : verb.toUpperCase()
   request[verb] = function (uri, options, callback) {
     var params = initParams(uri, options, callback)
-    params.options.method = method
-    return (this || request)(params.uri || null, params.options, params.callback)
+    params.method = method
+    return request(params, params.callback)
   }
 })
 
@@ -81,30 +75,30 @@ request.cookie = function (str) {
   return cookies.parse(str)
 }
 
-function wrap (method, options, requester) {
+function wrapRequestMethod (method, options, requester) {
 
   return function (uri, opts, callback) {
     var params = initParams(uri, opts, callback)
 
     var headerlessOptions = extend({}, options)
     delete headerlessOptions.headers
-    params.options = extend(headerlessOptions, params.options)
-
-    if (typeof method === 'string') {
-      params.options.method = (method === 'del' ? 'DELETE' : method.toUpperCase())
-      method = request[method]
-    }
+    params = extend(headerlessOptions, params)
 
     if (options.headers) {
       var headers = extend({}, options.headers)
-      params.options.headers = extend(headers, params.options.headers)
+      params.headers = extend(headers, params.headers)
+    }
+
+    if (typeof method === 'string') {
+      params.method = (method === 'del' ? 'DELETE' : method.toUpperCase())
+      method = request[method]
     }
 
     if (isFunction(requester)) {
       method = requester
     }
 
-    return method(params.options, params.callback)
+    return method(params, params.callback)
   }
 }
 
@@ -116,14 +110,14 @@ request.defaults = function (options, requester) {
     options = {}
   }
 
-  var defaults      = wrap(self, options, requester)
+  var defaults      = wrapRequestMethod(self, options, requester)
 
   var verbs = ['get', 'head', 'post', 'put', 'patch', 'del']
   verbs.forEach(function(verb) {
-    defaults[verb]  = wrap(verb, options, requester)
+    defaults[verb]  = wrapRequestMethod(verb, options, requester)
   })
 
-  defaults.cookie   = wrap(self.cookie, options, requester)
+  defaults.cookie   = wrapRequestMethod(self.cookie, options, requester)
   defaults.jar      = self.jar
   defaults.defaults = self.defaults
   return defaults
@@ -138,7 +132,7 @@ request.forever = function (agentOptions, optionsArg) {
     options.agentOptions = agentOptions
   }
 
-  options = extend(options, {forever: true})
+  options.forever = true
   return request.defaults(options)
 }
 
