@@ -23,6 +23,14 @@ tape('setup', function(t) {
       resp.end()
     })
 
+    s.on('/foo-no-test', function(req, resp) {
+      assert.equal(req.headers.foo, 'bar')
+      assert.equal('test' in req.headers, false)
+      assert.equal(req.method, 'GET')
+      resp.writeHead(200, {'Content-Type': 'text/plain'})
+      resp.end('TESTING!')
+    })
+
     s.on('/post', function (req, resp) {
       assert.equal(req.headers.foo, 'bar')
       assert.equal(req.headers['content-type'], null)
@@ -132,6 +140,16 @@ tape('merge headers', function(t) {
   }, function (e, r, b) {
     t.equal(e, null)
     t.equal(r.statusCode, 200)
+    t.end()
+  })
+})
+
+tape('default undefined header', function(t) {
+  request.defaults({
+    headers: { foo: 'bar', test: undefined }
+  })(s.url + '/foo-no-test', function(e, r, b) {
+    t.equal(e, null)
+    t.equal(b, 'TESTING!')
     t.end()
   })
 })
