@@ -273,9 +273,8 @@ tape('test custom request handler function', function(t) {
     body: 'TESTING!'
   }, function(uri, options, callback) {
     var params = request.initParams(uri, options, callback)
-    options = params.options
-    options.headers.x = 'y'
-    return request(params.uri, params.options, params.callback)
+    params.headers.x = 'y'
+    return request(params.uri, params, params.callback)
   })
 
   t.throws(function() {
@@ -294,11 +293,11 @@ tape('test custom request handler function without options', function(t) {
 
   var customHandlerWithoutOptions = request.defaults(function(uri, options, callback) {
     var params = request.initParams(uri, options, callback)
-    var headers = params.options.headers || {}
+    var headers = params.headers || {}
     headers.x = 'y'
     headers.foo = 'bar'
-    params.options.headers = headers
-    return request(params.uri, params.options, params.callback)
+    params.headers = headers
+    return request(params.uri, params, params.callback)
   })
 
   customHandlerWithoutOptions.get(s.url + '/get_custom', function(e, r, b) {
