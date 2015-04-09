@@ -30,6 +30,34 @@ tape('pool', function(t) {
   })
 })
 
+tape('forever', function(t) {
+  var r = request({
+    url: 'http://localhost:6767',
+    forever: true,
+    pool: {maxSockets: 1024}
+  }, function(err, res, body) {
+    // explicitly shut down the agent
+    if (r.agent.destroy === typeof 'function') {
+      r.agent.destroy()
+    } else {
+      // node < 0.12
+      Object.keys(r.agent.sockets).forEach(function (name) {
+        r.agent.sockets[name].forEach(function (socket) {
+          socket.end()
+        })
+      })
+    }
+
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'asdf')
+
+    var agent = res.request.agent
+    t.equal(agent.maxSockets, 1024)
+    t.end()
+  })
+})
+
 tape('cleanup', function(t) {
   s.close(function() {
     t.end()

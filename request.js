@@ -323,6 +323,14 @@ Request.prototype.init = function (options) {
   }
   self.headers = self.headers ? copy(self.headers) : {}
 
+  // Delete headers with value undefined since they break
+  // ClientRequest.OutgoingMessage.setHeader in node 0.12
+  for (var headerName in self.headers) {
+    if (typeof self.headers[headerName] === 'undefined') {
+      delete self.headers[headerName]
+    }
+  }
+
   caseless.httpify(self, self.headers)
 
   if (!self.method) {

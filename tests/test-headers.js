@@ -18,6 +18,14 @@ s.on('/redirect/to', function(req, res) {
   res.end('ok')
 })
 
+s.on('/headers.json', function(req, res) {
+  res.writeHead(200, {
+    'Content-Type': 'application/json'
+  })
+
+  res.end(JSON.stringify(req.headers))
+})
+
 tape('setup', function(t) {
   s.listen(s.port, function() {
     t.end()
@@ -135,6 +143,22 @@ tape('upper-case Host header and redirect', function(t) {
     redirects++
     t.equal(this.uri.href, s.url + '/redirect/to')
     checkHostHeader('127.0.0.1')
+  })
+})
+
+tape('undefined headers', function(t) {
+  request({
+    url: s.url + '/headers.json',
+    headers: {
+      'X-TEST-1': 'test1',
+      'X-TEST-2': undefined
+    },
+    json: true
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(body['x-test-1'], 'test1')
+    t.equal(typeof body['x-test-2'], 'undefined')
+    t.end()
   })
 })
 

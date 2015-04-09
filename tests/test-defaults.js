@@ -23,6 +23,14 @@ tape('setup', function(t) {
       resp.end()
     })
 
+    s.on('/foo-no-test', function(req, resp) {
+      assert.equal(req.headers.foo, 'bar')
+      assert.equal('test' in req.headers, false)
+      assert.equal(req.method, 'GET')
+      resp.writeHead(200, {'Content-Type': 'text/plain'})
+      resp.end('TESTING!')
+    })
+
     s.on('/post', function (req, resp) {
       assert.equal(req.headers.foo, 'bar')
       assert.equal(req.headers['content-type'], null)
@@ -132,6 +140,16 @@ tape('merge headers', function(t) {
   }, function (e, r, b) {
     t.equal(e, null)
     t.equal(r.statusCode, 200)
+    t.end()
+  })
+})
+
+tape('default undefined header', function(t) {
+  request.defaults({
+    headers: { foo: 'bar', test: undefined }
+  })(s.url + '/foo-no-test', function(e, r, b) {
+    t.equal(e, null)
+    t.equal(b, 'TESTING!')
     t.end()
   })
 })
@@ -255,9 +273,8 @@ tape('test custom request handler function', function(t) {
     body: 'TESTING!'
   }, function(uri, options, callback) {
     var params = request.initParams(uri, options, callback)
-    options = params.options
-    options.headers.x = 'y'
-    return request(params.uri, params.options, params.callback)
+    params.headers.x = 'y'
+    return request(params.uri, params, params.callback)
   })
 
   t.throws(function() {
@@ -276,11 +293,11 @@ tape('test custom request handler function without options', function(t) {
 
   var customHandlerWithoutOptions = request.defaults(function(uri, options, callback) {
     var params = request.initParams(uri, options, callback)
-    var headers = params.options.headers || {}
+    var headers = params.headers || {}
     headers.x = 'y'
     headers.foo = 'bar'
-    params.options.headers = headers
-    return request(params.uri, params.options, params.callback)
+    params.headers = headers
+    return request(params.uri, params, params.callback)
   })
 
   customHandlerWithoutOptions.get(s.url + '/get_custom', function(e, r, b) {
