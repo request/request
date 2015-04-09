@@ -1210,7 +1210,9 @@ Request.prototype.onRequestResponse = function (response) {
         if (self._json) {
           try {
             response.body = JSON.parse(response.body, self._jsonReviver)
-          } catch (e) {}
+          } catch (e) {
+            // empty
+          }
         }
         debug('emitting complete', self.uri.href)
         if (typeof response.body === 'undefined' && !self._json) {
