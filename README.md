@@ -5,6 +5,7 @@
 
 [![Build status](https://img.shields.io/travis/request/request.svg?style=flat-square)](https://travis-ci.org/request/request)
 [![Coverage](https://img.shields.io/coveralls/request/request.svg?style=flat-square)](https://coveralls.io/r/request/request)
+[![Dependency Status](https://david-dm.org/request/request.svg?style=flat-square)](https://david-dm.org/request/request)
 [![Gitter](https://img.shields.io/badge/gitter-join_chat-blue.svg?style=flat-square)](https://gitter.im/request/request?utm_source=badge)
 
 
