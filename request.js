@@ -415,7 +415,7 @@ Request.prototype.init = function (options) {
   }
 
   // If a string URI/URL was given, parse it into a URL object
-  if(typeof self.uri === 'string') {
+  if (typeof self.uri === 'string') {
     self.uri = url.parse(self.uri)
   }
 
@@ -425,7 +425,7 @@ Request.prototype.init = function (options) {
   }
 
   // Support Unix Sockets
-  if(self.uri.host === 'unix') {
+  if (self.uri.host === 'unix') {
     // Get the socket & request paths from the URL
     var unixParts = self.uri.path.split(':')
       , host = unixParts[0]
@@ -443,7 +443,7 @@ Request.prototype.init = function (options) {
     self.rejectUnauthorized = false
   }
 
-  if(!self.hasOwnProperty('proxy')) {
+  if (!self.hasOwnProperty('proxy')) {
     self.proxy = getProxyFromURI(self.uri)
   }
 
@@ -1213,14 +1213,14 @@ Request.prototype.onRequestResponse = function (response) {
           } catch (e) {}
         }
         debug('emitting complete', self.uri.href)
-        if(typeof response.body === 'undefined' && !self._json) {
+        if (typeof response.body === 'undefined' && !self._json) {
           response.body = self.encoding === null ? new Buffer(0) : ''
         }
         self.emit('complete', response, response.body)
       })
     }
     //if no callback
-    else{
+    else {
       self.on('end', function () {
         if (self._aborted) {
           debug('aborted', self.uri.href)
