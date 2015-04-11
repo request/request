@@ -117,4 +117,10 @@ function runAllTests(strict, s) {
 }
 
 runAllTests(false, s)
-runAllTests(true, sStrict)
+
+if (!process.env.running_under_istanbul) {
+  // somehow this test modifies the process state
+  // test coverage runs all tests in a single process via tape
+  // executing this test causes one of the tests in test-tunnel.js to throw
+  runAllTests(true, sStrict)
+}
