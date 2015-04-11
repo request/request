@@ -39,7 +39,7 @@
     "stringstream": "~0.0.4",
     "combined-stream": "~0.0.5",
     "isstream": "~0.1.1",
-    "har-validator": "^1.4.0"
+    "har-validator": "^1.6.1"
   },
   "scripts": {
     "test": "npm run lint && node node_modules/.bin/taper tests/test-*.js && npm run test-browser",
