@@ -208,7 +208,7 @@ tape('head(object, function)', function(t) {
 })
 
 tape('recursive defaults', function(t) {
-  t.plan(6)
+  t.plan(8)
 
   var defaultsOne = request.defaults({ headers: { foo: 'bar1' } })
     , defaultsTwo = defaultsOne.defaults({ headers: { baz: 'bar2' } })
@@ -231,6 +231,11 @@ tape('recursive defaults', function(t) {
 
   // requester function on recursive defaults
   defaultsThree(s.url + '/get_recursive3', function (e, r, b) {
+    t.equal(e, null)
+    t.equal(b, 'TESTING!')
+  })
+
+  defaultsTwo.get(s.url + '/get_recursive2', function (e, r, b) {
     t.equal(e, null)
     t.equal(b, 'TESTING!')
   })
