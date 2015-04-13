@@ -579,12 +579,12 @@ Request.prototype.init = function (options) {
   }
 
   if (self.uri.auth && !self.hasHeader('authorization')) {
-    var uriAuthPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
+    var uriAuthPieces = self.uri.auth.split(':').map(function(item) { return querystring.unescape(item) })
     self.auth(uriAuthPieces[0], uriAuthPieces.slice(1).join(':'), true)
   }
 
   if (!self.tunnel && self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization')) {
-    var proxyAuthPieces = self.proxy.auth.split(':').map(function(item){
+    var proxyAuthPieces = self.proxy.auth.split(':').map(function(item) {
       return querystring.unescape(item)
     })
     var authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
@@ -1299,7 +1299,7 @@ Request.prototype.qs = function (q, clobber) {
     base[i] = q[i]
   }
 
-  if (self.qsLib.stringify(base, self.qsStringifyOptions) === ''){
+  if (self.qsLib.stringify(base, self.qsStringifyOptions) === '') {
     return self
   }
 
