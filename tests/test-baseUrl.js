@@ -6,7 +6,7 @@ var http = require('http')
   , url = require('url')
 
 var s = http.createServer(function(req, res) {
-  if(req.url === '/redirect/') {
+  if (req.url === '/redirect/') {
     res.writeHead(302, {
       location : '/'
     })

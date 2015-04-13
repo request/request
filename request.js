@@ -415,7 +415,7 @@ Request.prototype.init = function (options) {
   }
 
   // If a string URI/URL was given, parse it into a URL object
-  if(typeof self.uri === 'string') {
+  if (typeof self.uri === 'string') {
     self.uri = url.parse(self.uri)
   }
 
@@ -425,7 +425,7 @@ Request.prototype.init = function (options) {
   }
 
   // Support Unix Sockets
-  if(self.uri.host === 'unix') {
+  if (self.uri.host === 'unix') {
     // Get the socket & request paths from the URL
     var unixParts = self.uri.path.split(':')
       , host = unixParts[0]
@@ -443,7 +443,7 @@ Request.prototype.init = function (options) {
     self.rejectUnauthorized = false
   }
 
-  if(!self.hasOwnProperty('proxy')) {
+  if (!self.hasOwnProperty('proxy')) {
     self.proxy = getProxyFromURI(self.uri)
   }
 
@@ -579,12 +579,12 @@ Request.prototype.init = function (options) {
   }
 
   if (self.uri.auth && !self.hasHeader('authorization')) {
-    var uriAuthPieces = self.uri.auth.split(':').map(function(item){ return querystring.unescape(item) })
+    var uriAuthPieces = self.uri.auth.split(':').map(function(item) { return querystring.unescape(item) })
     self.auth(uriAuthPieces[0], uriAuthPieces.slice(1).join(':'), true)
   }
 
   if (!self.tunnel && self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization')) {
-    var proxyAuthPieces = self.proxy.auth.split(':').map(function(item){
+    var proxyAuthPieces = self.proxy.auth.split(':').map(function(item) {
       return querystring.unescape(item)
     })
     var authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
@@ -1210,17 +1210,19 @@ Request.prototype.onRequestResponse = function (response) {
         if (self._json) {
           try {
             response.body = JSON.parse(response.body, self._jsonReviver)
-          } catch (e) {}
+          } catch (e) {
+            // empty
+          }
         }
         debug('emitting complete', self.uri.href)
-        if(typeof response.body === 'undefined' && !self._json) {
+        if (typeof response.body === 'undefined' && !self._json) {
           response.body = self.encoding === null ? new Buffer(0) : ''
         }
         self.emit('complete', response, response.body)
       })
     }
     //if no callback
-    else{
+    else {
       self.on('end', function () {
         if (self._aborted) {
           debug('aborted', self.uri.href)
@@ -1299,7 +1301,7 @@ Request.prototype.qs = function (q, clobber) {
     base[i] = q[i]
   }
 
-  if (self.qsLib.stringify(base, self.qsStringifyOptions) === ''){
+  if (self.qsLib.stringify(base, self.qsStringifyOptions) === '') {
     return self
   }
 

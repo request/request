@@ -34,6 +34,12 @@
     // eslint can't handle this, so the check is disabled.
     "key-spacing": 0,
     // Allow shadowing vars in outer scope (needs discussion)
-    "no-shadow": 0
+    "no-shadow": 0,
+    // Use if () { }
+    //       ^ space
+    "space-after-keywords": [2, "always"],
+    // Use if () { }
+    //          ^ space
+    "space-before-blocks": [2, "always"]
   }
 }
