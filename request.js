@@ -27,6 +27,7 @@ var http = require('http')
   , OAuth = require('./lib/oauth').OAuth
   , Multipart = require('./lib/multipart').Multipart
   , Redirect = require('./lib/redirect').Redirect
+  , crypto = require('crypto')
 
 var safeStringify = helpers.safeStringify
   , isReadStream = helpers.isReadStream
@@ -539,6 +540,44 @@ Request.prototype.init = function (options) {
 
   if (self.path.length === 0) {
     self.path = '/'
+  }
+
+  // Add support for oauth_body_hash
+  // See https://oauth.googlecode.com/svn/spec/ext/body_hash/1.0/oauth-bodyhash.html
+  // Only supports JSON payloads at the moment
+  // ====================
+
+  // Check for an explicit 'true' value, in case someone is already generating their own hash
+  if (options.oauth && typeof options.oauth.body_hash === 'boolean') {
+    // 4.1.1b: OAuth Consumers MUST NOT include an oauth_body_hash parameter on requests with form-encoded request bodies.
+    // --------------------
+    if (self.getHeader('content-type') === 'application/x-www-form-urlencoded') {
+      throw new Error('oauth_body_hash is not supported with form-encoded request bodies.')
+    }
+    else {
+      // 3.1a: If the OAuth signature method is HMAC-SHA1 or RSA-SHA1, SHA1 [RFC3174] MUST be used as the body hash algorithm.
+      // --------------------
+      var acceptedSignatureMethods = ['HMAC-SHA1', 'RSA-SHA1']
+      var index = acceptedSignatureMethods.indexOf(options.oauth.signature_method)
+
+      if (!options.oauth.signature_method || index > -1) {
+        // 3.2a: The body hash value is calculated by executing the selected hash algorithm over the request body. The request body is the entity body as defined in [RFC2616] section 7.2. If the request does not have an entity body, the hash should be taken over the empty string.
+        // --------------------
+        var shasum = crypto.createHash('sha1')
+        shasum.update(options.json.toString() || '')
+        var sha1 = shasum.digest('hex')
+
+        // 3.2b: The calculated body hash value is encoded using Base64 per [RFC4648].
+        // --------------------
+        // oauth_body_hash_base64 = new Buffer(sha1).toString('base64');
+        options.oauth.body_hash = new Buffer(sha1).toString('base64')
+      }
+      else {
+        // 3.1b: If the OAuth signature method is PLAINTEXT, use of this specification provides no security benefit and is NOT RECOMMENDED.
+        // --------------------
+        throw new Error(options.oauth.signature_method + ' signature_method not supported with body_hash signing.')
+      }
+    }
   }
 
   // Auth must happen last in case signing is dependent on other headers
