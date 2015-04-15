@@ -75,7 +75,7 @@ request.cookie = function (str) {
   return cookies.parse(str)
 }
 
-function wrapRequestMethod (method, options, requester) {
+function wrapRequestMethod (method, options, requester, verb) {
 
   return function (uri, opts, callback) {
     var params = initParams(uri, opts, callback)
@@ -89,9 +89,8 @@ function wrapRequestMethod (method, options, requester) {
       params.headers = extend(headers, params.headers)
     }
 
-    if (typeof method === 'string') {
-      params.method = (method === 'del' ? 'DELETE' : method.toUpperCase())
-      method = request[method]
+    if (verb) {
+      params.method = (verb === 'del' ? 'DELETE' : verb.toUpperCase())
     }
 
     if (isFunction(requester)) {
@@ -114,7 +113,7 @@ request.defaults = function (options, requester) {
 
   var verbs = ['get', 'head', 'post', 'put', 'patch', 'del']
   verbs.forEach(function(verb) {
-    defaults[verb]  = wrapRequestMethod(verb, options, requester)
+    defaults[verb]  = wrapRequestMethod(self[verb], options, requester, verb)
   })
 
   defaults.cookie   = wrapRequestMethod(self.cookie, options, requester)
