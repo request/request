@@ -1,5 +1,6 @@
 'use strict'
 
+var path = require('path')
 var request = require('..')
 var tape = require('tape')
 var fixture = require('./fixtures/har.json')
@@ -107,6 +108,8 @@ tape('multipart-file', function (t) {
     url: s.url,
     har: fixture['multipart-file']
   }
+  var absolutePath = path.resolve(__dirname, options.har.postData.params[0].fileName)
+  options.har.postData.params[0].fileName = absolutePath
 
   request(options, function (err, res, body) {
     var json = JSON.parse(body)
