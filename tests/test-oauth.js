@@ -529,17 +529,7 @@ tape('body transport_method with prexisting body params', function(t) {
 })
 
 tape('body_hash integrity check', function(t) {
-  function getBodyHash(r) {
-    var body_hash
-    r.headers.Authorization.slice('OAuth '.length).replace(/,\ /g, ',').split(',').forEach(function(v) {
-      if (v.slice(0, 'oauth_body_hash="'.length) === 'oauth_body_hash="') {
-        body_hash = v.slice('oauth_body_hash="'.length, -1)
-      }
-    })
-    return body_hash
-  }
-
-  var body_hash = request.post(
+  var r = request.post(
     { url: 'http://example.com'
     , oauth:
       { consumer_secret: 'consumer_secret'
@@ -549,8 +539,9 @@ tape('body_hash integrity check', function(t) {
     })
 
   process.nextTick(function() {
-    t.equal('YTVlNzQ0ZDAxNjQ1NDBkMzNiMWQ3ZWE2MTZjMjhmMmZhOTdlNzU0YQ%3D%3D', getBodyHash(body_hash))
-    body_hash.abort()
+    var body_hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
+    t.equal('YTVlNzQ0ZDAxNjQ1NDBkMzNiMWQ3ZWE2MTZjMjhmMmZhOTdlNzU0YQ%3D%3D', body_hash)
+    r.abort()
     t.end()
   })
 })
