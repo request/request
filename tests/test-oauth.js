@@ -574,7 +574,7 @@ tape('body_hash automatic built', function(t) {
 })
 
 tape('body_hash PLAINTEXT signature_method', function(t) {
-  try {
+  t.throws(function() {
     request.post(
     { url: 'http://example.com'
     , oauth:
@@ -583,11 +583,10 @@ tape('body_hash PLAINTEXT signature_method', function(t) {
       , signature_method: 'PLAINTEXT'
       }
     , json: {foo: 'bar'}
-    })
-  } catch(e) {
-    process.nextTick(function() {
-      t.equal(typeof e, 'object')
+    }, function () {
+      t.fail('body_hash is not allowed with PLAINTEXT signature_method')
       t.end()
     })
-  }
+  }, /oauth: PLAINTEXT signature_method not supported with body_hash signing/)
+  t.end()
 })
