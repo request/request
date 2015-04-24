@@ -572,3 +572,22 @@ tape('body_hash automatic built', function(t) {
     t.end()
   })
 })
+
+tape('body_hash PLAINTEXT signature_method', function(t) {
+  try {
+    request.post(
+    { url: 'http://example.com'
+    , oauth:
+      { consumer_secret: 'consumer_secret'
+      , body_hash: true
+      , signature_method: 'PLAINTEXT'
+      }
+    , json: {foo: 'bar'}
+    })
+  } catch(e) {
+    process.nextTick(function() {
+      t.equal(typeof e, 'object')
+      t.end()
+    })
+  }
+})
