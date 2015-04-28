@@ -435,6 +435,10 @@ section of the oauth1 spec:
   options object.
 * `transport_method` defaults to `'header'`
 
+To use [Request Body Hash](https://oauth.googlecode.com/svn/spec/ext/body_hash/1.0/oauth-bodyhash.html) you can either
+* Manually generate the body hash and pass it as a string `body_hash: '...'`
+* Automatically generate the body hash by passing `body_hash: true`
+
 [back to top](#table-of-contents)
 
 
