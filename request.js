@@ -542,10 +542,6 @@ Request.prototype.init = function (options) {
   }
 
   // Auth must happen last in case signing is dependent on other headers
-  if (options.oauth) {
-    self.oauth(options.oauth)
-  }
-
   if (options.aws) {
     self.aws(options.aws)
   }
@@ -628,6 +624,10 @@ Request.prototype.init = function (options) {
     } else {
       throw new Error('Argument error, options.body.')
     }
+  }
+
+  if (options.oauth) {
+    self.oauth(options.oauth)
   }
 
   var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol

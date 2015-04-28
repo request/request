@@ -6,6 +6,7 @@ var oauth = require('oauth-sign')
   , path = require('path')
   , request = require('../index')
   , tape = require('tape')
+  , crypto = require('crypto')
 
 function getSignature(r) {
   var sign
@@ -526,4 +527,66 @@ tape('body transport_method with prexisting body params', function(t) {
     r.abort()
     t.end()
   })
+})
+
+tape('body_hash manual built', function(t) {
+  function buildBodyHash (body) {
+    var shasum = crypto.createHash('sha1')
+    shasum.update(body || '')
+    var sha1 = shasum.digest('hex')
+    return new Buffer(sha1).toString('base64')
+  }
+
+  var json = {foo: 'bar'}
+  var r = request.post(
+    { url: 'http://example.com'
+    , oauth:
+      { consumer_secret: 'consumer_secret'
+      , body_hash: buildBodyHash(JSON.stringify(json))
+      }
+    , json: json
+    })
+
+  process.nextTick(function() {
+    var body_hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
+    t.equal('YTVlNzQ0ZDAxNjQ1NDBkMzNiMWQ3ZWE2MTZjMjhmMmZhOTdlNzU0YQ%3D%3D', body_hash)
+    r.abort()
+    t.end()
+  })
+})
+
+tape('body_hash automatic built', function(t) {
+  var r = request.post(
+    { url: 'http://example.com'
+    , oauth:
+      { consumer_secret: 'consumer_secret'
+      , body_hash: true
+      }
+    , json: {foo: 'bar'}
+    })
+
+  process.nextTick(function() {
+    var body_hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
+    t.equal('YTVlNzQ0ZDAxNjQ1NDBkMzNiMWQ3ZWE2MTZjMjhmMmZhOTdlNzU0YQ%3D%3D', body_hash)
+    r.abort()
+    t.end()
+  })
+})
+
+tape('body_hash PLAINTEXT signature_method', function(t) {
+  t.throws(function() {
+    request.post(
+    { url: 'http://example.com'
+    , oauth:
+      { consumer_secret: 'consumer_secret'
+      , body_hash: true
+      , signature_method: 'PLAINTEXT'
+      }
+    , json: {foo: 'bar'}
+    }, function () {
+      t.fail('body_hash is not allowed with PLAINTEXT signature_method')
+      t.end()
+    })
+  }, /oauth: PLAINTEXT signature_method not supported with body_hash signing/)
+  t.end()
 })
