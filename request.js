@@ -409,7 +409,7 @@ Request.prototype.init = function (options) {
     delete self.baseUrl
   }
 
-  // A URI is needed by this point, throw if we haven't been able to get one
+  // A URI is needed by this point, emit error if we haven't been able to get one
   if (!self.uri) {
     return self.emit('error', new Error('options.uri is a required argument'))
   }
@@ -622,7 +622,7 @@ Request.prototype.init = function (options) {
         self.setHeader('content-length', length)
       }
     } else {
-      throw new Error('Argument error, options.body.')
+      self.emit('error', new Error('Argument error, options.body.'))
     }
   }
 
@@ -666,7 +666,7 @@ Request.prototype.init = function (options) {
 
   self.on('pipe', function (src) {
     if (self.ntick && self._started) {
-      throw new Error('You cannot pipe to this stream after the outbound request has started.')
+      self.emit('error', new Error('You cannot pipe to this stream after the outbound request has started.'))
     }
     self.src = src
     if (isReadStream(src)) {
@@ -1503,9 +1503,9 @@ Request.prototype.pipe = function (dest, opts) {
 
   if (self.response) {
     if (self._destdata) {
-      throw new Error('You cannot pipe after data has been emitted from the response.')
+      self.emit('error', new Error('You cannot pipe after data has been emitted from the response.'))
     } else if (self._ended) {
-      throw new Error('You cannot pipe after the response has been ended.')
+      self.emit('error', new Error('You cannot pipe after the response has been ended.'))
     } else {
       stream.Stream.prototype.pipe.call(self, dest, opts)
       self.pipeDest(dest)

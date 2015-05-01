@@ -353,7 +353,7 @@ tape('invalid method while using transport_method \'body\'', function(t) {
         { transport_method: 'body'
         }
       })
-    }, /requires 'POST'/)
+    }, /requires POST/)
   t.end()
 })
 
@@ -367,7 +367,7 @@ tape('invalid content-type while using transport_method \'body\'', function(t) {
         { transport_method: 'body'
         }
       })
-    }, /requires 'POST'/)
+    }, /requires POST/)
   t.end()
 })
 
@@ -583,9 +583,6 @@ tape('body_hash PLAINTEXT signature_method', function(t) {
       , signature_method: 'PLAINTEXT'
       }
     , json: {foo: 'bar'}
-    }, function () {
-      t.fail('body_hash is not allowed with PLAINTEXT signature_method')
-      t.end()
     })
   }, /oauth: PLAINTEXT signature_method not supported with body_hash signing/)
   t.end()
