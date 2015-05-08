@@ -131,6 +131,66 @@ tape('piping from a request object', function(t) {
   }
 })
 
+tape('pause when piping from a request object', function(t) {
+  s.once('/chunks', function(req, res) {
+    res.writeHead(200, {
+      'content-type': 'text/plain'
+    })
+    res.write('Chunk 1')
+    setTimeout(function() { res.end('Chunk 2') }, 10)
+  })
+
+  var chunkNum = 0
+  var paused = false
+  request({
+    url: s.url + '/chunks'
+  })
+    .on('data', function(chunk) {
+      var self = this
+
+      t.notOk(paused, 'Only receive data when not paused')
+
+      ++chunkNum
+      if (chunkNum === 1) {
+        t.equal(chunk.toString(), 'Chunk 1')
+        self.pause()
+        paused = true
+        setTimeout(function() {
+          paused = false
+          self.resume()
+        }, 100)
+      } else {
+        t.equal(chunk.toString(), 'Chunk 2')
+      }
+    })
+    .on('end', t.end.bind(t))
+})
+
+tape('pause before piping from a request object', function(t) {
+  s.once('/pause-before', function(req, res) {
+    res.writeHead(200, {
+      'content-type': 'text/plain'
+    })
+    res.end('Data')
+  })
+
+  var paused = true
+  var r = request({
+    url: s.url + '/pause-before'
+  })
+  r.pause()
+  r.on('data', function(data) {
+    t.notOk(paused, 'Only receive data when not paused')
+    t.equal(data.toString(), 'Data')
+  })
+  r.on('end', t.end.bind(t))
+
+  setTimeout(function() {
+    paused = false
+    r.resume()
+  }, 100)
+})
+
 var fileContents = fs.readFileSync(__filename).toString()
 function testPipeFromFile(testName, hasContentLength) {
   tape(testName, function(t) {
