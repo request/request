@@ -20,6 +20,11 @@ function addTest(name, data) {
       t.equal(err, null)
       if (data.expectBody && Buffer.isBuffer(data.expectBody)) {
         t.deepEqual(data.expectBody.toString(), body.toString())
+      } else if (data.expectBody) {
+        t.deepEqual(data.expectBody, body)
+      } else {
+        // not sure what to test when we dont have expectBody
+        console.log('untested code')
       }
       t.end()
     })
