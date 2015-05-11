@@ -148,19 +148,16 @@ tape('bearer is a function, path = test2', function(t) {
 })
 
 tape('no auth method', function(t) {
-  t.throws(function() {
-    request({
-      'method': 'GET',
-      'uri': 'http://localhost:6767/test2/',
-      'auth': {
-        'bearer': undefined
-      }
-    }, function(error, res, body) {
-      t.fail('Requests without a valid auth mechanism are not valid')
-      t.end()
-    })
-  }, /no auth mechanism defined/)
-  t.end()
+  request({
+    'method': 'GET',
+    'uri': 'http://localhost:6767/test2/',
+    'auth': {
+      'bearer': undefined
+    }
+  }, function(error, res, body) {
+    t.equal(error.message, 'no auth mechanism defined')
+    t.end()
+  })
 })
 
 tape('null bearer', function(t) {
@@ -172,7 +169,7 @@ tape('null bearer', function(t) {
     }
   }, function(error, res, body) {
     t.equal(res.statusCode, 401)
-    t.equal(numBearerRequests, 12)
+    t.equal(numBearerRequests, 13)
     t.end()
   })
 })
