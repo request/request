@@ -1047,12 +1047,6 @@ Request.prototype.onRequestResponse = function (response) {
     response.resume()
     return
   }
-  if (self._paused) {
-    response.pause()
-  } else if (response.resume) {
-    // response.resume should be defined, but check anyway before calling. Workaround for browserify.
-    response.resume()
-  }
 
   self.response = response
   response.request = self
@@ -1151,6 +1145,10 @@ Request.prototype.onRequestResponse = function (response) {
         // If/When support for 0.9.4 is dropped, this should be unnecessary.
         responseContent = responseContent.pipe(stringstream(self.encoding))
       }
+    }
+
+    if (self._paused) {
+      responseContent.pause()
     }
 
     self.responseContent = responseContent

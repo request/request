@@ -4,9 +4,12 @@ var request = require('../index')
   , http = require('http')
   , zlib = require('zlib')
   , assert = require('assert')
+  , bufferEqual = require('buffer-equal')
   , tape = require('tape')
 
 var testContent = 'Compressible response content.\n'
+  , testContentBig
+  , testContentBigGzip
   , testContentGzip
 
 var server = http.createServer(function(req, res) {
@@ -18,6 +21,10 @@ var server = http.createServer(function(req, res) {
     if (req.url === '/error') {
       // send plaintext instead of gzip (should cause an error for the client)
       res.end(testContent)
+    } else if (req.url === '/chunks') {
+      res.writeHead(200)
+      res.write(testContentBigGzip.slice(0, 4096))
+      setTimeout(function() { res.end(testContentBigGzip.slice(4096)) }, 10)
     } else {
       zlib.gzip(testContent, function(err, data) {
         assert.equal(err, null)
@@ -30,11 +37,30 @@ var server = http.createServer(function(req, res) {
 })
 
 tape('setup', function(t) {
+  // Need big compressed content to be large enough to chunk into gzip blocks.
+  // Want it to be deterministic to ensure test is reliable.
+  // Generate pseudo-random printable ASCII characters using MINSTD
+  var a = 48271
+    , m = 0x7FFFFFFF
+    , x = 1
+  testContentBig = new Buffer(10240)
+  for (var i = 0; i < testContentBig.length; ++i) {
+    x = (a * x) & m
+    // Printable ASCII range from 32-126, inclusive
+    testContentBig[i] = (x % 95) + 32
+  }
+
   zlib.gzip(testContent, function(err, data) {
     t.equal(err, null)
     testContentGzip = data
-    server.listen(6767, function() {
-      t.end()
+
+    zlib.gzip(testContentBig, function(err, data2) {
+      t.equal(err, null)
+      testContentBigGzip = data2
+
+      server.listen(6767, function() {
+        t.end()
+      })
     })
   })
 })
@@ -137,6 +163,50 @@ tape('transparently supports gzip error to pipes', function(t) {
       t.equal(err.code, 'Z_DATA_ERROR')
       t.end()
     })
+})
+
+tape('pause when streaming from a gzip request object', function(t) {
+  var chunks = []
+  var paused = false
+  var options = { url: 'http://localhost:6767/chunks', gzip: true }
+  request.get(options)
+    .on('data', function(chunk) {
+      var self = this
+
+      t.notOk(paused, 'Only receive data when not paused')
+
+      chunks.push(chunk)
+      if (chunks.length === 1) {
+        self.pause()
+        paused = true
+        setTimeout(function() {
+          paused = false
+          self.resume()
+        }, 100)
+      }
+    })
+    .on('end', function() {
+      t.ok(chunks.length > 1, 'Received multiple chunks')
+      t.ok(bufferEqual(Buffer.concat(chunks), testContentBig), 'Expected content')
+      t.end()
+    })
+})
+
+tape('pause before streaming from a gzip request object', function(t) {
+  var paused = true
+  var options = { url: 'http://localhost:6767/foo', gzip: true }
+  var r = request.get(options)
+  r.pause()
+  r.on('data', function(data) {
+    t.notOk(paused, 'Only receive data when not paused')
+    t.equal(data.toString(), testContent)
+  })
+  r.on('end', t.end.bind(t))
+
+  setTimeout(function() {
+    paused = false
+    r.resume()
+  }, 100)
 })
 
 tape('cleanup', function(t) {
