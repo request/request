@@ -22,9 +22,6 @@ function addTest(name, data) {
         t.deepEqual(data.expectBody.toString(), body.toString())
       } else if (data.expectBody) {
         t.deepEqual(data.expectBody, body)
-      } else {
-        // not sure what to test when we dont have expectBody
-        console.log('untested code')
       }
       t.end()
     })

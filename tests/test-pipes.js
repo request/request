@@ -80,7 +80,7 @@ tape('piping to a request object', function(t) {
   }, function(err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
-    t.equal(body, 'OK')
+    t.equal(body, 'mydata')
     t.end()
   })
   mydata.pipe(r1)
@@ -90,8 +90,9 @@ tape('piping to a request object', function(t) {
 })
 
 tape('piping to a request object with a json body', function(t) {
-  s.once('/push-json', server.createPostValidator('{"foo":"bar"}', 'application/json'))
-
+  var obj = {foo: 'bar'}
+  var json = JSON.stringify(obj)
+  s.once('/push-json', server.createPostValidator(json, 'application/json'))
   var mybodydata = new stream.Stream()
   mybodydata.readable = true
 
@@ -101,7 +102,7 @@ tape('piping to a request object with a json body', function(t) {
   }, function(err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
-    t.equal(body, 'OK')
+    t.deepEqual(body, obj)
     t.end()
   })
   mybodydata.pipe(r2)
