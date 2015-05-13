@@ -20,6 +20,8 @@ function addTest(name, data) {
       t.equal(err, null)
       if (data.expectBody && Buffer.isBuffer(data.expectBody)) {
         t.deepEqual(data.expectBody.toString(), body.toString())
+      } else if (data.expectBody) {
+        t.deepEqual(data.expectBody, body)
       }
       t.end()
     })

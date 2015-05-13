@@ -94,7 +94,7 @@ exports.createPostValidator = function (text, reqContentType) {
         assert.ok(~req.headers['content-type'].indexOf(reqContentType))
       }
       resp.writeHead(200, {'content-type':'text/plain'})
-      resp.write('OK')
+      resp.write(r)
       resp.end()
     })
   }
