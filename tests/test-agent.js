@@ -36,8 +36,8 @@ tape('should have one persistent socket for two POST requests', function(t) {
       })
     }
     else {
-        response.socket.destroy()
-        t.end()
+      response.socket.destroy()
+      t.end()
     }
   })
 })
