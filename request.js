@@ -628,6 +628,8 @@ Request.prototype.init = function (options) {
 
   if (options.oauth) {
     self.oauth(options.oauth)
+  } else if (self._oauth.params) {
+    self.oauth(self._oauth.params)
   }
 
   var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
