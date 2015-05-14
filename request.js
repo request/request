@@ -628,7 +628,7 @@ Request.prototype.init = function (options) {
 
   if (options.oauth) {
     self.oauth(options.oauth)
-  } else if (self._oauth.params) {
+  } else if (self._oauth.params && self.hasHeader('authorization')) {
     self.oauth(self._oauth.params)
   }
 
