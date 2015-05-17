@@ -584,7 +584,30 @@ Note: The `SOCKET` path is assumed to be absolute to the root of the host file s
 ## TLS/SSL Protocol
 
 TLS/SSL Protocol options, such as `cert`, `key` and `passphrase`, can be
-set in the `agentOptions` property of the `options` object.
+set directly in `options` object, in the `agentOptions` property of the `options` object, or even in `https.globalAgent.options`. Keep in mind that, although `agentOptions` allows for a slightly wider range of configurations, the recommendend way is via `options` object directly, as using `agentOptions` or `https.globalAgent.options` would not be applied in the same way in proxied environments (as data travels through a TLS connection instead of an http/https agent).
+
+```js
+var fs = require('fs')
+    , path = require('path')
+    , certFile = path.resolve(__dirname, 'ssl/client.crt')
+    , keyFile = path.resolve(__dirname, 'ssl/client.key')
+    , caFile = path.resolve(__dirname, 'ssl/ca.cert.pem')
+    , request = require('request');
+
+var options = {
+    url: 'https://api.some-server.com/',
+    cert: fs.readFileSync(certFile),
+    key: fs.readFileSync(keyFile),
+    passphrase: 'password',
+    ca: fs.readFileSync(caFile)
+    }
+};
+
+request.get(options);
+```
+
+### Using `options.agentOptions`
+
 In the example below, we call an API requires client side SSL certificate
 (in PEM format) with passphrase protected private key (in PEM format) and disable the SSLv3 protocol:
 
