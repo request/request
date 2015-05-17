@@ -7,6 +7,7 @@ var oauth = require('oauth-sign')
   , request = require('../index')
   , tape = require('tape')
   , crypto = require('crypto')
+  , http = require('http')
 
 function getSignature(r) {
   var sign
@@ -586,4 +587,68 @@ tape('body_hash PLAINTEXT signature_method', function(t) {
     })
   }, /oauth: PLAINTEXT signature_method not supported with body_hash signing/)
   t.end()
+})
+
+tape('refresh oauth_nonce on redirect', function(t) {
+  var oauth_nonce1, oauth_nonce2
+  var s = http.createServer(function (req, res) {
+    if (req.url === '/redirect') {
+      oauth_nonce1 = req.headers.authorization.replace(/.*oauth_nonce="([^"]+)".*/, '$1')
+      res.writeHead(302, {location:'http://localhost:6767/response'})
+      res.end()
+    } else if (req.url === '/response') {
+      oauth_nonce2 = req.headers.authorization.replace(/.*oauth_nonce="([^"]+)".*/, '$1')
+      res.writeHead(200, {'content-type':'text/plain'})
+      res.end()
+    }
+  })
+  s.listen(6767, function () {
+    request.get(
+      { url: 'http://localhost:6767/redirect'
+      , oauth:
+        { consumer_key: 'consumer_key'
+        , consumer_secret: 'consumer_secret'
+        , token: 'token'
+        , token_secret: 'token_secret'
+        }
+      }, function (err, res, body) {
+        t.equal(err, null)
+        t.notEqual(oauth_nonce1, oauth_nonce2)
+        s.close(function () {
+          t.end()
+        })
+      })
+  })
+})
+
+tape('no credentials on external redirect', function(t) {
+  var s1 = http.createServer(function (req, res) {
+    res.writeHead(302, {location:'http://127.0.0.1:6768'})
+    res.end()
+  })
+  var s2 = http.createServer(function (req, res) {
+    res.writeHead(200, {'content-type':'text/plain'})
+    res.end()
+  })
+  s1.listen(6767, function () {
+    s2.listen(6768, function () {
+      request.get(
+        { url: 'http://localhost:6767'
+        , oauth:
+          { consumer_key: 'consumer_key'
+          , consumer_secret: 'consumer_secret'
+          , token: 'token'
+          , token_secret: 'token_secret'
+          }
+        }, function (err, res, body) {
+          t.equal(err, null)
+          t.equal(res.request.headers.Authorization, undefined)
+          s1.close(function () {
+            s2.close(function () {
+              t.end()
+            })
+          })
+        })
+    })
+  })
 })
