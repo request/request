@@ -761,6 +761,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 - `followRedirect` - follow HTTP 3xx responses as redirects (default: `true`). This property can also be implemented as function which gets `response` object as a single argument and should return `true` if redirects should continue or `false` otherwise.
 - `followAllRedirects` - follow non-GET HTTP 3xx responses as redirects (default: `false`)
 - `maxRedirects` - the maximum number of redirects to follow (default: `10`)
+- `removeRefererHeader` - removes the referer header when a redirect happens (default: `false`).
 
 ---
 
@@ -797,7 +798,6 @@ The first argument can be either a `url` or an `options` object. The only requir
   tunneling proxy.
 - `proxyHeaderExclusiveList` - A whitelist of headers to send
   exclusively to a tunneling proxy and not to destination.
-- `removeRefererHeader` - removes the referer header when a redirect happens (default: `false`).
 
 ---
 

@@ -281,6 +281,7 @@ function debug() {
     console.error('REQUEST %s', util.format.apply(util, arguments))
   }
 }
+Request.prototype.debug = debug
 
 Request.prototype.setupTunnel = function () {
   var self = this
@@ -469,7 +470,7 @@ Request.prototype.init = function (options) {
     return self.emit('error', new Error(message))
   }
 
-  self._redirect.onRequest()
+  self._redirect.onRequest(options)
 
   self.setHost = false
   if (!self.hasHeader('host')) {
