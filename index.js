@@ -56,16 +56,23 @@ function request (uri, options, callback) {
   return new request.Request(params)
 }
 
-var verbs = ['get', 'head', 'post', 'put', 'patch', 'del']
-
-verbs.forEach(function(verb) {
-  var method = verb === 'del' ? 'DELETE' : verb.toUpperCase()
-  request[verb] = function (uri, options, callback) {
-    var params = initParams(uri, options, callback)
-    params.method = method
-    return request(params, params.callback)
+(function() {
+  var verbFunc = function(verb) {
+    var method = verb === 'del' ? 'DELETE' : verb.toUpperCase()
+    return function (uri, options, callback) {
+      var params = initParams(uri, options, callback)
+      params.method = method
+      return request(params, params.callback)
+    }
   }
-})
+
+  request.get = verbFunc('get')
+  request.head = verbFunc('head')
+  request.post = verbFunc('post')
+  request.put = verbFunc('put')
+  request.patch = verbFunc('patch')
+  request.del = verbFunc('del')
+})()
 
 request.jar = function (store) {
   return cookies.jar(store)
