@@ -97,8 +97,13 @@ var cases = [
   }
 ]
 
-cases.forEach(function (options) {
-  tape('rfc3986 ' + options._name, function(t) {
-    runTest(t, options)
+var libs = ['qs', 'querystring']
+
+libs.forEach(function (lib) {
+  cases.forEach(function (options) {
+    options.useQuerystring = (lib === 'querystring')
+    tape(lib + ' rfc3986 ' + options._name, function(t) {
+      runTest(t, options)
+    })
   })
 })
