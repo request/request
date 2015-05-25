@@ -30,6 +30,17 @@ tape('invalid uri 2', function(t) {
   t.end()
 })
 
+tape('invalid uri + NO_PROXY', function(t) {
+  process.env.NO_PROXY = 'google.com'
+  t.throws(function() {
+    request({
+      uri: 'invalid'
+    })
+  }, /^Error: Invalid URI/)
+  delete process.env.NO_PROXY
+  t.end()
+})
+
 tape('deprecated unix URL', function(t) {
   t.throws(function() {
     request({
