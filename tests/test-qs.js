@@ -13,23 +13,18 @@ var request = require('../index')
 //   - expectedQuerystring : expected path when using the querystring library
 function runTest(name, options) {
   var uri = 'http://www.google.com' + (options.suffix || '')
-    , requestOptsQs = {
-      uri : uri,
-      qsParseOptions: options.qsParseOptions,
-      qsStringifyOptions: options.qsStringifyOptions
-    }
-    , requestOptsQuerystring = {
-      uri : uri,
-      useQuerystring : true
-    }
-
-  if (options.qs) {
-    requestOptsQs.qs = options.qs
-    requestOptsQuerystring.qs = options.qs
+  var opts = {
+    uri : uri,
+    qsParseOptions: options.qsParseOptions,
+    qsStringifyOptions: options.qsStringifyOptions
   }
 
-  tape(name + ' using qs', function(t) {
-    var r = request.get(requestOptsQs)
+  if (options.qs) {
+    opts.qs = options.qs
+  }
+
+  tape(name + ' - using qs', function(t) {
+    var r = request.get(opts)
     if (typeof options.afterRequest === 'function') {
       options.afterRequest(r)
     }
@@ -40,8 +35,9 @@ function runTest(name, options) {
     })
   })
 
-  tape(name + ' using querystring', function(t) {
-    var r = request.get(requestOptsQuerystring)
+  tape(name + ' - using querystring', function(t) {
+    opts.useQuerystring = true
+    var r = request.get(opts)
     if (typeof options.afterRequest === 'function') {
       options.afterRequest(r)
     }
@@ -120,4 +116,20 @@ runTest('pass options to the qs module via the qsStringifyOptions key', {
   qsStringifyOptions: { arrayFormat : 'brackets' },
   expected : esc('/?order[]=bar&order[]=desc'),
   expectedQuerystring : '/?order=bar&order=desc'
+})
+
+runTest('pass options to the querystring module via the qsParseOptions key', {
+  suffix   : '?a=1;b=2',
+  qs: {},
+  qsParseOptions: { sep : ';' },
+  qsStringifyOptions: { sep : ';' },
+  expected : esc('/?a=1%3Bb%3D2'),
+  expectedQuerystring : '/?a=1;b=2'
+})
+
+runTest('pass options to the querystring module via the qsStringifyOptions key', {
+  qs       : { order : ['bar', 'desc'] },
+  qsStringifyOptions: { sep : ';' },
+  expected : esc('/?order[0]=bar&order[1]=desc'),
+  expectedQuerystring : '/?order=bar;order=desc'
 })

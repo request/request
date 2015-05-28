@@ -5,8 +5,6 @@ var http = require('http')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
-  , qs = require('qs')
-  , querystring = require('querystring')
   , zlib = require('zlib')
   , helpers = require('./lib/helpers')
   , bl = require('bl')
@@ -22,6 +20,7 @@ var http = require('http')
   , cookies = require('./lib/cookies')
   , copy = require('./lib/copy')
   , getProxyFromURI = require('./lib/getProxyFromURI')
+  , Querystring = require('./lib/querystring').Querystring
   , Har = require('./lib/har').Har
   , Auth = require('./lib/auth').Auth
   , OAuth = require('./lib/oauth').OAuth
@@ -229,13 +228,6 @@ function responseToJSON() {
   }
 }
 
-// encode rfc3986 characters
-function rfc3986 (str) {
-  return str.replace(/[!'()*]/g, function(c) {
-    return '%' + c.charCodeAt(0).toString(16).toUpperCase()
-  })
-}
-
 function Request (options) {
   // if given the method property in options, set property explicitMethod to true
 
@@ -265,6 +257,7 @@ function Request (options) {
   if (options.method) {
     self.explicitMethod = true
   }
+  self._qs = new Querystring(self)
   self._auth = new Auth(self)
   self._oauth = new OAuth(self)
   self._multipart = new Multipart(self)
@@ -341,15 +334,7 @@ Request.prototype.init = function (options) {
     self.localAddress = options.localAddress
   }
 
-  if (!self.qsLib) {
-    self.qsLib = (options.useQuerystring ? querystring : qs)
-  }
-  if (!self.qsParseOptions) {
-    self.qsParseOptions = options.qsParseOptions
-  }
-  if (!self.qsStringifyOptions) {
-    self.qsStringifyOptions = options.qsStringifyOptions
-  }
+  self._qs.init(options)
 
   debug(options)
   if (!self.pool && self.pool !== false) {
@@ -576,14 +561,12 @@ Request.prototype.init = function (options) {
   }
 
   if (self.uri.auth && !self.hasHeader('authorization')) {
-    var uriAuthPieces = self.uri.auth.split(':').map(function(item) { return querystring.unescape(item) })
+    var uriAuthPieces = self.uri.auth.split(':').map(function(item) {return self._qs.unescape(item)})
     self.auth(uriAuthPieces[0], uriAuthPieces.slice(1).join(':'), true)
   }
 
   if (!self.tunnel && self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization')) {
-    var proxyAuthPieces = self.proxy.auth.split(':').map(function(item) {
-      return querystring.unescape(item)
-    })
+    var proxyAuthPieces = self.proxy.auth.split(':').map(function(item) {return self._qs.unescape(item)})
     var authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
     self.setHeader('proxy-authorization', authHeader)
   }
@@ -1295,7 +1278,7 @@ Request.prototype.qs = function (q, clobber) {
   var self = this
   var base
   if (!clobber && self.uri.query) {
-    base = self.qsLib.parse(self.uri.query, self.qsParseOptions)
+    base = self._qs.parse(self.uri.query)
   } else {
     base = {}
   }
@@ -1304,13 +1287,13 @@ Request.prototype.qs = function (q, clobber) {
     base[i] = q[i]
   }
 
-  if (self.qsLib.stringify(base, self.qsStringifyOptions) === '') {
+  if (self._qs.stringify(base) === '') {
     return self
   }
 
-  var qs = self.qsLib.stringify(base, self.qsStringifyOptions)
+  var qs = self._qs.stringify(base)
 
-  self.uri = url.parse(self.uri.href.split('?')[0] + '?' + rfc3986(qs))
+  self.uri = url.parse(self.uri.href.split('?')[0] + '?' + qs)
   self.url = self.uri
   self.path = self.uri.path
 
@@ -1321,9 +1304,8 @@ Request.prototype.form = function (form) {
   if (form) {
     self.setHeader('content-type', 'application/x-www-form-urlencoded')
     self.body = (typeof form === 'string')
-      ? form.toString('utf8')
-      : self.qsLib.stringify(form, self.qsStringifyOptions).toString('utf8')
-    self.body = rfc3986(self.body)
+      ? self._qs.rfc3986(form.toString('utf8'))
+      : self._qs.stringify(form).toString('utf8')
     return self
   }
   // create form-data object
@@ -1359,7 +1341,7 @@ Request.prototype.json = function (val) {
       if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
         self.body = safeStringify(self.body)
       } else {
-        self.body = rfc3986(self.body)
+        self.body = self._qs.rfc3986(self.body)
       }
       if (!self.hasHeader('content-type')) {
         self.setHeader('content-type', 'application/json')
