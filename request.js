@@ -429,15 +429,6 @@ Request.prototype.init = function (options) {
     self.rejectUnauthorized = false
   }
 
-  if (!self.hasOwnProperty('proxy')) {
-    self.proxy = getProxyFromURI(self.uri)
-  }
-
-  self.tunnel = getTunnelOption(self, options)
-  if (self.proxy) {
-    self.setupTunnel()
-  }
-
   if (!self.uri.pathname) {self.uri.pathname = '/'}
 
   if (!(self.uri.host || (self.uri.hostname && self.uri.port)) && !self.uri.isUnix) {
@@ -453,6 +444,15 @@ Request.prototype.init = function (options) {
     }
     // This error was fatal
     return self.emit('error', new Error(message))
+  }
+
+  if (!self.hasOwnProperty('proxy')) {
+    self.proxy = getProxyFromURI(self.uri)
+  }
+
+  self.tunnel = getTunnelOption(self, options)
+  if (self.proxy) {
+    self.setupTunnel()
   }
 
   self._redirect.onRequest(options)
