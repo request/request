@@ -22,9 +22,9 @@ https.request({ host: 'localhost'
               , agent: agent
               , ca: [ ca ]
               , path: '/' }, function (res) {
-  if (res.client.authorized) {
+  if (res.socket.authorized) {
     console.log('node test: OK')
   } else {
-    throw new Error(res.client.authorizationError)
+    throw new Error(res.socket.authorizationError)
   }
 }).end()
