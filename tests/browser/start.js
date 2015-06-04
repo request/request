@@ -23,7 +23,9 @@ server.listen(port, function() {
   // Spawn process for karma.
   var c = spawn('karma', [
     'start',
-    path.join(__dirname, '/karma.conf.js')
+    path.join(__dirname, '/karma.browserify.js')
+    // TODO: run webpack tests after browserify
+    // path.join(__dirname, '/karma.webpack.js')
   ])
   c.stdout.pipe(process.stdout)
   c.stderr.pipe(process.stderr)

@@ -28,6 +28,7 @@
     "forever-agent": "~0.6.0",
     "form-data": "~1.0.0-rc1",
     "json-stringify-safe": "~5.0.0",
+    "karma-webpack": "^1.5.1",
     "mime-types": "~2.1.2",
     "node-uuid": "~1.4.0",
     "qs": "~4.0.0",
