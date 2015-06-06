@@ -6,7 +6,6 @@ var http = require('http')
   , util = require('util')
   , stream = require('stream')
   , zlib = require('zlib')
-  , helpers = require('./lib/helpers')
   , bl = require('bl')
   , hawk = require('hawk')
   , aws = require('aws-sign2')
@@ -17,8 +16,8 @@ var http = require('http')
   , caseless = require('caseless')
   , ForeverAgent = require('forever-agent')
   , FormData = require('form-data')
+  , helpers = require('./lib/helpers')
   , cookies = require('./lib/cookies')
-  , copy = require('./lib/copy')
   , getProxyFromURI = require('./lib/getProxyFromURI')
   , Querystring = require('./lib/querystring').Querystring
   , Har = require('./lib/har').Har
@@ -31,6 +30,7 @@ var safeStringify = helpers.safeStringify
   , isReadStream = helpers.isReadStream
   , toBase64 = helpers.toBase64
   , defer = helpers.defer
+  , copy = helpers.copy
   , globalCookieJar = cookies.jar()
 
 
