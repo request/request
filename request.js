@@ -295,7 +295,7 @@ Request.prototype.init = function (options) {
 
   self.tunnel = self._tunnel.isEnabled(options)
   if (self.proxy) {
-    self._tunnel.setup()
+    self._tunnel.setup(options)
   }
 
   self._redirect.onRequest(options)
