@@ -43,16 +43,17 @@
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
-    "test-ci": "node node_modules/.bin/taper tests/test-*.js",
-    "test-cov": "node node_modules/.bin/istanbul cover ./node_modules/tape/bin/tape tests/test-*.js",
+    "test-ci": "taper tests/test-*.js",
+    "test-cov": "istanbul cover tape tests/test-*.js",
     "test-browser": "node tests/browser/start.js",
-    "lint": "node node_modules/.bin/eslint lib/ *.js tests/ && echo Lint passed."
+    "lint": "eslint lib/ *.js tests/ && echo Lint passed."
   },
   "devDependencies": {
     "browserify": "~5.9.1",
     "browserify-istanbul": "~0.1.3",
     "buffer-equal": "0.0.1",
     "codecov.io": "~0.1.2",
+    "coveralls": "~2.11.2",
     "eslint": "0.18.0",
     "function-bind": "~1.0.0",
     "istanbul": "~0.3.2",

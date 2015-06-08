@@ -5,7 +5,7 @@ node_js:
   - "0.10"
 sudo: false
 
-after_script: "npm run test-cov && cat ./coverage/lcov.info | ./node_modules/codecov.io/bin/codecov.io.js"
+after_script: "npm run test-cov && cat ./coverage/lcov.info | codecov && cat ./coverage/lcov.info | coveralls"
 
 webhooks:
   urls: https://webhooks.gitter.im/e/237280ed4796c19cc626
