@@ -1481,6 +1481,28 @@ Request.prototype.jar = function (jar) {
   return self
 }
 
+Request.prototype.cloneJar = function (cookieJar) {
+  var self = this
+  var newJar, cookieString, cookieStore, domains, domainPaths, cookieUrl
+
+  newJar = self.jar()
+  cookieStore = cookieJar._jar.store.idx
+  domains = Object.keys(cookieStore)
+
+  domains.forEach(function (domain) {
+    domainPaths = Object.keys(cookieStore[domain])
+
+    domainPaths.forEach(function (domainPath) {
+      cookieUrl = 'http://' + domain + domainPath
+      cookieString = cookieJar.getCookieString(cookieUrl)
+
+      newJar.setCookie(cookieString, cookieUrl)
+    })
+  })
+
+  return newJar
+}
+
 
 // Stream API
 Request.prototype.pipe = function (dest, opts) {
