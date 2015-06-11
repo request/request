@@ -13,7 +13,7 @@ exports.portSSL = 16167
 exports.createServer = function (port) {
   port = port || exports.port
   var s = http.createServer(function (req, resp) {
-    s.emit(req.url, req, resp)
+    s.emit(req.url.replace(/(\?.*)/, ''), req, resp)
   })
   s.port = port
   s.url = 'http://localhost:' + port
