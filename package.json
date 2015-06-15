@@ -44,10 +44,11 @@
     "har-validator": "^1.6.1"
   },
   "scripts": {
-    "test": "npm run lint && npm run test-ci && npm run test-browser",
+    "test": "npm run lint && npm run test-ci && npm run test-browserify && npm run test-webpack",
     "test-ci": "taper tests/test-*.js",
     "test-cov": "istanbul cover tape tests/test-*.js",
-    "test-browser": "node tests/browser/start.js",
+    "test-browserify": "TEST=browserify node tests/browser/start.js",
+    "test-webpack": "TEST=webpack node tests/browser/start.js",
     "lint": "eslint lib/ *.js tests/ && echo Lint passed."
   },
   "devDependencies": {
