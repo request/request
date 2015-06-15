@@ -2,6 +2,7 @@
 
 var server = require('./server')
   , request = require('../index')
+  , qs = require('qs')
   , tape = require('tape')
 
 var s = server.createServer()
@@ -10,7 +11,10 @@ tape('setup', function(t) {
   s.listen(s.port, function() {
     s.on('/', function (req, res) {
       res.writeHead(200, {'content-type': 'application/json'})
-      res.end(JSON.stringify({method: req.method, headers: req.headers}))
+      res.end(JSON.stringify({
+        method: req.method, headers: req.headers,
+        qs: qs.parse(req.url.replace(/.*\?(.*)/, '$1'))
+      }))
     })
 
     s.on('/head', function (req, res) {
@@ -54,6 +58,24 @@ tape('merge headers', function(t) {
   }, function (e, r, b) {
     t.equal(b.headers.foo, 'bar')
     t.equal(b.headers.merged, 'yes')
+    t.end()
+  })
+})
+
+tape('deep extend', function(t) {
+  request.defaults({
+    headers: {a: 1, b: 2 },
+    qs: { a: 1, b: 2 }
+  })(s.url + '/', {
+    headers: { b: 3, c: 4 },
+    qs: { b: 3, c: 4 },
+    json: true
+  }, function (e, r, b) {
+    delete b.headers.host
+    delete b.headers.accept
+    delete b.headers.connection
+    t.deepEqual(b.headers, { a: '1', b: '3', c: '4' })
+    t.deepEqual(b.qs, { a: '1', b: '3', c: '4' })
     t.end()
   })
 })
