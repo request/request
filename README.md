@@ -411,7 +411,7 @@ request.post({url:url, oauth:oauth}, function (e, r, body) {
         , user_id: perm_data.user_id
         }
       ;
-    request.get({url:url, oauth:oauth, json:true}, function (e, r, user) {
+    request.get({url:url, oauth:oauth, qs:qs, json:true}, function (e, r, user) {
       console.log(user)
     })
   })
