@@ -5,11 +5,15 @@ var http = require('http')
   , tape = require('tape')
 
 
-function runTest (t, options) {
+function runTest (t, options, index) {
 
   var server = http.createServer(function(req, res) {
 
-    t.ok(req.headers['content-type'].match(/application\/x-www-form-urlencoded/))
+    if (index === 0) {
+      t.equal(req.headers['content-type'], 'application/x-www-form-urlencoded')
+    } else {
+      t.equal(req.headers['content-type'], 'application/x-www-form-urlencoded; charset=UTF-8')
+    }
     t.equal(req.headers.accept, 'application/json')
 
     var data = ''
@@ -47,6 +51,11 @@ var cases = [
   },
   {
     headers: {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+    form: {some: 'url', encoded: 'data'},
+    json: true
+  },
+  {
+    headers: {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'},
     body: 'some=url&encoded=data',
     json: true
   }
@@ -54,6 +63,6 @@ var cases = [
 
 cases.forEach(function (options, index) {
   tape('application/x-www-form-urlencoded ' + index, function(t) {
-    runTest(t, options)
+    runTest(t, options, index)
   })
 })
