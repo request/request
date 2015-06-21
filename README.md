@@ -646,7 +646,8 @@ request.get({
 
 It is possible to accept other certificates than those signed by generally allowed Certificate Authorities (CAs).
 This can be useful, for example,  when using self-signed certificates.
-To allow a different certificate, you can specify the signing CA by adding the contents of the CA's certificate file to the `agentOptions`:
+To require a different root certificate, you can specify the signing CA by adding the contents of the CA's certificate file to the `agentOptions`.
+The certificate the domain presents must be signed by the root certificate specified:
 
 ```js
 request.get({
