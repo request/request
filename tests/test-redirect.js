@@ -39,7 +39,7 @@ function createLandingEndpoint(landing) {
     // Make sure cookies are set properly after redirect
     assert.equal(req.headers.cookie, 'foo=bar; quux=baz; ham=eggs')
     hits[landing] = true
-    res.writeHead(200)
+    res.writeHead(200, {'x-response': req.method.toUpperCase() + ' ' + landing})
     res.end(req.method.toUpperCase() + ' ' + landing)
   })
 }
@@ -93,6 +93,25 @@ tape('permanent bounce', function(t) {
     t.ok(hits.perm, 'Original request is to /perm')
     t.ok(hits.perm_landing, 'Forward to permanent landing URL')
     t.equal(body, 'GET perm_landing', 'Got permanent landing content')
+    t.end()
+  })
+})
+
+tape('preserve HEAD method when using followAllRedirects', function(t) {
+  jar.setCookie('quux=baz', s.url)
+  hits = {}
+  request({
+    method: 'HEAD',
+    uri: s.url + '/perm',
+    followAllRedirects: true,
+    jar: jar,
+    headers: { cookie: 'foo=bar' }
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.ok(hits.perm, 'Original request is to /perm')
+    t.ok(hits.perm_landing, 'Forward to permanent landing URL')
+    t.equal(res.headers['x-response'], 'HEAD perm_landing', 'Got permanent landing content')
     t.end()
   })
 })
