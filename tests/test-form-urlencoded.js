@@ -9,11 +9,12 @@ function runTest (t, options, index) {
 
   var server = http.createServer(function(req, res) {
 
-    if (index === 0) {
+    if (index === 0 || index === 3) {
       t.equal(req.headers['content-type'], 'application/x-www-form-urlencoded')
     } else {
       t.equal(req.headers['content-type'], 'application/x-www-form-urlencoded; charset=UTF-8')
     }
+    t.equal(req.headers['content-length'], '21')
     t.equal(req.headers.accept, 'application/json')
 
     var data = ''
@@ -33,7 +34,7 @@ function runTest (t, options, index) {
 
   server.listen(6767, function() {
 
-    request.post('http://localhost:6767', options, function(err, res, body) {
+    var r = request.post('http://localhost:6767', options, function(err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.equal(body, 'done')
@@ -41,6 +42,9 @@ function runTest (t, options, index) {
         t.end()
       })
     })
+    if (!options.form && !options.body) {
+      r.form({some: 'url', encoded: 'data'})
+    }
   })
 }
 
@@ -57,6 +61,10 @@ var cases = [
   {
     headers: {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'},
     body: 'some=url&encoded=data',
+    json: true
+  },
+  {
+    // body set via .form() method
     json: true
   }
 ]
