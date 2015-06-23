@@ -1142,7 +1142,9 @@ Request.prototype.qs = function (q, clobber) {
 Request.prototype.form = function (form) {
   var self = this
   if (form) {
-    self.setHeader('content-type', 'application/x-www-form-urlencoded')
+    if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
+      self.setHeader('content-type', 'application/x-www-form-urlencoded')
+    }
     self.body = (typeof form === 'string')
       ? self._qs.rfc3986(form.toString('utf8'))
       : self._qs.stringify(form).toString('utf8')
