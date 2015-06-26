@@ -430,27 +430,23 @@ Request.prototype.init = function (options) {
     self.elapsedTime = self.elapsedTime || 0
   }
 
-  if (self.body) {
-    var length = 0
-    if (!Buffer.isBuffer(self.body)) {
-      if (Array.isArray(self.body)) {
-        for (var i = 0; i < self.body.length; i++) {
-          length += self.body[i].length
-        }
-      } else {
-        self.body = new Buffer(self.body)
-        length = self.body.length
-      }
-    } else {
-      length = self.body.length
+  function setContentLength () {
+    if (!Buffer.isBuffer(self.body) && !Array.isArray(self.body)) {
+      self.body = new Buffer(self.body)
     }
-    if (length) {
-      if (!self.hasHeader('content-length')) {
+    if (!self.hasHeader('content-length')) {
+      var length = (Array.isArray(self.body))
+        ? self.body.reduce(function (a, b) {return a + b.length}, 0)
+        : self.body.length
+      if (length) {
         self.setHeader('content-length', length)
+      } else {
+        self.emit('error', new Error('Argument error, options.body.'))
       }
-    } else {
-      self.emit('error', new Error('Argument error, options.body.'))
     }
+  }
+  if (self.body) {
+    setContentLength()
   }
 
   if (options.oauth) {
@@ -541,6 +537,7 @@ Request.prototype.init = function (options) {
         self._multipart.body.pipe(self)
       }
       if (self.body) {
+        setContentLength()
         if (Array.isArray(self.body)) {
           self.body.forEach(function (part) {
             self.write(part)
