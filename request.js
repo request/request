@@ -31,6 +31,7 @@ var safeStringify = helpers.safeStringify
   , toBase64 = helpers.toBase64
   , defer = helpers.defer
   , copy = helpers.copy
+  , version = helpers.version
   , globalCookieJar = cookies.jar()
 
 
@@ -477,7 +478,17 @@ Request.prototype.init = function (options) {
     if (options.agentClass) {
       self.agentClass = options.agentClass
     } else if (options.forever) {
-      self.agentClass = protocol === 'http:' ? ForeverAgent : ForeverAgent.SSL
+      var v = version()
+      // use ForeverAgent in node 0.10- only
+      if (v.major === 0 && v.minor <= 10) {
+        self.agentClass = protocol === 'http:' ? ForeverAgent : ForeverAgent.SSL
+      } else {
+        console.warn('The forever option defaults to using http(s).Agent in 0.12+')
+        self.agent = new self.httpModule.Agent({
+          keepAlive: true,
+          maxSockets: (options.pool && options.pool.maxSockets) || Infinity
+        })
+      }
     } else {
       self.agentClass = self.httpModule.Agent
     }
