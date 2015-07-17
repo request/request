@@ -483,7 +483,6 @@ Request.prototype.init = function (options) {
       if (v.major === 0 && v.minor <= 10) {
         self.agentClass = protocol === 'http:' ? ForeverAgent : ForeverAgent.SSL
       } else {
-        console.warn('The forever option defaults to using http(s).Agent in 0.12+')
         self.agent = new self.httpModule.Agent({
           keepAlive: true,
           maxSockets: (options.pool && options.pool.maxSockets) || Infinity
