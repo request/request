@@ -772,7 +772,11 @@ The first argument can be either a `url` or an `options` object. The only requir
 
 ---
 
-- `pool` - An object describing which agents to use for the request. If this option is omitted the request will use the global agent (as long as [your options allow for it](request.js#L747)). Otherwise, request will search the pool for your custom agent. If no custom agent is found, a new agent will be created and added to the pool.
+- `agent` - `http(s).Agent` instance to use
+- `agentClass` - alternatively specify your agent's class name
+- `agentOptions` - and pass its options. **Note:** for HTTPS see [tls API doc for TLS/SSL options](http://nodejs.org/api/tls.html#tls_tls_connect_options_callback) and the [documentation above](#using-optionsagentoptions).
+- `forever` - set to `true` to use the [forever-agent](https://github.com/request/forever-agent) **Note:** Defaults to `http(s).Agent({keepAlive:true})` in node 0.12+
+- `pool` - An object describing which agents to use for the request. If this option is omitted the request will use the global agent (as long as your options allow for it). Otherwise, request will search the pool for your custom agent. If no custom agent is found, a new agent will be created and added to the pool. **Note:** `pool` is used only when the `agent` option is not specified.
   - A `maxSockets` property can also be provided on the `pool` object to set the max number of sockets for all agents created (ex: `pool: {maxSockets: Infinity}`).
   - Note that if you are sending multiple requests in a loop and creating
     multiple new `pool` objects, `maxSockets` will not work as intended.  To
@@ -783,10 +787,12 @@ The first argument can be either a `url` or an `options` object. The only requir
   request to respond before aborting the request.  Note that if the underlying
   TCP connection cannot be established, the OS-wide TCP connection timeout will
   overrule the `timeout` option ([the default in Linux is around 20 seconds](http://www.sekuda.com/overriding_the_default_linux_kernel_20_second_tcp_socket_connect_timeout)).
+
+---
+
 - `localAddress` - Local interface to bind for network connections.
 - `proxy` - An HTTP proxy to be used. Supports proxy Auth with Basic Auth, identical to support for the `url` parameter (by embedding the auth info in the `uri`)
 - `strictSSL` - If `true`, requires SSL certificates be valid. **Note:** to use your own certificate authority, you need to specify an agent that was created with that CA as an option.
-- `agentOptions` - Object containing user agent options. See documentation above. **Note:** [see tls API doc for TLS/SSL options](http://nodejs.org/api/tls.html#tls_tls_connect_options_callback).
 - `tunnel` - controls the behavior of
   [HTTP `CONNECT` tunneling](https://en.wikipedia.org/wiki/HTTP_tunnel#HTTP_CONNECT_tunneling)
   as follows:
@@ -803,9 +809,6 @@ The first argument can be either a `url` or an `options` object. The only requir
 ---
 
 - `time` - If `true`, the request-response cycle (including all redirects) is timed at millisecond resolution, and the result provided on the response's `elapsedTime` property.
-
----
-
 - `har` - A [HAR 1.2 Request Object](http://www.softwareishard.com/blog/har-12-spec/#request), will be processed from HAR format into options overwriting matching values *(see the [HAR 1.2 section](#support-for-har-1.2) for details)*
 
 The callback argument gets 3 arguments:
