@@ -29,6 +29,9 @@ function runTest(t, options) {
       }
     }
 
+    t.ok(/multipart\/form-data; boundary=--------------------------\d+/
+      .test(req.headers['content-type']))
+
     // temp workaround
     var data = ''
     req.setEncoding('utf8')
