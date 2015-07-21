@@ -21,6 +21,9 @@ tape('multipart form append', function(t) {
       return
     }
 
+    t.ok(/multipart\/form-data; boundary=--------------------------\d+/
+      .test(req.headers['content-type']))
+
     // temp workaround
     var data = ''
     req.setEncoding('utf8')
