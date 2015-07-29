@@ -1047,7 +1047,7 @@ Request.prototype.onRequestResponse = function (response) {
           try {
             response.body = JSON.parse(response.body, self._jsonReviver)
           } catch (e) {
-            // empty
+            debug('invalid JSON received', self.uri.href)
           }
         }
         debug('emitting complete', self.uri.href)
