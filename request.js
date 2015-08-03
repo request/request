@@ -804,21 +804,33 @@ Request.prototype.start = function () {
 
   if (self.timeout && !self.timeoutTimer) {
     var timeout = self.timeout < 0 ? 0 : self.timeout
+    // Set a timeout in memory - this block will throw if the server takes more
+    // than `timeout` to write the HTTP status and headers (corresponding to
+    // the on('response') event on the client). NB: this measures wall-clock
+    // time, not the time between bytes sent by the server.
     self.timeoutTimer = setTimeout(function () {
+      var connectTimeout = self.req.socket && self.req.socket.readable === false
       self.abort()
       var e = new Error('ETIMEDOUT')
       e.code = 'ETIMEDOUT'
+      e.connect = connectTimeout
       self.emit('error', e)
     }, timeout)
 
-    // Set additional timeout on socket - in case if remote
-    // server freeze after sending headers
     if (self.req.setTimeout) { // only works on node 0.6+
+      // Set an additional timeout on the socket, via the `setsockopt` syscall.
+      // This timeout sets the amount of time to wait *between* bytes sent
+      // from the server, and may or may not correspond to the wall-clock time
+      // elapsed from the start of the request.
+      //
+      // In particular, it's useful for erroring if the server fails to send
+      // data halfway through streaming a response.
       self.req.setTimeout(timeout, function () {
         if (self.req) {
           self.req.abort()
           var e = new Error('ESOCKETTIMEDOUT')
           e.code = 'ESOCKETTIMEDOUT'
+          e.connect = false
           self.emit('error', e)
         }
       })
