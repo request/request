@@ -8,7 +8,7 @@
 openssl genrsa -out client.key 2048
 
 # Create a certificate signing request
-openssl req -new -sha256 -key client.key -out client.csr -config client.cnf
+openssl req -new -sha256 -key client.key -out client.csr -config client.cnf -days 1095
 
 # Use the CSR and the CA key (previously generated) to create a certificate
 openssl x509 -req \
@@ -17,7 +17,8 @@ openssl x509 -req \
     -CAkey ca.key \
     -set_serial 0x`cat ca.srl` \
     -passin 'pass:password' \
-    -out client.crt
+    -out client.crt \
+    -days 1095
 
 # Encrypt with password
 openssl rsa -aes128 -in client.key -out client-enc.key -passout 'pass:password'
