@@ -432,7 +432,7 @@ Request.prototype.init = function (options) {
   }
 
   function setContentLength () {
-    if (!Buffer.isBuffer(self.body) && !Array.isArray(self.body)) {
+    if (!Buffer.isBuffer(self.body) && !Array.isArray(self.body) && typeof self.body !== 'object') {
       self.body = new Buffer(self.body)
     }
     if (!self.hasHeader('content-length')) {
