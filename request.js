@@ -483,10 +483,9 @@ Request.prototype.init = function (options) {
       if (v.major === 0 && v.minor <= 10) {
         self.agentClass = protocol === 'http:' ? ForeverAgent : ForeverAgent.SSL
       } else {
-        self.agent = new self.httpModule.Agent({
-          keepAlive: true,
-          maxSockets: (options.pool && options.pool.maxSockets) || Infinity
-        })
+        self.agentClass = self.httpModule.Agent
+        self.agentOptions = self.agentOptions || {}
+        self.agentOptions.keepAlive = true
       }
     } else {
       self.agentClass = self.httpModule.Agent

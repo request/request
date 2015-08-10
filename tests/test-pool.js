@@ -58,6 +58,88 @@ tape('forever', function(t) {
   })
 })
 
+tape('forever, should use same agent in sequential requests', function(t) {
+  var r = request.defaults({
+    forever: true
+  })
+  var req1 = r('http://localhost:6767')
+  var req2 = r('http://localhost:6767/somepath')
+  req1.abort()
+  req2.abort()
+  if (typeof req1.agent.destroy === 'function') {
+    req1.agent.destroy()
+  }
+  if (typeof req2.agent.destroy === 'function') {
+    req2.agent.destroy()
+  }
+  t.equal(req1.agent, req2.agent)
+  t.end()
+})
+
+tape('forever, should use same agent in sequential requests(with pool.maxSockets)', function(t) {
+  var r = request.defaults({
+    forever: true,
+    pool: {maxSockets: 1024}
+  })
+  var req1 = r('http://localhost:6767')
+  var req2 = r('http://localhost:6767/somepath')
+  req1.abort()
+  req2.abort()
+  if (typeof req1.agent.destroy === 'function') {
+    req1.agent.destroy()
+  }
+  if (typeof req2.agent.destroy === 'function') {
+    req2.agent.destroy()
+  }
+  t.equal(req1.agent.maxSockets, 1024)
+  t.equal(req1.agent, req2.agent)
+  t.end()
+})
+
+tape('forever, should use same agent in request() and request.verb', function(t) {
+  var r = request.defaults({
+    forever: true,
+    pool: {maxSockets: 1024}
+  })
+  var req1 = r('http://localhost:6767')
+  var req2 = r.get('http://localhost:6767')
+  req1.abort()
+  req2.abort()
+  if (typeof req1.agent.destroy === 'function') {
+    req1.agent.destroy()
+  }
+  if (typeof req2.agent.destroy === 'function') {
+    req2.agent.destroy()
+  }
+  t.equal(req1.agent.maxSockets, 1024)
+  t.equal(req1.agent, req2.agent)
+  t.end()
+})
+
+tape('should use different agent if pool option specified', function(t) {
+  var r = request.defaults({
+    forever: true,
+    pool: {maxSockets: 1024}
+  })
+  var req1 = r('http://localhost:6767')
+  var req2 = r.get({
+    url: 'http://localhost:6767',
+    pool: {maxSockets: 20}
+  })
+  req1.abort()
+  req2.abort()
+  if (typeof req1.agent.destroy === 'function') {
+    req1.agent.destroy()
+  }
+  if (typeof req2.agent.destroy === 'function') {
+    req2.agent.destroy()
+  }
+  t.equal(req1.agent.maxSockets, 1024)
+  t.equal(req2.agent.maxSockets, 20)
+  t.notEqual(req1.agent, req2.agent)
+  t.end()
+})
+
 tape('cleanup', function(t) {
   s.close(function() {
     t.end()
