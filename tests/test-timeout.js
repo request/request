@@ -43,6 +43,19 @@ if (process.env.TRAVIS === 'true') {
     })
   })
 
+  tape('should set connect to false', function(t) {
+    var shouldTimeout = {
+      url: s.url + '/timeout',
+      timeout: 100
+    }
+
+    request(shouldTimeout, function(err, res, body) {
+      checkErrCode(t, err)
+      t.ok(err.connect === false, 'Read Timeout Error should set \'connect\' property to false')
+      t.end()
+    })
+  })
+
   tape('should timeout with events', function(t) {
     t.plan(3)
 
@@ -105,6 +118,22 @@ if (process.env.TRAVIS === 'true') {
 
     request(floatTimeout, function(err, res, body) {
       checkErrCode(t, err)
+      t.end()
+    })
+  })
+
+  tape('connect timeout', function(t) {
+    // We need a destination that will not immediately return a TCP Reset
+    // packet. StackOverflow suggests this host:
+    // https://stackoverflow.com/a/904609/329700
+    var tarpitHost = 'http://10.255.255.1'
+    var shouldConnectTimeout = {
+      url: tarpitHost + '/timeout',
+      timeout: 100
+    }
+    request(shouldConnectTimeout, function(err) {
+      checkErrCode(t, err)
+      t.ok(err.connect === true, 'Connect Timeout Error should set \'connect\' property to true')
       t.end()
     })
   })
