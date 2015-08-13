@@ -673,12 +673,12 @@ a validation step will check if the HAR Request format matches the latest spec (
   var request = require('request')
   request({
     // will be ignored
-    method: 'GET'
+    method: 'GET',
     uri: 'http://www.google.com',
 
     // HTTP Archive Request Object
     har: {
-      url: 'http://www.mockbin.com/har'
+      url: 'http://www.mockbin.com/har',
       method: 'POST',
       headers: [
         {
