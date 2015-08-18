@@ -111,6 +111,8 @@ function Request (options) {
   // call init
 
   var self = this
+  self.options = self.options || options//joshux
+  self.options = self.options || {}//joshux
 
   // start with HAR, then override with additional options
   if (options.har) {
@@ -471,13 +473,13 @@ Request.prototype.init = function (options) {
   }
 
   if (!self.agent) {
-    if (options.agentOptions) {
-      self.agentOptions = options.agentOptions
+    if (self.options.agentOptions) {
+      self.agentOptions = self.options.agentOptions
     }
 
-    if (options.agentClass) {
-      self.agentClass = options.agentClass
-    } else if (options.forever) {
+    if (self.options.agentClass) {
+      self.agentClass = self.options.agentClass
+    } else if (self.options.forever) {
       var v = version()
       // use ForeverAgent in node 0.10- only
       if (v.major === 0 && v.minor <= 10) {
@@ -593,56 +595,7 @@ Request.prototype.init = function (options) {
 // httpModule, Tunneling agent, and/or Forever Agent in use.
 Request.prototype._updateProtocol = function () {
   var self = this
-  var protocol = self.uri.protocol
-
-  if (protocol === 'https:' || self.tunnel) {
-    // previously was doing http, now doing https
-    // if it's https, then we might need to tunnel now.
-    if (self.proxy) {
-      if (self._tunnel.setup()) {
-        return
-      }
-    }
-
-    self.httpModule = https
-    switch (self.agentClass) {
-      case ForeverAgent:
-        self.agentClass = ForeverAgent.SSL
-        break
-      case http.Agent:
-        self.agentClass = https.Agent
-        break
-      default:
-        // nothing we can do.  Just hope for the best.
-        return
-    }
-
-    // if there's an agent, we need to get a new one.
-    if (self.agent) {
-      self.agent = self.getNewAgent()
-    }
-
-  } else {
-    // previously was doing https, now doing http
-    self.httpModule = http
-    switch (self.agentClass) {
-      case ForeverAgent.SSL:
-        self.agentClass = ForeverAgent
-        break
-      case https.Agent:
-        self.agentClass = http.Agent
-        break
-      default:
-        // nothing we can do.  just hope for the best
-        return
-    }
-
-    // if there's an agent, then get a new one.
-    if (self.agent) {
-      self.agent = null
-      self.agent = self.getNewAgent()
-    }
-  }
+  delete self.agent
 }
 
 Request.prototype.getNewAgent = function () {
