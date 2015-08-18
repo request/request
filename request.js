@@ -432,13 +432,18 @@ Request.prototype.init = function (options) {
   }
 
   function setContentLength () {
-    if (!Buffer.isBuffer(self.body) && !Array.isArray(self.body) && typeof self.body !== 'object') {
-      self.body = new Buffer(self.body)
-    }
     if (!self.hasHeader('content-length')) {
-      var length = (Array.isArray(self.body))
-        ? self.body.reduce(function (a, b) {return a + b.length}, 0)
-        : self.body.length
+      var length
+      if (typeof self.body === 'string') {
+        length = Buffer.byteLength(self.body)
+      }
+      else if (Array.isArray(self.body)) {
+        length = self.body.reduce(function (a, b) {return a + b.length}, 0)
+      }
+      else {
+        length = self.body.length
+      }
+
       if (length) {
         self.setHeader('content-length', length)
       } else {
