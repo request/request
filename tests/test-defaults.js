@@ -312,6 +312,14 @@ tape('invoke convenience method from defaults', function(t) {
   })
 })
 
+tape('defaults without options', function(t) {
+  var d = request.defaults()
+  d.get(s.url + '/', {json: true}, function (e, r, b) {
+    t.equal(r.statusCode, 200)
+    t.end()
+  })
+})
+
 tape('cleanup', function(t) {
   s.close(function() {
     t.end()
