@@ -57,7 +57,7 @@ if (process.env.TRAVIS === 'true') {
   })
 
   tape('should timeout with events', function(t) {
-    t.plan(3)
+    t.plan(4)
 
     var shouldTimeoutWithEvents = {
       url: s.url + '/timeout',
@@ -70,6 +70,7 @@ if (process.env.TRAVIS === 'true') {
         eventsEmitted++
         t.equal(1, eventsEmitted)
         checkErrCode(t, err)
+        t.equal('connect ETIMEDOUT localhost' + ':' + s.port, err.message)
       })
   })
 
