@@ -221,7 +221,7 @@ Some variations in different HTTP implementations require a newline/CRLF before,
     uri: 'http://service.com/upload',
     multipart: [
       {
-        'content-type': 'application/json'
+        'content-type': 'application/json',
         body: JSON.stringify({foo: 'bar', _attachments: {'message.txt': {follows: true, length: 18, 'content_type': 'text/plain' }}})
       },
       { body: 'I am an attachment' },
