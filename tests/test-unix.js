@@ -6,8 +6,10 @@ var request = require('../index')
   , rimraf = require('rimraf')
   , assert = require('assert')
   , tape = require('tape')
+  , url = require('url')
 
 var path = [null, 'test', 'path'].join('/')
+  , searchString = '?foo=bar'
   , socket = [__dirname, 'tmp-socket'].join('/')
   , expectedBody = 'connected'
   , statusCode = 200
@@ -15,7 +17,9 @@ var path = [null, 'test', 'path'].join('/')
 rimraf.sync(socket)
 
 var s = http.createServer(function(req, res) {
-  assert.equal(req.url, path, 'requested path is sent to server')
+  var incomingUrl = url.parse(req.url)
+  assert.equal(incomingUrl.pathname, path, 'requested path is sent to server')
+  assert.equal(incomingUrl.search, searchString, 'query string is sent to server')
   res.statusCode = statusCode
   res.end(expectedBody)
 })
@@ -27,7 +31,12 @@ tape('setup', function(t) {
 })
 
 tape('unix socket connection', function(t) {
-  request('http://unix:' + socket + ':' + path, function(err, res, body) {
+  request({
+    uri: 'http://unix:' + socket + ':' + path,
+    qs: {
+      foo: 'bar'
+    }
+  }, function(err, res, body) {
     t.equal(err, null, 'no error in connection')
     t.equal(res.statusCode, statusCode, 'got HTTP 200 OK response')
     t.equal(body, expectedBody, 'expected response body is received')
