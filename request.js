@@ -1153,7 +1153,7 @@ Request.prototype.qs = function (q, clobber) {
   self.url = self.uri
   self.path = self.uri.path
 
-  if ( self.uri.host === 'unix' ) {
+  if (self.uri.host === 'unix') {
     self.enableUnixSocket()
   }
 
@@ -1240,6 +1240,20 @@ Request.prototype.getHeader = function (name, headers) {
   })
   return result
 }
+Request.prototype.enableUnixSocket = function () {
+  // Get the socket & request paths from the URL
+  var unixParts = this.uri.path.split(':')
+    , host = unixParts[0]
+    , path = unixParts[1]
+  // Apply unix properties to request
+  this.socketPath = host
+  this.uri.pathname = path
+  this.uri.path = path
+  this.uri.host = host
+  this.uri.hostname = host
+  this.uri.isUnix = true
+}
+
 
 Request.prototype.auth = function (user, pass, sendImmediately, bearer) {
   var self = this
@@ -1404,19 +1418,6 @@ Request.prototype.destroy = function () {
   } else if (self.response) {
     self.response.destroy()
   }
-}
-Request.prototype.enableUnixSocket = function () {
-  // Get the socket & request paths from the URL
-  var unixParts = this.uri.path.split(':')
-    , host = unixParts[0]
-    , path = unixParts[1]
-  // Apply unix properties to request
-  this.socketPath = host
-  this.uri.pathname = path
-  this.uri.path = path
-  this.uri.host = host
-  this.uri.hostname = host
-  this.uri.isUnix = true
 }
 
 Request.defaultProxyHeaderWhiteList =
