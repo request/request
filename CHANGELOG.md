@@ -1,5 +1,8 @@
 ## Change Log
 
+### v2.63.0 (2015/09/21)
+- [#1772](https://github.com/request/request/pull/1772) Set default application/json content-type when using json option (@jzaefferer)
+
 ### v2.62.0 (2015/09/15)
 - [#1768](https://github.com/request/request/pull/1768) Add node 4.0 to the list of build targets (@simov)
 - [#1767](https://github.com/request/request/pull/1767) Query strings now cooperate with unix sockets (@JoshWillik)
