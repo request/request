@@ -1198,9 +1198,6 @@ Request.prototype.json = function (val) {
   }
 
   self._json = true
-  if (!self.hasHeader('content-type')) {
-    self.setHeader('content-type', 'application/json')
-  }
   if (typeof val === 'boolean') {
     if (self.body !== undefined) {
       if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
@@ -1208,9 +1205,15 @@ Request.prototype.json = function (val) {
       } else {
         self.body = self._qs.rfc3986(self.body)
       }
+      if (!self.hasHeader('content-type')) {
+        self.setHeader('content-type', 'application/json')
+      }
     }
   } else {
     self.body = safeStringify(val)
+    if (!self.hasHeader('content-type')) {
+      self.setHeader('content-type', 'application/json')
+    }
   }
 
   if (typeof self.jsonReviver === 'function') {
