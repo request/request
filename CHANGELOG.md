@@ -1,5 +1,11 @@
 ## Change Log
 
+### v2.64.0 (2015/09/25)
+- [#1787](https://github.com/request/request/pull/1787) npm ignore examples, release.sh and disabled.appveyor.yml (@thisconnect)
+- [#1775](https://github.com/request/request/pull/1775) Fix typo in README.md (@djchie)
+- [#1776](https://github.com/request/request/pull/1776) Changed word 'conjuction' to read 'conjunction' in README.md (@ryanwholey)
+- [#1785](https://github.com/request/request/pull/1785) Revert: Set default application/json content-type when using json option #1772 (@simov)
+
 ### v2.63.0 (2015/09/21)
 - [#1772](https://github.com/request/request/pull/1772) Set default application/json content-type when using json option (@jzaefferer)
 
