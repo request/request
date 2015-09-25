@@ -72,6 +72,16 @@ testJSONValueReviver('jsonReviver', -48269.592, function (k, v) {
 }, 48269.592)
 testJSONValueReviver('jsonReviverInvalid', -48269.592, 'invalid reviver', -48269.592)
 
+tape('missing body', function (t) {
+  s.on('/missing-body', function (req, res) {
+    t.equal(req.headers['content-type'], undefined)
+    res.end()
+  })
+  request({url:s.url + '/missing-body', json:true}, function () {
+    t.end()
+  })
+})
+
 tape('cleanup', function(t) {
   s.close(function() {
     t.end()

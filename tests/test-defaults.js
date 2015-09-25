@@ -73,7 +73,6 @@ tape('deep extend', function(t) {
   }, function (e, r, b) {
     delete b.headers.host
     delete b.headers.accept
-    delete b.headers['content-type']
     delete b.headers.connection
     t.deepEqual(b.headers, { a: '1', b: '3', c: '4' })
     t.deepEqual(b.qs, { a: '1', b: '3', c: '4' })
@@ -98,7 +97,7 @@ tape('post(string, object, function)', function(t) {
   }).post(s.url + '/', { json: true }, function (e, r, b) {
     t.equal(b.method, 'POST')
     t.equal(b.headers.foo, 'bar')
-    t.equal(b.headers['content-type'], 'application/json')
+    t.equal(b.headers['content-type'], undefined)
     t.end()
   })
 })
@@ -109,7 +108,7 @@ tape('patch(string, object, function)', function(t) {
   }).patch(s.url + '/', { json: true }, function (e, r, b) {
     t.equal(b.method, 'PATCH')
     t.equal(b.headers.foo, 'bar')
-    t.equal(b.headers['content-type'], 'application/json')
+    t.equal(b.headers['content-type'], undefined)
     t.end()
   })
 })
