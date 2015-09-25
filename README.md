@@ -312,7 +312,7 @@ initial request, which will probably cause the request to fail.
 Bearer authentication is supported, and is activated when the `bearer` value is
 available. The value may be either a `String` or a `Function` returning a
 `String`. Using a function to supply the bearer token is particularly useful if
-used in conjuction with `defaults` to allow a single function to supply the
+used in conjunction with `defaults` to allow a single function to supply the
 last known token at the time of sending a request, or to compute one on the fly.
 
 [back to top](#table-of-contents)
