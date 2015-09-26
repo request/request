@@ -1,14 +1,9 @@
 'use strict'
-var istanbul = require('browserify-istanbul')
 
 module.exports = function(config) {
   config.set({
     basePath: '../..',
-    frameworks: ['tap', 'browserify'],
-    preprocessors: {
-      'tests/browser/test.js': ['browserify'],
-      '*.js,!(tests)/**/*.js': ['coverage']
-    },
+
     files: [
       'tests/browser/test.js'
     ],
@@ -26,18 +21,6 @@ module.exports = function(config) {
 
     singleRun: true,
 
-    plugins: [
-      'karma-phantomjs-launcher',
-      'karma-coverage',
-      'karma-browserify',
-      'karma-tap'
-    ],
-    browserify: {
-      debug: true,
-      transform: [istanbul({
-        ignore: ['**/node_modules/**', '**/tests/**']
-      })]
-    },
     coverageReporter: {
       type: 'lcov',
       dir: 'coverage/'
