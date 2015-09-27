@@ -50,7 +50,7 @@
     "lint": "eslint lib/ *.js tests/ && echo Lint passed."
   },
   "devDependencies": {
-    "browserify": "~5.9.1",
+    "browserify": "11.2.0",
     "browserify-istanbul": "~0.1.3",
     "buffer-equal": "0.0.1",
     "codecov.io": "~0.1.2",
