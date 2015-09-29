@@ -68,6 +68,6 @@
     "server-destroy": "1.0.1",
     "tape": "3.0.3",
     "taper": "0.4.0",
-    "bluebird": "2.9.34"
+    "bluebird": "2.10.1"
   }
 }
