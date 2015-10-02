@@ -32,7 +32,7 @@
     "node-uuid": "1.4.3",
     "qs": "5.1.0",
     "tunnel-agent": "0.4.1",
-    "tough-cookie": "2.0.0",
+    "tough-cookie": "2.1.0",
     "http-signature": "0.11.0",
     "oauth-sign": "0.8.0",
     "hawk": "3.1.0",
