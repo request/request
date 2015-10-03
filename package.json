@@ -40,7 +40,7 @@
     "stringstream": "0.0.4",
     "combined-stream": "1.0.5",
     "isstream": "0.1.2",
-    "har-validator": "1.8.0"
+    "har-validator": "2.0.2"
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
