@@ -94,6 +94,23 @@ tape('hostname and port 3', function(t) {
   })
 })
 
+tape('hostname and query string', function(t) {
+  request({
+    uri: {
+      protocol: 'http:',
+      hostname: 'localhost',
+      port: 6767
+    },
+    qs: {
+      test: 'test'
+    }
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(body, 'ok')
+    t.end()
+  })
+})
+
 tape('cleanup', function(t) {
   s.close(function() {
     t.end()

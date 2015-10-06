@@ -247,7 +247,10 @@ Request.prototype.init = function (options) {
   // If a string URI/URL was given, parse it into a URL object
   if (typeof self.uri === 'string') {
     self.uri = url.parse(self.uri)
-  } else {
+  }
+
+  // Some URL objects are not from a URL parsed string and need href added
+  if (!self.uri.href) {
     self.uri.href = url.format(self.uri)
   }
 
