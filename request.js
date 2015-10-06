@@ -247,6 +247,8 @@ Request.prototype.init = function (options) {
   // If a string URI/URL was given, parse it into a URL object
   if (typeof self.uri === 'string') {
     self.uri = url.parse(self.uri)
+  } else {
+    self.uri.href = url.format(self.uri)
   }
 
   // DEPRECATED: Warning for users of the old Unix Sockets URL Scheme
