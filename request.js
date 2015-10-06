@@ -1143,11 +1143,11 @@ Request.prototype.qs = function (q, clobber) {
     base[i] = q[i]
   }
 
-  if (self._qs.stringify(base) === '') {
+  var qs = self._qs.stringify(base)
+
+  if (qs === '') {
     return self
   }
-
-  var qs = self._qs.stringify(base)
 
   self.uri = url.parse(self.uri.href.split('?')[0] + '?' + qs)
   self.url = self.uri
