@@ -30,7 +30,7 @@
     "json-stringify-safe": "5.0.1",
     "mime-types": "2.1.7",
     "node-uuid": "1.4.3",
-    "qs": "5.1.0",
+    "qs": "5.2.0",
     "tunnel-agent": "0.4.1",
     "tough-cookie": "2.1.0",
     "http-signature": "0.11.0",
