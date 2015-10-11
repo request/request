@@ -64,7 +64,7 @@
     "karma-coverage": "^0.2.6",
     "karma-phantomjs-launcher": "^0.1.4",
     "karma-tap": "^1.0.3",
-    "rimraf": "^2.2.8",
+    "rimraf": "^2.4.3",
     "server-destroy": "^1.0.1",
     "tape": "^4.2.0",
     "taper": "^0.4.0",
