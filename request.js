@@ -1205,7 +1205,7 @@ Request.prototype.json = function (val) {
 
   self._json = true
   if (typeof val === 'boolean') {
-    if (self.body !== undefined) {
+    if (self.body !== undefined && self.body !== null) {
       if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
         self.body = safeStringify(self.body)
       } else {
