@@ -249,6 +249,11 @@ Request.prototype.init = function (options) {
     self.uri = url.parse(self.uri)
   }
 
+  // Some URL objects are not from a URL parsed string and need href added
+  if (!self.uri.href) {
+    self.uri.href = url.format(self.uri)
+  }
+
   // DEPRECATED: Warning for users of the old Unix Sockets URL Scheme
   if (self.uri.protocol === 'unix:') {
     return self.emit('error', new Error('`unix://` URL scheme is no longer supported. Please use the format `http://unix:SOCKET:PATH`'))
