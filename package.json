@@ -57,7 +57,7 @@
     "coveralls": "^2.11.4",
     "eslint": "0.18.0",
     "function-bind": "^1.0.2",
-    "istanbul": "^0.3.21",
+    "istanbul": "^0.4.0",
     "karma-browserify": "^4.4.0",
     "karma": "^0.13.10",
     "karma-cli": "^0.1.1",
