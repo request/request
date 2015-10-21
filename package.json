@@ -55,7 +55,7 @@
     "buffer-equal": "^0.0.1",
     "codecov.io": "^0.1.6",
     "coveralls": "^2.11.4",
-    "eslint": "0.18.0",
+    "eslint": "1.7.3",
     "function-bind": "^1.0.2",
     "istanbul": "^0.4.0",
     "karma-browserify": "^4.4.0",
