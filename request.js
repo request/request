@@ -111,8 +111,6 @@ function Request (options) {
   // call init
 
   var self = this
-  self.options = self.options || options//joshux
-  self.options = self.options || {}//joshux
 
   // start with HAR, then override with additional options
   if (options.har) {
@@ -473,13 +471,13 @@ Request.prototype.init = function (options) {
   }
 
   if (!self.agent) {
-    if (self.options.agentOptions) {
-      self.agentOptions = self.options.agentOptions
+    if (options.agentOptions) {
+      self.agentOptions = options.agentOptions
     }
 
-    if (self.options.agentClass) {
-      self.agentClass = self.options.agentClass
-    } else if (self.options.forever) {
+    if (options.agentClass) {
+      self.agentClass = options.agentClass
+    } else if (options.forever) {
       var v = version()
       // use ForeverAgent in node 0.10- only
       if (v.major === 0 && v.minor <= 10) {
@@ -588,14 +586,6 @@ Request.prototype.init = function (options) {
     self.ntick = true
   })
 
-}
-
-// Must call this when following a redirect from https to http or vice versa
-// Attempts to keep everything as identical as possible, but update the
-// httpModule, Tunneling agent, and/or Forever Agent in use.
-Request.prototype._updateProtocol = function () {
-  var self = this
-  delete self.agent
 }
 
 Request.prototype.getNewAgent = function () {
