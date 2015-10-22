@@ -6,11 +6,14 @@ var http = require('http')
 
 
 var validUrl = 'http://localhost:6767/valid'
+  , malformedUrl = 'http://localhost:6767/malformed'
   , invalidUrl = 'http://localhost:6767/invalid'
 
 var server = http.createServer(function (req, res) {
   if (req.url === '/valid') {
     res.setHeader('set-cookie', 'foo=bar')
+  } else if (req.url === '/malformed') {
+    res.setHeader('set-cookie', 'foo')
   } else if (req.url === '/invalid') {
     res.setHeader('set-cookie', 'foo=bar; Domain=foo.com')
   }
@@ -30,6 +33,13 @@ tape('simple cookie creation', function(t) {
   t.end()
 })
 
+tape('simple malformed cookie creation', function(t) {
+  var cookie = request.cookie('foo')
+  t.equals(cookie.key, '')
+  t.equals(cookie.value, 'foo')
+  t.end()
+})
+
 tape('after server sends a cookie', function(t) {
   var jar1 = request.jar()
   request({
@@ -46,6 +56,26 @@ tape('after server sends a cookie', function(t) {
     t.equal(cookies.length, 1)
     t.equal(cookies[0].key, 'foo')
     t.equal(cookies[0].value, 'bar')
+    t.end()
+  })
+})
+
+tape('after server sends a malformed cookie', function(t) {
+  var jar = request.jar()
+  request({
+    method: 'GET',
+    url: malformedUrl,
+    jar: jar
+  },
+  function (error, response, body) {
+    t.equal(error, null)
+    t.equal(jar.getCookieString(malformedUrl), 'foo')
+    t.equal(body, 'okay')
+
+    var cookies = jar.getCookies(malformedUrl)
+    t.equal(cookies.length, 1)
+    t.equal(cookies[0].key, '')
+    t.equal(cookies[0].value, 'foo')
     t.end()
   })
 })

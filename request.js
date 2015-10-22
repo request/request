@@ -251,6 +251,11 @@ Request.prototype.init = function (options) {
     self.uri = url.parse(self.uri)
   }
 
+  // Some URL objects are not from a URL parsed string and need href added
+  if (!self.uri.href) {
+    self.uri.href = url.format(self.uri)
+  }
+
   // DEPRECATED: Warning for users of the old Unix Sockets URL Scheme
   if (self.uri.protocol === 'unix:') {
     return self.emit('error', new Error('`unix://` URL scheme is no longer supported. Please use the format `http://unix:SOCKET:PATH`'))
@@ -258,17 +263,7 @@ Request.prototype.init = function (options) {
 
   // Support Unix Sockets
   if (self.uri.host === 'unix') {
-    // Get the socket & request paths from the URL
-    var unixParts = self.uri.path.split(':')
-      , host = unixParts[0]
-      , path = unixParts[1]
-    // Apply unix properties to request
-    self.socketPath = host
-    self.uri.pathname = path
-    self.uri.path = path
-    self.uri.host = host
-    self.uri.hostname = host
-    self.uri.isUnix = true
+    self.enableUnixSocket()
   }
 
   if (self.strictSSL === false) {
@@ -977,54 +972,7 @@ Request.prototype.onRequestResponse = function (response) {
     responseContent.on('close', function () {self.emit('close')})
 
     if (self.callback) {
-      var buffer = bl()
-        , strings = []
-
-      self.on('data', function (chunk) {
-        if (Buffer.isBuffer(chunk)) {
-          buffer.append(chunk)
-        } else {
-          strings.push(chunk)
-        }
-      })
-      self.on('end', function () {
-        debug('end event', self.uri.href)
-        if (self._aborted) {
-          debug('aborted', self.uri.href)
-          return
-        }
-
-        if (buffer.length) {
-          debug('has body', self.uri.href, buffer.length)
-          if (self.encoding === null) {
-            // response.body = buffer
-            // can't move to this until https://github.com/rvagg/bl/issues/13
-            response.body = buffer.slice()
-          } else {
-            response.body = buffer.toString(self.encoding)
-          }
-        } else if (strings.length) {
-          // The UTF8 BOM [0xEF,0xBB,0xBF] is converted to [0xFE,0xFF] in the JS UTC16/UCS2 representation.
-          // Strip this value out when the encoding is set to 'utf8', as upstream consumers won't expect it and it breaks JSON.parse().
-          if (self.encoding === 'utf8' && strings[0].length > 0 && strings[0][0] === '\uFEFF') {
-            strings[0] = strings[0].substring(1)
-          }
-          response.body = strings.join('')
-        }
-
-        if (self._json) {
-          try {
-            response.body = JSON.parse(response.body, self._jsonReviver)
-          } catch (e) {
-            debug('invalid JSON received', self.uri.href)
-          }
-        }
-        debug('emitting complete', self.uri.href)
-        if (typeof response.body === 'undefined' && !self._json) {
-          response.body = self.encoding === null ? new Buffer(0) : ''
-        }
-        self.emit('complete', response, response.body)
-      })
+      self.readResponseBody(response)
     }
     //if no callback
     else {
@@ -1038,6 +986,59 @@ Request.prototype.onRequestResponse = function (response) {
     }
   }
   debug('finish init function', self.uri.href)
+}
+
+Request.prototype.readResponseBody = function (response) {
+  var self = this
+  debug('reading response\'s body')
+  var buffer = bl()
+    , strings = []
+
+  self.on('data', function (chunk) {
+    if (Buffer.isBuffer(chunk)) {
+      buffer.append(chunk)
+    } else {
+      strings.push(chunk)
+    }
+  })
+  self.on('end', function () {
+    debug('end event', self.uri.href)
+    if (self._aborted) {
+      debug('aborted', self.uri.href)
+      return
+    }
+
+    if (buffer.length) {
+      debug('has body', self.uri.href, buffer.length)
+      if (self.encoding === null) {
+        // response.body = buffer
+        // can't move to this until https://github.com/rvagg/bl/issues/13
+        response.body = buffer.slice()
+      } else {
+        response.body = buffer.toString(self.encoding)
+      }
+    } else if (strings.length) {
+      // The UTF8 BOM [0xEF,0xBB,0xBF] is converted to [0xFE,0xFF] in the JS UTC16/UCS2 representation.
+      // Strip this value out when the encoding is set to 'utf8', as upstream consumers won't expect it and it breaks JSON.parse().
+      if (self.encoding === 'utf8' && strings[0].length > 0 && strings[0][0] === '\uFEFF') {
+        strings[0] = strings[0].substring(1)
+      }
+      response.body = strings.join('')
+    }
+
+    if (self._json) {
+      try {
+        response.body = JSON.parse(response.body, self._jsonReviver)
+      } catch (e) {
+        debug('invalid JSON received', self.uri.href)
+      }
+    }
+    debug('emitting complete', self.uri.href)
+    if (typeof response.body === 'undefined' && !self._json) {
+      response.body = self.encoding === null ? new Buffer(0) : ''
+    }
+    self.emit('complete', response, response.body)
+  })
 }
 
 Request.prototype.abort = function () {
@@ -1106,15 +1107,19 @@ Request.prototype.qs = function (q, clobber) {
     base[i] = q[i]
   }
 
-  if (self._qs.stringify(base) === '') {
+  var qs = self._qs.stringify(base)
+
+  if (qs === '') {
     return self
   }
-
-  var qs = self._qs.stringify(base)
 
   self.uri = url.parse(self.uri.href.split('?')[0] + '?' + qs)
   self.url = self.uri
   self.path = self.uri.path
+
+  if (self.uri.host === 'unix') {
+    self.enableUnixSocket()
+  }
 
   return self
 }
@@ -1199,6 +1204,20 @@ Request.prototype.getHeader = function (name, headers) {
   })
   return result
 }
+Request.prototype.enableUnixSocket = function () {
+  // Get the socket & request paths from the URL
+  var unixParts = this.uri.path.split(':')
+    , host = unixParts[0]
+    , path = unixParts[1]
+  // Apply unix properties to request
+  this.socketPath = host
+  this.uri.pathname = path
+  this.uri.path = path
+  this.uri.host = host
+  this.uri.hostname = host
+  this.uri.isUnix = true
+}
+
 
 Request.prototype.auth = function (user, pass, sendImmediately, bearer) {
   var self = this
