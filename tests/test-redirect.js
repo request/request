@@ -345,7 +345,7 @@ tape('should have the referer when following redirect by default', function(t) {
   })
   .on('redirect', function() {
     t.notEqual(this.headers.referer, undefined)
-    t.equal(this.headers.referer.substring(this.headers.referer.lastIndexOf('/')), '/temp_landing')
+    t.equal(this.headers.referer.substring(this.headers.referer.lastIndexOf('/')), '/temp')
   })
 })
 
