@@ -122,7 +122,6 @@ function Request (options) {
   var reserved = Object.keys(Request.prototype)
   var nonReserved = filterForNonReserved(reserved, options)
 
-  stream.Stream.call(self)
   util._extend(self, nonReserved)
   options = filterOutReservedFunctions(reserved, options)
 
