@@ -332,7 +332,7 @@ tape('http to https redirect', function(t) {
   })
 })
 
-tape('should have the referer when following redirect by default', function(t) {
+tape('should have referer header by default when following redirect', function(t) {
   request.post({
     uri: s.url + '/temp',
     jar: jar,
@@ -344,12 +344,11 @@ tape('should have the referer when following redirect by default', function(t) {
     t.end()
   })
   .on('redirect', function() {
-    t.notEqual(this.headers.referer, undefined)
-    t.equal(this.headers.referer.substring(this.headers.referer.lastIndexOf('/')), '/temp')
+    t.equal(this.headers.referer, s.url + '/temp')
   })
 })
 
-tape('should not have a referer when removeRefererHeader is true', function(t) {
+tape('should not have referer header when removeRefererHeader is true', function(t) {
   request.post({
     uri: s.url + '/temp',
     jar: jar,
@@ -363,6 +362,23 @@ tape('should not have a referer when removeRefererHeader is true', function(t) {
   })
   .on('redirect', function() {
     t.equal(this.headers.referer, undefined)
+  })
+})
+
+tape('should preserve referer header set in the initial request when removeRefererHeader is true', function(t) {
+  request.post({
+    uri: s.url + '/temp',
+    jar: jar,
+    followAllRedirects: true,
+    removeRefererHeader: true,
+    headers: { cookie: 'foo=bar', referer: 'http://awesome.com' }
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.end()
+  })
+  .on('redirect', function() {
+    t.equal(this.headers.referer, 'http://awesome.com')
   })
 })
 
