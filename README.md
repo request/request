@@ -845,7 +845,7 @@ For example:
 ```js
 //requests using baseRequest() will set the 'x-token' header
 var baseRequest = request.defaults({
-  headers: {x-token: 'my-token'}
+  headers: {'x-token': 'my-token'}
 })
 
 //requests using specialRequest() will include the 'x-token' header set in
