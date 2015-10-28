@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "browserify-istanbul": "^0.1.5",
-    "browserify": "^11.2.0",
+    "browserify": "^12.0.1",
     "buffer-equal": "^0.0.1",
     "codecov.io": "^0.1.6",
     "coveralls": "^2.11.4",
