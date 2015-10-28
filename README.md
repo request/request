@@ -746,7 +746,7 @@ The first argument can be either a `url` or an `options` object. The only requir
     In non-chunked requests, data items with body streams are not allowed.
 - `preambleCRLF` - append a newline/CRLF before the boundary of your `multipart/form-data` request.
 - `postambleCRLF` - append a newline/CRLF at the end of the boundary of your `multipart/form-data` request.
-- `json` - sets `body` but to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
+- `json` - sets `body` to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
 - `jsonReviver` - a [reviver function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse) that will be passed to `JSON.parse()` when parsing a JSON response body.
 
 ---
