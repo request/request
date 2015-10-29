@@ -18,7 +18,7 @@ tape('setup', function(t) {
 
 tape('promisify convenience method', function(t) {
   var get = request.get
-  var p = Promise.promisify(get)
+  var p = Promise.promisify(get, {multiArgs: true})
   p('http://localhost:6767')
     .then(function (results) {
       var res = results[0]
@@ -28,7 +28,7 @@ tape('promisify convenience method', function(t) {
 })
 
 tape('promisify request function', function(t) {
-  var p = Promise.promisify(request)
+  var p = Promise.promisify(request, {multiArgs: true})
   p('http://localhost:6767')
     .spread(function (res, body) {
       t.equal(res.statusCode, 200)
@@ -37,7 +37,7 @@ tape('promisify request function', function(t) {
 })
 
 tape('promisify all methods', function(t) {
-  Promise.promisifyAll(request)
+  Promise.promisifyAll(request, {multiArgs: true})
   request.getAsync('http://localhost:6767')
     .spread(function (res, body) {
       t.equal(res.statusCode, 200)
