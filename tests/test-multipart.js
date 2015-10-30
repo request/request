@@ -72,11 +72,11 @@ function runTest(t, a) {
 
     // @NOTE: multipartData properties must be set here so that my_file read stream does not leak in node v0.8
     multipartData = [
-        {name: 'my_field', body: 'my_value'},
-        {name: 'my_buffer', body: new Buffer([1, 2, 3])},
-        {name: 'my_file', body: fs.createReadStream(localFile)},
-        {name: 'remote_file', body: request('http://localhost:6767/file')}
-      ]
+      {name: 'my_field', body: 'my_value'},
+      {name: 'my_buffer', body: new Buffer([1, 2, 3])},
+      {name: 'my_file', body: fs.createReadStream(localFile)},
+      {name: 'remote_file', body: request('http://localhost:6767/file')}
+    ]
 
     var reqOptions = {
       url: 'http://localhost:6767/upload',

@@ -254,19 +254,19 @@ tape('rfc5849 example', function(t) {
   var rfc5849 = request.post(
     { url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b'
     , oauth:
-      { consumer_key: '9djdj82h48djs9d2'
-      , nonce: '7d8f3e4a'
-      , signature_method: 'HMAC-SHA1'
-      , token: 'kkk9d7dh3k39sjv7'
-      , timestamp: '137131201'
-      , consumer_secret: 'j49sk3j29djd'
-      , token_secret: 'dh893hdasih9'
-      , realm: 'Example'
-      }
+    { consumer_key: '9djdj82h48djs9d2'
+    , nonce: '7d8f3e4a'
+    , signature_method: 'HMAC-SHA1'
+    , token: 'kkk9d7dh3k39sjv7'
+    , timestamp: '137131201'
+    , consumer_secret: 'j49sk3j29djd'
+    , token_secret: 'dh893hdasih9'
+    , realm: 'Example'
+    }
     , form: {
-        c2: '',
-        a3: '2 q'
-      }
+      c2: '',
+      a3: '2 q'
+    }
     })
 
   process.nextTick(function() {
@@ -291,9 +291,9 @@ tape('rfc5849 RSA example', function(t) {
       , realm: 'Example'
       }
     , form: {
-        c2: '',
-        a3: '2 q'
-      }
+      c2: '',
+      a3: '2 q'
+    }
     })
 
   process.nextTick(function() {
@@ -412,9 +412,9 @@ tape('query transport_method + form option + url params', function(t) {
       , transport_method: 'query'
       }
     , form: {
-        c2: '',
-        a3: '2 q'
-      }
+      c2: '',
+      a3: '2 q'
+    }
     })
 
   process.nextTick(function() {
@@ -454,10 +454,10 @@ tape('query transport_method + qs option + url params', function(t) {
       , transport_method: 'query'
       }
     , qs: {
-        b5: '=%3D',
-        a3: ['a', '2 q'],
-        'c@': '',
-        c2: ''
+      b5: '=%3D',
+      a3: ['a', '2 q'],
+      'c@': '',
+      c2: ''
     }
   })
 
@@ -534,9 +534,9 @@ tape('body transport_method + form option + url params', function(t) {
       , transport_method: 'body'
       }
     , form: {
-        c2: '',
-        a3: '2 q'
-      }
+      c2: '',
+      a3: '2 q'
+    }
     })
 
   process.nextTick(function() {
@@ -639,12 +639,12 @@ tape('refresh oauth_nonce on redirect', function(t) {
         , token_secret: 'token_secret'
         }
       }, function (err, res, body) {
-        t.equal(err, null)
-        t.notEqual(oauth_nonce1, oauth_nonce2)
-        s.close(function () {
-          t.end()
-        })
+      t.equal(err, null)
+      t.notEqual(oauth_nonce1, oauth_nonce2)
+      s.close(function () {
+        t.end()
       })
+    })
   })
 })
 
@@ -668,14 +668,14 @@ tape('no credentials on external redirect', function(t) {
           , token_secret: 'token_secret'
           }
         }, function (err, res, body) {
-          t.equal(err, null)
-          t.equal(res.request.headers.Authorization, undefined)
-          s1.close(function () {
-            s2.close(function () {
-              t.end()
-            })
+        t.equal(err, null)
+        t.equal(res.request.headers.Authorization, undefined)
+        s1.close(function () {
+          s2.close(function () {
+            t.end()
           })
         })
+      })
     })
   })
 })

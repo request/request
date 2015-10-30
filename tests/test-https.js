@@ -50,58 +50,58 @@ function runAllTests(strict, s) {
   }
 
   runTest('testGet', {
-      resp : server.createGetResponse('TESTING!')
+    resp : server.createGetResponse('TESTING!')
     , expectBody: 'TESTING!'
   })
 
   runTest('testGetChunkBreak', {
-      resp : server.createChunkResponse(
-      [ new Buffer([239])
-      , new Buffer([163])
-      , new Buffer([191])
-      , new Buffer([206])
-      , new Buffer([169])
-      , new Buffer([226])
-      , new Buffer([152])
-      , new Buffer([131])
-      ])
+    resp : server.createChunkResponse(
+    [ new Buffer([239])
+    , new Buffer([163])
+    , new Buffer([191])
+    , new Buffer([206])
+    , new Buffer([169])
+    , new Buffer([226])
+    , new Buffer([152])
+    , new Buffer([131])
+    ])
     , expectBody: '\uf8ff\u03a9\u2603'
   })
 
   runTest('testGetJSON', {
-      resp : server.createGetResponse('{"test":true}', 'application/json')
+    resp : server.createGetResponse('{"test":true}', 'application/json')
     , json : true
     , expectBody: {'test':true}
   })
 
   runTest('testPutString', {
-      resp : server.createPostValidator('PUTTINGDATA')
+    resp : server.createPostValidator('PUTTINGDATA')
     , method : 'PUT'
     , body : 'PUTTINGDATA'
   })
 
   runTest('testPutBuffer', {
-      resp : server.createPostValidator('PUTTINGDATA')
+    resp : server.createPostValidator('PUTTINGDATA')
     , method : 'PUT'
     , body : new Buffer('PUTTINGDATA')
   })
 
   runTest('testPutJSON', {
-      resp : server.createPostValidator(JSON.stringify({foo: 'bar'}))
+    resp : server.createPostValidator(JSON.stringify({foo: 'bar'}))
     , method: 'PUT'
     , json: {foo: 'bar'}
   })
 
   runTest('testPutMultipart', {
-      resp: server.createPostValidator(
-        '--__BOUNDARY__\r\n' +
-        'content-type: text/html\r\n' +
-        '\r\n' +
-        '<html><body>Oh hi.</body></html>' +
-        '\r\n--__BOUNDARY__\r\n\r\n' +
-        'Oh hi.' +
-        '\r\n--__BOUNDARY__--'
-        )
+    resp: server.createPostValidator(
+      '--__BOUNDARY__\r\n' +
+      'content-type: text/html\r\n' +
+      '\r\n' +
+      '<html><body>Oh hi.</body></html>' +
+      '\r\n--__BOUNDARY__\r\n\r\n' +
+      'Oh hi.' +
+      '\r\n--__BOUNDARY__--'
+      )
     , method: 'PUT'
     , multipart:
       [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
