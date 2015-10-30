@@ -46,9 +46,9 @@ function createLandingEndpoint(landing) {
 
 function bouncer(code, label, hops) {
   var hop,
-      landing = label + '_landing',
-      currentLabel,
-      currentLanding
+    landing = label + '_landing',
+    currentLabel,
+    currentLanding
 
   hops = hops || 1
 

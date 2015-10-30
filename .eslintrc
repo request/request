@@ -4,7 +4,7 @@
   },
   "rules": {
     // 2-space indentation
-    "indent": [2, 2],
+    "indent": [2, 2, {"SwitchCase": 1}],
     // Disallow semi-colons, unless needed to disambiguate statement
     "semi": [2, "never"],
     // Require strings to use single quotes
