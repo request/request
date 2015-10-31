@@ -196,7 +196,10 @@ Request.prototype.init = function (options) {
       self._callbackCalled = true
       self._callback.apply(self, arguments)
     }
-    self.on('error', self.callback.bind())
+    self.on('error', function () {
+      self._aborted = true
+      return self.callback.bind().apply(this, arguments)
+    })
     self.on('complete', self.callback.bind(self, null))
   }
 
@@ -1333,20 +1336,24 @@ Request.prototype.pipe = function (dest, opts) {
 }
 Request.prototype.write = function () {
   var self = this
-  if (!self._started) {
-    self.start()
+  if (!self._aborted) {
+    if (!self._started) {
+      self.start()
+    }
+    return self.req.write.apply(self.req, arguments)
   }
-  return self.req.write.apply(self.req, arguments)
 }
 Request.prototype.end = function (chunk) {
   var self = this
-  if (chunk) {
-    self.write(chunk)
+  if (!self._aborted) {
+    if (chunk) {
+      self.write(chunk)
+    }
+    if (!self._started) {
+      self.start()
+    }
+    self.req.end()
   }
-  if (!self._started) {
-    self.start()
-  }
-  self.req.end()
 }
 Request.prototype.pause = function () {
   var self = this

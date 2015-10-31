@@ -6,7 +6,7 @@ var server = require('./server')
   , request = require('../index')
   , path = require('path')
   , util = require('util')
-  , tape = require('tape')
+  , tape = require('tape-catch')
 
 var s = server.createServer()
 
@@ -87,6 +87,24 @@ tape('piping to a request object', function(t) {
 
   mydata.emit('data', 'mydata')
   mydata.emit('end')
+})
+
+tape('piping to a request object with invalid uri', function(t) {
+  var mybodydata = new stream.Stream()
+  mybodydata.readable = true
+
+  var r2 = request.put({
+    url: '/bad-uri',
+    json: true
+  }, function(err, res, body) {
+    t.ok(err instanceof Error)
+    t.equal(err.message, 'Invalid URI "/bad-uri"')
+    t.end()
+  })
+  mybodydata.pipe(r2)
+
+  mybodydata.emit('data', JSON.stringify({ foo: 'bar' }))
+  mybodydata.emit('end')
 })
 
 tape('piping to a request object with a json body', function(t) {
