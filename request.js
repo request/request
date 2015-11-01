@@ -137,6 +137,7 @@ function Request (options) {
   self._redirect = new Redirect(self)
   self._tunnel = new Tunnel(self)
   self.init(options)
+  self.options = options
 }
 
 util.inherits(Request, stream.Stream)
