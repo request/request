@@ -169,7 +169,7 @@ tape('null bearer', function(t) {
     }
   }, function(error, res, body) {
     t.equal(res.statusCode, 401)
-    t.equal(numBearerRequests, 12)
+    t.equal(numBearerRequests, 13)
     t.end()
   })
 })

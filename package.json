@@ -68,7 +68,6 @@
     "server-destroy": "^1.0.1",
     "tape": "^4.2.0",
     "taper": "^0.4.0",
-    "bluebird": "^3.0.2",
-    "tape-catch": "^1.0.4"
+    "bluebird": "^3.0.2"
   }
 }

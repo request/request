@@ -196,10 +196,7 @@ Request.prototype.init = function (options) {
       self._callbackCalled = true
       self._callback.apply(self, arguments)
     }
-    self.on('error', function () {
-      self._aborted = true
-      return self.callback.bind().apply(this, arguments)
-    })
+    self.on('error', self.callback.bind())
     self.on('complete', self.callback.bind(self, null))
   }
 
@@ -284,6 +281,7 @@ Request.prototype.init = function (options) {
       message += '. This can be caused by a crappy redirection.'
     }
     // This error was fatal
+    self.abort()
     return self.emit('error', new Error(message))
   }
 
@@ -1336,24 +1334,24 @@ Request.prototype.pipe = function (dest, opts) {
 }
 Request.prototype.write = function () {
   var self = this
-  if (!self._aborted) {
-    if (!self._started) {
-      self.start()
-    }
-    return self.req.write.apply(self.req, arguments)
+  if (self._aborted) {return}
+
+  if (!self._started) {
+    self.start()
   }
+  return self.req.write.apply(self.req, arguments)
 }
 Request.prototype.end = function (chunk) {
   var self = this
-  if (!self._aborted) {
-    if (chunk) {
-      self.write(chunk)
-    }
-    if (!self._started) {
-      self.start()
-    }
-    self.req.end()
+  if (self._aborted) {return}
+
+  if (chunk) {
+    self.write(chunk)
   }
+  if (!self._started) {
+    self.start()
+  }
+  self.req.end()
 }
 Request.prototype.pause = function () {
   var self = this

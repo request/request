@@ -6,7 +6,7 @@ var server = require('./server')
   , request = require('../index')
   , path = require('path')
   , util = require('util')
-  , tape = require('tape-catch')
+  , tape = require('tape')
 
 var s = server.createServer()
 
