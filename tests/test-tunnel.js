@@ -376,7 +376,7 @@ runTest('https->http over http, tunnel=default', {
 }, [
   'http connect to localhost:' + ss.port,
   'https redirect to http',
-  'http connect to localhost:' + s.port,
+  'http proxy to http',
   'http response',
   '200 http ok'
 ])

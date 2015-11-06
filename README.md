@@ -799,8 +799,7 @@ default in Linux can be anywhere from 20-120 seconds][linux-timeout]).
 - `tunnel` - controls the behavior of
   [HTTP `CONNECT` tunneling](https://en.wikipedia.org/wiki/HTTP_tunnel#HTTP_CONNECT_tunneling)
   as follows:
-   - `undefined` (default) - `true` if the destination is `https` or a previous
-     request in the redirect chain used a tunneling proxy, `false` otherwise
+   - `undefined` (default) - `true` if the destination is `https`, `false` otherwise
    - `true` - always tunnel to the destination by making a `CONNECT` request to
      the proxy
    - `false` - request the destination as a `GET` request.
