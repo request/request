@@ -288,7 +288,7 @@ Request.prototype.init = function (options) {
     self.proxy = getProxyFromURI(self.uri)
   }
 
-  self.tunnel = self._tunnel.isEnabled(options)
+  self.tunnel = self._tunnel.isEnabled()
   if (self.proxy) {
     self._tunnel.setup(options)
   }
