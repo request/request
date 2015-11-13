@@ -29,7 +29,7 @@
     "form-data": "~1.0.0-rc3",
     "json-stringify-safe": "~5.0.1",
     "mime-types": "~2.1.7",
-    "node-uuid": "~1.4.3",
+    "node-uuid": "~1.4.7",
     "qs": "~5.2.0",
     "tunnel-agent": "~0.4.1",
     "tough-cookie": "~2.2.0",
