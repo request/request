@@ -3,6 +3,7 @@
 var server = require('./server')
   , request = require('../index')
   , tape = require('tape')
+  , http = require('http')
 
 var s = server.createServer()
 
@@ -142,6 +143,25 @@ addTest('testPutMultipartPostambleCRLF', {
     [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
     , {'body': 'Oh hi.'}
     ]
+})
+
+tape('typed array', function (t) {
+  var server = http.createServer()
+  server.on('request', function (req, res) {
+    req.pipe(res)
+  })
+  server.listen(6768, function () {
+    var data = new Uint8Array([1, 2, 3])
+    request({
+      uri: 'http://localhost:6768',
+      method: 'POST',
+      body: data,
+      encoding: null
+    }, function (err, res, body) {
+      t.deepEqual(new Buffer(data), body)
+      server.close(t.end)
+    })
+  })
 })
 
 tape('cleanup', function(t) {

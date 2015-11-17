@@ -15,6 +15,7 @@ var http = require('http')
   , caseless = require('caseless')
   , ForeverAgent = require('forever-agent')
   , FormData = require('form-data')
+  , isTypedArray = require('is-typedarray').strict
   , helpers = require('./lib/helpers')
   , cookies = require('./lib/cookies')
   , getProxyFromURI = require('./lib/getProxyFromURI')
@@ -427,6 +428,10 @@ Request.prototype.init = function (options) {
   }
 
   function setContentLength () {
+    if (isTypedArray(self.body)) {
+      self.body = new Buffer(self.body)
+    }
+
     if (!self.hasHeader('content-length')) {
       var length
       if (typeof self.body === 'string') {
