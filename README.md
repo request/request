@@ -1077,7 +1077,7 @@ request('http://www.google.com', function() {
 The cookie store must be a
 [`tough-cookie`](https://github.com/SalesforceEng/tough-cookie)
 store and it must support synchronous operations; see the
-[`CookieStore` API docs](https://github.com/SalesforceEng/tough-cookie)
+[`CookieStore` API docs](https://github.com/SalesforceEng/tough-cookie#cookiestore-api)
 for details.
 
 To inspect your cookie jar after a request:
