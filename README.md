@@ -161,7 +161,7 @@ request.post({url:'http://service.com/upload', form: {key:'value'}}, function(er
 
 #### multipart/form-data (Multipart Form Uploads)
 
-For `multipart/form-data` we use the [form-data](https://github.com/felixge/node-form-data) library by [@felixge](https://github.com/felixge). For the most cases, you can pass your upload form data via the `formData` option.
+For `multipart/form-data` we use the [form-data](https://github.com/form-data/form-data) library by [@felixge](https://github.com/felixge). For the most cases, you can pass your upload form data via the `formData` option.
 
 
 ```js
@@ -179,7 +179,7 @@ var formData = {
   ],
   // Pass optional meta-data with an 'options' object with style: {value: DATA, options: OPTIONS}
   // Use case: for some types of streams, you'll need to provide "file"-related information manually.
-  // See the `form-data` README for more information about options: https://github.com/felixge/node-form-data
+  // See the `form-data` README for more information about options: https://github.com/form-data/form-data
   custom_file: {
     value:  fs.createReadStream('/dev/urandom'),
     options: {
@@ -206,7 +206,7 @@ form.append('my_field', 'my_value');
 form.append('my_buffer', new Buffer([1, 2, 3]));
 form.append('custom_file', fs.createReadStream(__dirname + '/unicycle.jpg'), {filename: 'unicycle.jpg'});
 ```
-See the [form-data README](https://github.com/felixge/node-form-data) for more information & examples.
+See the [form-data README](https://github.com/form-data/form-data) for more information & examples.
 
 
 #### multipart/related
@@ -472,7 +472,7 @@ HTTP/1.1 200 OK
 At this point, the connection is left open, and the client is
 communicating directly with the `endpoint-server.com` machine.
 
-See [the wikipedia page on HTTP Tunneling](http://en.wikipedia.org/wiki/HTTP_tunnel)
+See [the wikipedia page on HTTP Tunneling](https://en.wikipedia.org/wiki/HTTP_tunnel)
 for more information.
 
 By default, when proxying `http` traffic, request will simply make a
@@ -566,7 +566,7 @@ Here's some examples of valid `no_proxy` values:
 
 ## UNIX Domain Sockets
 
-`request` supports making requests to [UNIX Domain Sockets](http://en.wikipedia.org/wiki/Unix_domain_socket). To make one, use the following URL scheme:
+`request` supports making requests to [UNIX Domain Sockets](https://en.wikipedia.org/wiki/Unix_domain_socket). To make one, use the following URL scheme:
 
 ```js
 /* Pattern */ 'http://unix:SOCKET:PATH'
@@ -932,7 +932,7 @@ There are at least three ways to debug the operation of `request`:
 2. Set `require('request').debug = true` at any time (this does the same thing
    as #1).
 
-3. Use the [request-debug module](https://github.com/nylen/request-debug) to
+3. Use the [request-debug module](https://github.com/request/request-debug) to
    view request and response headers and bodies.
 
 [back to top](#table-of-contents)
@@ -1075,9 +1075,9 @@ request('http://www.google.com', function() {
 ```
 
 The cookie store must be a
-[`tough-cookie`](https://github.com/goinstant/tough-cookie)
+[`tough-cookie`](https://github.com/SalesforceEng/tough-cookie)
 store and it must support synchronous operations; see the
-[`CookieStore` API docs](https://github.com/goinstant/tough-cookie/#cookiestore-api)
+[`CookieStore` API docs](https://github.com/SalesforceEng/tough-cookie)
 for details.
 
 To inspect your cookie jar after a request:
