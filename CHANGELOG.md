@@ -1,5 +1,8 @@
 ## Change Log
 
+### v2.67.0 (2015/11/19)
+- [#1913](https://github.com/request/request/pull/1913) Update http-signature to version 1.1.0 🚀 (@greenkeeperio-bot)
+
 ### v2.66.0 (2015/11/18)
 - [#1906](https://github.com/request/request/pull/1906) Update README URLs based on HTTP redirects (@ReadmeCritic)
 - [#1905](https://github.com/request/request/pull/1905) Convert typed arrays into regular buffers (@simov)
