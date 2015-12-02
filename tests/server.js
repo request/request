@@ -51,7 +51,9 @@ exports.createSSLServer = function(port, opts) {
                 , 'cert': path.join(__dirname, 'ssl', 'test.crt')
                 }
   if (opts) {
-    for (i in opts) options[i] = opts[i]
+    for (i in opts) {
+      options[i] = opts[i]
+    }
   }
 
   for (i in options) {
