@@ -113,3 +113,23 @@ fs.createReadStream(TMP_FILE_PATH)
   .pipe(request.post('http://127.0.0.1:3000'))
 ;
 ```
+
+# Proxys
+
+Run tor on the terminal and try the following. (Needs `socks5-http-client` to connect to tor)
+
+```js
+var request = require('../index.js');
+var Agent = require('socks5-http-client/lib/Agent');
+
+request.get({
+    url: 'http://www.tenreads.io',
+    agentClass: Agent,
+    agentOptions: {
+        socksHost: 'localhost', // Defaults to 'localhost'.
+        socksPort: 9050 // Defaults to 1080.
+    }
+}, function (err, res) {
+    console.log(res.body); 
+});
+```
