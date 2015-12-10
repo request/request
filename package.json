@@ -44,31 +44,35 @@
     "har-validator": "~2.0.2"
   },
   "scripts": {
-    "test": "npm run lint && npm run test-ci && npm run test-browser",
+    "test": "npm run lint && npm run test-ci && npm run test-browserify && npm run test-webpack",
     "test-ci": "taper tests/test-*.js",
     "test-cov": "istanbul cover tape tests/test-*.js",
-    "test-browser": "node tests/browser/start.js",
+    "test-browserify": "TEST=browserify node tests/browser/start.js",
+    "test-webpack": "TEST=webpack node tests/browser/start.js",
     "lint": "eslint lib/ *.js tests/ && echo Lint passed."
   },
   "devDependencies": {
-    "browserify-istanbul": "^0.1.5",
+    "bluebird": "^3.0.2",
     "browserify": "^12.0.1",
+    "browserify-istanbul": "^0.1.5",
     "buffer-equal": "^0.0.1",
     "codecov.io": "^0.1.6",
     "coveralls": "^2.11.4",
     "eslint": "1.10.3",
     "function-bind": "^1.0.2",
     "istanbul": "^0.4.0",
-    "karma-browserify": "^4.4.0",
+    "json-loader": "^0.5.4",
     "karma": "^0.13.10",
+    "karma-browserify": "^4.4.0",
     "karma-cli": "^0.1.1",
     "karma-coverage": "^0.5.3",
     "karma-phantomjs-launcher": "^0.1.4",
     "karma-tap": "^1.0.3",
+    "karma-webpack": "^1.7.0",
     "rimraf": "^2.2.8",
     "server-destroy": "^1.0.1",
     "tape": "^4.2.0",
     "taper": "^0.4.0",
-    "bluebird": "^3.0.2"
+    "webpack": "^1.12.9"
   }
 }

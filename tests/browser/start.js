@@ -23,7 +23,7 @@ server.listen(port, function() {
   // Spawn process for karma.
   var c = spawn('karma', [
     'start',
-    path.join(__dirname, '/karma.conf.js')
+    path.join(__dirname, '/karma.' + process.env.TEST + '.conf.js')
   ])
   c.stdout.pipe(process.stdout)
   c.stderr.pipe(process.stderr)
