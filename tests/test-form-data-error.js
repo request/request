@@ -27,6 +27,44 @@ tape('re-emit formData errors', function(t) {
   }).form().append('field', ['value1', 'value2'])
 })
 
+tape('omit content-length header if the value is set to NaN', function(t) {
+
+  // returns chunked HTTP response which is streamed to the 2nd HTTP request in the form data
+  s.on('/chunky', server.createChunkResponse(
+    ['some string',
+      'some other string'
+    ]))
+
+  // accepts form data request
+  s.on('/stream', function(req, resp) {
+    req.on('data', function(chunk) {
+      // consume the request body
+    })
+    req.on('end', function() {
+      resp.writeHead(200)
+      resp.end()
+    })
+  })
+
+  var sendStreamRequest = function(stream) {
+    request.post({
+      uri: s.url + '/stream',
+      formData: {
+        param: stream
+      }
+    }, function(err, res) {
+      t.error(err, 'request failed')
+      t.end()
+    })
+  }
+
+  request.get({
+    uri: s.url + '/chunky',
+  }).on('response', function(res) {
+    sendStreamRequest(res)
+  })
+})
+
 tape('cleanup', function(t) {
   s.close(function() {
     t.end()
