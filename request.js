@@ -1044,7 +1044,7 @@ Request.prototype.abort = function () {
     self.req.abort()
   }
   else if (self.response) {
-    self.response.abort()
+    self.response.destroy()
   }
 
   self.emit('abort')
