@@ -274,6 +274,14 @@ request.get('http://some.server.com/', {
     'bearer': 'bearerToken'
   }
 });
+// or with SPNEGO/Kerberos
+request.get('http://some.server.com/').auth(null, null, false, null, true);
+// or
+request.get('http://some.server.com/', {
+  'auth': {
+    'negotiate': true
+  }
+});
 ```
 
 If passed as an option, `auth` should be a hash containing values:
@@ -284,7 +292,7 @@ If passed as an option, `auth` should be a hash containing values:
 - `bearer` (optional)
 
 The method form takes parameters
-`auth(username, password, sendImmediately, bearer)`.
+`auth(username, password, sendImmediately, bearer, negotiate)`.
 
 `sendImmediately` defaults to `true`, which causes a basic or bearer
 authentication header to be sent.  If `sendImmediately` is `false`, then
@@ -315,6 +323,13 @@ available. The value may be either a `String` or a `Function` returning a
 `String`. Using a function to supply the bearer token is particularly useful if
 used in conjunction with `defaults` to allow a single function to supply the
 last known token at the time of sending a request, or to compute one on the fly.
+
+Negotiate/SPNEGO/Kerberos authentication is also supported if the optional Kerberos
+module is installed.  The username and password are not used, credentials will be obtained
+from the current Kerberos credentials cache (change this location by setting the
+environment variable `KRB5CCNAME`). The `sendImmediately` flag when set to true
+will cause the Negotiate/SPNEGO token to be sent on the first request.  To enable
+negotiate/SPNEGO support set the negotiate key to a true value.
 
 [back to top](#table-of-contents)
 

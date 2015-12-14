@@ -44,6 +44,9 @@
     "tough-cookie": "~2.2.0",
     "tunnel-agent": "~0.4.1"
   },
+  "optionalDependencies": {
+    "kerberos": "~0.0.17"
+  },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
     "test-ci": "taper tests/test-*.js",
