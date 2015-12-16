@@ -720,6 +720,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 - `baseUrl` - fully qualified uri string used as the base url. Most useful with `request.defaults`, for example when you want to do many requests to the same domain.  If `baseUrl` is `https://example.com/api/`, then requesting `/end/point?test=true` will fetch `https://example.com/api/end/point?test=true`. When `baseUrl` is given, `uri` must also be a string.
 - `method` - http method (default: `"GET"`)
 - `headers` - http headers (default: `{}`)
+- `ignoreMime` - do not set the `content-type` header using mim lookup when piping from a stream.
 
 ---
 
