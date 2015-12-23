@@ -1054,7 +1054,7 @@ Request.prototype.abort = function () {
     self.req.abort()
   }
   else if (self.response) {
-    self.response.abort()
+    self.response.destroy()
   }
 
   self.emit('abort')
@@ -1144,7 +1144,7 @@ Request.prototype.form = function (form) {
   self._form.on('error', function(err) {
     err.message = 'form-data: ' + err.message
     self.emit('error', err)
-    self.destroy()
+    self.abort()
   })
   return self._form
 }
