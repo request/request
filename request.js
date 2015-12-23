@@ -431,7 +431,7 @@ Request.prototype.init = function (options) {
       self.body = new Buffer(self.body)
     }
 
-    if (!self.hasHeader('Content-Length')) {
+    if (!self.hasHeader('content-length')) {
       var length
       if (typeof self.body === 'string') {
         length = Buffer.byteLength(self.body)
@@ -444,7 +444,7 @@ Request.prototype.init = function (options) {
       }
 
       if (length) {
-        self.setHeader('Content-Length', length)
+        self.setHeader('content-length', length)
       } else {
         self.emit('error', new Error('Argument error, options.body.'))
       }
@@ -572,18 +572,18 @@ Request.prototype.init = function (options) {
           return
         }
         if (self.method !== 'GET' && typeof self.method !== 'undefined' && !self.continueBody) {
-          self.setHeader('Content-Length', 0)
+          self.setHeader('content-length', 0)
         }
         self.end()
       }
     }
 
-    if (self._form && !self.hasHeader('Content-Length')) {
+    if (self._form && !self.hasHeader('content-length')) {
       // Before ending the request, we had to compute the length of the whole form, asyncly
       self.setHeader(self._form.getHeaders(), true)
       self._form.getLength(function (err, length) {
-        if (!err) {
-          self.setHeader('Content-Length', length)
+        if (!err && !isNaN(length)) {
+          self.setHeader('content-length', length)
         }
         end()
       })
@@ -732,8 +732,8 @@ Request.prototype.start = function () {
   self.method = self.method || 'GET'
   self.href = self.uri.href
 
-  if (self.src && self.src.stat && self.src.stat.size && !self.hasHeader('Content-Length')) {
-    self.setHeader('Content-Length', self.src.stat.size)
+  if (self.src && self.src.stat && self.src.stat.size && !self.hasHeader('content-length')) {
+    self.setHeader('content-length', self.src.stat.size)
   }
   if (self._aws) {
     self.aws(self._aws, true)
@@ -1075,8 +1075,8 @@ Request.prototype.pipeDest = function (dest) {
       }
     }
 
-    if (response.caseless.has('Content-Length')) {
-      var clname = response.caseless.has('Content-Length')
+    if (response.caseless.has('content-length')) {
+      var clname = response.caseless.has('content-length')
       if (dest.setHeader) {
         dest.setHeader(clname, response.headers[clname])
       } else {
@@ -1144,7 +1144,7 @@ Request.prototype.form = function (form) {
   self._form.on('error', function(err) {
     err.message = 'form-data: ' + err.message
     self.emit('error', err)
-    self.abort()
+    self.destroy()
   })
   return self._form
 }
