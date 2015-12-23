@@ -200,7 +200,6 @@ Request.prototype.init = function (options) {
     self.on('error', self.callback.bind())
     self.on('complete', self.callback.bind(self, null))
   }
-
   // People use this property instead all the time, so support it
   if (!self.uri && self.url) {
     self.uri = self.url
@@ -432,7 +431,7 @@ Request.prototype.init = function (options) {
       self.body = new Buffer(self.body)
     }
 
-    if (!self.hasHeader('content-length')) {
+    if (!self.hasHeader('Content-Length')) {
       var length
       if (typeof self.body === 'string') {
         length = Buffer.byteLength(self.body)
@@ -445,7 +444,7 @@ Request.prototype.init = function (options) {
       }
 
       if (length) {
-        self.setHeader('content-length', length)
+        self.setHeader('Content-Length', length)
       } else {
         self.emit('error', new Error('Argument error, options.body.'))
       }
@@ -453,6 +452,10 @@ Request.prototype.init = function (options) {
   }
   if (self.body) {
     setContentLength()
+  }
+  if(self.headers.Expect === '100-continue') {
+      self.continueBody = self.body;
+      delete self.body;
   }
 
   if (options.oauth) {
@@ -568,19 +571,19 @@ Request.prototype.init = function (options) {
           self.end()
           return
         }
-        if (self.method !== 'GET' && typeof self.method !== 'undefined') {
-          self.setHeader('content-length', 0)
+        if (self.method !== 'GET' && typeof self.method !== 'undefined' && !self.continueBody) {
+          self.setHeader('Content-Length', 0)
         }
         self.end()
       }
     }
 
-    if (self._form && !self.hasHeader('content-length')) {
+    if (self._form && !self.hasHeader('Content-Length')) {
       // Before ending the request, we had to compute the length of the whole form, asyncly
       self.setHeader(self._form.getHeaders(), true)
       self._form.getLength(function (err, length) {
-        if (!err && !isNaN(length)) {
-          self.setHeader('content-length', length)
+        if (!err) {
+          self.setHeader('Content-Length', length)
         }
         end()
       })
@@ -729,8 +732,8 @@ Request.prototype.start = function () {
   self.method = self.method || 'GET'
   self.href = self.uri.href
 
-  if (self.src && self.src.stat && self.src.stat.size && !self.hasHeader('content-length')) {
-    self.setHeader('content-length', self.src.stat.size)
+  if (self.src && self.src.stat && self.src.stat.size && !self.hasHeader('Content-Length')) {
+    self.setHeader('Content-Length', self.src.stat.size)
   }
   if (self._aws) {
     self.aws(self._aws, true)
@@ -742,7 +745,6 @@ Request.prototype.start = function () {
   delete reqOptions.auth
 
   debug('make request', self.uri.href)
-
   self.req = self.httpModule.request(reqOptions)
 
   if (self.timing) {
@@ -785,6 +787,7 @@ Request.prototype.start = function () {
   }
 
   self.req.on('response', self.onRequestResponse.bind(self))
+  self.req.on('continue', self.onContinue.bind(self))
   self.req.on('error', self.onRequestError.bind(self))
   self.req.on('drain', function() {
     self.emit('drain')
@@ -818,6 +821,13 @@ Request.prototype.onRequestError = function (error) {
     self.timeoutTimer = null
   }
   self.emit('error', error)
+}
+
+Request.prototype.onContinue = function (response) {
+    var self = this;
+    self.emit('continue', self);
+    self.continueBody && self.req.write(self.continueBody);
+    self.req.end();
 }
 
 Request.prototype.onRequestResponse = function (response) {
@@ -1044,7 +1054,7 @@ Request.prototype.abort = function () {
     self.req.abort()
   }
   else if (self.response) {
-    self.response.destroy()
+    self.response.abort()
   }
 
   self.emit('abort')
@@ -1065,8 +1075,8 @@ Request.prototype.pipeDest = function (dest) {
       }
     }
 
-    if (response.caseless.has('content-length')) {
-      var clname = response.caseless.has('content-length')
+    if (response.caseless.has('Content-Length')) {
+      var clname = response.caseless.has('Content-Length')
       if (dest.setHeader) {
         dest.setHeader(clname, response.headers[clname])
       } else {
