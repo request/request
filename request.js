@@ -453,7 +453,7 @@ Request.prototype.init = function (options) {
   if (self.body) {
     setContentLength()
   }
-  if(self.headers.Expect === '100-continue') {
+  if(self.headers.expect === '100-continue') {
       self.continueBody = self.body;
       delete self.body;
   }
