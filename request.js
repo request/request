@@ -246,7 +246,18 @@ Request.prototype.init = function (options) {
 
   // If a string URI/URL was given, parse it into a URL object
   if (typeof self.uri === 'string') {
-    self.uri = url.parse(self.uri)
+    //from https://github.com/request/request/issues/1678
+    var tempUri = self.uri
+    // Encode path if needed
+    var parts = url.parse(tempUri)
+    if (parts.pathname) {
+      parts.pathname = parts.pathname.split('/').map(function (part) {
+        // Prevent double encoding
+        return encodeURIComponent(decodeURIComponent(part))
+      }).join('/')
+      tempUri = url.format(parts)
+    }
+    self.uri = url.parse(tempUri)
   }
 
   // Some URL objects are not from a URL parsed string and need href added
