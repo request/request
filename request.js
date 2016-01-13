@@ -15,6 +15,7 @@ var http = require('http')
   , caseless = require('caseless')
   , ForeverAgent = require('forever-agent')
   , FormData = require('form-data')
+  , extend = require('extend')
   , isTypedArray = require('is-typedarray').strict
   , helpers = require('./lib/helpers')
   , cookies = require('./lib/cookies')
@@ -123,7 +124,7 @@ function Request (options) {
   var reserved = Object.keys(Request.prototype)
   var nonReserved = filterForNonReserved(reserved, options)
 
-  util._extend(self, nonReserved)
+  extend(self, nonReserved)
   options = filterOutReservedFunctions(reserved, options)
 
   self.readable = true
