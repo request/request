@@ -749,6 +749,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 - `postambleCRLF` - append a newline/CRLF at the end of the boundary of your `multipart/form-data` request.
 - `json` - sets `body` to JSON representation of value and adds `Content-type: application/json` header.  Additionally, parses the response body as JSON.
 - `jsonReviver` - a [reviver function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse) that will be passed to `JSON.parse()` when parsing a JSON response body.
+- `jsonReplacer` - a [replacer function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) that will be passed to `JSON.stringify()` when stringifying a JSON request body.
 
 ---
 

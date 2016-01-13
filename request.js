@@ -1162,11 +1162,15 @@ Request.prototype.json = function (val) {
     self.setHeader('accept', 'application/json')
   }
 
+  if (typeof self.jsonReplacer === 'function') {
+    self._jsonReplacer = self.jsonReplacer
+  }
+
   self._json = true
   if (typeof val === 'boolean') {
     if (self.body !== undefined) {
       if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
-        self.body = safeStringify(self.body)
+        self.body = safeStringify(self.body, self._jsonReplacer)
       } else {
         self.body = self._qs.rfc3986(self.body)
       }
@@ -1175,7 +1179,7 @@ Request.prototype.json = function (val) {
       }
     }
   } else {
-    self.body = safeStringify(val)
+    self.body = safeStringify(val, self._jsonReplacer)
     if (!self.hasHeader('content-type')) {
       self.setHeader('content-type', 'application/json')
     }
