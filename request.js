@@ -453,9 +453,9 @@ Request.prototype.init = function (options) {
   if (self.body) {
     setContentLength()
   }
-  if(self.headers.expect === '100-continue') {
-      self.continueBody = self.body;
-      delete self.body;
+  if (self.headers.expect === '100-continue') {
+    self.continueBody = self.body
+    delete self.body
   }
 
   if (options.oauth) {
@@ -824,10 +824,10 @@ Request.prototype.onRequestError = function (error) {
 }
 
 Request.prototype.onContinue = function (response) {
-    var self = this;
-    self.emit('continue', self);
-    self.continueBody && self.req.write(self.continueBody);
-    self.req.end();
+  var self = this
+  self.emit('continue', self)
+  self.continueBody && self.req.write(self.continueBody)
+  self.req.end()
 }
 
 Request.prototype.onRequestResponse = function (response) {
