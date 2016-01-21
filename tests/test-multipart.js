@@ -41,20 +41,24 @@ function runTest(t, a) {
     req.on('end', function() {
       // check for the fields traces
 
-      // 1st field : my_field
+      // my_field
       t.ok(data.indexOf('name: my_field') !== -1)
       t.ok(data.indexOf(multipartData[0].body) !== -1)
-
-      // 2nd field : my_buffer
-      t.ok(data.indexOf('name: my_buffer') !== -1)
+      
+      // my_number
+      t.ok(data.indexOf('name: my_number') !== -1)
       t.ok(data.indexOf(multipartData[1].body) !== -1)
 
-      // 3rd field : my_file
+      // my_buffer
+      t.ok(data.indexOf('name: my_buffer') !== -1)
+      t.ok(data.indexOf(multipartData[2].body) !== -1)
+
+      // my_file
       t.ok(data.indexOf('name: my_file') !== -1)
       // check for unicycle.jpg traces
       t.ok(data.indexOf('2005:06:21 01:44:12') !== -1)
 
-      // 4th field : remote_file
+      // remote_file
       t.ok(data.indexOf('name: remote_file') !== -1)
       // check for http://localhost:6767/file traces
       t.ok(data.indexOf('Photoshop ICC') !== -1)
@@ -73,6 +77,7 @@ function runTest(t, a) {
     // @NOTE: multipartData properties must be set here so that my_file read stream does not leak in node v0.8
     multipartData = [
       {name: 'my_field', body: 'my_value'},
+      {name: 'my_number', body: 1000},
       {name: 'my_buffer', body: new Buffer([1, 2, 3])},
       {name: 'my_file', body: fs.createReadStream(localFile)},
       {name: 'remote_file', body: request('http://localhost:6767/file')}
