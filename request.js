@@ -5,6 +5,7 @@ var http = require('http')
   , url = require('url')
   , util = require('util')
   , stream = require('stream')
+  , EventEmitter = require('events').EventEmitter
   , zlib = require('zlib')
   , bl = require('bl')
   , hawk = require('hawk')
@@ -504,35 +505,37 @@ Request.prototype.init = function (options) {
     self.agent = self.agent || self.getNewAgent()
   }
 
-  self.on('pipe', function (src) {
-    if (self.ntick && self._started) {
-      self.emit('error', new Error('You cannot pipe to this stream after the outbound request has started.'))
-    }
-    self.src = src
-    if (isReadStream(src)) {
-      if (!self.hasHeader('content-type')) {
-        self.setHeader('content-type', mime.lookup(src.path))
+  if (EventEmitter.listenerCount(self, 'pipe') === 0) {
+    self.on('pipe', function (src) {
+      if (self.ntick && self._started) {
+        self.emit('error', new Error('You cannot pipe to this stream after the outbound request has started.'))
       }
-    } else {
-      if (src.headers) {
-        for (var i in src.headers) {
-          if (!self.hasHeader(i)) {
-            self.setHeader(i, src.headers[i])
+      self.src = src
+      if (isReadStream(src)) {
+        if (!self.hasHeader('content-type')) {
+          self.setHeader('content-type', mime.lookup(src.path))
+        }
+      } else {
+        if (src.headers) {
+          for (var i in src.headers) {
+            if (!self.hasHeader(i)) {
+              self.setHeader(i, src.headers[i])
+            }
           }
         }
+        if (self._json && !self.hasHeader('content-type')) {
+          self.setHeader('content-type', 'application/json')
+        }
+        if (src.method && !self.explicitMethod) {
+          self.method = src.method
+        }
       }
-      if (self._json && !self.hasHeader('content-type')) {
-        self.setHeader('content-type', 'application/json')
-      }
-      if (src.method && !self.explicitMethod) {
-        self.method = src.method
-      }
-    }
 
-    // self.on('pipe', function () {
-    //   console.error('You have already piped to this stream. Pipeing twice is likely to break the request.')
-    // })
-  })
+      // self.on('pipe', function () {
+      //   console.error('You have already piped to this stream. Pipeing twice is likely to break the request.')
+      // })
+    })
+  }
 
   defer(function () {
     if (self._aborted) {
@@ -794,11 +797,13 @@ Request.prototype.start = function () {
     self.emit('socket', socket)
   })
 
-  self.on('end', function() {
-    if ( self.req.connection ) {
-      self.req.connection.removeListener('error', connectionErrorHandler)
-    }
-  })
+  if (EventEmitter.listenerCount(self, 'end') === 0) {
+    self.on('end', function() {
+      if ( self.req.connection ) {
+        self.req.connection.removeListener('error', connectionErrorHandler)
+      }
+    })
+  }
   self.emit('request', self.req)
 }
 
