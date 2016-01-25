@@ -6,8 +6,7 @@ if (process.env.running_under_istanbul) {
   return
 }
 
-var request = require('../index')
-  , http    = require('http')
+var request = require('../index') 
   , server  = require('./server')
   , tape    = require('tape')
 
@@ -35,7 +34,7 @@ tape('default behaviour: aws-sign2 without sign_version key', function(t) {
   aws2_options.url = s.url + path
   aws2_options.json = true
   
-  var r = request(aws2_options, function(err, res, body) {    
+  request(aws2_options, function(err, res, body) {    
     t.ok(body.authorization)
     t.notOk(body['x-amz-date'])
     t.end()
@@ -50,7 +49,7 @@ tape('aws-sign2 with sign_version key', function(t) {
   aws2_options.url = s.url + path
   aws2_options.json = true
   
-  var r = request(aws2_options, function(err, res, body) {    
+  request(aws2_options, function(err, res, body) {    
     t.ok(body.authorization)
     t.notOk(body['x-amz-date'])
     t.end()
@@ -65,7 +64,7 @@ tape('aws-sign4 options', function(t) {
   aws2_options.url = s.url + path
   aws2_options.json = true
   
-  var r = request(aws2_options, function(err, res, body) {    
+  request(aws2_options, function(err, res, body) {    
     t.ok(body.authorization)
     t.ok(body['x-amz-date'])
     t.end()
