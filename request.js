@@ -1231,22 +1231,23 @@ Request.prototype.aws = function (opts, now) {
     return self
   }
   
-  if(opts.sign_version == 4 || opts.sign_version == '4'){
+  if (opts.sign_version == 4 || opts.sign_version == '4') {
     // Use aws-sign4  
     var options = {
       host: self.uri.host,
       path: self.uri.path,
       method: self.method,
-      body: JSON.stringify(self.body)
+      headers: {
+        'content-type': self.getHeader('content-type') || ''
+      },
+      body: self.body
     }
-  ​
     var signRes = aws4.sign(options, {
       accessKeyId: opts.key,
       secretAccessKey: opts.secret
     })
-  ​
-    self.setHeader('Authorization', signRes.headers.Authorization)
-    self.setHeader('X-Amz-Date', signRes.headers['X-Amz-Date'])
+    self.setHeader('authorization', signRes.headers.Authorization)
+    self.setHeader('x-amz-date', signRes.headers['X-Amz-Date'])
   } else {
     // Default behaviour -> use aws-sign2
     var date = new Date()
