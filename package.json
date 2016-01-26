@@ -22,27 +22,27 @@
   },
   "main": "index.js",
   "dependencies": {
+    "aws-sign2": "~0.6.0",
+    "aws4": "^1.2.1",
     "bl": "~1.0.0",
     "caseless": "~0.11.0",
+    "combined-stream": "~1.0.5",
     "extend": "~3.0.0",
     "forever-agent": "~0.6.1",
     "form-data": "~1.0.0-rc3",
+    "har-validator": "~2.0.6",
+    "hawk": "~3.1.0",
+    "http-signature": "~1.1.0",
+    "is-typedarray": "~1.0.0",
+    "isstream": "~0.1.2",
     "json-stringify-safe": "~5.0.1",
     "mime-types": "~2.1.7",
     "node-uuid": "~1.4.7",
-    "qs": "~6.0.2",
-    "tunnel-agent": "~0.4.1",
-    "tough-cookie": "~2.2.0",
-    "http-signature": "~1.1.0",
     "oauth-sign": "~0.8.0",
-    "hawk": "~3.1.0",
-    "aws-sign2": "~0.6.0",
+    "qs": "~6.0.2",
     "stringstream": "~0.0.4",
-    "combined-stream": "~1.0.5",
-    "isstream": "~0.1.2",
-    "is-typedarray": "~1.0.0",
-    "har-validator": "~2.0.6",
-    "aws4": "^1.2.1"
+    "tough-cookie": "~2.2.0",
+    "tunnel-agent": "~0.4.1"
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
@@ -52,16 +52,17 @@
     "lint": "eslint lib/ *.js tests/ && echo Lint passed."
   },
   "devDependencies": {
-    "browserify-istanbul": "^0.1.5",
+    "bluebird": "^3.0.2",
     "browserify": "^13.0.0",
+    "browserify-istanbul": "^0.1.5",
     "buffer-equal": "^1.0.0",
     "codecov.io": "^0.1.6",
     "coveralls": "^2.11.4",
     "eslint": "1.10.3",
     "function-bind": "^1.0.2",
     "istanbul": "^0.4.0",
-    "karma-browserify": "^4.4.0",
     "karma": "^0.13.10",
+    "karma-browserify": "^4.4.0",
     "karma-cli": "^0.1.1",
     "karma-coverage": "^0.5.3",
     "karma-phantomjs-launcher": "^0.1.4",
@@ -69,7 +70,6 @@
     "rimraf": "^2.2.8",
     "server-destroy": "^1.0.1",
     "tape": "^4.2.0",
-    "taper": "^0.4.0",
-    "bluebird": "^3.0.2"
+    "taper": "^0.4.0"
   }
 }
