@@ -70,7 +70,7 @@
 - [#1687](https://github.com/request/request/pull/1687) Fix caseless bug - content-type not being set for multipart/form-data (@simov, @garymathews)
 
 ### v2.59.0 (2015/07/20)
-- [#1671](https://github.com/request/request/pull/1671) Add tests and docs for using the agent, agentClass, agentOptions and forever options.
+- [#1671](https://github.com/request/request/pull/1671) Add tests and docs for using the agent, agentClass, agentOptions and forever options. Forever option defaults to using http(s).Agent in node 0.12+ (@simov)
 - [#1679](https://github.com/request/request/pull/1679) Fix - do not remove OAuth param when using OAuth realm (@simov, @jhalickman)
 - [#1668](https://github.com/request/request/pull/1668) updated dependencies (@deamme)
 - [#1656](https://github.com/request/request/pull/1656) Fix form method (@simov)
