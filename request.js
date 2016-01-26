@@ -1232,7 +1232,7 @@ Request.prototype.aws = function (opts, now) {
   }
   
   if (opts.sign_version == 4 || opts.sign_version == '4') {
-    // Use aws-sign4  
+    // use aws4  
     var options = {
       host: self.uri.host,
       path: self.uri.path,
@@ -1248,8 +1248,9 @@ Request.prototype.aws = function (opts, now) {
     })
     self.setHeader('authorization', signRes.headers.Authorization)
     self.setHeader('x-amz-date', signRes.headers['X-Amz-Date'])
-  } else {
-    // Default behaviour -> use aws-sign2
+  }
+  else {
+    // default: use aws-sign2
     var date = new Date()
     self.setHeader('date', date.toUTCString())
     var auth =
