@@ -9,7 +9,6 @@ var http = require('http')
   , bl = require('bl')
   , hawk = require('hawk')
   , aws2 = require('aws-sign2')
-  , aws4 = require('aws4')
   , httpSignature = require('http-signature')
   , mime = require('mime-types')
   , stringstream = require('stringstream')
@@ -1232,6 +1231,7 @@ Request.prototype.aws = function (opts, now) {
   }
   
   if (opts.sign_version == 4 || opts.sign_version == '4') {
+    var aws4 = require('aws4')
     // use aws4  
     var options = {
       host: self.uri.host,
