@@ -8,7 +8,7 @@ var http = require('http')
   , zlib = require('zlib')
   , bl = require('bl')
   , hawk = require('hawk')
-  , aws = require('aws-sign2')
+  , aws2 = require('aws-sign2')
   , httpSignature = require('http-signature')
   , mime = require('mime-types')
   , stringstream = require('stringstream')
@@ -1229,29 +1229,52 @@ Request.prototype.aws = function (opts, now) {
     self._aws = opts
     return self
   }
-  var date = new Date()
-  self.setHeader('date', date.toUTCString())
-  var auth =
-    { key: opts.key
-    , secret: opts.secret
-    , verb: self.method.toUpperCase()
-    , date: date
-    , contentType: self.getHeader('content-type') || ''
-    , md5: self.getHeader('content-md5') || ''
-    , amazonHeaders: aws.canonicalizeHeaders(self.headers)
+  
+  if (opts.sign_version == 4 || opts.sign_version == '4') {
+    var aws4 = require('aws4')
+    // use aws4  
+    var options = {
+      host: self.uri.host,
+      path: self.uri.path,
+      method: self.method,
+      headers: {
+        'content-type': self.getHeader('content-type') || ''
+      },
+      body: self.body
     }
-  var path = self.uri.path
-  if (opts.bucket && path) {
-    auth.resource = '/' + opts.bucket + path
-  } else if (opts.bucket && !path) {
-    auth.resource = '/' + opts.bucket
-  } else if (!opts.bucket && path) {
-    auth.resource = path
-  } else if (!opts.bucket && !path) {
-    auth.resource = '/'
+    var signRes = aws4.sign(options, {
+      accessKeyId: opts.key,
+      secretAccessKey: opts.secret
+    })
+    self.setHeader('authorization', signRes.headers.Authorization)
+    self.setHeader('x-amz-date', signRes.headers['X-Amz-Date'])
   }
-  auth.resource = aws.canonicalizeResource(auth.resource)
-  self.setHeader('authorization', aws.authorization(auth))
+  else {
+    // default: use aws-sign2
+    var date = new Date()
+    self.setHeader('date', date.toUTCString())
+    var auth =
+      { key: opts.key
+      , secret: opts.secret
+      , verb: self.method.toUpperCase()
+      , date: date
+      , contentType: self.getHeader('content-type') || ''
+      , md5: self.getHeader('content-md5') || ''
+      , amazonHeaders: aws2.canonicalizeHeaders(self.headers)
+      }
+    var path = self.uri.path
+    if (opts.bucket && path) {
+      auth.resource = '/' + opts.bucket + path
+    } else if (opts.bucket && !path) {
+      auth.resource = '/' + opts.bucket
+    } else if (!opts.bucket && path) {
+      auth.resource = path
+    } else if (!opts.bucket && !path) {
+      auth.resource = '/'
+    }
+    auth.resource = aws2.canonicalizeResource(auth.resource)
+    self.setHeader('authorization', aws2.authorization(auth))
+  }
 
   return self
 }
