@@ -23,6 +23,7 @@
   "main": "index.js",
   "dependencies": {
     "aws-sign2": "~0.6.0",
+    "aws4": "^1.2.1",
     "bl": "~1.0.0",
     "caseless": "~0.11.0",
     "combined-stream": "~1.0.5",
@@ -51,7 +52,6 @@
     "lint": "eslint lib/ *.js tests/ && echo Lint passed."
   },
   "devDependencies": {
-    "aws4": "^1.2.1",
     "bluebird": "^3.0.2",
     "browserify": "^13.0.0",
     "browserify-istanbul": "^0.1.5",
