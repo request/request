@@ -1123,7 +1123,7 @@ Request.prototype.form = function (form) {
   var self = this
   if (form) {
     if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
-      self.setHeader('content-type', 'application/x-www-form-urlencoded')
+      self.setHeader('content-type', 'application/x-www-form-urlencoded; charset=UTF-8')
     }
     self.body = (typeof form === 'string')
       ? self._qs.rfc3986(form.toString('utf8'))
@@ -1229,10 +1229,10 @@ Request.prototype.aws = function (opts, now) {
     self._aws = opts
     return self
   }
-  
+
   if (opts.sign_version == 4 || opts.sign_version == '4') {
     var aws4 = require('aws4')
-    // use aws4  
+    // use aws4
     var options = {
       host: self.uri.host,
       path: self.uri.path,

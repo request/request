@@ -10,9 +10,9 @@ function runTest (t, options, index) {
   var server = http.createServer(function(req, res) {
 
     if (index === 0 || index === 3) {
-      t.equal(req.headers['content-type'], 'application/x-www-form-urlencoded')
-    } else {
       t.equal(req.headers['content-type'], 'application/x-www-form-urlencoded; charset=UTF-8')
+    } else {
+      t.equal(req.headers['content-type'], 'application/x-www-form-urlencoded; charset=GBK')
     }
     t.equal(req.headers['content-length'], '21')
     t.equal(req.headers.accept, 'application/json')
@@ -54,12 +54,12 @@ var cases = [
     json: true
   },
   {
-    headers: {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+    headers: {'content-type': 'application/x-www-form-urlencoded; charset=GBK'},
     form: {some: 'url', encoded: 'data'},
     json: true
   },
   {
-    headers: {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+    headers: {'content-type': 'application/x-www-form-urlencoded; charset=GBK'},
     body: 'some=url&encoded=data',
     json: true
   },
