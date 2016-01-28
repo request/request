@@ -35,7 +35,7 @@ tape('setup', function(t) {
       })
       assert.equal(req.method, 'POST')
       assert.equal(req.headers['content-length'], '' + expectedContent.length)
-      assert.equal(req.headers['content-type'], 'application/x-www-form-urlencoded')
+      assert.equal(req.headers['content-type'], 'application/x-www-form-urlencoded; charset=UTF-8')
     }
 
     if (ok) {
