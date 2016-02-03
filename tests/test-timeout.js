@@ -138,6 +138,19 @@ if (process.env.TRAVIS === 'true') {
     })
   })
 
+  tape('abort', function (t) {
+    var shouldTimeout = {
+      url: s.url + '/timeout',
+      timeout: 10000
+    }
+
+    var req = request(shouldTimeout)
+    // This timer should be cleared:
+    req.timeoutTimer = setTimeout(t.end, 100)
+    req.abort()
+    t.end()
+  })
+
   tape('cleanup', function(t) {
     s.close(function() {
       t.end()

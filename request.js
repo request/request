@@ -1041,6 +1041,11 @@ Request.prototype.abort = function () {
   var self = this
   self._aborted = true
 
+  if (self.timeout && self.timeoutTimer) {
+    clearTimeout(self.timeoutTimer)
+    self.timeoutTimer = null
+  }
+
   if (self.req) {
     self.req.abort()
   }
@@ -1229,10 +1234,10 @@ Request.prototype.aws = function (opts, now) {
     self._aws = opts
     return self
   }
-  
+
   if (opts.sign_version == 4 || opts.sign_version == '4') {
     var aws4 = require('aws4')
-    // use aws4  
+    // use aws4
     var options = {
       host: self.uri.host,
       path: self.uri.path,
