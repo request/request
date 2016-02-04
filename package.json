@@ -52,7 +52,7 @@
     "lint": "eslint lib/ *.js tests/ && echo Lint passed."
   },
   "devDependencies": {
-    "bluebird": "^3.0.2",
+    "bluebird": "^3.2.0",
     "browserify": "^13.0.0",
     "browserify-istanbul": "^0.1.5",
     "buffer-equal": "^1.0.0",
