@@ -65,7 +65,7 @@
     "karma-browserify": "^4.4.0",
     "karma-cli": "^0.1.1",
     "karma-coverage": "^0.5.3",
-    "karma-phantomjs-launcher": "^0.1.4",
+    "karma-phantomjs-launcher": "^0.2.3",
     "karma-tap": "^1.0.3",
     "rimraf": "^2.2.8",
     "server-destroy": "^1.0.1",
