@@ -1,5 +1,8 @@
 ## Change Log
 
+### v2.69.0 (2016/01/27)
+- [#2041](https://github.com/request/request/pull/2041) restore aws4 as regular dependency (@rmg)
+
 ### v2.68.0 (2016/01/27)
 - [#2036](https://github.com/request/request/pull/2036) Add AWS Signature Version 4 (@simov, @mirkods)
 - [#2022](https://github.com/request/request/pull/2022) Convert numeric multipart bodies to string (@simov, @feross)
@@ -470,7 +473,7 @@
 - [#521](https://github.com/request/request/pull/521) Improving test-localAddress.js (@noway421)
 - [#529](https://github.com/request/request/pull/529) dependencies versions bump (@jodaka)
 
-### v2.18.0 (2013/04/22)
+### v2.20.0 (2013/04/22)
 - [#523](https://github.com/request/request/pull/523) Updating dependencies (@noway421)
 - [#520](https://github.com/request/request/pull/520) Fixing test-tunnel.js (@noway421)
 - [#519](https://github.com/request/request/pull/519) Update internal path state on post-creation QS changes (@jblebrun)
