@@ -18,7 +18,7 @@ tape('returns on error', function(t) {
     uri: 'https://stupid.nonexistent.path:port123/\\<-great-idea',
     withCredentials: false
   }, function (error, response) {
-    t.equal(response.statusCode, 0)
+    t.equal(typeof error, 'object')
     t.end()
   })
 })
