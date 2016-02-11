@@ -453,9 +453,14 @@ Request.prototype.init = function (options) {
   if (self.body) {
     setContentLength()
   }
-  if (self.headers.expect === '100-continue') {
+  var expectHeader = self.headers.Expect || self.headers.expect
+  if (expectHeader && expectHeader.toLowerCase() === '100-continue' && self.body) {
     self.continueBody = self.body
     delete self.body
+    self.on("redirect", function() {
+        self.body = self.continueBody
+        self.headers.Expect = null
+    })
   }
 
   if (options.oauth) {
