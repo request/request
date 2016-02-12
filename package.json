@@ -24,7 +24,7 @@
   "dependencies": {
     "aws-sign2": "~0.6.0",
     "aws4": "^1.2.1",
-    "bl": "~1.0.0",
+    "bl": "~1.1.2",
     "caseless": "~0.11.0",
     "combined-stream": "~1.0.5",
     "extend": "~3.0.0",
