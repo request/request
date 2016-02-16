@@ -16,6 +16,7 @@ var http = require('http')
   , ForeverAgent = require('forever-agent')
   , FormData = require('form-data')
   , extend = require('extend')
+  , isstream = require('isstream')
   , isTypedArray = require('is-typedarray').strict
   , helpers = require('./lib/helpers')
   , cookies = require('./lib/cookies')
@@ -452,7 +453,7 @@ Request.prototype.init = function (options) {
       }
     }
   }
-  if (self.body) {
+  if (self.body && !isstream(self.body)) {
     setContentLength()
   }
 
@@ -552,15 +553,19 @@ Request.prototype.init = function (options) {
         self._multipart.body.pipe(self)
       }
       if (self.body) {
-        setContentLength()
-        if (Array.isArray(self.body)) {
-          self.body.forEach(function (part) {
-            self.write(part)
-          })
+        if (isstream(self.body)) {
+          self.body.pipe(self)
         } else {
-          self.write(self.body)
+          setContentLength()
+          if (Array.isArray(self.body)) {
+            self.body.forEach(function (part) {
+              self.write(part)
+            })
+          } else {
+            self.write(self.body)
+          }
+          self.end()
         }
-        self.end()
       } else if (self.requestBodyStream) {
         console.warn('options.requestBodyStream is deprecated, please pass the request object to stream.pipe.')
         self.requestBodyStream.pipe(self)
