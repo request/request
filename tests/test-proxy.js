@@ -144,13 +144,13 @@ if (process.env.TEST_PROXY_HARNESS) {
     url    : 'https://google.com',
     tunnel : false,
     pool   : false
-  }, true)
+  }, false)
 
   runTest('http_proxy environment variable and https: url', {
     env    : { http_proxy : s.url },
     url    : 'https://google.com',
     tunnel : false
-  }, true)
+  }, false)
 
   runTest('HTTPS_PROXY environment variable and https: url', {
     env    : { HTTPS_PROXY : s.url },

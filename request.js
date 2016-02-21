@@ -21,7 +21,7 @@ var http = require('http')
   , isTypedArray = require('is-typedarray').strict
   , helpers = require('./lib/helpers')
   , cookies = require('./lib/cookies')
-  , getProxyFromURI = require('./lib/getProxyFromURI')
+  , getProxyForUrl = require('proxy-from-env').getProxyForUrl
   , Querystring = require('./lib/querystring').Querystring
   , Har = require('./lib/har').Har
   , Auth = require('./lib/auth').Auth
@@ -290,7 +290,7 @@ Request.prototype.init = function (options) {
   }
 
   if (!self.hasOwnProperty('proxy')) {
-    self.proxy = getProxyFromURI(self.uri)
+    self.proxy = getProxyForUrl(self.uri) || null
   }
 
   self.tunnel = self._tunnel.isEnabled()
