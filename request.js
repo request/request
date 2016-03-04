@@ -1350,11 +1350,11 @@ Request.prototype.jar = function (jar) {
 }
 
 Request.prototype.extra = function (extra) {
-  var self = this;
+  var self = this
   
-  self._extra = extra;
+  self._extra = extra
   
-  return self;
+  return self
 }
 
 
