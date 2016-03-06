@@ -37,7 +37,7 @@
     "no-shadow": 0,
     // Use if () { }
     //       ^ space
-    "space-after-keywords": [2, "always"],
+    "keyword-spacing": [2, {"after": true}],
     // Use if () { }
     //          ^ space
     "space-before-blocks": [2, "always"]
