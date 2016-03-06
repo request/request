@@ -463,6 +463,10 @@ Request.prototype.init = function (options) {
     self.oauth(self._oauth.params)
   }
 
+  if (options.extra) {
+    self.extra(options.extra)
+  }
+
   var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
     , defaultModules = {'http:':http, 'https:':https}
     , httpModules = self.httpModules || {}
@@ -1038,7 +1042,7 @@ Request.prototype.readResponseBody = function (response) {
     if (typeof response.body === 'undefined' && !self._json) {
       response.body = self.encoding === null ? new Buffer(0) : ''
     }
-    self.emit('complete', response, response.body)
+    self.emit('complete', response, response.body, self._extra)
   })
 }
 
@@ -1342,6 +1346,14 @@ Request.prototype.jar = function (jar) {
     }
   }
   self._jar = jar
+  return self
+}
+
+Request.prototype.extra = function (extra) {
+  var self = this
+  
+  self._extra = extra
+  
   return self
 }
 

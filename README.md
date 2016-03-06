@@ -17,7 +17,7 @@ Request is designed to be the simplest way possible to make http calls. It suppo
 
 ```js
 var request = require('request');
-request('http://www.google.com', function (error, response, body) {
+request('http://www.google.com', function (error, response, body, extra) {
   if (!error && response.statusCode == 200) {
     console.log(body) // Show the HTML for the Google homepage.
   }
@@ -240,7 +240,7 @@ Some variations in different HTTP implementations require a newline/CRLF before,
       ]
     }
   },
-  function (error, response, body) {
+  function (error, response, body, extra) {
     if (error) {
       return console.error('upload failed:', error);
     }
@@ -301,7 +301,7 @@ var username = 'username',
     password = 'password',
     url = 'http://' + username + ':' + password + '@some.server.com';
 
-request({url: url}, function (error, response, body) {
+request({url: url}, function (error, response, body, extra) {
    // Do more stuff with 'body' here
 });
 ```
@@ -339,7 +339,7 @@ var options = {
   }
 };
 
-function callback(error, response, body) {
+function callback(error, response, body, extra) {
   if (!error && response.statusCode == 200) {
     var info = JSON.parse(body);
     console.log(info.stargazers_count + " Stars");
@@ -721,6 +721,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 - `baseUrl` - fully qualified uri string used as the base url. Most useful with `request.defaults`, for example when you want to do many requests to the same domain.  If `baseUrl` is `https://example.com/api/`, then requesting `/end/point?test=true` will fetch `https://example.com/api/end/point?test=true`. When `baseUrl` is given, `uri` must also be a string.
 - `method` - http method (default: `"GET"`)
 - `headers` - http headers (default: `{}`)
+- `extra` - extra data which will be passed to the callback (default: `undefined`)
 
 ---
 
@@ -987,7 +988,7 @@ request.get('http://10.255.255.1', {timeout: 1500}, function(err) {
       , { body: 'I am an attachment' }
       ]
     }
-  , function (error, response, body) {
+  , function (error, response, body, extra) {
       if(response.statusCode == 201){
         console.log('document saved as: http://mikeal.iriscouch.com/testjs/'+ rand)
       } else {
@@ -1011,7 +1012,7 @@ the server sent a compressed response.
     , uri: 'http://www.google.com'
     , gzip: true
     }
-  , function (error, response, body) {
+  , function (error, response, body, extra) {
       // body is the decompressed response body
       console.log('server encoded the data as: ' + (response.headers['content-encoding'] || 'identity'))
       console.log('the decoded data is: ' + body)
