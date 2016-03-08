@@ -586,7 +586,11 @@ Request.prototype.init = function (options) {
       self.setHeader(self._form.getHeaders(), true)
       self._form.getLength(function (err, length) {
         if (!err && !isNaN(length)) {
-          self.setHeader('content-length', length)
+          var chunked = false;
+          (Object.keys (self.headers)).forEach (function (key) {
+            if (key.toLowerCase () === 'transfer-encoding' && self.headers [key] === 'chunked') chunked = true;
+          })
+          if (! chunked) self.setHeader('content-length', length)
         }
         end()
       })
@@ -1234,10 +1238,10 @@ Request.prototype.aws = function (opts, now) {
     self._aws = opts
     return self
   }
-  
+
   if (opts.sign_version == 4 || opts.sign_version == '4') {
     var aws4 = require('aws4')
-    // use aws4  
+    // use aws4
     var options = {
       host: self.uri.host,
       path: self.uri.path,
