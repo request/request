@@ -587,11 +587,11 @@ Request.prototype.init = function (options) {
       self._form.getLength(function (err, length) {
         if (!err && !isNaN(length)) {
           var chunked = false
-          (Object.keys (self.headers)).forEach (function (key) {
+          for (var key in self.headers) {
             if (key.toLowerCase () === 'transfer-encoding' && self.headers [key] === 'chunked') {
               chunked = true
             }
-          })
+          }
           if (! chunked) {
             self.setHeader('content-length', length)
           }
