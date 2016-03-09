@@ -586,9 +586,11 @@ Request.prototype.init = function (options) {
       self.setHeader(self._form.getHeaders(), true)
       self._form.getLength(function (err, length) {
         if (!err && !isNaN(length)) {
-          var chunked = false;
+          var chunked = false
           (Object.keys (self.headers)).forEach (function (key) {
-            if (key.toLowerCase () === 'transfer-encoding' && self.headers [key] === 'chunked') chunked = true;
+            if (key.toLowerCase () === 'transfer-encoding' && self.headers [key] === 'chunked') {
+              chunked = true
+            }
           })
           if (! chunked) self.setHeader('content-length', length)
         }
