@@ -592,7 +592,9 @@ Request.prototype.init = function (options) {
               chunked = true
             }
           })
-          if (! chunked) self.setHeader('content-length', length)
+          if (! chunked) {
+            self.setHeader('content-length', length)
+          }
         }
         end()
       })
