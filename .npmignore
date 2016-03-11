@@ -4,3 +4,7 @@ node_modules
 examples
 release.sh
 disabled.appveyor.yml
+.eslintrc
+.npmignore
+.travis.yml
+CONTRIBUTING.md
