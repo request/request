@@ -1,6 +1,5 @@
 coverage
 tests
-node_modules
 examples
 release.sh
 disabled.appveyor.yml
