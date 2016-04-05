@@ -1,5 +1,20 @@
 ## Change Log
 
+### v2.70.0 (2016/04/05)
+- [#2147](https://github.com/request/request/pull/2147) Update eslint to version 2.5.3 🚀 (@simov, @greenkeeperio-bot)
+- [#2009](https://github.com/request/request/pull/2009) Support JSON stringify replacer argument. (@elyobo)
+- [#2142](https://github.com/request/request/pull/2142) Update eslint to version 2.5.1 🚀 (@greenkeeperio-bot)
+- [#2128](https://github.com/request/request/pull/2128) Update browserify-istanbul to version 2.0.0 🚀 (@greenkeeperio-bot)
+- [#2115](https://github.com/request/request/pull/2115) Update eslint to version 2.3.0 🚀 (@simov, @greenkeeperio-bot)
+- [#2089](https://github.com/request/request/pull/2089) Fix badges (@simov)
+- [#2092](https://github.com/request/request/pull/2092) Update browserify-istanbul to version 1.0.0 🚀 (@greenkeeperio-bot)
+- [#2079](https://github.com/request/request/pull/2079) Accept read stream as body option (@simov)
+- [#2070](https://github.com/request/request/pull/2070) Update bl to version 1.1.2 🚀 (@greenkeeperio-bot)
+- [#2063](https://github.com/request/request/pull/2063) Up bluebird and oauth-sign (@simov)
+- [#2058](https://github.com/request/request/pull/2058) Karma fixes for latest versions (@eiriksm)
+- [#2057](https://github.com/request/request/pull/2057) Update contributing guidelines (@simov)
+- [#2054](https://github.com/request/request/pull/2054) Update qs to version 6.1.0 🚀 (@greenkeeperio-bot)
+
 ### v2.69.0 (2016/01/27)
 - [#2041](https://github.com/request/request/pull/2041) restore aws4 as regular dependency (@rmg)
 
@@ -88,7 +103,8 @@
 - [#1687](https://github.com/request/request/pull/1687) Fix caseless bug - content-type not being set for multipart/form-data (@simov, @garymathews)
 
 ### v2.59.0 (2015/07/20)
-- [#1671](https://github.com/request/request/pull/1671) Add tests and docs for using the agent, agentClass, agentOptions and forever options. Forever option defaults to using http(s).Agent in node 0.12+ (@simov)
+- [#1671](https://github.com/request/request/pull/1671) Add tests and docs for using the agent, agentClass, agentOptions and forever options.
+ Forever option defaults to using http(s).Agent in node 0.12+ (@simov)
 - [#1679](https://github.com/request/request/pull/1679) Fix - do not remove OAuth param when using OAuth realm (@simov, @jhalickman)
 - [#1668](https://github.com/request/request/pull/1668) updated dependencies (@deamme)
 - [#1656](https://github.com/request/request/pull/1656) Fix form method (@simov)
