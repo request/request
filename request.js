@@ -202,7 +202,6 @@ Request.prototype.init = function (options) {
     self.on('error', self.callback.bind())
     self.on('complete', self.callback.bind(self, null))
   }
-
   // People use this property instead all the time, so support it
   if (!self.uri && self.url) {
     self.uri = self.url
@@ -456,6 +455,10 @@ Request.prototype.init = function (options) {
   if (self.body && !isstream(self.body)) {
     setContentLength()
   }
+  if(self.headers.expect === '100-continue') {
+      self.continueBody = self.body;
+      delete self.body;
+  }
 
   if (options.oauth) {
     self.oauth(options.oauth)
@@ -574,7 +577,7 @@ Request.prototype.init = function (options) {
           self.end()
           return
         }
-        if (self.method !== 'GET' && typeof self.method !== 'undefined') {
+        if (self.method !== 'GET' && typeof self.method !== 'undefined' && !self.continueBody) {
           self.setHeader('content-length', 0)
         }
         self.end()
@@ -748,7 +751,6 @@ Request.prototype.start = function () {
   delete reqOptions.auth
 
   debug('make request', self.uri.href)
-
   self.req = self.httpModule.request(reqOptions)
 
   if (self.timing) {
@@ -791,6 +793,7 @@ Request.prototype.start = function () {
   }
 
   self.req.on('response', self.onRequestResponse.bind(self))
+  self.req.on('continue', self.onContinue.bind(self))
   self.req.on('error', self.onRequestError.bind(self))
   self.req.on('drain', function() {
     self.emit('drain')
@@ -824,6 +827,13 @@ Request.prototype.onRequestError = function (error) {
     self.timeoutTimer = null
   }
   self.emit('error', error)
+}
+
+Request.prototype.onContinue = function (response) {
+    var self = this;
+    self.emit('continue', self);
+    self.continueBody && self.req.write(self.continueBody);
+    self.req.end();
 }
 
 Request.prototype.onRequestResponse = function (response) {
