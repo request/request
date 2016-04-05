@@ -1085,7 +1085,7 @@ Request.prototype.pipeDest = function (dest) {
       // If the response content is being decoded, the Content-Encoding header
       // of the response doesn't represent the piped content, so don't pass it.
       if (!self.gzip || i !== 'content-encoding') {
-        dest.setHeader(i, response.headers[i])
+        dest.setHeader(i.trim(), response.headers[i])
       }
     }
     dest.statusCode = response.statusCode

@@ -162,6 +162,22 @@ tape('undefined headers', function(t) {
   })
 })
 
+tape('headers ending and starting with spaces', function(t) {
+  request({
+    url: s.url + '/headers.json',
+    headers: {
+      'X-TEST-1 ': 'test1',
+      ' X-TEST-2': 'test2'
+    },
+    json: true
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(body['x-test-1'], 'test1')
+    t.equal(body['x-test-2'], 'test2')
+    t.end()
+  })
+})
+
 tape('cleanup', function(t) {
   s.close(function() {
     t.end()
