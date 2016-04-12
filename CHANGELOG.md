@@ -1,5 +1,8 @@
 ## Change Log
 
+### v2.71.0 (2016/04/12)
+- [#2164](https://github.com/request/request/pull/2164) Catch errors from the underlying http module (@simov)
+
 ### v2.70.0 (2016/04/05)
 - [#2147](https://github.com/request/request/pull/2147) Update eslint to version 2.5.3 🚀 (@simov, @greenkeeperio-bot)
 - [#2009](https://github.com/request/request/pull/2009) Support JSON stringify replacer argument. (@elyobo)
