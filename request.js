@@ -749,7 +749,12 @@ Request.prototype.start = function () {
 
   debug('make request', self.uri.href)
 
-  self.req = self.httpModule.request(reqOptions)
+  try {
+    self.req = self.httpModule.request(reqOptions)
+  } catch (err) {
+    self.emit('error', err)
+    return
+  }
 
   if (self.timing) {
     self.startTime = new Date().getTime()
@@ -1389,7 +1394,9 @@ Request.prototype.end = function (chunk) {
   if (!self._started) {
     self.start()
   }
-  self.req.end()
+  if (self.req) {
+    self.req.end()
+  }
 }
 Request.prototype.pause = function () {
   var self = this
