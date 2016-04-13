@@ -1037,8 +1037,6 @@ Request.prototype.readResponseBody = function (response) {
       }
       response.body = strings.join('')
     }
-    
-    // explicitly destroy, since itto null which is referenced by a closure
 
     if (self._json) {
       try {
