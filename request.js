@@ -1011,6 +1011,9 @@ Request.prototype.readResponseBody = function (response) {
     debug('end event', self.uri.href)
     if (self._aborted) {
       debug('aborted', self.uri.href)
+      // `buffer` is defined in the parent scope and used in a closure it exists for the life of the request.
+      // This can lead to leaky behavior if the user retains a reference to the request object.
+      buffer.destroy()
       return
     }
 
@@ -1023,6 +1026,9 @@ Request.prototype.readResponseBody = function (response) {
       } else {
         response.body = buffer.toString(self.encoding)
       }
+      // `buffer` is defined in the parent scope and used in a closure it exists for the life of the Request.
+      // This can lead to leaky behavior if the user retains a reference to the request object.
+      buffer.destroy()
     } else if (strings.length) {
       // The UTF8 BOM [0xEF,0xBB,0xBF] is converted to [0xFE,0xFF] in the JS UTC16/UCS2 representation.
       // Strip this value out when the encoding is set to 'utf8', as upstream consumers won't expect it and it breaks JSON.parse().
