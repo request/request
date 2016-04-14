@@ -1382,7 +1382,9 @@ Request.prototype.write = function () {
   if (!self._started) {
     self.start()
   }
-  return self.req.write.apply(self.req, arguments)
+  if (self.req) {
+    return self.req.write.apply(self.req, arguments)
+  }
 }
 Request.prototype.end = function (chunk) {
   var self = this

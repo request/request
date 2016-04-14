@@ -162,12 +162,29 @@ tape('undefined headers', function(t) {
   })
 })
 
-tape('catch invalid characters error', function(t) {
+tape('catch invalid characters error - GET', function(t) {
   request({
     url: s.url + '/headers.json',
     headers: {
       'test': 'אבגד'
     }
+  }, function(err, res, body) {
+    t.equal(err.message, 'The header content contains invalid characters')
+  })
+  .on('error', function (err) {
+    t.equal(err.message, 'The header content contains invalid characters')
+    t.end()
+  })
+})
+
+tape('catch invalid characters error - POST', function(t) {
+  request({
+    method: 'POST',
+    url: s.url + '/headers.json',
+    headers: {
+      'test': 'אבגד'
+    },
+    body: 'beep'
   }, function(err, res, body) {
     t.equal(err.message, 'The header content contains invalid characters')
   })
