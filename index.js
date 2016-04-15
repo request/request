@@ -70,7 +70,8 @@ request.head = verbFunc('head')
 request.post = verbFunc('post')
 request.put = verbFunc('put')
 request.patch = verbFunc('patch')
-request.del = request.delete = verbFunc('delete')
+request.del = verbFunc('delete')
+request['delete'] = verbFunc('delete')
 
 request.jar = function (store) {
   return cookies.jar(store)
