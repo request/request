@@ -37,7 +37,7 @@ function initParams(uri, options, callback) {
     extend(params, uri)
   }
 
-  params.callback = callback
+  params.callback = callback || params.callback
   return params
 }
 
