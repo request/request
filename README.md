@@ -889,12 +889,13 @@ Same as `request()`, but defaults to `method: "HEAD"`.
 request.head(url)
 ```
 
-### request.del
+### request.del / request.delete
 
 Same as `request()`, but defaults to `method: "DELETE"`.
 
 ```js
 request.del(url)
+request.delete(url)
 ```
 
 ### request.get
