@@ -399,7 +399,7 @@ Request.prototype.init = function (options) {
   }
 
   if (self.gzip && !self.hasHeader('accept-encoding')) {
-    self.setHeader('accept-encoding', 'gzip')
+    self.setHeader('accept-encoding', 'gzip, deflate')
   }
 
   if (self.uri.auth && !self.hasHeader('authorization')) {
@@ -927,6 +927,9 @@ Request.prototype.onRequestResponse = function (response) {
 
       if (contentEncoding === 'gzip') {
         responseContent = zlib.createGunzip()
+        response.pipe(responseContent)
+      } else if (contentEncoding === 'deflate') {
+        responseContent = zlib.createInflate()
         response.pipe(responseContent)
       } else {
         // Since previous versions didn't check for Content-Encoding header,

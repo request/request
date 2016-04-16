@@ -31,6 +31,12 @@ var server = http.createServer(function(req, res) {
         res.end(data)
       })
     }
+  } else if (/\bdeflate\b/i.test(req.headers['accept-encoding'])) {
+    res.setHeader('Content-Encoding', 'deflate')
+    zlib.deflate(testContent, function (err, data) {
+      assert.equal(err, null)
+      res.end(data)
+    })
   } else {
     res.end(testContent)
   }
@@ -208,6 +214,18 @@ tape('pause before streaming from a gzip request object', function(t) {
     r.resume()
   }, 100)
 })
+
+tape('transparently supports deflate decoding to callbacks', function(t) {
+  var options = { url: 'http://localhost:6767/foo', gzip: true, headers: { 'Accept-Encoding': 'deflate' } }
+
+  request.get(options, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.headers['content-encoding'], 'deflate')
+    t.equal(body, testContent)
+    t.end()
+  })
+})
+
 
 tape('cleanup', function(t) {
   server.close(function() {
