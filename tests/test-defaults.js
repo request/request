@@ -138,6 +138,17 @@ tape('del(string, function)', function(t) {
   })
 })
 
+tape('delete(string, function)', function(t) {
+  request.defaults({
+    headers: {foo: 'bar'},
+    json: true
+  }).delete(s.url + '/', function (e, r, b) {
+    t.equal(b.method, 'DELETE')
+    t.equal(b.headers.foo, 'bar')
+    t.end()
+  })
+})
+
 tape('head(object, function)', function(t) {
   request.defaults({
     headers: { foo: 'bar' }
