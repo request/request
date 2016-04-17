@@ -16,6 +16,20 @@ var server = http.createServer(function(req, res) {
   res.statusCode = 200
   res.setHeader('Content-Type', 'text/plain')
 
+  if (req.method === 'HEAD') {
+    res.setHeader('Content-Encoding', 'gzip')
+    res.end()
+    return
+  }
+  if (req.headers.code) {
+    res.writeHead(req.headers.code, {
+      'Content-Encoding': 'gzip',
+      code: req.headers.code
+    })
+    res.end()
+    return
+  }
+
   if (/\bgzip\b/i.test(req.headers['accept-encoding'])) {
     res.setHeader('Content-Encoding', 'gzip')
     if (req.url === '/error') {
@@ -223,6 +237,43 @@ tape('transparently supports deflate decoding to callbacks', function(t) {
     t.equal(res.headers['content-encoding'], 'deflate')
     t.equal(body, testContent)
     t.end()
+  })
+})
+
+tape('do not try to pipe HEAD request responses', function(t) {
+  var options = { method: 'HEAD', url: 'http://localhost:6767/foo', gzip: true }
+
+  request(options, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(body, '')
+    t.end()
+  })
+})
+
+tape('do not try to pipe responses with no body', function(t) {
+  var options = { url: 'http://localhost:6767/foo', gzip: true }
+
+  options.headers = {code: 105}
+  request.post(options, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.headers.code, '105')
+    t.equal(body, '')
+    
+    options.headers = {code: 204}
+    request.post(options, function(err, res, body) {
+      t.equal(err, null)
+      t.equal(res.headers.code, '204')
+      t.equal(body, '')
+      
+      options.headers = {code: 304}
+      request.post(options, function(err, res, body) {
+        t.equal(err, null)
+        t.equal(res.headers.code, '304')
+        t.equal(body, '')
+
+        t.end()
+      })
+    })
   })
 })
 

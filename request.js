@@ -920,8 +920,20 @@ Request.prototype.onRequestResponse = function (response) {
       self._ended = true
     })
 
+    var noBody = function (code) {
+      return (
+        self.method === 'HEAD'
+        // Informational
+        || (code >= 100 && code < 200)
+        // No Content
+        || code === 204
+        // Not Modified
+        || code === 304
+      )
+    }
+
     var responseContent
-    if (self.gzip) {
+    if (self.gzip && !noBody(response.statusCode)) {
       var contentEncoding = response.headers['content-encoding'] || 'identity'
       contentEncoding = contentEncoding.trim().toLowerCase()
 
