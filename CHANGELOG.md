@@ -1,5 +1,13 @@
 ## Change Log
 
+### v2.72.0 (2016/04/17)
+- [#2176](https://github.com/request/request/pull/2176) Do not try to pipe Gzip responses with no body (@simov)
+- [#2175](https://github.com/request/request/pull/2175) Add 'delete' alias for the 'del' API method (@simov, @MuhanZou)
+- [#2172](https://github.com/request/request/pull/2172) Add support for deflate content encoding (@czardoz)
+- [#2169](https://github.com/request/request/pull/2169) Add callback option (@simov)
+- [#2165](https://github.com/request/request/pull/2165) Check for self.req existence inside the write method (@simov)
+- [#2167](https://github.com/request/request/pull/2167) Fix TravisCI badge reference master branch (@a0viedo)
+
 ### v2.71.0 (2016/04/12)
 - [#2164](https://github.com/request/request/pull/2164) Catch errors from the underlying http module (@simov)
 
