@@ -37,12 +37,12 @@
     "isstream": "~0.1.2",
     "json-stringify-safe": "~5.0.1",
     "mime-types": "~2.1.7",
-    "node-uuid": "~1.4.7",
     "oauth-sign": "~0.8.1",
     "qs": "~6.2.0",
     "stringstream": "~0.0.4",
     "tough-cookie": "~2.3.0",
-    "tunnel-agent": "~0.4.1"
+    "tunnel-agent": "~0.4.1",
+    "uuid": "^2.0.2"
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
