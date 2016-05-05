@@ -63,7 +63,7 @@
     "istanbul": "^0.4.0",
     "karma": "^0.13.10",
     "karma-browserify": "^5.0.1",
-    "karma-cli": "^0.1.1",
+    "karma-cli": "^1.0.0",
     "karma-coverage": "^0.5.3",
     "karma-phantomjs-launcher": "^1.0.0",
     "karma-tap": "^1.0.3",
