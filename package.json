@@ -39,7 +39,7 @@
     "mime-types": "~2.1.7",
     "node-uuid": "~1.4.7",
     "oauth-sign": "~0.8.1",
-    "qs": "~6.1.0",
+    "qs": "~6.2.0",
     "stringstream": "~0.0.4",
     "tough-cookie": "~2.2.0",
     "tunnel-agent": "~0.4.1"
