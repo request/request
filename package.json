@@ -64,7 +64,7 @@
     "karma": "^0.13.10",
     "karma-browserify": "^5.0.1",
     "karma-cli": "^1.0.0",
-    "karma-coverage": "^0.5.3",
+    "karma-coverage": "^1.0.0",
     "karma-phantomjs-launcher": "^1.0.0",
     "karma-tap": "^1.0.3",
     "phantomjs-prebuilt": "^2.1.3",
