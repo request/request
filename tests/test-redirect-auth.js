@@ -4,9 +4,13 @@ var server = require('./server')
   , request = require('../index')
   , util = require('util')
   , tape = require('tape')
+  , destroyable = require('server-destroy')
 
 var s = server.createServer()
   , ss = server.createSSLServer()
+
+destroyable(s)
+destroyable(ss)
 
 // always send basic auth and allow non-strict SSL
 request = request.defaults({
@@ -117,8 +121,8 @@ runTest('different host and protocol',
   false)
 
 tape('cleanup', function(t) {
-  s.close(function() {
-    ss.close(function() {
+  s.destroy(function() {
+    ss.destroy(function() {
       t.end()
     })
   })

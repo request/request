@@ -4,10 +4,14 @@ var server = require('./server')
   , request = require('../index')
   , events = require('events')
   , tape = require('tape')
+  , destroyable = require('server-destroy')
 
 var s = server.createServer()
   , ss = server.createSSLServer()
   , e = new events.EventEmitter()
+
+destroyable(s)
+destroyable(ss)
 
 function bouncy(s, serverUrl) {
   var redirs = { a: 'b'
@@ -79,8 +83,8 @@ tape('lots of redirects', function(t) {
 })
 
 tape('cleanup', function(t) {
-  s.close(function() {
-    ss.close(function() {
+  s.destroy(function() {
+    ss.destroy(function() {
       t.end()
     })
   })

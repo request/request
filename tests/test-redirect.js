@@ -5,11 +5,15 @@ var server = require('./server')
   , request = require('../index')
   , tape = require('tape')
   , http = require('http')
+  , destroyable = require('server-destroy')
 
 var s = server.createServer()
   , ss = server.createSSLServer()
   , hits = {}
   , jar = request.jar()
+
+destroyable(s)
+destroyable(ss)
 
 s.on('/ssl', function(req, res) {
   res.writeHead(302, {
@@ -419,8 +423,8 @@ tape('should use same agent class on redirect', function(t) {
 })
 
 tape('cleanup', function(t) {
-  s.close(function() {
-    ss.close(function() {
+  s.destroy(function() {
+    ss.destroy(function() {
       t.end()
     })
   })
