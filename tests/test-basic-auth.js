@@ -207,6 +207,28 @@ tape('get method', function(t) {
     })
 })
 
+tape('use uri object', function(t) {
+  var r = request({
+    'method': 'GET',
+    'uri': {
+      'protocol': 'http:',
+      'hostname': 'localhost',
+      'port': 6767,
+      'pathname': '/test/'
+    },
+    'auth': {
+      'user': 'user',
+      'pass': 'pass',
+      'sendImmediately': false
+    }
+  }, function(error, res, body) {
+    t.equal(r._auth.user, 'user')
+    t.equal(res.statusCode, 200)
+    t.equal(numBasicRequests, 18)
+    t.end()
+  })
+})
+
 tape('cleanup', function(t) {
   basicServer.close(function() {
     t.end()
