@@ -249,15 +249,12 @@ Request.prototype.init = function (options) {
 
   // If a string URI/URL was given, parse it into a URL object
   if (typeof self.uri === 'string') {
-    //from https://github.com/request/request/issues/1678
     var tempUri = self.uri
     // Encode path if needed
     var parts = url.parse(tempUri)
     if (parts.pathname && parts.host !== 'unix') {
-      parts.pathname = parts.pathname.split('/').map(function (part) {
-        // Prevent double encoding
-        return encodeURIComponent(decodeURIComponent(part))
-      }).join('/')
+      // Prevent double encoding
+      parts.pathname = encodeURI(decodeURI(parts.pathname))
       tempUri = url.format(parts)
     }
     self.uri = url.parse(tempUri)
