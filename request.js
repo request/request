@@ -336,7 +336,7 @@ Request.prototype.init = function (options) {
     var formData = options.formData
     var requestForm = self.form()
     var appendFormValue = function (key, value) {
-      if (value.hasOwnProperty('value') && value.hasOwnProperty('options')) {
+      if (value && value.hasOwnProperty('value') && value.hasOwnProperty('options')) {
         requestForm.append(key, value.value, value.options)
       } else {
         requestForm.append(key, value)

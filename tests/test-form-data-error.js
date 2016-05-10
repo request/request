@@ -65,6 +65,20 @@ tape('omit content-length header if the value is set to NaN', function(t) {
   })
 })
 
+// TODO: remove this test after form-data@2.0 starts stringifying null values
+tape('form-data should throw on null value', function (t) {
+  t.throws(function () {
+    request({
+      method: 'POST',
+      url: 'http://localhost:6767',
+      formData: {
+        key: null
+      }
+    })
+  }, /Cannot read property 'path' of null/)
+  t.end()
+})
+
 tape('cleanup', function(t) {
   s.close(function() {
     t.end()
