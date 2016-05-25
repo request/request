@@ -36,6 +36,7 @@
     "is-typedarray": "~1.0.0",
     "isstream": "~0.1.2",
     "json-stringify-safe": "~5.0.1",
+    "kerberos": "~0.0.17",
     "mime-types": "~2.1.7",
     "node-uuid": "~1.4.7",
     "oauth-sign": "~0.8.1",
@@ -43,9 +44,6 @@
     "stringstream": "~0.0.4",
     "tough-cookie": "~2.2.0",
     "tunnel-agent": "~0.4.1"
-  },
-  "optionalDependencies": {
-    "kerberos": "~0.0.17"
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
