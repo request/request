@@ -601,7 +601,6 @@ var options = {
     key: fs.readFileSync(keyFile),
     passphrase: 'password',
     ca: fs.readFileSync(caFile)
-    }
 };
 
 request.get(options);
