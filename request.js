@@ -183,7 +183,7 @@ Request.prototype.init = function (options) {
 
   self._qs.init(options)
 
-  debug(options)
+  self.debug(options)
   if (!self.pool && self.pool !== false) {
     self.pool = globalPool
   }
@@ -748,7 +748,7 @@ Request.prototype.start = function () {
   var reqOptions = copy(self)
   delete reqOptions.auth
 
-  debug('make request', self.uri.href)
+  self.debug('make request', self.uri.href)
 
   try {
     self.req = self.httpModule.request(reqOptions)
@@ -834,14 +834,14 @@ Request.prototype.onRequestError = function (error) {
 
 Request.prototype.onRequestResponse = function (response) {
   var self = this
-  debug('onRequestResponse', self.uri.href, response.statusCode, response.headers)
+  self.debug('onRequestResponse', self.uri.href, response.statusCode, response.headers)
   response.on('end', function() {
     if (self.timing) {
       self.elapsedTime += (new Date().getTime() - self.startTime)
-      debug('elapsed time', self.elapsedTime)
+      self.debug('elapsed time', self.elapsedTime)
       response.elapsedTime = self.elapsedTime
     }
-    debug('response end', self.uri.href, response.statusCode, response.headers)
+    self.debug('response end', self.uri.href, response.statusCode, response.headers)
   })
 
   // The check on response.connection is a workaround for browserify.
@@ -850,7 +850,7 @@ Request.prototype.onRequestResponse = function (response) {
     response.connection.once('error', connectionErrorHandler)
   }
   if (self._aborted) {
-    debug('aborted', self.uri.href)
+    self.debug('aborted', self.uri.href)
     response.resume()
     return
   }
@@ -863,7 +863,7 @@ Request.prototype.onRequestResponse = function (response) {
   if (self.httpModule === https &&
       self.strictSSL && (!response.hasOwnProperty('socket') ||
       !response.socket.authorized)) {
-    debug('strict ssl error', self.uri.href)
+    self.debug('strict ssl error', self.uri.href)
     var sslErr = response.hasOwnProperty('socket') ? response.socket.authorizationError : self.uri.href + ' does not support SSL'
     self.emit('error', new Error('SSL Error: ' + sslErr))
     return
@@ -948,7 +948,7 @@ Request.prototype.onRequestResponse = function (response) {
         // Since previous versions didn't check for Content-Encoding header,
         // ignore any invalid values to preserve backwards-compatibility
         if (contentEncoding !== 'identity') {
-          debug('ignoring unrecognized Content-Encoding ' + contentEncoding)
+          self.debug('ignoring unrecognized Content-Encoding ' + contentEncoding)
         }
         responseContent = response
       }
@@ -1000,19 +1000,19 @@ Request.prototype.onRequestResponse = function (response) {
     else {
       self.on('end', function () {
         if (self._aborted) {
-          debug('aborted', self.uri.href)
+          self.debug('aborted', self.uri.href)
           return
         }
         self.emit('complete', response)
       })
     }
   }
-  debug('finish init function', self.uri.href)
+  self.debug('finish init function', self.uri.href)
 }
 
 Request.prototype.readResponseBody = function (response) {
   var self = this
-  debug('reading response\'s body')
+  self.debug('reading response\'s body')
   var buffer = bl()
     , strings = []
 
@@ -1024,9 +1024,9 @@ Request.prototype.readResponseBody = function (response) {
     }
   })
   self.on('end', function () {
-    debug('end event', self.uri.href)
+    self.debug('end event', self.uri.href)
     if (self._aborted) {
-      debug('aborted', self.uri.href)
+      self.debug('aborted', self.uri.href)
       // `buffer` is defined in the parent scope and used in a closure it exists for the life of the request.
       // This can lead to leaky behavior if the user retains a reference to the request object.
       buffer.destroy()
@@ -1034,7 +1034,7 @@ Request.prototype.readResponseBody = function (response) {
     }
 
     if (buffer.length) {
-      debug('has body', self.uri.href, buffer.length)
+      self.debug('has body', self.uri.href, buffer.length)
       if (self.encoding === null) {
         // response.body = buffer
         // can't move to this until https://github.com/rvagg/bl/issues/13
@@ -1058,10 +1058,10 @@ Request.prototype.readResponseBody = function (response) {
       try {
         response.body = JSON.parse(response.body, self._jsonReviver)
       } catch (e) {
-        debug('invalid JSON received', self.uri.href)
+        self.debug('invalid JSON received', self.uri.href)
       }
     }
-    debug('emitting complete', self.uri.href)
+    self.debug('emitting complete', self.uri.href)
     if (typeof response.body === 'undefined' && !self._json) {
       response.body = self.encoding === null ? new Buffer(0) : ''
     }
@@ -1325,7 +1325,7 @@ Request.prototype.httpSignature = function (opts) {
     method: self.method,
     path: self.path
   }, opts)
-  debug('httpSignature authorization', self.getHeader('authorization'))
+  self.debug('httpSignature authorization', self.getHeader('authorization'))
 
   return self
 }
