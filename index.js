@@ -115,10 +115,11 @@ request.defaults = function (options, requester) {
 
   var defaults      = wrapRequestMethod(self, options, requester)
 
-  var verbs = ['get', 'head', 'post', 'put', 'patch', 'del', 'delete']
+  var verbs = ['get', 'head', 'post', 'put', 'patch', 'delete']
   verbs.forEach(function(verb) {
     defaults[verb]  = wrapRequestMethod(self[verb], options, requester, verb)
   })
+  defaults.del = defaults['delete']
 
   defaults.cookie   = wrapRequestMethod(self.cookie, options, requester)
   defaults.jar      = self.jar
