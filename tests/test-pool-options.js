@@ -9,12 +9,6 @@ var s = server.createSSLServer(function (req, res) {
   res.end('asdf')
 })
 
-tape('setup', function(t) {
-  s.listen(s.port, function() {
-    t.end()
-  })
-})
-
 function abortRequest(request) {
   request.abort()
   if (typeof request.agent.destroy === 'function') {
@@ -27,6 +21,12 @@ function abortRequests(requests) {
     abortRequest(requests[i])
   }
 }
+
+tape('setup', function(t) {
+  s.listen(s.port, function() {
+    t.end()
+  })
+})
 
 tape('should use different agent if agentOptions.servername option is different', function(t) {
   var req1 = request({
