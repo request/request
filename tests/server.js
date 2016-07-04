@@ -57,7 +57,7 @@ exports.createSSLServer = function(port, opts) {
   }
 
   for (i in options) {
-    if (i !== 'requestCert' && i !== 'rejectUnauthorized' && i !== 'ciphers' && i !== 'SNICallback') {
+    if (i !== 'requestCert' && i !== 'rejectUnauthorized' && i !== 'ciphers') {
       options[i] = fs.readFileSync(options[i])
     }
   }
