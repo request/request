@@ -61,7 +61,7 @@
     "eslint": "^2.5.3",
     "function-bind": "^1.0.2",
     "istanbul": "^0.4.0",
-    "karma": "^0.13.10",
+    "karma": "^1.1.1",
     "karma-browserify": "^5.0.1",
     "karma-cli": "^1.0.0",
     "karma-coverage": "^1.0.0",
