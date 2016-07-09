@@ -71,20 +71,6 @@ function filterOutReservedFunctions(reserved, options) {
 
 }
 
-// Function for properly handling a connection error
-function connectionErrorHandler(error) {
-  var socket = this
-  if (socket.res) {
-    if (socket.res.request) {
-      socket.res.request.emit('error', error)
-    } else {
-      socket.res.emit('error', error)
-    }
-  } else {
-    socket._httpMessage.emit('error', error)
-  }
-}
-
 // Return a simpler request object to allow serialization
 function requestToJSON() {
   var self = this
@@ -805,11 +791,6 @@ Request.prototype.start = function () {
     self.emit('socket', socket)
   })
 
-  self.on('end', function() {
-    if ( self.req.connection ) {
-      self.req.connection.removeListener('error', connectionErrorHandler)
-    }
-  })
   self.emit('request', self.req)
 }
 
@@ -844,11 +825,6 @@ Request.prototype.onRequestResponse = function (response) {
     debug('response end', self.uri.href, response.statusCode, response.headers)
   })
 
-  // The check on response.connection is a workaround for browserify.
-  if (response.connection && response.connection.listeners('error').indexOf(connectionErrorHandler) === -1) {
-    response.connection.setMaxListeners(0)
-    response.connection.once('error', connectionErrorHandler)
-  }
   if (self._aborted) {
     debug('aborted', self.uri.href)
     response.resume()
