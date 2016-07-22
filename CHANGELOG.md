@@ -1,5 +1,9 @@
 ## Change Log
 
+### v2.74.0 (2016/07/22)
+- [#2295](https://github.com/request/request/pull/2295) Update tough-cookie to 2.3.0 (@stash-sfdc)
+- [#2280](https://github.com/request/request/pull/2280) Update karma-tap to version 2.0.1 🚀 (@greenkeeperio-bot)
+
 ### v2.73.0 (2016/07/09)
 - [#2240](https://github.com/request/request/pull/2240) Remove connectionErrorHandler to fix #1903 (@zarenner)
 - [#2251](https://github.com/request/request/pull/2251) tape@4.6.0 breaks build 🚨 (@greenkeeperio-bot)
@@ -68,7 +72,7 @@
 - [#1902](https://github.com/request/request/pull/1902) node-uuid@1.4.7 breaks build 🚨 (@greenkeeperio-bot)
 - [#1894](https://github.com/request/request/pull/1894) Fix tunneling after redirection from https (Original: #1881) (@simov, @falms)
 - [#1893](https://github.com/request/request/pull/1893) Update eslint to version 1.9.0 🚀 (@greenkeeperio-bot)
-- [#1852](https://github.com/request/request/pull/1852) Update eslint to version 1.7.3 🚀 (@simov, @greenkeeperio-bot, @paulomcnally, @michelsalib, @arbaaz, @vladimirich, @LoicMahieu, @JoshWillik, @jzaefferer, @ryanwholey, @djchie, @thisconnect, @mgenereu, @acroca, @Sebmaster, @Bloutiouf)
+- [#1852](https://github.com/request/request/pull/1852) Update eslint to version 1.7.3 🚀 (@simov, @greenkeeperio-bot, @paulomcnally, @michelsalib, @arbaaz, @vladimirich, @LoicMahieu, @JoshWillik, @jzaefferer, @ryanwholey, @djchie, @thisconnect, @mgenereu, @acroca, @Sebmaster, @KoltesDigital)
 - [#1876](https://github.com/request/request/pull/1876) Implement loose matching for har mime types (@simov)
 - [#1875](https://github.com/request/request/pull/1875) Update bluebird to version 3.0.2 🚀 (@simov, @greenkeeperio-bot)
 - [#1871](https://github.com/request/request/pull/1871) Update browserify to version 12.0.1 🚀 (@greenkeeperio-bot)
@@ -79,7 +83,7 @@
 - [#1857](https://github.com/request/request/pull/1857) Fix Referer header to point to the original host name (@simov)
 - [#1850](https://github.com/request/request/pull/1850) Update karma-coverage to version 0.5.3 🚀 (@greenkeeperio-bot)
 - [#1847](https://github.com/request/request/pull/1847) Use node's latest version when building (@simov)
-- [#1836](https://github.com/request/request/pull/1836) Tunnel: fix wrong property name (@Bloutiouf)
+- [#1836](https://github.com/request/request/pull/1836) Tunnel: fix wrong property name (@KoltesDigital)
 - [#1820](https://github.com/request/request/pull/1820) Set href as request.js uses it (@mgenereu)
 - [#1840](https://github.com/request/request/pull/1840) Update http-signature to version 1.0.2 🚀 (@greenkeeperio-bot)
 - [#1845](https://github.com/request/request/pull/1845) Update istanbul to version 0.4.0 🚀 (@greenkeeperio-bot)
@@ -493,8 +497,6 @@
 - [#596](https://github.com/request/request/pull/596) Global agent is being used when pool is specified (@Cauldrath)
 - [#594](https://github.com/request/request/pull/594) Emit complete event when there is no callback (@RomainLK)
 - [#601](https://github.com/request/request/pull/601) Fixed a small typo (@michalstanko)
-
-### v2.23.0 (2013/07/23)
 - [#589](https://github.com/request/request/pull/589) Prevent setting headers after they are sent (@geek)
 - [#587](https://github.com/request/request/pull/587) Global cookie jar disabled by default (@threepointone)
 - [#544](https://github.com/request/request/pull/544) Update http-signature version. (@davidlehn)
