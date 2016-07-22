@@ -98,6 +98,52 @@ if (process.env.TRAVIS === 'true') {
     })
   })
 
+  tape('generous process.env.REQUEST_TIMEOUT', function(t) {
+    process.env.REQUEST_TIMEOUT = 2000
+
+    var noTimeoutInOptions = {
+      url: s.url + '/timeout'
+    }
+
+    request(noTimeoutInOptions, function(err, res, body) {
+      t.equal(err, null)
+      t.equal(body, 'waited')
+      t.end()
+      process.env.REQUEST_TIMEOUT = null
+    })
+  })
+
+  tape('ambitious process.env.REQUEST_TIMEOUT', function(t) {
+    process.env.REQUEST_TIMEOUT = 100
+
+    var noTimeoutInOptions = {
+      url: s.url + '/timeout'
+    }
+
+    request(noTimeoutInOptions, function(err, res, body) {
+      checkErrCode(t, err)
+      t.end()
+
+      process.env.REQUEST_TIMEOUT = null
+    })
+  })
+
+  tape('process.env.REQUEST_TIMEOUT overwrites timeout options', function(t) {
+    process.env.REQUEST_TIMEOUT = 100
+
+    var shouldntTimeoutButWillBecauseOfEnv = {
+      url: s.url + '/timeout',
+      timeout: 1200
+    }
+
+    request(shouldntTimeoutButWillBecauseOfEnv, function(err, res, body) {
+      checkErrCode(t, err)
+      t.end()
+
+      process.env.REQUEST_TIMEOUT = null
+    })
+  })
+
   tape('negative timeout', function(t) { // should be treated a zero or the minimum delay
     var negativeTimeout = {
       url: s.url + '/timeout',

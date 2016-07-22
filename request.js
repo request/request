@@ -115,6 +115,10 @@ function Request (options) {
   extend(self, nonReserved)
   options = filterOutReservedFunctions(reserved, options)
 
+  if (parseFloat(process.env.REQUEST_TIMEOUT) > 0) {
+    self.timeout = parseFloat(process.env.REQUEST_TIMEOUT)
+  }
+
   self.readable = true
   self.writable = true
   if (options.method) {
