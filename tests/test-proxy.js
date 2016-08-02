@@ -296,6 +296,23 @@ if (process.env.TEST_PROXY_HARNESS) {
     t.equal(req.headers['proxy-authorization'], undefined)
     t.equal(req.headers.authorization, 'Basic dXNlcjpwYXNz')
   })
+  
+  //Use proxy options configuration
+  runTest('http_proxy setting option', {
+    http_proxy :  s.url
+  }, true)
+
+  runTest('https_proxy setting option', {
+    url    : 'https://google.com',
+    tunnel : false,
+    https_proxy :  s.url
+  }, true)
+
+  runTest('no_proxy setting option', {
+    proxy_http :  s.url,
+    no_proxy: 'google.com'
+  }, false)
+  
 }
 
 
