@@ -1374,6 +1374,9 @@ Request.prototype.pipe = function (dest, opts) {
 }
 Request.prototype.write = function () {
   var self = this
+  if (!(self instanceof Request)) {
+    return;
+  }
   if (self._aborted) {return}
 
   if (!self._started) {
