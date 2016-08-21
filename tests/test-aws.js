@@ -54,6 +54,25 @@ tape('aws-sign4 options', function(t) {
   })
 })
 
+tape('aws-sign4 with sessionToken', function(t) {
+  var options = {
+    url: s.url + path,
+    aws: {
+      key: 'my_key',
+      secret: 'my_secret',
+      sessionToken: 'my_token',
+      sign_version: 4
+    },
+    json: true
+  }
+  request(options, function(err, res, body) {    
+    t.ok(body.authorization)
+    t.ok(body['x-amz-date'])
+    t.ok(body['x-amz-security-token'])
+    t.end()
+  })
+})
+
 tape('cleanup', function(t) {
   s.close(function() {
     t.end()
