@@ -1,22 +1,14 @@
 
 # Request - Simplified HTTP client
 
-[![npm package](https://nodei.co/npm/request.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/request/)
-
-[![Build status](https://img.shields.io/travis/request/request/master.svg?style=flat-square)](https://travis-ci.org/request/request)
-[![Coverage](https://img.shields.io/codecov/c/github/request/request.svg?style=flat-square)](https://codecov.io/github/request/request?branch=master)
-[![Coverage](https://img.shields.io/coveralls/request/request.svg?style=flat-square)](https://coveralls.io/r/request/request)
-[![Dependency Status](https://img.shields.io/david/request/request.svg?style=flat-square)](https://david-dm.org/request/request)
-[![Known Vulnerabilities](https://snyk.io/test/npm/request/badge.svg?style=flat-square)](https://snyk.io/test/npm/request)
-[![Gitter](https://img.shields.io/badge/gitter-join_chat-blue.svg?style=flat-square)](https://gitter.im/request/request?utm_source=badge)
-
+This is a fork of the excellent `request` module, which is used inside Postman Runtime.
 
 ## Super simple to use
 
 Request is designed to be the simplest way possible to make http calls. It supports HTTPS and follows redirects by default.
 
 ```js
-var request = require('request');
+var request = require('postman-request');
 request('http://www.google.com', function (error, response, body) {
   if (!error && response.statusCode == 200) {
     console.log(body) // Show the HTML for the Google homepage.
@@ -330,12 +322,12 @@ of stars and forks for the request repository. This requires a
 custom `User-Agent` header as well as https.
 
 ```js
-var request = require('request');
+var request = require('postman-request');
 
 var options = {
   url: 'https://api.github.com/repos/request/request',
   headers: {
-    'User-Agent': 'request'
+    'User-Agent': 'postman-request'
   }
 };
 
@@ -593,7 +585,7 @@ var fs = require('fs')
     , certFile = path.resolve(__dirname, 'ssl/client.crt')
     , keyFile = path.resolve(__dirname, 'ssl/client.key')
     , caFile = path.resolve(__dirname, 'ssl/ca.cert.pem')
-    , request = require('request');
+    , request = require('postman-request');
 
 var options = {
     url: 'https://api.some-server.com/',
@@ -616,7 +608,7 @@ var fs = require('fs')
     , path = require('path')
     , certFile = path.resolve(__dirname, 'ssl/client.crt')
     , keyFile = path.resolve(__dirname, 'ssl/client.key')
-    , request = require('request');
+    , request = require('postman-request');
 
 var options = {
     url: 'https://api.some-server.com/',
@@ -670,7 +662,7 @@ The `options.har` property will override the values: `url`, `method`, `qs`, `hea
 a validation step will check if the HAR Request format matches the latest spec (v1.2) and will skip parsing if not matching.
 
 ```js
-  var request = require('request')
+  var request = require('postman-request')
   request({
     // will be ignored
     method: 'GET',
@@ -932,7 +924,7 @@ There are at least three ways to debug the operation of `request`:
 1. Launch the node process like `NODE_DEBUG=request node script.js`
    (`lib,request,otherlib` works too).
 
-2. Set `require('request').debug = true` at any time (this does the same thing
+2. Set `require('postman-request').debug = true` at any time (this does the same thing
    as #1).
 
 3. Use the [request-debug module](https://github.com/request/request-debug) to
@@ -976,7 +968,7 @@ request.get('http://10.255.255.1', {timeout: 1500}, function(err) {
 ## Examples:
 
 ```js
-  var request = require('request')
+  var request = require('postman-request')
     , rand = Math.floor(Math.random()*100000000).toString()
     ;
   request(
@@ -1007,7 +999,7 @@ while the response object is unmodified and will contain compressed data if
 the server sent a compressed response.
 
 ```js
-  var request = require('request')
+  var request = require('postman-request')
   request(
     { method: 'GET'
     , uri: 'http://www.google.com'
