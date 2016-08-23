@@ -1,5 +1,5 @@
 {
-  "name": "request",
+  "name": "postman-request",
   "description": "Simplified HTTP request client.",
   "tags": [
     "http",
@@ -8,17 +8,13 @@
     "utility"
   ],
   "version": "2.74.1",
-  "author": "Mikeal Rogers <mikeal.rogers@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/request/request.git"
-  },
-  "bugs": {
-    "url": "http://github.com/request/request/issues"
+    "url": "https://github.com/postmanlabs/postman-request.git"
   },
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=0.8.0"
+    "node": ">=4.0.0"
   },
   "main": "index.js",
   "dependencies": {
