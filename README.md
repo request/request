@@ -194,6 +194,11 @@ request.post({url:'http://service.com/upload', formData: formData}, function opt
     return console.error('upload failed:', err);
   }
   console.log('Upload successful!  Server responded with:', body);
+}).on('progress', function(progress) {
+  if (progress.lengthComputable) {
+    // Follows the format of ProgressEvent
+    // See: https://xhr.spec.whatwg.org/#interface-progressevent
+  }
 });
 ```
 
