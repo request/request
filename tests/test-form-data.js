@@ -109,6 +109,8 @@ function runTest(t, options) {
     if (options.auth) {
       reqOptions.auth = {user: 'user', pass: 'pass', sendImmediately: false}
     }
+    var progresses = []
+
     request.post(reqOptions, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
@@ -116,6 +118,20 @@ function runTest(t, options) {
       server.close(function() {
         t.end()
       })
+    }).on('progress', function(progress) {
+      progresses.push(progress)
+    }).on('end', function() {
+      // Sends progress events on writes
+      t.ok( progresses.length > 0 )
+
+      // Has a computable length
+      t.ok(progresses.every(function(progress) {
+        return progress.lengthComputable
+      }))
+
+      // Last progress loaded is 100%
+      var lastProgress = progresses[progresses.length - 1]
+      t.equal(lastProgress.loaded, lastProgress.total)
     })
 
   })
