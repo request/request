@@ -1385,7 +1385,7 @@ Request.prototype.write = function () {
     self.emit('progress', {
       lengthComputable: !!contentLength,
       total: contentLength,
-      loaded: self.transferred += Buffer.byteLength(arguments[0])
+      loaded: self.transferred += arguments[0].length
     })
     return self.req.write.apply(self.req, arguments)
   }
