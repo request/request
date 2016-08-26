@@ -75,7 +75,7 @@ tape('form-data should throw on null value', function (t) {
         key: null
       }
     })
-  }, /Cannot read property 'path' of null/)
+  }, TypeError)
   t.end()
 })
 
