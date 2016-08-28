@@ -72,5 +72,12 @@
     "server-destroy": "^1.0.1",
     "tape": "^4.6.0",
     "taper": "^0.4.0"
+  },
+  "greenkeeper": {
+    "ignore": [
+      "eslint",
+      "hawk",
+      "har-validator"
+    ]
   }
 }
