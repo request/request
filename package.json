@@ -66,7 +66,7 @@
     "karma-cli": "^1.0.0",
     "karma-coverage": "^1.0.0",
     "karma-phantomjs-launcher": "^1.0.0",
-    "karma-tap": "^2.0.1",
+    "karma-tap": "^2.1.1",
     "phantomjs-prebuilt": "^2.1.3",
     "rimraf": "^2.2.8",
     "server-destroy": "^1.0.1",
