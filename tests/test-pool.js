@@ -37,7 +37,7 @@ tape('forever', function(t) {
     pool: {maxSockets: 1024}
   }, function(err, res, body) {
     // explicitly shut down the agent
-    if (r.agent.destroy === typeof 'function') {
+    if (typeof r.agent.destroy === 'function') {
       r.agent.destroy()
     } else {
       // node < 0.12
