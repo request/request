@@ -22,6 +22,7 @@ var http = require('http')
   , helpers = require('./lib/helpers')
   , cookies = require('./lib/cookies')
   , inflate = require('./lib/inflate')
+  , urlParse = require('./lib/url-parse')
   , getProxyFromURI = require('./lib/getProxyFromURI')
   , Querystring = require('./lib/querystring').Querystring
   , Har = require('./lib/har').Har
@@ -734,6 +735,9 @@ Request.prototype.start = function () {
   // auth option.  If we don't remove it, we're gonna have a bad time.
   var reqOptions = copy(self)
   delete reqOptions.auth
+
+  // Workaround for a bug in Node: https://github.com/nodejs/node/issues/8321
+  extend(reqOptions, urlParse(self.uri.href));
 
   debug('make request', self.uri.href)
 

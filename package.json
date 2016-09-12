@@ -38,7 +38,8 @@
     "qs": "~6.2.0",
     "stringstream": "~0.0.4",
     "tough-cookie": "~2.3.0",
-    "tunnel-agent": "~0.4.1"
+    "tunnel-agent": "~0.4.1",
+    "query-string": "~4.2.3"
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
