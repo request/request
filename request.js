@@ -737,7 +737,9 @@ Request.prototype.start = function () {
   delete reqOptions.auth
 
   // Workaround for a bug in Node: https://github.com/nodejs/node/issues/8321
-  extend(reqOptions, urlParse(self.uri.href));
+  if (!self.proxy && !(self.uri.isUnix)) {
+    extend(reqOptions, urlParse(self.uri.href))
+  }
 
   debug('make request', self.uri.href)
 
