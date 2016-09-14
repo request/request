@@ -22,6 +22,7 @@ var http = require('http')
   , helpers = require('./lib/helpers')
   , cookies = require('./lib/cookies')
   , inflate = require('./lib/inflate')
+  , urlParse = require('./lib/url-parse')
   , getProxyFromURI = require('./lib/getProxyFromURI')
   , Querystring = require('./lib/querystring').Querystring
   , Har = require('./lib/har').Har
@@ -735,6 +736,11 @@ Request.prototype.start = function () {
   var reqOptions = copy(self)
   delete reqOptions.auth
 
+  // Workaround for a bug in Node: https://github.com/nodejs/node/issues/8321
+  if (!self.proxy && !(self.uri.isUnix)) {
+    extend(reqOptions, urlParse(self.uri.href))
+  }
+
   debug('make request', self.uri.href)
 
   try {
@@ -959,6 +965,10 @@ Request.prototype.onRequestResponse = function (response) {
     })
 
     responseContent.on('data', function (chunk) {
+      if (self.timing && !self.responseStarted) {
+        self.responseStartTime = (new Date()).getTime()
+        response.responseStartTime = self.responseStartTime
+      }
       self._destdata = true
       self.emit('data', chunk)
     })
