@@ -234,3 +234,14 @@ tape('stringify - "a=b&&c=d"', function (t) {
   t.equal(url.stringify(parsed), 'a=b&&c=d')
   t.end()
 })
+
+tape('url parse - "http://httpbin.org/get?z=b,c"', function (t) {
+  var parsed = url('http://httpbin.org/get?z=b,c')
+
+  t.equal(parsed.search, '?z=b,c')
+  t.equal(parsed.query, 'z=b,c')
+  t.equal(parsed.path, '/get?z=b,c')
+  t.equal(parsed.href, 'http://httpbin.org/get?z=b,c')
+
+  t.end()
+})
