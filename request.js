@@ -806,10 +806,7 @@ Request.prototype.onRequestError = function (error) {
     self.req.end()
     return
   }
-  if (self.timeout && self.timeoutTimer) {
-    clearTimeout(self.timeoutTimer)
-    self.timeoutTimer = null
-  }
+  self.clearTimeout()
   self.emit('error', error)
 }
 
@@ -856,10 +853,7 @@ Request.prototype.onRequestResponse = function (response) {
   if (self.setHost) {
     self.removeHeader('host')
   }
-  if (self.timeout && self.timeoutTimer) {
-    clearTimeout(self.timeoutTimer)
-    self.timeoutTimer = null
-  }
+  self.clearTimeout()
 
   var targetCookieJar = (self._jar && self._jar.setCookie) ? self._jar : globalCookieJar
   var addCookie = function (cookie) {
@@ -1423,6 +1417,13 @@ Request.prototype.destroy = function () {
     self.end()
   } else if (self.response) {
     self.response.destroy()
+  }
+}
+
+Request.prototype.clearTimeout = function () {
+  if (this.timeout && this.timeoutTimer) {
+    clearTimeout(this.timeoutTimer)
+    this.timeoutTimer = null
   }
 }
 
