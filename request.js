@@ -893,7 +893,7 @@ Request.prototype.onRequestResponse = function (response) {
       }
     })
 
-    response.on('end', function () {
+    response.once('end', function () {
       self._ended = true
     })
 
@@ -965,7 +965,7 @@ Request.prototype.onRequestResponse = function (response) {
       self._destdata = true
       self.emit('data', chunk)
     })
-    responseContent.on('end', function (chunk) {
+    responseContent.once('end', function (chunk) {
       self.emit('end', chunk)
     })
     responseContent.on('error', function (error) {
