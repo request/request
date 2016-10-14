@@ -10,13 +10,14 @@ var s = http.createServer(function (req, resp) {
 })
 
 tape('setup', function(t) {
-  s.listen(6767, function() {
+  s.listen(0, function() {
+    s.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
 tape('empty body with encoding', function(t) {
-  request('http://localhost:6767', function(err, res, body) {
+  request(s.url, function(err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, '')
@@ -26,7 +27,7 @@ tape('empty body with encoding', function(t) {
 
 tape('empty body without encoding', function(t) {
   request({
-    url: 'http://localhost:6767',
+    url: s.url,
     encoding: null
   }, function(err, res, body) {
     t.equal(err, null)
@@ -38,7 +39,7 @@ tape('empty body without encoding', function(t) {
 
 tape('empty JSON body', function(t) {
   request({
-    url: 'http://localhost:6767',
+    url: s.url,
     json: {}
   }, function(err, res, body) {
     t.equal(err, null)

@@ -8,7 +8,7 @@ var plain_server = server.createServer()
   , redirect_mock_time = 10
 
 tape('setup', function(t) {
-  plain_server.listen(plain_server.port, function() {
+  plain_server.listen(0, function() {
     plain_server.on('/', function (req, res) {
       res.writeHead(200)
       res.end('plain')

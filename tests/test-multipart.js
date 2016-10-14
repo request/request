@@ -60,7 +60,7 @@ function runTest(t, a) {
 
       // remote_file
       t.ok(data.indexOf('name: remote_file') !== -1)
-      // check for http://localhost:6767/file traces
+      // check for http://localhost:nnnn/file traces
       t.ok(data.indexOf('Photoshop ICC') !== -1)
 
       if (a.header && a.header.indexOf('boundary=XXX') !== -1) {
@@ -72,19 +72,19 @@ function runTest(t, a) {
     })
   })
 
-  server.listen(6767, function() {
-
+  server.listen(0, function() {
+    var url = 'http://localhost:' + this.address().port
     // @NOTE: multipartData properties must be set here so that my_file read stream does not leak in node v0.8
     multipartData = [
       {name: 'my_field', body: 'my_value'},
       {name: 'my_number', body: 1000},
       {name: 'my_buffer', body: new Buffer([1, 2, 3])},
       {name: 'my_file', body: fs.createReadStream(localFile)},
-      {name: 'remote_file', body: request('http://localhost:6767/file')}
+      {name: 'remote_file', body: request(url + '/file')}
     ]
 
     var reqOptions = {
-      url: 'http://localhost:6767/upload',
+      url: url + '/upload',
       multipart: multipartData
     }
     if (a.header) {

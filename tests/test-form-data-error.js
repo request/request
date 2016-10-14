@@ -7,7 +7,7 @@ var request = require('../index')
 var s = server.createServer()
 
 tape('setup', function(t) {
-  s.listen(s.port, function() {
+  s.listen(0, function() {
     t.end()
   })
 })
@@ -70,7 +70,7 @@ tape('form-data should throw on null value', function (t) {
   t.throws(function () {
     request({
       method: 'POST',
-      url: 'http://localhost:6767',
+      url: s.url,
       formData: {
         key: null
       }

@@ -12,12 +12,15 @@ tape('setup', function (t) {
     res.writeHead(202)
     req.pipe(res)
   })
-  server.listen(6767, t.end)
+  server.listen(0, function() {
+    server.url = 'http://localhost:' + this.address().port
+    t.end()
+  })
 })
 
 tape('callback option', function (t) {
   request({
-    url: 'http://localhost:6767',
+    url: server.url,
     callback: function (err, res, body) {
       t.equal(res.statusCode, 202)
       t.end()

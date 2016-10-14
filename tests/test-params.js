@@ -24,7 +24,7 @@ function runTest(name, test) {
 }
 
 tape('setup', function(t) {
-  s.listen(s.port, function() {
+  s.listen(0, function() {
     t.end()
   })
 })

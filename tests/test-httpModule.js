@@ -41,7 +41,7 @@ destroyable(plain_server)
 destroyable(https_server)
 
 tape('setup', function(t) {
-  plain_server.listen(plain_server.port, function() {
+  plain_server.listen(0, function() {
     plain_server.on('/plain', function (req, res) {
       res.writeHead(200)
       res.end('plain')
@@ -51,7 +51,7 @@ tape('setup', function(t) {
       res.end()
     })
 
-    https_server.listen(https_server.port, function() {
+    https_server.listen(0, function() {
       https_server.on('/https', function (req, res) {
         res.writeHead(200)
         res.end('https')

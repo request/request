@@ -5,9 +5,9 @@ var http = require('http')
   , tape = require('tape')
 
 
-var validUrl = 'http://localhost:6767/valid'
-  , malformedUrl = 'http://localhost:6767/malformed'
-  , invalidUrl = 'http://localhost:6767/invalid'
+var validUrl
+  , malformedUrl
+  , invalidUrl
 
 var server = http.createServer(function (req, res) {
   if (req.url === '/valid') {
@@ -21,7 +21,11 @@ var server = http.createServer(function (req, res) {
 })
 
 tape('setup', function(t) {
-  server.listen(6767, function() {
+  server.listen(0, function() {
+    server.url = 'http://localhost:' + this.address().port
+    validUrl = server.url + '/valid'
+    malformedUrl = server.url + '/malformed'
+    invalidUrl = server.url + '/invalid'
     t.end()
   })
 })

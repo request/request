@@ -78,7 +78,8 @@ tape('setup', function(t) {
       t.equal(err, null)
       testContentBigGzip = data2
 
-      server.listen(6767, function() {
+      server.listen(0, function() {
+        server.url = 'http://localhost:' + this.address().port
         t.end()
       })
     })
@@ -86,7 +87,7 @@ tape('setup', function(t) {
 })
 
 tape('transparently supports gzip decoding to callbacks', function(t) {
-  var options = { url: 'http://localhost:6767/foo', gzip: true }
+  var options = { url: server.url + '/foo', gzip: true }
   request.get(options, function(err, res, body) {
     t.equal(err, null)
     t.equal(res.headers['content-encoding'], 'gzip')
@@ -96,7 +97,7 @@ tape('transparently supports gzip decoding to callbacks', function(t) {
 })
 
 tape('transparently supports gzip decoding to pipes', function(t) {
-  var options = { url: 'http://localhost:6767/foo', gzip: true }
+  var options = { url: server.url + '/foo', gzip: true }
   var chunks = []
   request.get(options)
     .on('data', function(chunk) {
@@ -114,7 +115,7 @@ tape('transparently supports gzip decoding to pipes', function(t) {
 tape('does not request gzip if user specifies Accepted-Encodings', function(t) {
   var headers = { 'Accept-Encoding': null }
   var options = {
-    url: 'http://localhost:6767/foo',
+    url: server.url + '/foo',
     headers: headers,
     gzip: true
   }
@@ -128,7 +129,7 @@ tape('does not request gzip if user specifies Accepted-Encodings', function(t) {
 
 tape('does not decode user-requested encoding by default', function(t) {
   var headers = { 'Accept-Encoding': 'gzip' }
-  var options = { url: 'http://localhost:6767/foo', headers: headers }
+  var options = { url: server.url + '/foo', headers: headers }
   request.get(options, function(err, res, body) {
     t.equal(err, null)
     t.equal(res.headers['content-encoding'], 'gzip')
@@ -140,7 +141,7 @@ tape('does not decode user-requested encoding by default', function(t) {
 tape('supports character encoding with gzip encoding', function(t) {
   var headers = { 'Accept-Encoding': 'gzip' }
   var options = {
-    url: 'http://localhost:6767/foo',
+    url: server.url + '/foo',
     headers: headers,
     gzip: true,
     encoding: 'utf8'
@@ -161,7 +162,7 @@ tape('supports character encoding with gzip encoding', function(t) {
 })
 
 tape('transparently supports gzip error to callbacks', function(t) {
-  var options = { url: 'http://localhost:6767/error', gzip: true }
+  var options = { url: server.url + '/error', gzip: true }
   request.get(options, function(err, res, body) {
     t.equal(err.code, 'Z_DATA_ERROR')
     t.equal(res, undefined)
@@ -171,7 +172,7 @@ tape('transparently supports gzip error to callbacks', function(t) {
 })
 
 tape('transparently supports gzip error to pipes', function(t) {
-  var options = { url: 'http://localhost:6767/error', gzip: true }
+  var options = { url: server.url + '/error', gzip: true }
   request.get(options)
     .on('data', function (/*chunk*/) {
       t.fail('Should not receive data event')
@@ -188,7 +189,7 @@ tape('transparently supports gzip error to pipes', function(t) {
 tape('pause when streaming from a gzip request object', function(t) {
   var chunks = []
   var paused = false
-  var options = { url: 'http://localhost:6767/chunks', gzip: true }
+  var options = { url: server.url + '/chunks', gzip: true }
   request.get(options)
     .on('data', function(chunk) {
       var self = this
@@ -214,7 +215,7 @@ tape('pause when streaming from a gzip request object', function(t) {
 
 tape('pause before streaming from a gzip request object', function(t) {
   var paused = true
-  var options = { url: 'http://localhost:6767/foo', gzip: true }
+  var options = { url: server.url + '/foo', gzip: true }
   var r = request.get(options)
   r.pause()
   r.on('data', function(data) {
@@ -230,7 +231,7 @@ tape('pause before streaming from a gzip request object', function(t) {
 })
 
 tape('transparently supports deflate decoding to callbacks', function(t) {
-  var options = { url: 'http://localhost:6767/foo', gzip: true, headers: { 'Accept-Encoding': 'deflate' } }
+  var options = { url: server.url + '/foo', gzip: true, headers: { 'Accept-Encoding': 'deflate' } }
 
   request.get(options, function(err, res, body) {
     t.equal(err, null)
@@ -241,7 +242,7 @@ tape('transparently supports deflate decoding to callbacks', function(t) {
 })
 
 tape('do not try to pipe HEAD request responses', function(t) {
-  var options = { method: 'HEAD', url: 'http://localhost:6767/foo', gzip: true }
+  var options = { method: 'HEAD', url: server.url + '/foo', gzip: true }
 
   request(options, function(err, res, body) {
     t.equal(err, null)
@@ -251,7 +252,7 @@ tape('do not try to pipe HEAD request responses', function(t) {
 })
 
 tape('do not try to pipe responses with no body', function(t) {
-  var options = { url: 'http://localhost:6767/foo', gzip: true }
+  var options = { url: server.url + '/foo', gzip: true }
 
   options.headers = {code: 105}
   request.post(options, function(err, res, body) {

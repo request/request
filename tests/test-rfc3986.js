@@ -27,9 +27,9 @@ function runTest (t, options) {
     })
   })
 
-  server.listen(6767, function() {
-
-    request.post('http://localhost:6767', options, function(err, res, body) {
+  server.listen(0, function() {
+    var port = this.address().port
+    request.post('http://localhost:' + port, options, function(err, res, body) {
       t.equal(err, null)
       server.close(function() {
         t.end()

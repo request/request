@@ -26,7 +26,7 @@ tape('returns on error', function(t) {
 tape('succeeds on valid URLs (with https and CORS)', function(t) {
   t.plan(1)
   request({
-    uri: 'https://localhost:6767',
+    uri: __karma__.config.requestTestUrl,
     withCredentials: false
   }, function (error, response) {
     t.equal(response.statusCode, 200)

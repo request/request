@@ -22,7 +22,7 @@ s.on('/timeout', function(req, res) {
 })
 
 tape('setup', function(t) {
-  s.listen(s.port, function() {
+  s.listen(0, function() {
     t.end()
   })
 })

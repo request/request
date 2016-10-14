@@ -3,8 +3,7 @@
 var request = require('../index')
   , tape = require('tape')
 
-var port = 6768
-  , called = false
+var called = false
   , proxiedHost = 'google.com'
   , data = ''
 
@@ -28,7 +27,8 @@ var s = require('net').createServer(function(sock) {
 })
 
 tape('setup', function(t) {
-  s.listen(port, function() {
+  s.listen(0, function() {
+    s.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
@@ -37,7 +37,7 @@ tape('proxy', function(t) {
   request({
     tunnel: true,
     url: 'http://' + proxiedHost,
-    proxy: 'http://localhost:' + port,
+    proxy: s.url,
     headers: {
       'Proxy-Authorization' : 'Basic dXNlcjpwYXNz',
       'authorization'       : 'Token deadbeef',
