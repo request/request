@@ -754,7 +754,11 @@ Request.prototype.start = function () {
 
   var timeout
   if (self.timeout && !self.timeoutTimer) {
-    timeout = self.timeout < 0 ? 0 : self.timeout
+    if (self.timeout < 0) {
+      timeout = 0
+    } else if (typeof self.timeout === 'number' && isFinite(self.timeout)) {
+      timeout = self.timeout
+    }
   }
 
   self.req.on('response', self.onRequestResponse.bind(self))
@@ -763,7 +767,7 @@ Request.prototype.start = function () {
     self.emit('drain')
   })
   self.req.on('socket', function(socket) {
-    if (typeof timeout === 'number') {
+    if (timeout !== undefined) {
       socket.once('connect', function() {
         clearTimeout(self.timeoutTimer)
         self.timeoutTimer = null
