@@ -6,141 +6,140 @@ function checkErrCode(t, err) {
     'Error ETIMEDOUT or ESOCKETTIMEDOUT')
 }
 
-if (process.env.TRAVIS === 'true') {
-  console.error('This test is unreliable on Travis; skipping.')
-  /*eslint no-process-exit:0*/
-} else {
-  var server = require('./server')
-    , request = require('../index')
-    , tape = require('tape')
+var server = require('./server')
+  , request = require('../index')
+  , tape = require('tape')
 
-  var s = server.createServer()
+var s = server.createServer()
 
-  // Request that waits for 200ms
-  s.on('/timeout', function(req, res) {
-    setTimeout(function() {
-      res.writeHead(200, {'content-type':'text/plain'})
-      res.write('waited')
-      res.end()
-    }, 200)
+// Request that waits for 200ms
+s.on('/timeout', function(req, res) {
+  setTimeout(function() {
+    res.writeHead(200, {'content-type':'text/plain'})
+    res.write('waited')
+    res.end()
+  }, 200)
+})
+
+tape('setup', function(t) {
+  s.listen(s.port, function() {
+    t.end()
   })
+})
 
-  tape('setup', function(t) {
-    s.listen(s.port, function() {
-      t.end()
-    })
+tape('should timeout', function(t) {
+  var shouldTimeout = {
+    url: s.url + '/timeout',
+    timeout: 100
+  }
+
+  request(shouldTimeout, function(err, res, body) {
+    checkErrCode(t, err)
+    t.end()
   })
+})
 
-  tape('should timeout', function(t) {
-    var shouldTimeout = {
-      url: s.url + '/timeout',
-      timeout: 100
-    }
+tape('should set connect to false', function(t) {
+  var shouldTimeout = {
+    url: s.url + '/timeout',
+    timeout: 100
+  }
 
-    request(shouldTimeout, function(err, res, body) {
+  request(shouldTimeout, function(err, res, body) {
+    checkErrCode(t, err)
+    t.ok(err.connect === false, 'Read Timeout Error should set \'connect\' property to false')
+    t.end()
+  })
+})
+
+tape('should timeout with events', function(t) {
+  t.plan(3)
+
+  var shouldTimeoutWithEvents = {
+    url: s.url + '/timeout',
+    timeout: 100
+  }
+
+  var eventsEmitted = 0
+  request(shouldTimeoutWithEvents)
+    .on('error', function(err) {
+      eventsEmitted++
+      t.equal(1, eventsEmitted)
       checkErrCode(t, err)
-      t.end()
     })
+})
+
+tape('should not timeout', function(t) {
+  var shouldntTimeout = {
+    url: s.url + '/timeout',
+    timeout: 1200
+  }
+
+  request(shouldntTimeout, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(body, 'waited')
+    t.end()
   })
+})
 
-  tape('should set connect to false', function(t) {
-    var shouldTimeout = {
-      url: s.url + '/timeout',
-      timeout: 100
-    }
+tape('no timeout', function(t) {
+  var noTimeout = {
+    url: s.url + '/timeout'
+  }
 
-    request(shouldTimeout, function(err, res, body) {
+  request(noTimeout, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(body, 'waited')
+    t.end()
+  })
+})
+
+tape('negative timeout', function(t) { // should be treated a zero or the minimum delay
+  var negativeTimeout = {
+    url: s.url + '/timeout',
+    timeout: -1000
+  }
+
+  request(negativeTimeout, function(err, res, body) {
+    // Only verify error if it is set, since using a timeout value of 0 can lead
+    // to inconsistent results, depending on a variety of factors
+    if (err) {
       checkErrCode(t, err)
-      t.ok(err.connect === false, 'Read Timeout Error should set \'connect\' property to false')
-      t.end()
-    })
-  })
-
-  tape('should timeout with events', function(t) {
-    t.plan(3)
-
-    var shouldTimeoutWithEvents = {
-      url: s.url + '/timeout',
-      timeout: 100
     }
-
-    var eventsEmitted = 0
-    request(shouldTimeoutWithEvents)
-      .on('error', function(err) {
-        eventsEmitted++
-        t.equal(1, eventsEmitted)
-        checkErrCode(t, err)
-      })
+    t.end()
   })
+})
 
-  tape('should not timeout', function(t) {
-    var shouldntTimeout = {
-      url: s.url + '/timeout',
-      timeout: 1200
-    }
+tape('float timeout', function(t) { // should be rounded by setTimeout anyway
+  var floatTimeout = {
+    url: s.url + '/timeout',
+    timeout: 100.76
+  }
 
-    request(shouldntTimeout, function(err, res, body) {
-      t.equal(err, null)
-      t.equal(body, 'waited')
-      t.end()
-    })
+  request(floatTimeout, function(err, res, body) {
+    checkErrCode(t, err)
+    t.end()
   })
+})
 
-  tape('no timeout', function(t) {
-    var noTimeout = {
-      url: s.url + '/timeout'
-    }
-
-    request(noTimeout, function(err, res, body) {
-      t.equal(err, null)
-      t.equal(body, 'waited')
-      t.end()
-    })
+tape('connect timeout', function(t) {
+  // We need a destination that will not immediately return a TCP Reset
+  // packet. StackOverflow suggests this host:
+  // https://stackoverflow.com/a/904609/329700
+  var tarpitHost = 'http://10.255.255.1'
+  var shouldConnectTimeout = {
+    url: tarpitHost + '/timeout',
+    timeout: 100
+  }
+  request(shouldConnectTimeout, function(err) {
+    checkErrCode(t, err)
+    t.ok(err.connect === true, 'Connect Timeout Error should set \'connect\' property to true')
+    t.end()
   })
+})
 
-  tape('negative timeout', function(t) { // should be treated a zero or the minimum delay
-    var negativeTimeout = {
-      url: s.url + '/timeout',
-      timeout: -1000
-    }
-
-    request(negativeTimeout, function(err, res, body) {
-      checkErrCode(t, err)
-      t.end()
-    })
+tape('cleanup', function(t) {
+  s.close(function() {
+    t.end()
   })
-
-  tape('float timeout', function(t) { // should be rounded by setTimeout anyway
-    var floatTimeout = {
-      url: s.url + '/timeout',
-      timeout: 100.76
-    }
-
-    request(floatTimeout, function(err, res, body) {
-      checkErrCode(t, err)
-      t.end()
-    })
-  })
-
-  tape('connect timeout', function(t) {
-    // We need a destination that will not immediately return a TCP Reset
-    // packet. StackOverflow suggests this host:
-    // https://stackoverflow.com/a/904609/329700
-    var tarpitHost = 'http://10.255.255.1'
-    var shouldConnectTimeout = {
-      url: tarpitHost + '/timeout',
-      timeout: 100
-    }
-    request(shouldConnectTimeout, function(err) {
-      checkErrCode(t, err)
-      t.ok(err.connect === true, 'Connect Timeout Error should set \'connect\' property to true')
-      t.end()
-    })
-  })
-
-  tape('cleanup', function(t) {
-    s.close(function() {
-      t.end()
-    })
-  })
-}
+})
