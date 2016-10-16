@@ -17,7 +17,6 @@ var http = require('http')
   , ForeverAgent = require('forever-agent')
   , FormData = require('form-data')
   , extend = require('extend')
-  , isstream = require('isstream')
   , isTypedArray = require('is-typedarray').strict
   , helpers = require('./lib/helpers')
   , cookies = require('./lib/cookies')
@@ -31,6 +30,7 @@ var http = require('http')
   , Tunnel = require('./lib/tunnel').Tunnel
 
 var safeStringify = helpers.safeStringify
+  , isStream = helpers.isStream
   , isReadStream = helpers.isReadStream
   , toBase64 = helpers.toBase64
   , defer = helpers.defer
@@ -440,7 +440,7 @@ Request.prototype.init = function (options) {
       }
     }
   }
-  if (self.body && !isstream(self.body)) {
+  if (self.body && !isStream(self.body)) {
     setContentLength()
   }
 
@@ -540,7 +540,7 @@ Request.prototype.init = function (options) {
         self._multipart.body.pipe(self)
       }
       if (self.body) {
-        if (isstream(self.body)) {
+        if (isStream(self.body)) {
           self.body.pipe(self)
         } else {
           setContentLength()
