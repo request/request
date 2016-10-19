@@ -756,7 +756,7 @@ Request.prototype.start = function () {
     self.timeoutTimer = setTimeout(function () {
       var connectTimeout = self.req.socket && self.req.socket.readable === false
       self.abort()
-      var e = new Error('ETIMEDOUT')
+      var e = new Error('connect ETIMEDOUT ' + self.host + ':' + self.port)
       e.code = 'ETIMEDOUT'
       e.connect = connectTimeout
       self.emit('error', e)
@@ -773,7 +773,7 @@ Request.prototype.start = function () {
       self.req.setTimeout(timeout, function () {
         if (self.req) {
           self.req.abort()
-          var e = new Error('ESOCKETTIMEDOUT')
+          var e = new Error('connect ESOCKETTIMEDOUT ' + self.host + ':' + self.port)
           e.code = 'ESOCKETTIMEDOUT'
           e.connect = false
           self.emit('error', e)
