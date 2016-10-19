@@ -276,7 +276,7 @@ Request.prototype.init = function (options) {
   }
 
   if (!self.hasOwnProperty('proxy')) {
-    self.proxy = getProxyFromURI(self.uri)
+    self.proxy = getProxyFromURI(self.uri, self.http_proxy, self.https_proxy, self.no_proxy)
   }
 
   self.tunnel = self._tunnel.isEnabled()

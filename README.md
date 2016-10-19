@@ -558,6 +558,14 @@ Here's some examples of valid `no_proxy` values:
  * `google.com:443` - don't proxy HTTPS requests to Google, but *do* proxy HTTP requests to Google.
  * `google.com:443, yahoo.com:80` - don't proxy HTTPS requests to Google, and don't proxy HTTP requests to Yahoo!
  * `*` - ignore `https_proxy`/`http_proxy` environment variables altogether.
+ 
+### Controlling proxy behaviour using specific proxy options variables
+ 
+If you specify a `http_proxy`, `https_proxy` or `no_proxy` options, then
+the request (and any subsequent redirects) will be sent via a connection
+to the proxy server, just like if you had set  the environment variables.
+These specific option values take precedence over environment variable
+values then you can set none, one o more of them.
 
 [back to top](#table-of-contents)
 
