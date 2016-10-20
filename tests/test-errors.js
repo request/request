@@ -3,7 +3,7 @@
 var request = require('../index')
   , tape = require('tape')
 
-var local = 'http://localhost:8888/asdf'
+var local = 'http://localhost:0/asdf'
 
 tape('without uri', function(t) {
   t.throws(function() {

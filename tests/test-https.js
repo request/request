@@ -17,13 +17,13 @@ var s = server.createSSLServer()
     key: path.resolve(__dirname, 'ssl/ca/server.key'),
     cert: path.resolve(__dirname, 'ssl/ca/server.crt')
   }
-  , sStrict = server.createSSLServer(s.port + 1, opts)
+  , sStrict = server.createSSLServer(opts)
 
 function runAllTests(strict, s) {
   var strictMsg = (strict ? 'strict ' : 'relaxed ')
 
   tape(strictMsg + 'setup', function(t) {
-    s.listen(s.port, function() {
+    s.listen(0, function() {
       t.end()
     })
   })

@@ -47,9 +47,9 @@ function bouncy(s, serverUrl) {
 }
 
 tape('setup', function(t) {
-  s.listen(s.port, function() {
-    bouncy(s, ss.url)
-    ss.listen(ss.port, function() {
+  s.listen(0, function() {
+    ss.listen(0, function() {
+      bouncy(s, ss.url)
       bouncy(ss, s.url)
       t.end()
     })

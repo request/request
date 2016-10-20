@@ -72,8 +72,8 @@ function bouncer(code, label, hops) {
 }
 
 tape('setup', function(t) {
-  s.listen(s.port, function() {
-    ss.listen(ss.port, function() {
+  s.listen(0, function() {
+    ss.listen(0, function() {
       bouncer(301, 'temp')
       bouncer(301, 'double', 2)
       bouncer(301, 'treble', 3)

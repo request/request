@@ -10,14 +10,15 @@ var s = http.createServer(function (req, resp) {
 })
 
 tape('setup', function(t) {
-  s.listen(6767, function() {
+  s.listen(0, function() {
+    s.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
 tape('request().toJSON()', function(t) {
   var r = request({
-    url: 'http://localhost:6767',
+    url: s.url,
     headers: { foo: 'bar' }
   }, function(err, res) {
     var json_r   = JSON.parse(JSON.stringify(r))

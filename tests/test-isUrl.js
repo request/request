@@ -10,13 +10,15 @@ var s = http.createServer(function(req, res) {
 })
 
 tape('setup', function(t) {
-  s.listen(6767, function() {
+  s.listen(0, function() {
+    s.port = this.address().port
+    s.url = 'http://localhost:' + s.port
     t.end()
   })
 })
 
 tape('lowercase', function(t) {
-  request('http://localhost:6767', function(err, resp, body) {
+  request(s.url, function(err, resp, body) {
     t.equal(err, null)
     t.equal(body, 'ok')
     t.end()
@@ -24,7 +26,7 @@ tape('lowercase', function(t) {
 })
 
 tape('uppercase', function(t) {
-  request('HTTP://localhost:6767', function(err, resp, body) {
+  request(s.url.replace('http', 'HTTP'), function(err, resp, body) {
     t.equal(err, null)
     t.equal(body, 'ok')
     t.end()
@@ -32,7 +34,7 @@ tape('uppercase', function(t) {
 })
 
 tape('mixedcase', function(t) {
-  request('HtTp://localhost:6767', function(err, resp, body) {
+  request(s.url.replace('http', 'HtTp'), function(err, resp, body) {
     t.equal(err, null)
     t.equal(body, 'ok')
     t.end()
@@ -44,7 +46,7 @@ tape('hostname and port', function(t) {
     uri: {
       protocol: 'http:',
       hostname: 'localhost',
-      port: 6767
+      port: s.port
     }
   }, function(err, res, body) {
     t.equal(err, null)
@@ -58,7 +60,7 @@ tape('hostname and port 1', function(t) {
     uri: {
       protocol: 'http:',
       hostname: 'localhost',
-      port: 6767
+      port: s.port
     }
   }, function(err, res, body) {
     t.equal(err, null)
@@ -71,7 +73,7 @@ tape('hostname and port 2', function(t) {
   request({
     protocol: 'http:',
     hostname: 'localhost',
-    port: 6767
+    port: s.port
   }, {
     // need this empty options object, otherwise request thinks no uri was set
   }, function(err, res, body) {
@@ -85,7 +87,7 @@ tape('hostname and port 3', function(t) {
   request({
     protocol: 'http:',
     hostname: 'localhost',
-    port: 6767
+    port: s.port
   }, function(err, res, body) {
     t.notEqual(err, null)
     t.equal(err.message, 'options.uri is a required argument')
@@ -99,7 +101,7 @@ tape('hostname and query string', function(t) {
     uri: {
       protocol: 'http:',
       hostname: 'localhost',
-      port: 6767
+      port: s.port
     },
     qs: {
       test: 'test'

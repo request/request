@@ -617,11 +617,11 @@ tape('body_hash PLAINTEXT signature_method', function(t) {
 })
 
 tape('refresh oauth_nonce on redirect', function(t) {
-  var oauth_nonce1, oauth_nonce2
+  var oauth_nonce1, oauth_nonce2, url
   var s = http.createServer(function (req, res) {
     if (req.url === '/redirect') {
       oauth_nonce1 = req.headers.authorization.replace(/.*oauth_nonce="([^"]+)".*/, '$1')
-      res.writeHead(302, {location:'http://localhost:6767/response'})
+      res.writeHead(302, {location:url + '/response'})
       res.end()
     } else if (req.url === '/response') {
       oauth_nonce2 = req.headers.authorization.replace(/.*oauth_nonce="([^"]+)".*/, '$1')
@@ -629,9 +629,10 @@ tape('refresh oauth_nonce on redirect', function(t) {
       res.end()
     }
   })
-  s.listen(6767, function () {
+  s.listen(0, function () {
+    url = 'http://localhost:' + this.address().port
     request.get(
-      { url: 'http://localhost:6767/redirect'
+      { url: url + '/redirect'
       , oauth:
         { consumer_key: 'consumer_key'
         , consumer_secret: 'consumer_secret'
@@ -649,18 +650,20 @@ tape('refresh oauth_nonce on redirect', function(t) {
 })
 
 tape('no credentials on external redirect', function(t) {
-  var s1 = http.createServer(function (req, res) {
-    res.writeHead(302, {location:'http://127.0.0.1:6768'})
-    res.end()
-  })
   var s2 = http.createServer(function (req, res) {
     res.writeHead(200, {'content-type':'text/plain'})
     res.end()
   })
-  s1.listen(6767, function () {
-    s2.listen(6768, function () {
+  var s1 = http.createServer(function (req, res) {
+    res.writeHead(302, {location:s2.url})
+    res.end()
+  })
+  s1.listen(0, function () {
+    s1.url = 'http://localhost:' + this.address().port
+    s2.listen(0, function () {
+      s2.url = 'http://127.0.0.1:' + this.address().port
       request.get(
-        { url: 'http://localhost:6767'
+        { url: s1.url
         , oauth:
           { consumer_key: 'consumer_key'
           , consumer_secret: 'consumer_secret'

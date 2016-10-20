@@ -7,22 +7,20 @@ var fs = require('fs')
   , stream = require('stream')
   , assert = require('assert')
 
-exports.port = 6767
-exports.portSSL = 16167
-
-exports.createServer = function (port) {
-  port = port || exports.port
+exports.createServer = function () {
   var s = http.createServer(function (req, resp) {
     s.emit(req.url.replace(/(\?.*)/, ''), req, resp)
   })
-  s.port = port
-  s.url = 'http://localhost:' + port
+  s.on('listening', function () {
+    s.port = this.address().port
+    s.url = 'http://localhost:' + s.port
+  })
+  s.port = 0
   s.protocol = 'http'
   return s
 }
 
-exports.createEchoServer = function (port) {
-  port = port || exports.port
+exports.createEchoServer = function () {
   var s = http.createServer(function (req, resp) {
     var b = ''
     req.on('data', function (chunk) {b += chunk})
@@ -37,15 +35,16 @@ exports.createEchoServer = function (port) {
       resp.end()
     })
   })
-  s.port = port
-  s.url = 'http://localhost:' + port
+  s.on('listening', function () {
+    s.port = this.address().port
+    s.url = 'http://localhost:' + s.port
+  })
+  s.port = 0
   s.protocol = 'http'
   return s
 }
 
-exports.createSSLServer = function(port, opts) {
-  port = port || exports.portSSL
-
+exports.createSSLServer = function(opts) {
   var i
     , options = { 'key' : path.join(__dirname, 'ssl', 'test.key')
                 , 'cert': path.join(__dirname, 'ssl', 'test.crt')
@@ -65,8 +64,11 @@ exports.createSSLServer = function(port, opts) {
   var s = https.createServer(options, function (req, resp) {
     s.emit(req.url, req, resp)
   })
-  s.port = port
-  s.url = 'https://localhost:' + port
+  s.on('listening', function () {
+    s.port = this.address().port
+    s.url = 'https://localhost:' + s.port
+  })
+  s.port = 0
   s.protocol = 'https'
   return s
 }

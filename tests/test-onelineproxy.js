@@ -28,24 +28,25 @@ var server = http.createServer(function(req, resp) {
   }
   if (req.url === '/proxy') {
     assert.equal(req.method, 'PUT')
-    req.pipe(request('http://localhost:6767/put')).pipe(resp)
+    req.pipe(request(server.url + '/put')).pipe(resp)
     return
   }
   if (req.url === '/test') {
-    request('http://localhost:6767/get').pipe(request.put('http://localhost:6767/proxy')).pipe(resp)
+    request(server.url + '/get').pipe(request.put(server.url + '/proxy')).pipe(resp)
     return
   }
   throw new Error('Unknown url', req.url)
 })
 
 tape('setup', function(t) {
-  server.listen(6767, function() {
+  server.listen(0, function() {
+    server.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
 tape('chained one-line proxying', function(t) {
-  request('http://localhost:6767/test', function(err, res, body) {
+  request(server.url + '/test', function(err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, 'success')

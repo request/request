@@ -32,9 +32,9 @@ function runTest (t, options, index) {
     })
   })
 
-  server.listen(6767, function() {
-
-    var r = request.post('http://localhost:6767', options, function(err, res, body) {
+  server.listen(0, function() {
+    var url = 'http://localhost:' + this.address().port
+    var r = request.post(url, options, function(err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.equal(body, 'done')
