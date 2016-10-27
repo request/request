@@ -122,16 +122,30 @@ tape('float timeout', function(t) { // should be rounded by setTimeout anyway
   })
 })
 
-tape('connect timeout', function(t) {
-  // We need a destination that will not immediately return a TCP Reset
-  // packet. StackOverflow suggests this host:
-  // https://stackoverflow.com/a/904609/329700
-  var tarpitHost = 'http://10.255.255.1'
+// We need a destination that will not immediately return a TCP Reset
+// packet. StackOverflow suggests these hosts:
+// (https://stackoverflow.com/a/904609/329700)
+var nonRoutable = [
+  '10.255.255.1',
+  '10.0.0.0',
+  '192.168.0.0',
+  '192.168.255.255',
+  '172.16.0.0',
+  '172.31.255.255'
+]
+tape('connect timeout', function tryConnect(t) {
+  var tarpitHost = 'http://' + nonRoutable.shift()
   var shouldConnectTimeout = {
     url: tarpitHost + '/timeout',
     timeout: 100
   }
   request(shouldConnectTimeout, function(err) {
+    if (err.code === 'ENETUNREACH' && nonRoutable.length) {
+      // With some network configurations, some addresses will be reported as
+      // unreachable immediately (before the timeout occurs). In those cases,
+      // try other non-routable addresses before giving up.
+      return tryConnect(t)
+    }
     checkErrCode(t, err)
     t.ok(err.connect === true, 'Connect Timeout Error should set \'connect\' property to true')
     t.end()
