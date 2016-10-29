@@ -186,6 +186,24 @@ tape('should follow post redirects when followallredirects true', function(t) {
   })
 })
 
+tape('should follow post redirects when followallredirects true and followOriginalHttpMethod is enabled', function(t) {
+  hits = {}
+  request.post({
+    uri: s.url + '/temp',
+    followAllRedirects: true,
+    followOriginalHttpMethod: true,
+    jar: jar,
+    headers: { cookie: 'foo=bar' }
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.ok(hits.temp, 'Original request is to /temp')
+    t.ok(hits.temp_landing, 'Forward to temporary landing URL')
+    t.equal(body, 'POST temp_landing', 'Got temporary landing content')
+    t.end()
+  })
+})
+
 tape('should not follow post redirects when followallredirects false', function(t) {
   hits = {}
   request.post({
