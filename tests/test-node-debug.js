@@ -18,7 +18,8 @@ tape('setup', function(t) {
     stderr.push(string)
   }
 
-  s.listen(6767, function() {
+  s.listen(0, function() {
+    s.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
@@ -29,14 +30,15 @@ tape('a simple request should not fail with debugging enabled', function(t) {
   t.equal(request.debug, true, 'request.debug gets request.Request.debug')
   stderr = []
 
-  request('http://localhost:6767', function(err, res, body) {
+  request(s.url, function(err, res, body) {
     t.ifError(err, 'the request did not fail')
     t.ok(res, 'the request did not fail')
 
     t.ok(stderr.length, 'stderr has some messages')
+    var url = s.url.replace(/\//g, '\\/')
     var patterns = [
       /^REQUEST { uri: /,
-      /^REQUEST make request http:\/\/localhost:6767\/\n$/,
+      new RegExp('^REQUEST make request ' + url + '\/\n$'),
       /^REQUEST onRequestResponse /,
       /^REQUEST finish init /,
       /^REQUEST response end /,
@@ -61,7 +63,7 @@ tape('there should be no further lookups on process.env', function(t) {
   process.env.NODE_DEBUG = ''
   stderr = []
 
-  request('http://localhost:6767', function(err, res, body) {
+  request(s.url, function(err, res, body) {
     t.ifError(err, 'the request did not fail')
     t.ok(res, 'the request did not fail')
     t.equal(stderr.length, prevStderrLen, 'env.NODE_DEBUG is not retested')
@@ -75,7 +77,7 @@ tape('it should be possible to disable debugging at runtime', function(t) {
   t.equal(request.debug, false, 'request.debug gets request.Request.debug')
   stderr = []
 
-  request('http://localhost:6767', function(err, res, body) {
+  request(s.url, function(err, res, body) {
     t.ifError(err, 'the request did not fail')
     t.ok(res, 'the request did not fail')
     t.equal(stderr.length, 0, 'debugging can be disabled')

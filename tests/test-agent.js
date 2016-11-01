@@ -12,7 +12,9 @@ var s = http.createServer(function (req, res) {
 })
 
 tape('setup', function (t) {
-  s.listen(6767, function() {
+  s.listen(0, function() {
+    s.port = this.address().port
+    s.url = 'http://localhost:' + s.port
     t.end()
   })
 })
@@ -25,8 +27,8 @@ function httpAgent (t, options, req) {
     t.equal(Object.keys(r.agent.sockets).length, 1, '1 socket name')
 
     var name = (typeof r.agent.getName === 'function')
-      ? r.agent.getName({port:6767})
-      : 'localhost:6767' // node 0.10-
+      ? r.agent.getName({port:s.port})
+      : 'localhost:' + s.port // node 0.10-
     t.equal(r.agent.sockets[name].length, 1, '1 open socket')
 
     var socket = r.agent.sockets[name][0]
@@ -44,7 +46,7 @@ function foreverAgent (t, options, req) {
     t.ok(r.agent instanceof ForeverAgent, 'is ForeverAgent')
     t.equal(Object.keys(r.agent.sockets).length, 1, '1 socket name')
 
-    var name = 'localhost:6767' // node 0.10-
+    var name = 'localhost:' + s.port // node 0.10-
     t.equal(r.agent.sockets[name].length, 1, '1 open socket')
 
     var socket = r.agent.sockets[name][0]
@@ -60,14 +62,14 @@ function foreverAgent (t, options, req) {
 
 tape('options.agent', function (t) {
   httpAgent(t, {
-    uri: 'http://localhost:6767',
+    uri: s.url,
     agent: new http.Agent({keepAlive: true})
   })
 })
 
 tape('options.agentClass + options.agentOptions', function (t) {
   httpAgent(t, {
-    uri: 'http://localhost:6767',
+    uri: s.url,
     agentClass: http.Agent,
     agentOptions: {keepAlive: true}
   })
@@ -78,7 +80,7 @@ tape('options.agentClass + options.agentOptions', function (t) {
 tape('options.forever = true', function (t) {
   var v = version()
   var options = {
-    uri: 'http://localhost:6767',
+    uri: s.url,
     forever: true
   }
 
@@ -89,7 +91,7 @@ tape('options.forever = true', function (t) {
 tape('forever() method', function (t) {
   var v = version()
   var options = {
-    uri: 'http://localhost:6767'
+    uri: s.url
   }
   var r = request.forever({maxSockets: 1})
 

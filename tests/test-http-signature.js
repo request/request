@@ -69,7 +69,8 @@ var server = http.createServer(function (req, res) {
 })
 
 tape('setup', function(t) {
-  server.listen(6767, function() {
+  server.listen(0, function() {
+    server.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
@@ -81,7 +82,7 @@ tape('correct key', function(t) {
       key: privateKeyPEMs['key-1']
     }
   }
-  request('http://localhost:6767', options, function(err, res, body) {
+  request(server.url, options, function(err, res, body) {
     t.equal(err, null)
     t.equal(200, res.statusCode)
     t.end()
@@ -95,7 +96,7 @@ tape('incorrect key', function(t) {
       key: privateKeyPEMs['key-1']
     }
   }
-  request('http://localhost:6767', options, function(err, res, body) {
+  request(server.url, options, function(err, res, body) {
     t.equal(err, null)
     t.equal(400, res.statusCode)
     t.end()

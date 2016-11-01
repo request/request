@@ -72,8 +72,8 @@ function bouncer(code, label, hops) {
 }
 
 tape('setup', function(t) {
-  s.listen(s.port, function() {
-    ss.listen(ss.port, function() {
+  s.listen(0, function() {
+    ss.listen(0, function() {
       bouncer(301, 'temp')
       bouncer(301, 'double', 2)
       bouncer(301, 'treble', 3)
@@ -182,6 +182,24 @@ tape('should follow post redirects when followallredirects true', function(t) {
     t.ok(hits.temp, 'Original request is to /temp')
     t.ok(hits.temp_landing, 'Forward to temporary landing URL')
     t.equal(body, 'GET temp_landing', 'Got temporary landing content')
+    t.end()
+  })
+})
+
+tape('should follow post redirects when followallredirects true and followOriginalHttpMethod is enabled', function(t) {
+  hits = {}
+  request.post({
+    uri: s.url + '/temp',
+    followAllRedirects: true,
+    followOriginalHttpMethod: true,
+    jar: jar,
+    headers: { cookie: 'foo=bar' }
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.ok(hits.temp, 'Original request is to /temp')
+    t.ok(hits.temp_landing, 'Forward to temporary landing URL')
+    t.equal(body, 'POST temp_landing', 'Got temporary landing content')
     t.end()
   })
 })

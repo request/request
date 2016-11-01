@@ -66,9 +66,49 @@ function handleRequests(srv) {
 handleRequests(s)
 handleRequests(ss)
 
+function runTest(name, redir, expectAuth) {
+  tape('redirect to ' + name, function(t) {
+    request(redir.src, function(err, res, body) {
+      t.equal(err, null)
+      t.equal(res.request.uri.href, redir.dst)
+      t.equal(res.statusCode, 200)
+      t.equal(body, expectAuth
+        ? 'auth: Basic dGVzdDp0ZXN0aW5n'
+        : 'auth: (nothing)')
+      t.end()
+    })
+  })
+}
+
+function addTests() {
+  runTest('same host and protocol',
+    redirect.from('http', 'localhost').to('http', 'localhost'),
+    true)
+
+  runTest('same host different protocol',
+    redirect.from('http', 'localhost').to('https', 'localhost'),
+    true)
+
+  runTest('different host same protocol',
+    redirect.from('https', '127.0.0.1').to('https', 'localhost'),
+    false)
+
+  runTest('different host and protocol',
+    redirect.from('http', 'localhost').to('https', '127.0.0.1'),
+    false)
+}
+
 tape('setup', function(t) {
-  s.listen(s.port, function() {
-    ss.listen(ss.port, function() {
+  s.listen(0, function() {
+    ss.listen(0, function() {
+      addTests()
+      tape('cleanup', function(t) {
+        s.destroy(function() {
+          ss.destroy(function() {
+            t.end()
+          })
+        })
+      })
       t.end()
     })
   })
@@ -88,42 +128,4 @@ tape('redirect URL helper', function(t) {
       dst : util.format('http://localhost:%d/from/https/localhost', s.port)
     })
   t.end()
-})
-
-function runTest(name, redir, expectAuth) {
-  tape('redirect to ' + name, function(t) {
-    request(redir.src, function(err, res, body) {
-      t.equal(err, null)
-      t.equal(res.request.uri.href, redir.dst)
-      t.equal(res.statusCode, 200)
-      t.equal(body, expectAuth
-        ? 'auth: Basic dGVzdDp0ZXN0aW5n'
-        : 'auth: (nothing)')
-      t.end()
-    })
-  })
-}
-
-runTest('same host and protocol',
-  redirect.from('http', 'localhost').to('http', 'localhost'),
-  true)
-
-runTest('same host different protocol',
-  redirect.from('http', 'localhost').to('https', 'localhost'),
-  true)
-
-runTest('different host same protocol',
-  redirect.from('https', '127.0.0.1').to('https', 'localhost'),
-  false)
-
-runTest('different host and protocol',
-  redirect.from('http', 'localhost').to('https', '127.0.0.1'),
-  false)
-
-tape('cleanup', function(t) {
-  s.destroy(function() {
-    ss.destroy(function() {
-      t.end()
-    })
-  })
 })

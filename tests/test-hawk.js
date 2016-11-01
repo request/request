@@ -26,7 +26,8 @@ var server = http.createServer(function(req, res) {
 })
 
 tape('setup', function(t) {
-  server.listen(6767, function() {
+  server.listen(0, function() {
+    server.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
@@ -37,7 +38,7 @@ tape('hawk', function(t) {
     algorithm: 'sha256',
     id: 'dh37fgj492je'
   }
-  request('http://localhost:6767', {
+  request(server.url, {
     hawk: { credentials: creds }
   }, function(err, res, body) {
     t.equal(err, null)

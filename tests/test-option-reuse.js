@@ -17,13 +17,14 @@ var s = http.createServer(function(req, res) {
 })
 
 tape('setup', function(t) {
-  s.listen(6767, function() {
+  s.listen(0, function() {
+    s.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
 tape('options object is not mutated', function(t) {
-  var url = 'http://localhost:6767'
+  var url = s.url
   var options = { url: url }
 
   request.head(options, function(err, resp, body) {

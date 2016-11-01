@@ -8,7 +8,7 @@ var server = require('./server')
 var s = server.createServer()
 
 tape('setup', function(t) {
-  s.listen(s.port, function() {
+  s.listen(0, function() {
     t.end()
   })
 })
@@ -150,10 +150,10 @@ tape('typed array', function (t) {
   server.on('request', function (req, res) {
     req.pipe(res)
   })
-  server.listen(6768, function () {
+  server.listen(0, function () {
     var data = new Uint8Array([1, 2, 3])
     request({
-      uri: 'http://localhost:6768',
+      uri: 'http://localhost:' + this.address().port,
       method: 'POST',
       body: data,
       encoding: null

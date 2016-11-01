@@ -4,8 +4,8 @@ var http = require('http')
   , request = require('../index')
   , tape = require('tape')
 
-var port1 = 6767
-  , port2 = 6768
+var port1
+  , port2
 
 var s1 = http.createServer(function(req, resp) {
   if (req.url === '/original') {
@@ -29,8 +29,10 @@ var s2 = http.createServer(function(req, resp) {
 })
 
 tape('setup', function(t) {
-  s1.listen(port1, function() {
-    s2.listen(port2, function() {
+  s1.listen(0, function() {
+    port1 = this.address().port
+    s2.listen(0, function() {
+      port2 = this.address().port
       t.end()
     })
   })
