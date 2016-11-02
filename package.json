@@ -14,7 +14,7 @@
   },
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=4.0.0"
+    "node": ">= 4"
   },
   "main": "index.js",
   "dependencies": {
