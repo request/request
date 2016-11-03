@@ -199,6 +199,35 @@ tape('connect timeout with non-timeout error', function(t) {
   })
 })
 
+tape('request timeout with keep-alive connection', function(t) {
+  var agent = new require('http').Agent({ keepAlive: true })
+  var firstReq = {
+    url: s.url + '/timeout',
+    agent: agent
+  }
+  request(firstReq, function(err) {
+    // We should now still have a socket open. For the second request we should
+    // see a request timeout on the active socket ...
+    t.equal(err, null)
+    var shouldReqTimeout = {
+      url: s.url + '/timeout',
+      timeout: 100,
+      agent: agent
+    }
+    request(shouldReqTimeout, function(err) {
+      checkErrCode(t, err)
+      t.ok(err.connect === false, 'Error should have been a request timeout error')
+      t.end()
+    }).on('socket', function(socket) {
+      var isConnecting = socket._connecting || socket.connecting
+      t.ok(isConnecting !== true, 'Socket should already be connected')
+    })
+  }).on('socket', function(socket) {
+    var isConnecting = socket._connecting || socket.connecting
+    t.ok(isConnecting === true, 'Socket should be new')
+  })
+})
+
 tape('cleanup', function(t) {
   s.close(function() {
     t.end()
