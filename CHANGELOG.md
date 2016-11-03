@@ -1,5 +1,8 @@
 ## Change Log
 
+### v2.78.0 (2016/11/03)
+- [#2447](https://github.com/request/request/pull/2447) Always set request timeout on keep-alive connections (@mscdex)
+
 ### v2.77.0 (2016/11/03)
 - [#2439](https://github.com/request/request/pull/2439) Fix socket 'connect' listener handling (@mscdex)
 - [#2442](https://github.com/request/request/pull/2442) 👻😱 Node.js 0.10 is unmaintained 😱👻 (@greenkeeperio-bot)
@@ -510,8 +513,6 @@
 - [#662](https://github.com/request/request/pull/662) option.tunnel to explicitly disable tunneling (@seanmonstar)
 - [#659](https://github.com/request/request/pull/659) fix failure when running with NODE_DEBUG=request, and a test for that (@jrgm)
 - [#630](https://github.com/request/request/pull/630) Send random cnonce for HTTP Digest requests (@wprl)
-
-### v2.27.0 (2013/08/15)
 - [#619](https://github.com/request/request/pull/619) decouple things a bit (@joaojeronimo)
 - [#613](https://github.com/request/request/pull/613) Fixes #583, moved initialization of self.uri.pathname (@lexander)
 - [#605](https://github.com/request/request/pull/605) Only include ":" + pass in Basic Auth if it's defined (fixes #602) (@bendrucker)
