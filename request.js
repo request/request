@@ -28,6 +28,7 @@ var http = require('http')
   , Multipart = require('./lib/multipart').Multipart
   , Redirect = require('./lib/redirect').Redirect
   , Tunnel = require('./lib/tunnel').Tunnel
+  , now = require('performance-now')
 
 var safeStringify = helpers.safeStringify
   , isReadStream = helpers.isReadStream
@@ -713,6 +714,10 @@ Request.prototype.start = function () {
   // this is usually called on the first write(), end() or on nextTick()
   var self = this
 
+  if (self.timing) {
+    var startTime = now()
+  }
+
   if (self._aborted) {
     return
   }
@@ -749,6 +754,9 @@ Request.prototype.start = function () {
 
   if (self.timing) {
     self.startTime = new Date().getTime()
+    self.timings = {
+      start: startTime
+    }
   }
 
   var timeout
@@ -766,6 +774,13 @@ Request.prototype.start = function () {
     self.emit('drain')
   })
   self.req.on('socket', function(socket) {
+    if (self.timing) {
+      self.timings.socket = now()
+      socket.on('connect', function() {
+        self.timings.connect = now()
+      })
+    }
+
     var setReqTimeout = function() {
       // This timeout sets the amount of time to wait *between* bytes sent
       // from the server once connected.
@@ -847,12 +862,30 @@ Request.prototype.onRequestError = function (error) {
 
 Request.prototype.onRequestResponse = function (response) {
   var self = this
+
+  if (self.timing) {
+    self.timings.response = now()
+  }
+
   debug('onRequestResponse', self.uri.href, response.statusCode, response.headers)
   response.on('end', function() {
     if (self.timing) {
-      self.elapsedTime += (new Date().getTime() - self.startTime)
-      debug('elapsed time', self.elapsedTime)
+      self.timings.end = now()
+
+      self.timings.dns = self.timings.socket - self.timings.start
+      self.timings.tcp = self.timings.connect - self.timings.socket
+      self.timings.firstByte = self.timings.response - self.timings.connect
+      self.timings.download = self.timings.end - self.timings.response
+      self.timings.total = self.timings.end - self.timings.start
+
+      debug('elapsed time', self.timings.total)
+
+      // elapsedTime includes all redirects
+      self.elapsedTime += Math.round(self.timings.total)
       response.elapsedTime = self.elapsedTime
+
+      // timings is just for the final fetch
+      response.timings = self.timings
     }
     debug('response end', self.uri.href, response.statusCode, response.headers)
   })
