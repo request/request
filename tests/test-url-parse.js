@@ -245,3 +245,10 @@ tape('url parse - "http://httpbin.org/get?z=b,c"', function (t) {
 
   t.end()
 })
+
+tape('url parse with invalid encoded parameters - ""', function (t) {
+  t.doesNotThrow(function () {
+    url('http://httpbin.org/get?&c=%d')
+    t.end()
+  })
+})
