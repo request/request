@@ -1,5 +1,14 @@
 ## Change Log
 
+### v2.78.0 (2016/11/03)
+- [#2447](https://github.com/request/request/pull/2447) Always set request timeout on keep-alive connections (@mscdex)
+
+### v2.77.0 (2016/11/03)
+- [#2439](https://github.com/request/request/pull/2439) Fix socket 'connect' listener handling (@mscdex)
+- [#2442](https://github.com/request/request/pull/2442) 👻😱 Node.js 0.10 is unmaintained 😱👻 (@greenkeeperio-bot)
+- [#2435](https://github.com/request/request/pull/2435) Add followOriginalHttpMethod to redirect to original HTTP method (@kirrg001)
+- [#2414](https://github.com/request/request/pull/2414) Improve test-timeout reliability (@mscdex)
+
 ### v2.76.0 (2016/10/25)
 - [#2424](https://github.com/request/request/pull/2424) Handle buffers directly instead of using "bl" (@zertosh)
 - [#2415](https://github.com/request/request/pull/2415) Re-enable timeout tests on Travis + other fixes (@mscdex)
@@ -504,11 +513,7 @@
 - [#662](https://github.com/request/request/pull/662) option.tunnel to explicitly disable tunneling (@seanmonstar)
 - [#659](https://github.com/request/request/pull/659) fix failure when running with NODE_DEBUG=request, and a test for that (@jrgm)
 - [#630](https://github.com/request/request/pull/630) Send random cnonce for HTTP Digest requests (@wprl)
-
-### v2.27.0 (2013/08/15)
 - [#619](https://github.com/request/request/pull/619) decouple things a bit (@joaojeronimo)
-
-### v2.26.0 (2013/08/07)
 - [#613](https://github.com/request/request/pull/613) Fixes #583, moved initialization of self.uri.pathname (@lexander)
 - [#605](https://github.com/request/request/pull/605) Only include ":" + pass in Basic Auth if it's defined (fixes #602) (@bendrucker)
 - [#596](https://github.com/request/request/pull/596) Global agent is being used when pool is specified (@Cauldrath)

@@ -773,38 +773,59 @@ Request.prototype.start = function () {
     self.emit('drain')
   })
   self.req.on('socket', function(socket) {
-    if (timeout !== undefined) {
-      socket.once('connect', function() {
-        clearTimeout(self.timeoutTimer)
-        self.timeoutTimer = null
-        // Set an additional timeout on the socket, via the `setsockopt` syscall.
-        // This timeout sets the amount of time to wait *between* bytes sent
-        // from the server once connected.
-        //
-        // In particular, it's useful for erroring if the server fails to send
-        // data halfway through streaming a response.
-        self.req.setTimeout(timeout, function () {
-          if (self.req) {
-            self.abort()
-            var e = new Error('ESOCKETTIMEDOUT')
-            e.code = 'ESOCKETTIMEDOUT'
-            e.connect = false
-            self.emit('error', e)
-          }
-        })
+    var setReqTimeout = function() {
+      // This timeout sets the amount of time to wait *between* bytes sent
+      // from the server once connected.
+      //
+      // In particular, it's useful for erroring if the server fails to send
+      // data halfway through streaming a response.
+      self.req.setTimeout(timeout, function () {
+        if (self.req) {
+          self.abort()
+          var e = new Error('ESOCKETTIMEDOUT')
+          e.code = 'ESOCKETTIMEDOUT'
+          e.connect = false
+          self.emit('error', e)
+        }
       })
+    }
+    // `._connecting` was the old property which was made public in node v6.1.0
+    var isConnecting = socket._connecting || socket.connecting
+    if (timeout !== undefined) {
+      // Only start the connection timer if we're actually connecting a new
+      // socket, otherwise if we're already connected (because this is a
+      // keep-alive connection) do not bother. This is important since we won't
+      // get a 'connect' event for an already connected socket.
+      if (isConnecting) {
+        var onReqSockConnect = function() {
+          socket.removeListener('connect', onReqSockConnect)
+          clearTimeout(self.timeoutTimer)
+          self.timeoutTimer = null
+          setReqTimeout()
+        }
 
-      // Set a timeout in memory - this block will throw if the server takes more
-      // than `timeout` to write the HTTP status and headers (corresponding to
-      // the on('response') event on the client). NB: this measures wall-clock
-      // time, not the time between bytes sent by the server.
-      self.timeoutTimer = setTimeout(function () {
-        self.abort()
-        var e = new Error('ETIMEDOUT')
-        e.code = 'ETIMEDOUT'
-        e.connect = true
-        self.emit('error', e)
-      }, timeout)
+        socket.on('connect', onReqSockConnect)
+
+        self.req.on('error', function(err) {
+          socket.removeListener('connect', onReqSockConnect)
+        })
+
+        // Set a timeout in memory - this block will throw if the server takes more
+        // than `timeout` to write the HTTP status and headers (corresponding to
+        // the on('response') event on the client). NB: this measures wall-clock
+        // time, not the time between bytes sent by the server.
+        self.timeoutTimer = setTimeout(function () {
+          socket.removeListener('connect', onReqSockConnect)
+          self.abort()
+          var e = new Error('ETIMEDOUT')
+          e.code = 'ETIMEDOUT'
+          e.connect = true
+          self.emit('error', e)
+        }, timeout)
+      } else {
+        // We're already connected
+        setReqTimeout()
+      }
     }
     self.emit('socket', socket)
   })
