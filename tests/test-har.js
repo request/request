@@ -147,7 +147,7 @@ tape('query', function (t) {
     var json = JSON.parse(body)
 
     t.equal(err, null)
-    t.equal(json.url, '/?fff=sss&foo%5B0%5D=bar&foo%5B1%5D=baz&baz=abc')
+    t.equal(json.url, '/?fff=sss&foo[0]=bar&foo[1]=baz&baz=abc')
     t.end()
   })
 })
