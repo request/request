@@ -41,7 +41,7 @@
     "stringstream": "~0.0.4",
     "tough-cookie": "~2.3.0",
     "tunnel-agent": "~0.4.1",
-    "uuid": "^2.0.2"
+    "uuid": "^3.0.0"
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
