@@ -1,5 +1,13 @@
 ## Change Log
 
+### v2.79.0 (2016/11/18)
+- [#2368](https://github.com/request/request/pull/2368) Fix typeof check in test-pool.js (@forivall)
+- [#2394](https://github.com/request/request/pull/2394) Use `files` in package.json (@SimenB)
+- [#2463](https://github.com/request/request/pull/2463) AWS support for session tokens for temporary credentials (@simov)
+- [#2467](https://github.com/request/request/pull/2467) Migrate to uuid (@simov, @antialias)
+- [#2459](https://github.com/request/request/pull/2459) Update taper to version 0.5.0 🚀 (@greenkeeperio-bot)
+- [#2448](https://github.com/request/request/pull/2448) Make other connect timeout test more reliable too (@mscdex)
+
 ### v2.78.0 (2016/11/03)
 - [#2447](https://github.com/request/request/pull/2447) Always set request timeout on keep-alive connections (@mscdex)
 
@@ -496,7 +504,6 @@
 
 ### v2.29.0 (2013/12/06)
 - [#727](https://github.com/request/request/pull/727) fix requester bug (@jchris)
-
 ### v2.28.0 (2013/12/04)
 - [#724](https://github.com/request/request/pull/724) README.md: add custom HTTP Headers example. (@tcort)
 - [#719](https://github.com/request/request/pull/719) Made a comment gender neutral. (@unsetbit)
