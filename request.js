@@ -1293,7 +1293,7 @@ Request.prototype.aws = function (opts, now) {
     var signRes = aws4.sign(options, {
       accessKeyId: opts.key,
       secretAccessKey: opts.secret,
-      sessionToken: opts.session ? opts.session : undefined
+      sessionToken: opts.session
     })
     self.setHeader('authorization', signRes.headers.Authorization)
     self.setHeader('x-amz-date', signRes.headers['X-Amz-Date'])
