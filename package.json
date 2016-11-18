@@ -21,6 +21,11 @@
     "node": ">= 4"
   },
   "main": "index.js",
+  "files": [
+    "lib/",
+    "index.js",
+    "request.js"
+  ],
   "dependencies": {
     "aws-sign2": "~0.6.0",
     "aws4": "^1.2.1",
