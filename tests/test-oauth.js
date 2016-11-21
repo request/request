@@ -123,13 +123,13 @@ tape('rsign', function(t) {
   var rsign = request.post(
     { url: 'https://api.twitter.com/oauth/request_token'
     , oauth:
-      { callback: 'http://localhost:3005/the_dance/process_callback?service_provider_id=11'
+    { callback: 'http://localhost:3005/the_dance/process_callback?service_provider_id=11'
       , consumer_key: 'GDdmIQH6jhtmLUypg82g'
       , nonce: 'QP70eNmVz8jvdPevU3oJD2AfF7R7odC2XJcn4XlZJqk'
       , timestamp: '1272323042'
       , version: '1.0'
       , consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98'
-      }
+    }
     })
 
   process.nextTick(function() {
@@ -143,14 +143,14 @@ tape('rsign_rsa', function(t) {
   var rsign_rsa = request.post(
     { url: 'https://api.twitter.com/oauth/request_token'
     , oauth:
-      { callback: 'http://localhost:3005/the_dance/process_callback?service_provider_id=11'
+    { callback: 'http://localhost:3005/the_dance/process_callback?service_provider_id=11'
       , consumer_key: 'GDdmIQH6jhtmLUypg82g'
       , nonce: 'QP70eNmVz8jvdPevU3oJD2AfF7R7odC2XJcn4XlZJqk'
       , timestamp: '1272323042'
       , version: '1.0'
       , private_key: rsa_private_pem
       , signature_method: 'RSA-SHA1'
-      }
+    }
     })
 
   process.nextTick(function() {
@@ -164,7 +164,7 @@ tape('raccsign', function(t) {
   var raccsign = request.post(
     { url: 'https://api.twitter.com/oauth/access_token'
     , oauth:
-      { consumer_key: 'GDdmIQH6jhtmLUypg82g'
+    { consumer_key: 'GDdmIQH6jhtmLUypg82g'
       , nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8'
       , signature_method: 'HMAC-SHA1'
       , token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc'
@@ -173,7 +173,7 @@ tape('raccsign', function(t) {
       , version: '1.0'
       , consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98'
       , token_secret: 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA'
-      }
+    }
     })
 
   process.nextTick(function() {
@@ -187,7 +187,7 @@ tape('raccsign_rsa', function(t) {
   var raccsign_rsa = request.post(
     { url: 'https://api.twitter.com/oauth/access_token'
     , oauth:
-      { consumer_key: 'GDdmIQH6jhtmLUypg82g'
+    { consumer_key: 'GDdmIQH6jhtmLUypg82g'
       , nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8'
       , signature_method: 'RSA-SHA1'
       , token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc'
@@ -196,7 +196,7 @@ tape('raccsign_rsa', function(t) {
       , version: '1.0'
       , private_key: rsa_private_pem
       , token_secret: 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA'
-      }
+    }
     })
 
   process.nextTick(function() {
@@ -210,7 +210,7 @@ tape('rupsign', function(t) {
   var rupsign = request.post(
     { url: 'http://api.twitter.com/1/statuses/update.json'
     , oauth:
-      { consumer_key: 'GDdmIQH6jhtmLUypg82g'
+    { consumer_key: 'GDdmIQH6jhtmLUypg82g'
       , nonce: 'oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y'
       , signature_method: 'HMAC-SHA1'
       , token: '819797-Jxq8aYUDRmykzVKrgoLhXSq67TEa5ruc4GJC2rWimw'
@@ -218,7 +218,7 @@ tape('rupsign', function(t) {
       , version: '1.0'
       , consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98'
       , token_secret: 'J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA'
-      }
+    }
     , form: {status: 'setting up my twitter 私のさえずりを設定する'}
     })
   process.nextTick(function() {
@@ -232,7 +232,7 @@ tape('rupsign_rsa', function(t) {
   var rupsign_rsa = request.post(
     { url: 'http://api.twitter.com/1/statuses/update.json'
     , oauth:
-      { consumer_key: 'GDdmIQH6jhtmLUypg82g'
+    { consumer_key: 'GDdmIQH6jhtmLUypg82g'
       , nonce: 'oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y'
       , signature_method: 'RSA-SHA1'
       , token: '819797-Jxq8aYUDRmykzVKrgoLhXSq67TEa5ruc4GJC2rWimw'
@@ -240,7 +240,7 @@ tape('rupsign_rsa', function(t) {
       , version: '1.0'
       , private_key: rsa_private_pem
       , token_secret: 'J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA'
-      }
+    }
     , form: {status: 'setting up my twitter 私のさえずりを設定する'}
     })
   process.nextTick(function() {
@@ -281,7 +281,7 @@ tape('rfc5849 RSA example', function(t) {
   var rfc5849_rsa = request.post(
     { url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b'
     , oauth:
-      { consumer_key: '9djdj82h48djs9d2'
+    { consumer_key: '9djdj82h48djs9d2'
       , nonce: '7d8f3e4a'
       , signature_method: 'RSA-SHA1'
       , token: 'kkk9d7dh3k39sjv7'
@@ -289,7 +289,7 @@ tape('rfc5849 RSA example', function(t) {
       , private_key: rsa_private_pem
       , token_secret: 'dh893hdasih9'
       , realm: 'Example'
-      }
+    }
     , form: {
       c2: '',
       a3: '2 q'
@@ -308,10 +308,10 @@ tape('plaintext signature method', function(t) {
   var plaintext = request.post(
     { url: 'https://dummy.com'
     , oauth:
-      { consumer_secret: 'consumer_secret'
+    { consumer_secret: 'consumer_secret'
       , token_secret: 'token_secret'
       , signature_method: 'PLAINTEXT'
-      }
+    }
     })
 
   process.nextTick(function() {
@@ -325,11 +325,11 @@ tape('invalid transport_method', function(t) {
   t.throws(
     function () {
       request.post(
-      { url: 'http://example.com/'
+        { url: 'http://example.com/'
       , oauth:
-        { transport_method: 'headerquery'
-        }
-      })
+      { transport_method: 'headerquery'
+      }
+        })
     }, /transport_method invalid/)
   t.end()
 })
@@ -338,12 +338,12 @@ tape('invalid method while using transport_method \'body\'', function(t) {
   t.throws(
     function () {
       request.get(
-      { url: 'http://example.com/'
+        { url: 'http://example.com/'
       , headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' }
       , oauth:
-        { transport_method: 'body'
-        }
-      })
+      { transport_method: 'body'
+      }
+        })
     }, /requires POST/)
   t.end()
 })
@@ -352,12 +352,12 @@ tape('invalid content-type while using transport_method \'body\'', function(t) {
   t.throws(
     function () {
       request.post(
-      { url: 'http://example.com/'
+        { url: 'http://example.com/'
       , headers: { 'content-type': 'application/json; charset=UTF-8' }
       , oauth:
-        { transport_method: 'body'
-        }
-      })
+      { transport_method: 'body'
+      }
+        })
     }, /requires POST/)
   t.end()
 })
@@ -366,7 +366,7 @@ tape('query transport_method', function(t) {
   var r = request.post(
     { url: 'https://api.twitter.com/oauth/access_token'
     , oauth:
-      { consumer_key: 'GDdmIQH6jhtmLUypg82g'
+    { consumer_key: 'GDdmIQH6jhtmLUypg82g'
       , nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8'
       , signature_method: 'HMAC-SHA1'
       , token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc'
@@ -376,7 +376,7 @@ tape('query transport_method', function(t) {
       , consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98'
       , token_secret: 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA'
       , transport_method: 'query'
-      }
+    }
     })
 
   process.nextTick(function() {
@@ -401,7 +401,7 @@ tape('query transport_method + form option + url params', function(t) {
   var r = request.post(
     { url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b'
     , oauth:
-      { consumer_key: '9djdj82h48djs9d2'
+    { consumer_key: '9djdj82h48djs9d2'
       , nonce: '7d8f3e4a'
       , signature_method: 'HMAC-SHA1'
       , token: 'kkk9d7dh3k39sjv7'
@@ -410,7 +410,7 @@ tape('query transport_method + form option + url params', function(t) {
       , token_secret: 'dh893hdasih9'
       , realm: 'Example'
       , transport_method: 'query'
-      }
+    }
     , form: {
       c2: '',
       a3: '2 q'
@@ -443,7 +443,7 @@ tape('query transport_method + qs option + url params', function(t) {
   var r = request.post(
     { url: 'http://example.com/request?a2=r%20b'
     , oauth:
-      { consumer_key: '9djdj82h48djs9d2'
+    { consumer_key: '9djdj82h48djs9d2'
       , nonce: '7d8f3e4a'
       , signature_method: 'HMAC-SHA1'
       , token: 'kkk9d7dh3k39sjv7'
@@ -452,14 +452,14 @@ tape('query transport_method + qs option + url params', function(t) {
       , token_secret: 'dh893hdasih9'
       , realm: 'Example'
       , transport_method: 'query'
-      }
+    }
     , qs: {
       b5: '=%3D',
       a3: ['a', '2 q'],
       'c@': '',
       c2: ''
     }
-  })
+    })
 
   process.nextTick(function() {
     t.notOk(r.headers.Authorization, 'oauth Authorization header should not be present with transport_method \'query\'')
@@ -490,7 +490,7 @@ tape('body transport_method', function(t) {
     { url: 'https://api.twitter.com/oauth/access_token'
     , headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' }
     , oauth:
-      { consumer_key: 'GDdmIQH6jhtmLUypg82g'
+    { consumer_key: 'GDdmIQH6jhtmLUypg82g'
       , nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8'
       , signature_method: 'HMAC-SHA1'
       , token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc'
@@ -500,7 +500,7 @@ tape('body transport_method', function(t) {
       , consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98'
       , token_secret: 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA'
       , transport_method: 'body'
-      }
+    }
     })
 
   process.nextTick(function() {
@@ -523,7 +523,7 @@ tape('body transport_method + form option + url params', function(t) {
   var r = request.post(
     { url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b'
     , oauth:
-      { consumer_key: '9djdj82h48djs9d2'
+    { consumer_key: '9djdj82h48djs9d2'
       , nonce: '7d8f3e4a'
       , signature_method: 'HMAC-SHA1'
       , token: 'kkk9d7dh3k39sjv7'
@@ -532,7 +532,7 @@ tape('body transport_method + form option + url params', function(t) {
       , token_secret: 'dh893hdasih9'
       , realm: 'Example'
       , transport_method: 'body'
-      }
+    }
     , form: {
       c2: '',
       a3: '2 q'
@@ -569,9 +569,9 @@ tape('body_hash manual built', function(t) {
   var r = request.post(
     { url: 'http://example.com'
     , oauth:
-      { consumer_secret: 'consumer_secret'
+    { consumer_secret: 'consumer_secret'
       , body_hash: buildBodyHash(JSON.stringify(json))
-      }
+    }
     , json: json
     })
 
@@ -587,9 +587,9 @@ tape('body_hash automatic built', function(t) {
   var r = request.post(
     { url: 'http://example.com'
     , oauth:
-      { consumer_secret: 'consumer_secret'
+    { consumer_secret: 'consumer_secret'
       , body_hash: true
-      }
+    }
     , json: {foo: 'bar'}
     })
 
@@ -604,14 +604,14 @@ tape('body_hash automatic built', function(t) {
 tape('body_hash PLAINTEXT signature_method', function(t) {
   t.throws(function() {
     request.post(
-    { url: 'http://example.com'
+      { url: 'http://example.com'
     , oauth:
-      { consumer_secret: 'consumer_secret'
+    { consumer_secret: 'consumer_secret'
       , body_hash: true
       , signature_method: 'PLAINTEXT'
-      }
+    }
     , json: {foo: 'bar'}
-    })
+      })
   }, /oauth: PLAINTEXT signature_method not supported with body_hash signing/)
   t.end()
 })
@@ -634,11 +634,11 @@ tape('refresh oauth_nonce on redirect', function(t) {
     request.get(
       { url: url + '/redirect'
       , oauth:
-        { consumer_key: 'consumer_key'
+      { consumer_key: 'consumer_key'
         , consumer_secret: 'consumer_secret'
         , token: 'token'
         , token_secret: 'token_secret'
-        }
+      }
       }, function (err, res, body) {
       t.equal(err, null)
       t.notEqual(oauth_nonce1, oauth_nonce2)
@@ -665,11 +665,11 @@ tape('no credentials on external redirect', function(t) {
       request.get(
         { url: s1.url
         , oauth:
-          { consumer_key: 'consumer_key'
+        { consumer_key: 'consumer_key'
           , consumer_secret: 'consumer_secret'
           , token: 'token'
           , token_secret: 'token_secret'
-          }
+        }
         }, function (err, res, body) {
         t.equal(err, null)
         t.equal(res.request.headers.Authorization, undefined)
