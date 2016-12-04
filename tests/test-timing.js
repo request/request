@@ -40,7 +40,7 @@ tape('non-redirected request is timed', function(t) {
     t.equal((res.timings.response >= res.timings.connect), true)
     t.equal((res.timings.end >= res.timings.response), true)
     t.equal((res.timings.dns >= 0), true)
-    t.equal((res.timings.tcp > 0), true)
+    t.equal((res.timings.tcp >= 0), true)
     t.equal((res.timings.firstByte > 0), true)
     t.equal((res.timings.download > 0), true)
     t.equal((res.timings.total > 0), true)

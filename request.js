@@ -28,7 +28,6 @@ var http = require('http')
   , Multipart = require('./lib/multipart').Multipart
   , Redirect = require('./lib/redirect').Redirect
   , Tunnel = require('./lib/tunnel').Tunnel
-  , now = require('performance-now')
 
 var safeStringify = helpers.safeStringify
   , isReadStream = helpers.isReadStream
@@ -37,6 +36,7 @@ var safeStringify = helpers.safeStringify
   , copy = helpers.copy
   , version = helpers.version
   , globalCookieJar = cookies.jar()
+  , hrTimeStart
 
 
 var globalPool = {}
@@ -90,6 +90,28 @@ function responseToJSON() {
     headers: self.headers,
     request: requestToJSON.call(self.request)
   }
+}
+
+function getHrTime() {
+  if (typeof process === 'undefined' || !process.hrtime) {
+    return 0
+  }
+
+  var hr = process.hrtime()
+  // convert to nanoseconds
+  return hr[0] * 1e9 + hr[1]
+}
+
+hrTimeStart = getHrTime()
+
+function getTimeFromStart() {
+  // in the browser, use performance.now()
+  if (typeof performance !== 'undefined' && performance.now) {
+    return performance.now()
+  }
+
+  // in nodejs, use process.hrtime() (converting back to milliseconds)
+  return (getHrTime() - hrTimeStart) / 1e6
 }
 
 function Request (options) {
@@ -715,7 +737,7 @@ Request.prototype.start = function () {
   var self = this
 
   if (self.timing) {
-    var startTime = now()
+    var startTime = getTimeFromStart()
   }
 
   if (self._aborted) {
@@ -775,9 +797,9 @@ Request.prototype.start = function () {
   })
   self.req.on('socket', function(socket) {
     if (self.timing) {
-      self.timings.socket = now()
+      self.timings.socket = getTimeFromStart()
       socket.on('connect', function() {
-        self.timings.connect = now()
+        self.timings.connect = getTimeFromStart()
       })
     }
 
@@ -864,13 +886,13 @@ Request.prototype.onRequestResponse = function (response) {
   var self = this
 
   if (self.timing) {
-    self.timings.response = now()
+    self.timings.response = getTimeFromStart()
   }
 
   debug('onRequestResponse', self.uri.href, response.statusCode, response.headers)
   response.on('end', function() {
     if (self.timing) {
-      self.timings.end = now()
+      self.timings.end = getTimeFromStart()
 
       self.timings.dns = self.timings.socket - self.timings.start
       self.timings.tcp = self.timings.connect - self.timings.socket

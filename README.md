@@ -812,7 +812,7 @@ default in Linux can be anywhere from 20-120 seconds][linux-timeout]).
 
 ---
 
-- `time` - If `true`, the request-response cycle (including all redirects) is timed at millisecond resolution, and the result provided on the response's `elapsedTime` property. The `responseStartTime` property is also available to indicate the timestamp when the response begins.  In addition, there is a `.timings` object available with the following properties:
+- `time` - If `true`, the request-response cycle (including all redirects) is timed at millisecond resolution, and the result provided on the response's `elapsedTime` property. The `responseStartTime` property is also available to indicate the timestamp when the response begins. In addition, there is a `.timings` object available with the following properties:
   - `start`: Timestamp when `request()` was initialized
   - `socket` Timestamp when the [`http`](https://nodejs.org/api/http.html#http_event_socket) module's `socket` event fires.  This happens when the socket is assigned to the request (after DNS has been resolved).
   -  `connect`: Timestamp when the [`http`](https://nodejs.org/api/http.html#http_event_connect) module's `connect` event fires.  This happens when the server acknowledges the TCP connection.
@@ -820,7 +820,8 @@ default in Linux can be anywhere from 20-120 seconds][linux-timeout]).
   - `end`: Timestamp when the last bytes of the response are received.
   - `dns`: Duration of DNS lookup (`timings.socket` - `timings.start`)
   - `tcp`: Duration of TCP connection (`timings.connect` - `timings.socket`)
-  - `download`: Duration HTTP fetch (`timings.end` - `timings.response`)
+  - `firstByte`: Duration of HTTP server response (`timings.response` - `timings.connect`)
+  - `download`: Duration of HTTP download (`timings.end` - `timings.response`)
   - `total`: Duration entire HTTP round-trip (`timings.end` - `timings.start`)
 
 - `har` - A [HAR 1.2 Request Object](http://www.softwareishard.com/blog/har-12-spec/#request), will be processed from HAR format into options overwriting matching values *(see the [HAR 1.2 section](#support-for-har-1.2) for details)*
