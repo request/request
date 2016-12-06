@@ -150,15 +150,25 @@ var nonRoutable = [
   '172.16.0.0',
   '172.31.255.255'
 ]
+var nrIndex = 0
+function getNonRoutable() {
+  var ip = nonRoutable[nrIndex]
+  if (!ip) {
+    throw new Error('No more non-routable addresses')
+  }
+  ++nrIndex
+  return ip
+}
 tape('connect timeout', function tryConnect(t) {
-  var tarpitHost = 'http://' + nonRoutable.shift()
+  var tarpitHost = 'http://' + getNonRoutable()
   var shouldConnectTimeout = {
     url: tarpitHost + '/timeout',
     timeout: 100
   }
   var socket
   request(shouldConnectTimeout, function(err) {
-    if (err.code === 'ENETUNREACH' && nonRoutable.length) {
+    t.notEqual(err, null)
+    if (err.code === 'ENETUNREACH' && nrIndex < nonRoutable.length) {
       // With some network configurations, some addresses will be reported as
       // unreachable immediately (before the timeout occurs). In those cases,
       // try other non-routable addresses before giving up.
@@ -167,17 +177,15 @@ tape('connect timeout', function tryConnect(t) {
     checkErrCode(t, err)
     t.ok(err.connect === true, 'Connect Timeout Error should set \'connect\' property to true')
     checkEventHandlers(t, socket)
+    nrIndex = 0
     t.end()
   }).on('socket', function(socket_) {
     socket = socket_
   })
 })
 
-tape('connect timeout with non-timeout error', function(t) {
-  // We need a destination that will not immediately return a TCP Reset
-  // packet. StackOverflow suggests this host:
-  // https://stackoverflow.com/a/904609/329700
-  var tarpitHost = 'http://10.255.255.1'
+tape('connect timeout with non-timeout error', function tryConnect(t) {
+  var tarpitHost = 'http://' + getNonRoutable()
   var shouldConnectTimeout = {
     url: tarpitHost + '/timeout',
     timeout: 1000
@@ -185,10 +193,17 @@ tape('connect timeout with non-timeout error', function(t) {
   var socket
   request(shouldConnectTimeout, function(err) {
     t.notEqual(err, null)
+    if (err.code === 'ENETUNREACH' && nrIndex < nonRoutable.length) {
+      // With some network configurations, some addresses will be reported as
+      // unreachable immediately (before the timeout occurs). In those cases,
+      // try other non-routable addresses before giving up.
+      return tryConnect(t)
+    }
     // Delay the check since the 'connect' handler is removed in a separate
     // 'error' handler which gets triggered after this callback
     setImmediate(function() {
       checkEventHandlers(t, socket)
+      nrIndex = 0
       t.end()
     })
   }).on('socket', function(socket_) {
