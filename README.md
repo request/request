@@ -815,7 +815,7 @@ default in Linux can be anywhere from 20-120 seconds][linux-timeout]).
 - `time` - If `true`, the request-response cycle (including all redirects) is timed at millisecond resolution, and the result provided on the response's `elapsedTime` property. The `responseStartTime` property is also available to indicate the timestamp when the response begins. In addition, there is a `.timings` object available with the following properties:
   - `start`: Timestamp when `request()` was initialized
   - `socket` Timestamp when the [`http`](https://nodejs.org/api/http.html#http_event_socket) module's `socket` event fires. This happens when the socket is assigned to the request (after DNS has been resolved).
-  -  `connect`: Timestamp when the [`http`](https://nodejs.org/api/http.html#http_event_connect) module's `connect` event fires. This happens when the server acknowledges the TCP connection.
+  - `connect`: Timestamp when the [`http`](https://nodejs.org/api/http.html#http_event_connect) module's `connect` event fires. This happens when the server acknowledges the TCP connection.
   - `response`: Timestamp when the [`http`](https://nodejs.org/api/http.html#http_event_response) module's `response` event fires. This happens when the first bytes are received from the server.
   - `end`: Timestamp when the last bytes of the response are received.
   - `dns`: Duration of DNS lookup (`timings.socket` - `timings.start`)
