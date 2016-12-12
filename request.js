@@ -276,6 +276,10 @@ Request.prototype.init = function (options) {
 
   if (!self.hasOwnProperty('proxy')) {
     self.proxy = getProxyFromURI(self.uri)
+    //Check againt null instead because default is true and any specific callout would be false
+    if (process.env.npm_config_strict_ssl !== null) {
+        self.strictSSL = process.env.npm_config_strict_ssl
+    }
   }
 
   self.tunnel = self._tunnel.isEnabled()
