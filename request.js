@@ -252,7 +252,8 @@ Request.prototype.init = function (options) {
     self.enableUnixSocket()
   }
 
-  if (self.strictSSL === false) {
+  if (self.strictSSL === false ||
+      process.env.npm_config_strict_ssl === false) {
     self.rejectUnauthorized = false
   }
 
@@ -276,10 +277,6 @@ Request.prototype.init = function (options) {
 
   if (!self.hasOwnProperty('proxy')) {
     self.proxy = getProxyFromURI(self.uri)
-    //Check againt null instead because default is true and any specific callout would be false
-    if (process.env.npm_config_strict_ssl !== null) {
-        self.strictSSL = process.env.npm_config_strict_ssl
-    }
   }
 
   self.tunnel = self._tunnel.isEnabled()
