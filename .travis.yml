@@ -5,8 +5,18 @@ node_js:
   - 0.12
   - 0.10
 
+services:
+  - docker
+
+before_script:
+  - docker build -t kdc:test .
+  - docker run -d -p 127.0.0.1:88:88/udp -p 127.0.0.1:8000:8000 --name docker-kdc kdc:test
+  - sudo apt-get install -qq -y libkrb5-dev
+  - kinit --password-file=./tests/kerberos/bob-pass bob
+
 after_script:
   - npm run test-cov
+  - docker kill $(docker ps -q)
   - cat ./coverage/lcov.info | codecov
   - cat ./coverage/lcov.info | coveralls
 
@@ -16,4 +26,4 @@ webhooks:
   on_failure: always  # options: [always|never|change] default: always
   on_start: false     # default: false
 
-sudo: false
+sudo: required

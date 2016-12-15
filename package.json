@@ -36,7 +36,6 @@
     "is-typedarray": "~1.0.0",
     "isstream": "~0.1.2",
     "json-stringify-safe": "~5.0.1",
-    "kerberos": "~0.0.17",
     "mime-types": "~2.1.7",
     "node-uuid": "~1.4.7",
     "oauth-sign": "~0.8.1",
@@ -46,7 +45,9 @@
     "tunnel-agent": "~0.4.1"
   },
   "scripts": {
-    "test": "npm run lint && npm run test-ci && npm run test-browser",
+    "test": "npm run lint && npm run test-local && npm run test-integration",
+    "test-integration": "taper tests/int-test-*.js",
+    "test-local": "npm run test-ci && npm run test-browser",
     "test-ci": "taper tests/test-*.js",
     "test-cov": "istanbul cover tape tests/test-*.js",
     "test-browser": "node tests/browser/start.js",
@@ -73,5 +74,8 @@
     "server-destroy": "^1.0.1",
     "tape": "^4.2.0",
     "taper": "^0.4.0"
+  },
+  "optionalDependencies": {
+    "kerberos": "~0.0.17"
   }
 }

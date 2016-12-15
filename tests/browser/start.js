@@ -6,6 +6,21 @@ var path = require('path')
 
 var port = 6767
 
+// Karma ignores kerberos, to do so it requires the 
+// module to be installed. Since it's an optional dependency
+// it might not always be available. If it's the case, we
+// create a dummy index.js that gets cleaned up before closing
+// the server
+var kerbPath = path.join(__dirname, '../../', 'node_modules/kerberos')
+var kerbIndex = kerbPath + '/index.js'
+var kerbExists = false
+
+if (!(kerbExists = fs.existsSync(kerbIndex))) {
+  var content = 'var Kerberos = function() {}\nexports.Kerberos = Kerberos'
+  fs.mkdirSync(kerbPath)
+  fs.writeFileSync(kerbIndex, content)
+}
+
 var server = https.createServer({
   key: fs.readFileSync(path.join(__dirname, '/ssl/server.key')),
   cert: fs.readFileSync(path.join(__dirname, '/ssl/server.crt')),
@@ -28,6 +43,14 @@ server.listen(port, function() {
   c.stdout.pipe(process.stdout)
   c.stderr.pipe(process.stderr)
   c.on('exit', function(c) {
+    try {
+      if (!kerbExists) {
+        fs.unlinkSync(kerbIndex)
+        fs.rmdirSync(kerbPath)
+      }
+    } catch (e) {
+      throw new Error('Error while cleaning up the dummy kerberos module: ' + e.message)
+    }
     // Exit process with karma exit code.
     if (c !== 0) {
       throw new Error('Karma exited with status code ' + c)

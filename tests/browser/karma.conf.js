@@ -36,7 +36,9 @@ module.exports = function(config) {
       debug: true,
       transform: [istanbul({
         ignore: ['**/node_modules/**', '**/tests/**']
-      })]
+      })],
+      // Exclude kerberos from browserify build
+      noParse: [require.resolve('kerberos')]
     },
     coverageReporter: {
       type: 'lcov',

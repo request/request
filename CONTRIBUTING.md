@@ -68,6 +68,14 @@ There are a few basic ground-rules for contributors:
      - `node tests/test-file.js` - view the raw
        [tap](https://testanything.org/) output.
 
+## Running the tests
+
+The full test suite can be run using `npm test`. This runs the local tests and the integration
+tests. The integration tests assume that your local environment has all the pre-reqs, i.e. you 
+succesfully followed the `before_script` steps in `.travis.yml`.
+
+Alternatively, if your tests are self contained and don't require any external dependencies, 
+you can simply run `npm run test-local` 
 
 ## Releases
 

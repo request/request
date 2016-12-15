@@ -1,0 +1,14 @@
+{
+  "name": "target-server",
+  "version": "1.0.0",
+  "description": "Target kerberized server",
+  "main": "index.js",
+  "dependencies": {
+    "passport": "0.3.2",
+    "kerberos": "0.0.22",
+    "passport-negotiate": "0.1.4",
+    "express": "4.14.0"
+  },
+  "author": "Rodrigo Manyari (rodrigo@twosigma.com)",
+  "license": "Apache"
+}
