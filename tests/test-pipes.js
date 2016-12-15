@@ -64,7 +64,7 @@ ValidationStream.prototype.end = function(chunk) {
 
 
 tape('setup', function(t) {
-  s.listen(s.port, function() {
+  s.listen(0, function() {
     t.end()
   })
 })
@@ -210,7 +210,7 @@ tape('pause before piping from a request object', function(t) {
   }, 100)
 })
 
-var fileContents = fs.readFileSync(__filename).toString()
+var fileContents = fs.readFileSync(__filename)
 function testPipeFromFile(testName, hasContentLength) {
   tape(testName, function(t) {
     s.once('/pushjs', function(req, res) {
@@ -220,13 +220,16 @@ function testPipeFromFile(testName, hasContentLength) {
           req.headers['content-length'],
           (hasContentLength ? '' + fileContents.length : undefined))
         var body = ''
+        req.setEncoding('utf8')
         req.on('data', function(data) {
           body += data
         })
         req.on('end', function() {
-          t.equal(body, fileContents)
+          res.end()
+          t.equal(body, fileContents.toString())
           t.end()
         })
+      } else {
         res.end()
       }
     })

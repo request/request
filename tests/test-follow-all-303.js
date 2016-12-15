@@ -15,7 +15,8 @@ var server = http.createServer(function (req, res) {
 })
 
 tape('setup', function(t) {
-  server.listen(6767, function() {
+  server.listen(0, function() {
+    server.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
@@ -24,7 +25,7 @@ tape('followAllRedirects with 303', function(t) {
   var redirects = 0
 
   request.post({
-    url: 'http://localhost:6767/foo',
+    url: server.url + '/foo',
     followAllRedirects: true,
     form: { foo: 'bar' }
   }, function (err, res, body) {

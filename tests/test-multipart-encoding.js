@@ -124,7 +124,8 @@ function runTest(t, test) {
     })
   })
 
-  server.listen(6767, function() {
+  server.listen(0, function() {
+    var url = 'http://localhost:' + this.address().port
     // @NOTE: multipartData properties must be set here
     // so that file read stream does not leak in node v0.8
     var parts = test.options.multipart.data || test.options.multipart
@@ -132,7 +133,7 @@ function runTest(t, test) {
       parts[0].body = fs.createReadStream(localFile)
     }
 
-    request.post('http://localhost:6767', test.options, function (err, res, body) {
+    request.post(url, test.options, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       server.close(function () {

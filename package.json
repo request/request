@@ -7,7 +7,7 @@
     "util",
     "utility"
   ],
-  "version": "2.72.1",
+  "version": "2.79.1",
   "author": "Mikeal Rogers <mikeal.rogers@gmail.com>",
   "repository": {
     "type": "git",
@@ -18,31 +18,35 @@
   },
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=0.8.0"
+    "node": ">= 4"
   },
   "main": "index.js",
+  "files": [
+    "lib/",
+    "index.js",
+    "request.js"
+  ],
   "dependencies": {
     "aws-sign2": "~0.6.0",
     "aws4": "^1.2.1",
-    "bl": "~1.1.2",
     "caseless": "~0.11.0",
     "combined-stream": "~1.0.5",
     "extend": "~3.0.0",
     "forever-agent": "~0.6.1",
-    "form-data": "~1.0.0-rc4",
-    "har-validator": "~2.0.6",
+    "form-data": "~2.1.1",
+    "har-validator": "~4.2.0",
     "hawk": "~3.1.3",
     "http-signature": "~1.1.0",
     "is-typedarray": "~1.0.0",
     "isstream": "~0.1.2",
     "json-stringify-safe": "~5.0.1",
     "mime-types": "~2.1.7",
-    "node-uuid": "~1.4.7",
     "oauth-sign": "~0.8.1",
-    "qs": "~6.2.0",
+    "qs": "~6.3.0",
     "stringstream": "~0.0.4",
-    "tough-cookie": "~2.2.0",
-    "tunnel-agent": "~0.4.1"
+    "tough-cookie": "~2.3.0",
+    "tunnel-agent": "~0.4.1",
+    "uuid": "^3.0.0"
   },
   "scripts": {
     "test": "npm run lint && npm run test-local && npm run test-integration",
@@ -55,20 +59,20 @@
   },
   "devDependencies": {
     "bluebird": "^3.2.1",
-    "browserify": "^12.0.2",
+    "browserify": "^13.0.1",
     "browserify-istanbul": "^2.0.0",
     "buffer-equal": "^1.0.0",
-    "codecov.io": "^0.1.6",
+    "codecov": "^1.0.1",
     "coveralls": "^2.11.4",
     "eslint": "^2.5.3",
     "function-bind": "^1.0.2",
     "istanbul": "^0.4.0",
-    "karma": "^0.13.10",
+    "karma": "^1.1.1",
     "karma-browserify": "^5.0.1",
     "karma-cli": "^1.0.0",
     "karma-coverage": "^1.0.0",
     "karma-phantomjs-launcher": "^1.0.0",
-    "karma-tap": "^1.0.3",
+    "karma-tap": "^3.0.1",
     "phantomjs-prebuilt": "^2.1.3",
     "rimraf": "^2.2.8",
     "server-destroy": "^1.0.1",
@@ -77,5 +81,12 @@
   },
   "optionalDependencies": {
     "kerberos": "~0.0.17"
+  },
+  "greenkeeper": {
+    "ignore": [
+      "eslint",
+      "hawk",
+      "har-validator"
+    ]
   }
 }

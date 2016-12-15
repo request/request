@@ -7,7 +7,6 @@ var assert = require('assert')
 
 var numBasicRequests = 0
   , basicServer
-  , port = 6767
 
 tape('setup', function(t) {
   basicServer = http.createServer(function (req, res) {
@@ -50,7 +49,9 @@ tape('setup', function(t) {
       res.statusCode = 401
       res.end('401')
     }
-  }).listen(port, function() {
+  }).listen(0, function() {
+    basicServer.port = this.address().port
+    basicServer.url = 'http://localhost:' + basicServer.port
     t.end()
   })
 })
@@ -58,7 +59,7 @@ tape('setup', function(t) {
 tape('sendImmediately - false', function(t) {
   var r = request({
     'method': 'GET',
-    'uri': 'http://localhost:6767/test/',
+    'uri': basicServer.url + '/test/',
     'auth': {
       'user': 'user',
       'pass': 'pass',
@@ -76,7 +77,7 @@ tape('sendImmediately - true', function(t) {
   // If we don't set sendImmediately = false, request will send basic auth
   var r = request({
     'method': 'GET',
-    'uri': 'http://localhost:6767/test2/',
+    'uri': basicServer.url + '/test2/',
     'auth': {
       'user': 'user',
       'pass': 'pass'
@@ -92,7 +93,7 @@ tape('sendImmediately - true', function(t) {
 tape('credentials in url', function(t) {
   var r = request({
     'method': 'GET',
-    'uri': 'http://user:pass@localhost:6767/test2/'
+    'uri': basicServer.url.replace(/:\/\//, '$&user:pass@') + '/test2/'
   }, function(error, res, body) {
     t.equal(r._auth.user, 'user')
     t.equal(res.statusCode, 200)
@@ -105,7 +106,7 @@ tape('POST request', function(t) {
   var r = request({
     'method': 'POST',
     'form': { 'key': 'value' },
-    'uri': 'http://localhost:6767/post/',
+    'uri': basicServer.url + '/post/',
     'auth': {
       'user': 'user',
       'pass': 'pass',
@@ -123,7 +124,7 @@ tape('user - empty string', function(t) {
   t.doesNotThrow( function() {
     var r = request({
       'method': 'GET',
-      'uri': 'http://localhost:6767/allow_empty_user/',
+      'uri': basicServer.url + '/allow_empty_user/',
       'auth': {
         'user': '',
         'pass': 'pass',
@@ -142,7 +143,7 @@ tape('pass - undefined', function(t) {
   t.doesNotThrow( function() {
     var r = request({
       'method': 'GET',
-      'uri': 'http://localhost:6767/allow_undefined_password/',
+      'uri': basicServer.url + '/allow_undefined_password/',
       'auth': {
         'user': 'user',
         'pass': undefined,
@@ -162,7 +163,7 @@ tape('pass - utf8', function(t) {
   t.doesNotThrow( function() {
     var r = request({
       'method': 'GET',
-      'uri': 'http://localhost:6767/allow_undefined_password/',
+      'uri': basicServer.url + '/allow_undefined_password/',
       'auth': {
         'user': 'user',
         'pass': 'pâss',
@@ -180,7 +181,7 @@ tape('pass - utf8', function(t) {
 
 tape('auth method', function(t) {
   var r = request
-    .get('http://localhost:6767/test/')
+    .get(basicServer.url + '/test/')
     .auth('user', '', false)
     .on('response', function (res) {
       t.equal(r._auth.user, 'user')
@@ -191,7 +192,7 @@ tape('auth method', function(t) {
 })
 
 tape('get method', function(t) {
-  var r = request.get('http://localhost:6767/test/',
+  var r = request.get(basicServer.url + '/test/',
     {
       auth: {
         user: 'user',

@@ -7,7 +7,7 @@ var server = require('./server')
 var s = server.createServer()
 
 tape('setup', function(t) {
-  s.listen(s.port, function() {
+  s.listen(0, function() {
     s.on('/', function(req, res) {
       res.writeHead(200, { 'content-type': 'text/plain' })
       res.write('waited')

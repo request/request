@@ -7,7 +7,6 @@ var assert = require('assert')
 
 var numBearerRequests = 0
   , bearerServer
-  , port = 6767
 
 tape('setup', function(t) {
   bearerServer = http.createServer(function (req, res) {
@@ -44,7 +43,8 @@ tape('setup', function(t) {
       res.statusCode = 401
       res.end('401')
     }
-  }).listen(port, function() {
+  }).listen(0, function() {
+    bearerServer.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
@@ -52,7 +52,7 @@ tape('setup', function(t) {
 tape('bearer auth', function(t) {
   request({
     'method': 'GET',
-    'uri': 'http://localhost:6767/test/',
+    'uri': bearerServer.url + '/test/',
     'auth': {
       'bearer': 'theToken',
       'sendImmediately': false
@@ -68,7 +68,7 @@ tape('bearer auth with default sendImmediately', function(t) {
   // If we don't set sendImmediately = false, request will send bearer auth
   request({
     'method': 'GET',
-    'uri': 'http://localhost:6767/test2/',
+    'uri': bearerServer.url + '/test2/',
     'auth': {
       'bearer': 'theToken'
     }
@@ -83,7 +83,7 @@ tape('', function(t) {
   request({
     'method': 'POST',
     'form': { 'data_key': 'data_value' },
-    'uri': 'http://localhost:6767/post/',
+    'uri': bearerServer.url + '/post/',
     'auth': {
       'bearer': 'theToken',
       'sendImmediately': false
@@ -97,7 +97,7 @@ tape('', function(t) {
 
 tape('using .auth, sendImmediately = false', function(t) {
   request
-    .get('http://localhost:6767/test/')
+    .get(bearerServer.url + '/test/')
     .auth(null, null, false, 'theToken')
     .on('response', function (res) {
       t.equal(res.statusCode, 200)
@@ -108,7 +108,7 @@ tape('using .auth, sendImmediately = false', function(t) {
 
 tape('using .auth, sendImmediately = true', function(t) {
   request
-    .get('http://localhost:6767/test/')
+    .get(bearerServer.url + '/test/')
     .auth(null, null, true, 'theToken')
     .on('response', function (res) {
       t.equal(res.statusCode, 200)
@@ -120,7 +120,7 @@ tape('using .auth, sendImmediately = true', function(t) {
 tape('bearer is a function', function(t) {
   request({
     'method': 'GET',
-    'uri': 'http://localhost:6767/test/',
+    'uri': bearerServer.url + '/test/',
     'auth': {
       'bearer': function() { return 'theToken' },
       'sendImmediately': false
@@ -136,7 +136,7 @@ tape('bearer is a function, path = test2', function(t) {
   // If we don't set sendImmediately = false, request will send bearer auth
   request({
     'method': 'GET',
-    'uri': 'http://localhost:6767/test2/',
+    'uri': bearerServer.url + '/test2/',
     'auth': {
       'bearer': function() { return 'theToken' }
     }
@@ -150,7 +150,7 @@ tape('bearer is a function, path = test2', function(t) {
 tape('no auth method', function(t) {
   request({
     'method': 'GET',
-    'uri': 'http://localhost:6767/test2/',
+    'uri': bearerServer.url + '/test2/',
     'auth': {
       'bearer': undefined
     }
@@ -163,7 +163,7 @@ tape('no auth method', function(t) {
 tape('null bearer', function(t) {
   request({
     'method': 'GET',
-    'uri': 'http://localhost:6767/test2/',
+    'uri': bearerServer.url + '/test2/',
     'auth': {
       'bearer': null
     }

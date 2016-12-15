@@ -16,7 +16,7 @@ s.on(path, function(req, res) {
 })
 
 tape('setup', function(t) {
-  s.listen(s.port, function() {
+  s.listen(0, function() {
     t.end()
   })
 })
@@ -50,6 +50,26 @@ tape('aws-sign4 options', function(t) {
   request(options, function(err, res, body) {    
     t.ok(body.authorization)
     t.ok(body['x-amz-date'])
+    t.notok(body['x-amz-security-token'])
+    t.end()
+  })
+})
+
+tape('aws-sign4 options with session token', function(t) {
+  var options = {
+    url: s.url + path,
+    aws: {
+      key: 'my_key',
+      secret: 'my_secret',
+      session: 'session',
+      sign_version: 4
+    },
+    json: true
+  }
+  request(options, function(err, res, body) {    
+    t.ok(body.authorization)
+    t.ok(body['x-amz-date'])
+    t.ok(body['x-amz-security-token'])
     t.end()
   })
 })

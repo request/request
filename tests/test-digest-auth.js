@@ -132,7 +132,8 @@ var digestServer = http.createServer(function(req, res) {
 })
 
 tape('setup', function(t) {
-  digestServer.listen(6767, function() {
+  digestServer.listen(0, function() {
+    digestServer.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
@@ -142,7 +143,7 @@ tape('with sendImmediately = false', function(t) {
 
   request({
     method: 'GET',
-    uri: 'http://localhost:6767/test/',
+    uri: digestServer.url + '/test/',
     auth: {
       user: 'test',
       pass: 'testing',
@@ -164,7 +165,7 @@ tape('with MD5-sess algorithm', function(t) {
 
   request({
     method: 'GET',
-    uri: 'http://localhost:6767/test/md5-sess',
+    uri: digestServer.url + '/test/md5-sess',
     auth: {
       user: 'test',
       pass: 'testing',
@@ -187,7 +188,7 @@ tape('without sendImmediately = false', function(t) {
   // If we don't set sendImmediately = false, request will send basic auth
   request({
     method: 'GET',
-    uri: 'http://localhost:6767/test/',
+    uri: digestServer.url + '/test/',
     auth: {
       user: 'test',
       pass: 'testing'
@@ -208,7 +209,7 @@ tape('with different credentials', function(t) {
 
   request({
     method: 'GET',
-    uri: 'http://localhost:6767/dir/index.html',
+    uri: digestServer.url + '/dir/index.html',
     auth: {
       user: 'Mufasa',
       pass: 'CircleOfLife',

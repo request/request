@@ -4,8 +4,6 @@ var https = require('https')
 var fs = require('fs')
 var path = require('path')
 
-var port = 6767
-
 // Karma ignores kerberos, to do so it requires the 
 // module to be installed. Since it's an optional dependency
 // it might not always be available. If it's the case, we
@@ -33,12 +31,14 @@ var server = https.createServer({
   res.writeHead(200)
   res.end('Can you hear the sound of an enormous door slamming in the depths of hell?\n')
 })
-server.listen(port, function() {
+server.listen(0, function() {
+  var port = this.address().port
   console.log('Started https server for karma tests on port ' + port)
   // Spawn process for karma.
   var c = spawn('karma', [
     'start',
-    path.join(__dirname, '/karma.conf.js')
+    path.join(__dirname, '/karma.conf.js'),
+    'https://localhost:' + port
   ])
   c.stdout.pipe(process.stdout)
   c.stderr.pipe(process.stderr)

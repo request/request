@@ -12,14 +12,17 @@ tape('before', function (t) {
   server.on('request', function (req, res) {
     req.pipe(res)
   })
-  server.listen(6767, t.end)
+  server.listen(0, function() {
+    server.url = 'http://localhost:' + this.address().port
+    t.end()
+  })
 })
 
 tape('request body stream', function (t) {
   var fpath = path.join(__dirname, 'unicycle.jpg')
   var input = fs.createReadStream(fpath, {highWaterMark: 1000})
   request({
-    uri: 'http://localhost:6767',
+    uri: server.url,
     method: 'POST',
     body: input,
     encoding: null
