@@ -53,7 +53,7 @@
     "test-integration": "taper tests/int-test-*.js",
     "test-local": "npm run test-ci && npm run test-browser",
     "test-ci": "taper tests/test-*.js",
-    "test-cov": "istanbul cover tape tests/test-*.js",
+    "test-cov": "istanbul cover tape tests/test-*.js tests/int-test-*.js",
     "test-browser": "node tests/browser/start.js",
     "lint": "eslint lib/ *.js tests/ && echo Lint passed."
   },

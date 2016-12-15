@@ -1,5 +1,4 @@
 var exec = require('child_process').exec
-  , path = require('path')
   , request = require('../')
   , tape = require('tape')
 
@@ -23,8 +22,7 @@ tape('should be able to handle 401 when auth is not specified', function (t) {
 })
 
 tape('obtain a TGT for bob@TESTBED.COM', function(t) {
-  var passFile = path.join(__dirname, 'kerberos/bob-pass')
-  exec('/usr/bin/kinit --password-file=' + passFile + ' bob', function(err, stdout, stderr) {
+  exec('echo Passw0rd | /usr/bin/kinit bob', function(err, stdout, stderr) {
     if (err) {
       t.end('Could not obtain a TGT: ' + err)
     } else {

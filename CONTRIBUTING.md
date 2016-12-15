@@ -74,8 +74,8 @@ The full test suite can be run using `npm test`. This runs the local tests and t
 tests. The integration tests assume that your local environment has all the pre-reqs, i.e. you 
 succesfully followed the `before_script` steps in `.travis.yml`.
 
-Alternatively, if your tests are self contained and don't require any external dependencies, 
-you can simply run `npm run test-local` 
+Alternatively, if your tests are self contained and don't require any external dependencies,
+you can simply run `npm run test-local`
 
 ## Releases
 

@@ -1,6 +1,12 @@
 
 language: node_js
 
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+
 node_js:
   - node
   - 6
@@ -12,8 +18,8 @@ services:
 before_script:
   - docker build -t kdc:test .
   - docker run -d -p 127.0.0.1:88:88/udp -p 127.0.0.1:8000:8000 --name docker-kdc kdc:test
-  - sudo apt-get install -qq -y libkrb5-dev
-  - kinit --password-file=./tests/kerberos/bob-pass bob
+  - sudo apt-get install -qq -y krb5-user krb5-config
+  - sudo cp ./tests/kerberos/krb5.conf /etc/krb5.conf
 
 after_script:
   - npm run test-cov
