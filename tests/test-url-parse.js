@@ -260,6 +260,14 @@ tape('stringify - "a[0]=foo&a[1]=bar"', function (t) {
   t.end()
 })
 
+tape('stringify encodes ( and )- "a=foo(a)"', function (t) {
+  var parsed = [
+        { key: 'a', value: 'foo(a)' },
+  ]
+  t.equal(url.stringify(parsed), 'a=foo%28a%29')
+  t.end()
+})
+
 tape('stringify Russian - "a=Привет Почтальон"', function (t) {
   var parsed = [
         { key: 'a', value: 'Привет Почтальон' },
