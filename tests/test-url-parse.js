@@ -267,6 +267,14 @@ tape('stringify pre-encoded multibyte character - "multibyte=%F0%9D%8C%86"', fun
   t.end()
 })
 
+tape('stringify encoding percentage - "charwithPercent=%foo"', function (t) {
+  var parsed = [
+        { key: 'multibyte', value: '%foo' }
+  ]
+  t.equal(url.stringify(parsed), 'multibyte=%25foo')
+  t.end()
+})
+
 tape('stringify - "a[0]=foo&a[1]=bar"', function (t) {
   var parsed = [
         { key: 'a[0]', value: 'foo' },
