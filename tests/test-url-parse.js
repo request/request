@@ -243,11 +243,27 @@ tape('stringify - "email=foo+bar-xyz@gmail.com"', function (t) {
   t.end()
 })
 
-tape('stringify pre encoded text(+) - "email=foo%2Bbar-xyz@gmail.com"', function (t) {
+tape('stringify pre encoded text( must avoid double encoding) - "email=foo%2Bbar%40domain.com"', function (t) {
   var parsed = [
-        { key: 'email', value: 'foo%2Bbar-xyz@gmail.com' }
+        { key: 'email', value: 'foo%2Bbar%40domain.com' }
   ]
-  t.equal(url.stringify(parsed), 'email=foo%2Bbar-xyz@gmail.com')
+  t.equal(url.stringify(parsed), 'email=foo%2Bbar%40domain.com')
+  t.end()
+})
+
+tape('stringify multibyte character - "multibyte=𝌆"', function (t) {
+  var parsed = [
+        { key: 'multibyte', value: '𝌆' }
+  ]
+  t.equal(url.stringify(parsed), 'multibyte=%F0%9D%8C%86')
+  t.end()
+})
+
+tape('stringify pre-encoded multibyte character - "multibyte=%F0%9D%8C%86"', function (t) {
+  var parsed = [
+        { key: 'multibyte', value: '%F0%9D%8C%86' }
+  ]
+  t.equal(url.stringify(parsed), 'multibyte=%F0%9D%8C%86')
   t.end()
 })
 
