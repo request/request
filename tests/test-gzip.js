@@ -39,6 +39,12 @@ var server = http.createServer(function(req, res) {
       res.writeHead(200)
       res.write(testContentBigGzip.slice(0, 4096))
       setTimeout(function() { res.end(testContentBigGzip.slice(4096)) }, 10)
+    } else if (req.url === '/just-slightly-truncated') {
+      zlib.gzip(testContent, function(err, data) {
+        assert.equal(err, null)
+        // truncate the CRC checksum and size check at the end of the stream
+        res.end(data.slice(0, data.length-8))
+      })
     } else {
       zlib.gzip(testContent, function(err, data) {
         assert.equal(err, null)
@@ -88,6 +94,16 @@ tape('setup', function(t) {
 
 tape('transparently supports gzip decoding to callbacks', function(t) {
   var options = { url: server.url + '/foo', gzip: true }
+  request.get(options, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.headers['content-encoding'], 'gzip')
+    t.equal(body, testContent)
+    t.end()
+  })
+})
+
+tape('supports slightly invalid gzip content', function(t) {
+  var options = { url: server.url + '/just-slightly-truncated', gzip: true }
   request.get(options, function(err, res, body) {
     t.equal(err, null)
     t.equal(res.headers['content-encoding'], 'gzip')
