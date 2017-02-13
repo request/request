@@ -185,7 +185,7 @@ var formData = {
     value:  fs.createReadStream('/dev/urandom'),
     options: {
       filename: 'topsecret.jpg',
-      contentType: 'image/jpg'
+      contentType: 'image/jpeg'
     }
   }
 };
