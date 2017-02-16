@@ -120,7 +120,7 @@ function Request (options) {
     self.explicitMethod = true
   }
   self._qs = new Querystring(self)
-  self._auth = new Auth(self)
+  self._auth = new Auth(self, options.auth)
   self._oauth = new OAuth(self)
   self._multipart = new Multipart(self)
   self._redirect = new Redirect(self)
@@ -1019,6 +1019,7 @@ Request.prototype.onRequestResponse = function (response) {
       var contentEncoding = response.headers['content-encoding'] || 'identity'
       contentEncoding = contentEncoding.trim().toLowerCase()
 
+<<<<<<< HEAD
       // Be more lenient with decoding compressed responses, since (very rarely)
       // servers send slightly invalid gzip responses that are still accepted
       // by common browsers.
@@ -1028,11 +1029,13 @@ Request.prototype.onRequestResponse = function (response) {
         finishFlush: zlib.Z_SYNC_FLUSH
       }
 
+=======
+>>>>>>> Improvements in digest authentication implementation
       if (contentEncoding === 'gzip') {
-        responseContent = zlib.createGunzip(zlibOptions)
+        responseContent = zlib.createGunzip()
         response.pipe(responseContent)
       } else if (contentEncoding === 'deflate') {
-        responseContent = zlib.createInflate(zlibOptions)
+        responseContent = zlib.createInflate()
         response.pipe(responseContent)
       } else {
         // Since previous versions didn't check for Content-Encoding header,
