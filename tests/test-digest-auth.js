@@ -251,3 +251,24 @@ tape('cleanup', function(t) {
     t.end()
   })
 })
+
+tape('with disabled authentication methods', function(t) {
+  var numRedirects = 0
+
+  request({
+    method: 'GET',
+    uri: digestServer.url + '/test/',
+    auth: {
+      user: 'test',
+      pass: 'testing',
+      sendImmediately: false,
+      disable: {
+        digest: true
+      }
+    }
+  }, function(error, response, body) {
+    t.notEqual(error, null)
+    t.end()
+  })
+})
+

@@ -282,15 +282,22 @@ If passed as an option, `auth` should be a hash containing values:
 - `pass` || `password`
 - `sendImmediately` (optional)
 - `bearer` (optional)
+- `disable` (optional)
 
 The method form takes parameters
-`auth(username, password, sendImmediately, bearer)`.
+`auth(username, password, sendImmediately, bearer, disable)`.
 
 `sendImmediately` defaults to `true`, which causes a basic or bearer
 authentication header to be sent.  If `sendImmediately` is `false`, then
 `request` will retry with a proper authentication header after receiving a
 `401` response from the server (which must contain a `WWW-Authenticate` header
 indicating the required authentication method).
+
+`disable` can be used to disable the use of any of the authentication methods when `sendImmedeatly` is set to `false`. 
+It is an object that may contain a boolean for each one of the three authentication
+methods supported (`basic`, `digest`, and `bearer`). If the coresponding boolean is set to `true`
+the request will fail if the `WWW-Authenticate` response from the server requires an authentication
+method that is disabled. By default, all methods are enabled.
 
 Note that you can also specify basic authentication using the URL itself, as
 detailed in [RFC 1738](http://www.ietf.org/rfc/rfc1738.txt).  Simply pass the

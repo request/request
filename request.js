@@ -380,7 +380,8 @@ Request.prototype.init = function (options) {
       options.auth.user,
       options.auth.pass,
       options.auth.sendImmediately,
-      options.auth.bearer
+      options.auth.bearer,
+      options.auth.disable
     )
   }
 
@@ -1264,10 +1265,10 @@ Request.prototype.enableUnixSocket = function () {
 }
 
 
-Request.prototype.auth = function (user, pass, sendImmediately, bearer) {
+Request.prototype.auth = function (user, pass, sendImmediately, bearer, disable) {
   var self = this
 
-  self._auth.onRequest(user, pass, sendImmediately, bearer)
+  self._auth.onRequest(user, pass, sendImmediately, bearer, disable)
 
   return self
 }
