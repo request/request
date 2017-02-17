@@ -435,6 +435,8 @@ Request.prototype.init = function (options) {
 
   if (options.time) {
     self.timing = true
+
+    // NOTE: elapsedTime is deprecated in favor of .timings
     self.elapsedTime = self.elapsedTime || 0
   }
 
@@ -904,6 +906,8 @@ Request.prototype.onRequestResponse = function (response) {
 
       // elapsedTime includes all redirects
       self.elapsedTime += Math.round(self.timings.total)
+
+      // NOTE: elapsedTime is deprecated in favor of .timings
       response.elapsedTime = self.elapsedTime
 
       // timings is just for the final fetch
@@ -1047,6 +1051,8 @@ Request.prototype.onRequestResponse = function (response) {
     responseContent.on('data', function (chunk) {
       if (self.timing && !self.responseStarted) {
         self.responseStartTime = (new Date()).getTime()
+
+        // NOTE: responseStartTime is deprecated in favor of .timings
         response.responseStartTime = self.responseStartTime
       }
       self._destdata = true
