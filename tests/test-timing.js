@@ -44,6 +44,17 @@ tape('non-redirected request is timed', function(t) {
     t.equal((res.timings.firstByte > 0), true)
     t.equal((res.timings.download > 0), true)
     t.equal((res.timings.total > 0), true)
+
+    // validate there are no unexpected properties
+    var propNames = []
+    for (var propName in res.timings) {
+      if (res.timings.hasOwnProperty(propName)) {
+        propNames.push(propName)
+      }
+    }
+    t.deepEqual(propNames, ['start', 'socket', 'connect', 'response', 'end', 'dns',
+      'tcp', 'firstByte', 'download', 'total'])
+
     t.end()
   })
 })
