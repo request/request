@@ -65,6 +65,20 @@ tape('should set connect to false', function(t) {
   })
 })
 
+tape('should set host and port', function(t) {
+  var shouldTimeout = {
+    url: s.url + '/timeout',
+    timeout: 100
+  }
+
+  request(shouldTimeout, function(err, res, body) {
+    checkErrCode(t, err)
+    t.ok(err.host === 'localhost', 'Read Timeout Error should set \'host\' property')
+    t.ok(err.port === String(s.port), 'Read Timeout Error should set \'port\' property')
+    t.end()
+  })
+})
+
 tape('should timeout with events', function(t) {
   t.plan(3)
 
