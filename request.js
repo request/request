@@ -813,6 +813,8 @@ Request.prototype.start = function () {
           var e = new Error('ESOCKETTIMEDOUT')
           e.code = 'ESOCKETTIMEDOUT'
           e.connect = false
+          e.host = self.host
+          e.port = self.port
           self.emit('error', e)
         }
       })
@@ -846,6 +848,8 @@ Request.prototype.start = function () {
           var e = new Error('ETIMEDOUT')
           e.code = 'ETIMEDOUT'
           e.connect = true
+          e.host = self.host
+          e.port = self.port
           self.emit('error', e)
         }, timeout)
       } else {
