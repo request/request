@@ -25,8 +25,10 @@ tape('setup', function (t) {
 })
 
 tape('options(string, function)', function (t) {
-  request.options(s.url + '/options', function (e, r) {
-    t.equal(r.headers['x-original-method'], 'OPTIONS')
+  request.options(s.url + '/options', function (err, res) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(res.headers['x-original-method'], 'OPTIONS')
     t.end()
   })
 })
@@ -35,8 +37,10 @@ tape('options(object, function)', function (t) {
   request.options({
     url: s.url + '/options',
     headers: { foo: 'bar' }
-  }, function (e, r) {
-    t.equal(r.headers['x-original-method'], 'OPTIONS')
+  }, function (err, res) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(res.headers['x-original-method'], 'OPTIONS')
     t.end()
   })
 })
