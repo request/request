@@ -1,15 +1,12 @@
 'use strict'
 
 var request = require('../index')
-  , url = require('url')
   , tape = require('tape')
 
-var called = false
-  , proxiedHost = 'google.com'
+var proxiedHost = 'google.com'
   , data = ''
 
 var s = require('net').createServer(function(sock) {
-  called = true
   sock.once('data', function (c) {
     data += c
   })
