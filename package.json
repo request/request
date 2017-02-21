@@ -42,6 +42,7 @@
     "json-stringify-safe": "~5.0.1",
     "mime-types": "~2.1.7",
     "oauth-sign": "~0.8.1",
+    "performance-now": "^0.2.0",
     "qs": "~6.3.0",
     "stringstream": "~0.0.4",
     "tough-cookie": "~2.3.0",
