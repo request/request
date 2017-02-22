@@ -830,7 +830,7 @@ default in Linux can be anywhere from 20-120 seconds][linux-timeout]).
 The callback argument gets 3 arguments:
 
 1. An `error` when applicable (usually from [`http.ClientRequest`](http://nodejs.org/api/http.html#http_class_http_clientrequest) object)
-2. An [`http.IncomingMessage`](https://nodejs.org/api/http.html#http_class_http_incomingmessage) object
+2. An [`http.IncomingMessage`](https://nodejs.org/api/http.html#http_class_http_incomingmessage) object (Response object)
 3. The third is the `response` body (`String` or `Buffer`, or JSON object if the `json` option is supplied)
 
 [back to top](#table-of-contents)
