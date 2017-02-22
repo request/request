@@ -55,7 +55,6 @@ function createLandingEndpointForFollowOriginalBody(landing) {
     assert.equal(req.headers.host, 'localhost')
     assert.equal(req.headers['content-type'], 'application/json')
     assert.equal(req.headers['content-length'], '15')
-    assert.equal(req.headers.authorization, 'authorization')
     // Make sure host is set properly after redirect
     hits[landing] = true
     res.writeHead(200, {'x-response': req.method.toUpperCase() + ' ' + landing})
@@ -152,7 +151,8 @@ tape('preserve HEAD method when using followAllRedirects', function(t) {
   })
 })
 
-tape('preserve body, _form, and the host, content-type, content-length and authorization headers when using followOriginalBody', function(t) {
+//TODO: Add check for the body and _form
+tape('preserve host, content-type and content-length headers when using followOriginalBody', function(t) {
   hits = {}
   request({
     method: 'POST',
@@ -163,8 +163,7 @@ tape('preserve body, _form, and the host, content-type, content-length and autho
     headers: {
       'host': 'localhost',
       'content-type': 'application/json',
-      'content-length': '15',
-      'authorization': 'authorization'
+      'content-length': '15'
     }
   }, function(err, res, body) {
     t.equal(err, null)
@@ -175,7 +174,8 @@ tape('preserve body, _form, and the host, content-type, content-length and autho
   })
 })
 
-tape('preserve body, _form, and the host, content-type, content-length and authorization headers when using followOriginalBodyForCodes', function(t) {
+//TODO: Add check for the body and _form
+tape('preserve host, content-type and content-length headers when using followOriginalBodyForCodes', function(t) {
   hits = {}
   request({
     method: 'POST',
@@ -186,8 +186,7 @@ tape('preserve body, _form, and the host, content-type, content-length and autho
     headers: {
       'host': 'localhost',
       'content-type': 'application/json',
-      'content-length': '15',
-      'authorization': 'authorization'
+      'content-length': '15'
     }
   }, function(err, res, body) {
     t.equal(err, null)
@@ -198,7 +197,8 @@ tape('preserve body, _form, and the host, content-type, content-length and autho
   })
 })
 
-tape('do not preserve body, _form, and the host, content-type, content-length and authorization headers when using status code is not in followOriginalBodyForCodes or followOriginalBodyForCodes is true', function(t) {
+//TODO: Add check for the body and _form
+tape('do not preserve host, content-type and content-length headers when using status code is not in followOriginalBodyForCodes or followOriginalBodyForCodes is true', function(t) {
   hits = {}
   request({
     method: 'POST',
@@ -208,8 +208,7 @@ tape('do not preserve body, _form, and the host, content-type, content-length an
     headers: {
       'host': 'localhost',
       'content-type': 'application/json',
-      'content-length': '15',
-      'authorization': 'authorization'
+      'content-length': '15'
     }
   }, function(err, res, body) {
     t.equal(err, null)
