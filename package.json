@@ -1,13 +1,13 @@
 {
   "name": "request",
   "description": "Simplified HTTP request client.",
-  "tags": [
+  "keywords": [
     "http",
     "simple",
     "util",
     "utility"
   ],
-  "version": "2.78.1",
+  "version": "2.79.1",
   "author": "Mikeal Rogers <mikeal.rogers@gmail.com>",
   "repository": {
     "type": "git",
@@ -21,27 +21,33 @@
     "node": ">= 4"
   },
   "main": "index.js",
+  "files": [
+    "lib/",
+    "index.js",
+    "request.js"
+  ],
   "dependencies": {
     "aws-sign2": "~0.6.0",
     "aws4": "^1.2.1",
-    "caseless": "~0.11.0",
+    "caseless": "~0.12.0",
     "combined-stream": "~1.0.5",
     "extend": "~3.0.0",
     "forever-agent": "~0.6.1",
     "form-data": "~2.1.1",
-    "har-validator": "~2.0.6",
     "hawk": "~6.0.0",
+    "har-validator": "~4.2.0",
     "http-signature": "~1.1.0",
     "is-typedarray": "~1.0.0",
     "isstream": "~0.1.2",
     "json-stringify-safe": "~5.0.1",
     "mime-types": "~2.1.7",
-    "node-uuid": "~1.4.7",
     "oauth-sign": "~0.8.1",
+    "performance-now": "^0.2.0",
     "qs": "~6.3.0",
     "stringstream": "~0.0.4",
     "tough-cookie": "~2.3.0",
-    "tunnel-agent": "~0.4.1"
+    "tunnel-agent": "~0.4.1",
+    "uuid": "^3.0.0"
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
@@ -70,12 +76,11 @@
     "rimraf": "^2.2.8",
     "server-destroy": "^1.0.1",
     "tape": "^4.6.0",
-    "taper": "^0.4.0"
+    "taper": "^0.5.0"
   },
   "greenkeeper": {
     "ignore": [
       "eslint",
-      "hawk",
       "har-validator"
     ]
   }
