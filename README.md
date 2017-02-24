@@ -546,9 +546,11 @@ The following environment variables are respected by `request`:
 
  * `HTTP_PROXY` / `http_proxy`
  * `HTTPS_PROXY` / `https_proxy`
+ * `ALL_PROXY` / `all_proxy`
  * `NO_PROXY` / `no_proxy`
 
 When `HTTP_PROXY` / `http_proxy` are set, they will be used to proxy non-SSL requests that do not have an explicit `proxy` configuration option present. Similarly, `HTTPS_PROXY` / `https_proxy` will be respected for SSL requests that do not have an explicit `proxy` configuration option. It is valid to define a proxy in one of the environment variables, but then override it for a specific request, using the `proxy` configuration option. Furthermore, the `proxy` configuration option can be explicitly set to false / null to opt out of proxying altogether for that request.
+If neither `http_proxy` nor `https_proxy` is set, then `all_proxy` is used if available.
 
 `request` is also aware of the `NO_PROXY`/`no_proxy` environment variables. These variables provide a granular way to opt out of proxying, on a per-host basis. It should contain a comma separated list of hosts to opt out of proxying. It is also possible to opt of proxying when a particular destination port is used. Finally, the variable may be set to `*` to opt out of the implicit proxy configuration of the other environment variables.
 
@@ -558,6 +560,9 @@ Here's some examples of valid `no_proxy` values:
  * `google.com:443` - don't proxy HTTPS requests to Google, but *do* proxy HTTP requests to Google.
  * `google.com:443, yahoo.com:80` - don't proxy HTTPS requests to Google, and don't proxy HTTP requests to Yahoo!
  * `*` - ignore `https_proxy`/`http_proxy` environment variables altogether.
+
+The exact syntax and semantics of these environment variables are explained in more detail in
+[proxy-from-env's README](https://github.com/Rob--W/proxy-from-env#environment-variables).
 
 [back to top](#table-of-contents)
 
