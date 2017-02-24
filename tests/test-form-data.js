@@ -20,7 +20,7 @@ function runTest(t, options) {
     }
 
     if (options.auth) {
-      if (!req.headers.authorization) {
+      if (!req.headers.authorization || req.headers.authorization.substring(0, 5) != "Basic") {
         res.writeHead(401, {'www-authenticate': 'Basic realm="Private"'})
         res.end()
         return
