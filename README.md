@@ -89,6 +89,17 @@ request
   })
   .pipe(fs.createWriteStream('doodle.png'))
 ```
+Warning: You must also include a callback to catch certain errors which occur during initialization. These will not emit an event, so the callback is the only way to handle them.
+```js
+request
+  .get('http://mysite.com/doodle.png',function(err) {
+    if(err) { console.log(err); }
+  })
+  .on('error', function(err) {
+    console.log(err)
+  })
+  .pipe(fs.createWriteStream('doodle.png'))
+```
 
 Now let’s get fancy.
 
