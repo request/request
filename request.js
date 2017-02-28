@@ -717,7 +717,13 @@ Request.prototype.start = function () {
   var self = this
 
   if (self.timing) {
-    var startTime = now()
+    // All timings will be relative to this request's startTime.  In order to do this,
+    // we need to capture the wall-clock start time (via Date), immediately followed
+    // by the high-resolution timer (via now()).  While these two won't be set
+    // at the _exact_ same time, they should be close enough to be able to calculate
+    // high-resolution, monotonically non-decreasing timestamps relative to startTime.
+    var startTime = new Date().getTime()
+    var startTimeNow = now()
   }
 
   if (self._aborted) {
@@ -755,10 +761,12 @@ Request.prototype.start = function () {
   }
 
   if (self.timing) {
-    self.startTime = new Date().getTime()
-    self.timings = {
-      start: startTime
-    }
+    self.startTime = startTime
+    self.startTimeNow = startTimeNow
+
+    // Timing values will all be relative to startTime (by comparing to startTimeNow
+    // so we have an accurate clock)
+    self.timings = {}
   }
 
   var timeout
@@ -777,9 +785,12 @@ Request.prototype.start = function () {
   })
   self.req.on('socket', function(socket) {
     if (self.timing) {
-      self.timings.socket = now()
+      self.timings.socket = now() - self.startTimeNow
+      socket.on('lookup', function() {
+        self.timings.lookup = now() - self.startTimeNow
+      })
       socket.on('connect', function() {
-        self.timings.connect = now()
+        self.timings.connect = now() - self.startTimeNow
       })
     }
 
@@ -866,30 +877,50 @@ Request.prototype.onRequestResponse = function (response) {
   var self = this
 
   if (self.timing) {
-    self.timings.response = now()
+    self.timings.response = now() - self.startTimeNow
   }
 
   debug('onRequestResponse', self.uri.href, response.statusCode, response.headers)
   response.on('end', function() {
     if (self.timing) {
-      self.timings.end = now()
+      self.timings.end = now() - self.startTimeNow
+      response.timingStart = self.startTime
 
-      self.timings.dns = self.timings.socket - self.timings.start
-      self.timings.tcp = self.timings.connect - self.timings.socket
-      self.timings.firstByte = self.timings.response - self.timings.connect
-      self.timings.download = self.timings.end - self.timings.response
-      self.timings.total = self.timings.end - self.timings.start
+      // fill in the blanks for any periods that didn't trigger, such as
+      // no lookup or connect due to keep alive
+      if (!self.timings.socket) {
+        self.timings.socket = 0
+      }
+      if (!self.timings.lookup) {
+        self.timings.lookup = self.timings.socket
+      }
+      if (!self.timings.connect) {
+        self.timings.connect = self.timings.lookup
+      }
+      if (!self.timings.response) {
+        self.timings.response = self.timings.connect
+      }
 
-      debug('elapsed time', self.timings.total)
+      debug('elapsed time', self.timings.end)
 
       // elapsedTime includes all redirects
-      self.elapsedTime += Math.round(self.timings.total)
+      self.elapsedTime += Math.round(self.timings.end)
 
       // NOTE: elapsedTime is deprecated in favor of .timings
       response.elapsedTime = self.elapsedTime
 
       // timings is just for the final fetch
       response.timings = self.timings
+
+      // pre-calculate phase timings as well
+      response.timingPhases = {
+        wait: self.timings.socket,
+        dns: self.timings.lookup - self.timings.socket,
+        tcp: self.timings.connect - self.timings.lookup,
+        firstByte: self.timings.response - self.timings.connect,
+        download: self.timings.end - self.timings.response,
+        total: self.timings.end
+      }
     }
     debug('response end', self.uri.href, response.statusCode, response.headers)
   })
