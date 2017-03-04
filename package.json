@@ -44,9 +44,10 @@
     "oauth-sign": "~0.8.1",
     "performance-now": "^0.2.0",
     "qs": "~6.3.0",
+    "safe-buffer": "^5.0.1",
     "stringstream": "~0.0.4",
     "tough-cookie": "~2.3.0",
-    "tunnel-agent": "~0.4.1",
+    "tunnel-agent": "^0.5.0",
     "uuid": "^3.0.0"
   },
   "scripts": {
