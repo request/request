@@ -784,14 +784,29 @@ Request.prototype.start = function () {
     self.emit('drain')
   })
   self.req.on('socket', function(socket) {
+    // `._connecting` was the old property which was made public in node v6.1.0
+    var isConnecting = socket._connecting || socket.connecting
     if (self.timing) {
       self.timings.socket = now() - self.startTimeNow
-      socket.on('lookup', function() {
-        self.timings.lookup = now() - self.startTimeNow
-      })
-      socket.on('connect', function() {
-        self.timings.connect = now() - self.startTimeNow
-      })
+
+      if (isConnecting) {
+        var onLookupTiming = function() {
+          self.timings.lookup = now() - self.startTimeNow
+        }
+
+        var onConnectTiming = function() {
+          self.timings.connect = now() - self.startTimeNow
+        }
+
+        socket.once('lookup', onLookupTiming)
+        socket.once('connect', onConnectTiming)
+
+        // clean up timing event listeners if needed on error
+        self.req.once('error', function() {
+          socket.removeListener('lookup', onLookupTiming)
+          socket.removeListener('connect', onConnectTiming)
+        })
+      }
     }
 
     var setReqTimeout = function() {
@@ -810,8 +825,6 @@ Request.prototype.start = function () {
         }
       })
     }
-    // `._connecting` was the old property which was made public in node v6.1.0
-    var isConnecting = socket._connecting || socket.connecting
     if (timeout !== undefined) {
       // Only start the connection timer if we're actually connecting a new
       // socket, otherwise if we're already connected (because this is a
