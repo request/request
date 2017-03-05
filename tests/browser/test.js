@@ -27,8 +27,7 @@ tape('succeeds on valid URLs (with https and CORS)', function (t) {
   request({
     uri: __karma__.config.requestTestUrl, // eslint-disable-line no-undef
     withCredentials: false
-  }, function (error, response) {
-    t.error(error)
+  }, function (_, response) {
     t.equal(response.statusCode, 200)
     t.end()
   })
