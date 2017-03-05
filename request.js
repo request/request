@@ -418,7 +418,7 @@ Request.prototype.init = function (options) {
 
   function setContentLength () {
     if (isTypedArray(self.body)) {
-      self.body = new Buffer(self.body)
+      self.body = Buffer.from(self.body)
     }
 
     if (!self.hasHeader('content-length')) {
@@ -1166,7 +1166,7 @@ Request.prototype.readResponseBody = function (response) {
     }
     debug('emitting complete', self.uri.href)
     if (typeof response.body === 'undefined' && !self._json) {
-      response.body = self.encoding === null ? new Buffer(0) : ''
+      response.body = self.encoding === null ? Buffer.alloc(0) : ''
     }
     self.emit('complete', response, response.body)
   })

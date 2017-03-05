@@ -47,7 +47,7 @@
     "safe-buffer": "^5.0.1",
     "stringstream": "~0.0.4",
     "tough-cookie": "~2.3.0",
-    "tunnel-agent": "^0.5.0",
+    "tunnel-agent": "^0.6.0",
     "uuid": "^3.0.0"
   },
   "scripts": {
