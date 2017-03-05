@@ -65,7 +65,7 @@ tape('non-redirected request is timed', function (t) {
     t.deepEqual(propNames, ['socket', 'lookup', 'connect', 'response', 'end'])
 
     propNames = []
-    for (var propName in res.timingPhases) {
+    for (propName in res.timingPhases) {
       if (res.timingPhases.hasOwnProperty(propName)) {
         propNames.push(propName)
       }
