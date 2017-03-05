@@ -1,48 +1,47 @@
 'use strict'
 
-var http = require('http')
-  , https = require('https')
-  , url = require('url')
-  , util = require('util')
-  , stream = require('stream')
-  , zlib = require('zlib')
-  , hawk = require('hawk')
-  , aws2 = require('aws-sign2')
-  , aws4 = require('aws4')
-  , httpSignature = require('http-signature')
-  , mime = require('mime-types')
-  , stringstream = require('stringstream')
-  , caseless = require('caseless')
-  , ForeverAgent = require('forever-agent')
-  , FormData = require('form-data')
-  , extend = require('extend')
-  , isstream = require('isstream')
-  , isTypedArray = require('is-typedarray').strict
-  , helpers = require('./lib/helpers')
-  , cookies = require('./lib/cookies')
-  , getProxyFromURI = require('./lib/getProxyFromURI')
-  , Querystring = require('./lib/querystring').Querystring
-  , Har = require('./lib/har').Har
-  , Auth = require('./lib/auth').Auth
-  , OAuth = require('./lib/oauth').OAuth
-  , Multipart = require('./lib/multipart').Multipart
-  , Redirect = require('./lib/redirect').Redirect
-  , Tunnel = require('./lib/tunnel').Tunnel
-  , now = require('performance-now')
-  , Buffer = require('safe-buffer').Buffer
+const http = require('http')
+const https = require('https')
+const url = require('url')
+const util = require('util')
+const stream = require('stream')
+const zlib = require('zlib')
+const hawk = require('hawk')
+const aws2 = require('aws-sign2')
+const aws4 = require('aws4')
+const httpSignature = require('http-signature')
+const mime = require('mime-types')
+const stringstream = require('stringstream')
+const caseless = require('caseless')
+const ForeverAgent = require('forever-agent')
+const FormData = require('form-data')
+const extend = require('extend')
+const isstream = require('isstream')
+const isTypedArray = require('is-typedarray').strict
+const helpers = require('./lib/helpers')
+const cookies = require('./lib/cookies')
+const getProxyFromURI = require('./lib/getProxyFromURI')
+const Querystring = require('./lib/querystring').Querystring
+const Har = require('./lib/har').Har
+const Auth = require('./lib/auth').Auth
+const OAuth = require('./lib/oauth').OAuth
+const Multipart = require('./lib/multipart').Multipart
+const Redirect = require('./lib/redirect').Redirect
+const Tunnel = require('./lib/tunnel').Tunnel
+const now = require('performance-now')
+const Buffer = require('safe-buffer').Buffer
 
-var safeStringify = helpers.safeStringify
-  , isReadStream = helpers.isReadStream
-  , toBase64 = helpers.toBase64
-  , defer = helpers.defer
-  , copy = helpers.copy
-  , version = helpers.version
-  , globalCookieJar = cookies.jar()
+const safeStringify = helpers.safeStringify
+const isReadStream = helpers.isReadStream
+const toBase64 = helpers.toBase64
+const defer = helpers.defer
+const copy = helpers.copy
+const version = helpers.version
+const globalCookieJar = cookies.jar()
 
+const globalPool = {}
 
-var globalPool = {}
-
-function filterForNonReserved(reserved, options) {
+function filterForNonReserved (reserved, options) {
   // Filter out properties that are not reserved.
   // Reserved values are passed in at call site.
 
@@ -56,7 +55,7 @@ function filterForNonReserved(reserved, options) {
   return object
 }
 
-function filterOutReservedFunctions(reserved, options) {
+function filterOutReservedFunctions (reserved, options) {
   // Filter out properties that are functions and are reserved.
   // Reserved values are passed in at call site.
 
@@ -69,11 +68,10 @@ function filterOutReservedFunctions(reserved, options) {
     }
   }
   return object
-
 }
 
 // Return a simpler request object to allow serialization
-function requestToJSON() {
+function requestToJSON () {
   var self = this
   return {
     uri: self.uri,
@@ -83,7 +81,7 @@ function requestToJSON() {
 }
 
 // Return a simpler response object to allow serialization
-function responseToJSON() {
+function responseToJSON () {
   var self = this
   return {
     statusCode: self.statusCode,
@@ -134,7 +132,7 @@ util.inherits(Request, stream.Stream)
 
 // Debugging
 Request.debug = process.env.NODE_DEBUG && /\brequest\b/.test(process.env.NODE_DEBUG)
-function debug() {
+function debug () {
   if (Request.debug) {
     console.error('REQUEST %s', util.format.apply(util, arguments))
   }
@@ -258,7 +256,7 @@ Request.prototype.init = function (options) {
     self.rejectUnauthorized = false
   }
 
-  if (!self.uri.pathname) {self.uri.pathname = '/'}
+  if (!self.uri.pathname) { self.uri.pathname = '/' }
 
   if (!(self.uri.host || (self.uri.hostname && self.uri.port)) && !self.uri.isUnix) {
     // Invalid URI: it may generate lot of bad errors, like 'TypeError: Cannot call method `indexOf` of undefined' in CookieJar
@@ -300,8 +298,7 @@ Request.prototype.init = function (options) {
   self.jar(self._jar || options.jar)
 
   if (!self.uri.port) {
-    if (self.uri.protocol === 'http:') {self.uri.port = 80}
-    else if (self.uri.protocol === 'https:') {self.uri.port = 443}
+    if (self.uri.protocol === 'http:') { self.uri.port = 80 } else if (self.uri.protocol === 'https:') { self.uri.port = 443 }
   }
 
   if (self.proxy && !self.tunnel) {
@@ -388,12 +385,12 @@ Request.prototype.init = function (options) {
   }
 
   if (self.uri.auth && !self.hasHeader('authorization')) {
-    var uriAuthPieces = self.uri.auth.split(':').map(function(item) {return self._qs.unescape(item)})
+    var uriAuthPieces = self.uri.auth.split(':').map(function (item) { return self._qs.unescape(item) })
     self.auth(uriAuthPieces[0], uriAuthPieces.slice(1).join(':'), true)
   }
 
   if (!self.tunnel && self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization')) {
-    var proxyAuthPieces = self.proxy.auth.split(':').map(function(item) {return self._qs.unescape(item)})
+    var proxyAuthPieces = self.proxy.auth.split(':').map(function (item) { return self._qs.unescape(item) })
     var authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
     self.setHeader('proxy-authorization', authHeader)
   }
@@ -425,11 +422,9 @@ Request.prototype.init = function (options) {
       var length
       if (typeof self.body === 'string') {
         length = Buffer.byteLength(self.body)
-      }
-      else if (Array.isArray(self.body)) {
-        length = self.body.reduce(function (a, b) {return a + b.length}, 0)
-      }
-      else {
+      } else if (Array.isArray(self.body)) {
+        length = self.body.reduce(function (a, b) { return a + b.length }, 0)
+      } else {
         length = self.body.length
       }
 
@@ -450,9 +445,9 @@ Request.prototype.init = function (options) {
     self.oauth(self._oauth.params)
   }
 
-  var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
-    , defaultModules = {'http:':http, 'https:':https}
-    , httpModules = self.httpModules || {}
+  let protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
+  let defaultModules = {'http:': http, 'https:': https}
+  let httpModules = self.httpModules || {}
 
   self.httpModule = httpModules[protocol] || defaultModules[protocol]
 
@@ -531,8 +526,7 @@ Request.prototype.init = function (options) {
       if (self._form) {
         if (!self._auth.hasAuth) {
           self._form.pipe(self)
-        }
-        else if (self._auth.hasAuth && self._auth.sentAuth) {
+        } else if (self._auth.hasAuth && self._auth.sentAuth) {
           self._form.pipe(self)
         }
       }
@@ -583,7 +577,6 @@ Request.prototype.init = function (options) {
 
     self.ntick = true
   })
-
 }
 
 Request.prototype.getNewAgent = function () {
@@ -770,18 +763,18 @@ Request.prototype.start = function () {
 
   self.req.on('response', self.onRequestResponse.bind(self))
   self.req.on('error', self.onRequestError.bind(self))
-  self.req.on('drain', function() {
+  self.req.on('drain', function () {
     self.emit('drain')
   })
-  self.req.on('socket', function(socket) {
+  self.req.on('socket', function (socket) {
     if (self.timing) {
       self.timings.socket = now()
-      socket.on('connect', function() {
+      socket.on('connect', function () {
         self.timings.connect = now()
       })
     }
 
-    var setReqTimeout = function() {
+    var setReqTimeout = function () {
       // This timeout sets the amount of time to wait *between* bytes sent
       // from the server once connected.
       //
@@ -805,7 +798,7 @@ Request.prototype.start = function () {
       // keep-alive connection) do not bother. This is important since we won't
       // get a 'connect' event for an already connected socket.
       if (isConnecting) {
-        var onReqSockConnect = function() {
+        var onReqSockConnect = function () {
           socket.removeListener('connect', onReqSockConnect)
           clearTimeout(self.timeoutTimer)
           self.timeoutTimer = null
@@ -814,9 +807,7 @@ Request.prototype.start = function () {
 
         socket.on('connect', onReqSockConnect)
 
-        self.req.on('error', function(err) {
-          socket.removeListener('connect', onReqSockConnect)
-        })
+        self.req.on('error', () => socket.removeListener('connect', onReqSockConnect))
 
         // Set a timeout in memory - this block will throw if the server takes more
         // than `timeout` to write the HTTP status and headers (corresponding to
@@ -846,8 +837,8 @@ Request.prototype.onRequestError = function (error) {
   if (self._aborted) {
     return
   }
-  if (self.req && self.req._reusedSocket && error.code === 'ECONNRESET'
-      && self.agent.addRequestNoreuse) {
+  if (self.req && self.req._reusedSocket && error.code === 'ECONNRESET' &&
+      self.agent.addRequestNoreuse) {
     self.agent = { addRequest: self.agent.addRequestNoreuse.bind(self.agent) }
     self.start()
     self.req.end()
@@ -868,7 +859,7 @@ Request.prototype.onRequestResponse = function (response) {
   }
 
   debug('onRequestResponse', self.uri.href, response.statusCode, response.headers)
-  response.on('end', function() {
+  response.on('end', function () {
     if (self.timing) {
       self.timings.end = now()
 
@@ -930,7 +921,7 @@ Request.prototype.onRequestResponse = function (response) {
 
   var targetCookieJar = (self._jar && self._jar.setCookie) ? self._jar : globalCookieJar
   var addCookie = function (cookie) {
-    //set the cookie if it's domain in the href's domain.
+    // set the cookie if it's domain in the href's domain.
     try {
       targetCookieJar.setCookie(cookie, self.uri.href, {ignoreError: true})
     } catch (e) {
@@ -966,13 +957,13 @@ Request.prototype.onRequestResponse = function (response) {
 
     var noBody = function (code) {
       return (
-        self.method === 'HEAD'
+        self.method === 'HEAD' ||
         // Informational
-        || (code >= 100 && code < 200)
+        (code >= 100 && code < 200) ||
         // No Content
-        || code === 204
+        code === 204 ||
         // Not Modified
-        || code === 304
+        code === 304
       )
     }
 
@@ -986,8 +977,8 @@ Request.prototype.onRequestResponse = function (response) {
       // by common browsers.
       // Always using Z_SYNC_FLUSH is what cURL does.
       var zlibOptions = {
-        flush: zlib.Z_SYNC_FLUSH
-      , finishFlush: zlib.Z_SYNC_FLUSH
+        flush: zlib.Z_SYNC_FLUSH,
+        finishFlush: zlib.Z_SYNC_FLUSH
       }
 
       if (contentEncoding === 'gzip') {
@@ -1049,13 +1040,12 @@ Request.prototype.onRequestResponse = function (response) {
     responseContent.on('error', function (error) {
       self.emit('error', error)
     })
-    responseContent.on('close', function () {self.emit('close')})
+    responseContent.on('close', function () { self.emit('close') })
 
     if (self.callback) {
       self.readResponseBody(response)
-    }
-    //if no callback
-    else {
+    } else {
+      // if no callback
       self.on('end', function () {
         if (self._aborted) {
           debug('aborted', self.uri.href)
@@ -1069,11 +1059,11 @@ Request.prototype.onRequestResponse = function (response) {
 }
 
 Request.prototype.readResponseBody = function (response) {
-  var self = this
+  let self = this
   debug('reading response\'s body')
-  var buffers = []
-    , bufferLength = 0
-    , strings = []
+  let buffers = []
+  let bufferLength = 0
+  let strings = []
 
   self.on('data', function (chunk) {
     if (!Buffer.isBuffer(chunk)) {
@@ -1134,8 +1124,7 @@ Request.prototype.abort = function () {
 
   if (self.req) {
     self.req.abort()
-  }
-  else if (self.response) {
+  } else if (self.response) {
     self.response.destroy()
   }
 
@@ -1151,8 +1140,7 @@ Request.prototype.pipeDest = function (dest) {
       var ctname = response.caseless.has('content-type')
       if (dest.setHeader) {
         dest.setHeader(ctname, response.headers[ctname])
-      }
-      else {
+      } else {
         dest.headers[ctname] = response.headers[ctname]
       }
     }
@@ -1223,7 +1211,7 @@ Request.prototype.form = function (form) {
   }
   // create form-data object
   self._form = new FormData()
-  self._form.on('error', function(err) {
+  self._form.on('error', function (err) {
     err.message = 'form-data: ' + err.message
     self.emit('error', err)
     self.abort()
@@ -1297,9 +1285,9 @@ Request.prototype.getHeader = function (name, headers) {
 }
 Request.prototype.enableUnixSocket = function () {
   // Get the socket & request paths from the URL
-  var unixParts = this.uri.path.split(':')
-    , host = unixParts[0]
-    , path = unixParts[1]
+  let unixParts = this.uri.path.split(':')
+  let host = unixParts[0]
+  let path = unixParts[1]
   // Apply unix properties to request
   this.socketPath = host
   this.uri.pathname = path
@@ -1308,7 +1296,6 @@ Request.prototype.enableUnixSocket = function () {
   this.uri.hostname = host
   this.uri.isUnix = true
 }
-
 
 Request.prototype.auth = function (user, pass, sendImmediately, bearer) {
   var self = this
@@ -1325,7 +1312,7 @@ Request.prototype.aws = function (opts, now) {
     return self
   }
 
-  if (opts.sign_version == 4 || opts.sign_version == '4') {
+  if (opts.sign_version === 4 || opts.sign_version === '4') {
     // use aws4
     var options = {
       host: self.uri.host,
@@ -1346,19 +1333,18 @@ Request.prototype.aws = function (opts, now) {
     if (signRes.headers['X-Amz-Security-Token']) {
       self.setHeader('x-amz-security-token', signRes.headers['X-Amz-Security-Token'])
     }
-  }
-  else {
+  } else {
     // default: use aws-sign2
     var date = new Date()
     self.setHeader('date', date.toUTCString())
     var auth =
-      { key: opts.key
-      , secret: opts.secret
-      , verb: self.method.toUpperCase()
-      , date: date
-      , contentType: self.getHeader('content-type') || ''
-      , md5: self.getHeader('content-md5') || ''
-      , amazonHeaders: aws2.canonicalizeHeaders(self.headers)
+      { key: opts.key,
+        secret: opts.secret,
+        verb: self.method.toUpperCase(),
+        date: date,
+        contentType: self.getHeader('content-type') || '',
+        md5: self.getHeader('content-md5') || '',
+        amazonHeaders: aws2.canonicalizeHeaders(self.headers)
       }
     var path = self.uri.path
     if (opts.bucket && path) {
@@ -1379,10 +1365,10 @@ Request.prototype.aws = function (opts, now) {
 Request.prototype.httpSignature = function (opts) {
   var self = this
   httpSignature.signRequest({
-    getHeader: function(header) {
+    getHeader: function (header) {
       return self.getHeader(header, self.headers)
     },
-    setHeader: function(header, value) {
+    setHeader: function (header, value) {
       self.setHeader(header, value)
     },
     method: self.method,
@@ -1419,13 +1405,13 @@ Request.prototype.jar = function (jar) {
   } else {
     var targetCookieJar = (jar && jar.getCookieString) ? jar : globalCookieJar
     var urihref = self.uri.href
-    //fetch cookie in the Specified host
+    // fetch cookie in the Specified host
     if (targetCookieJar) {
       cookies = targetCookieJar.getCookieString(urihref)
     }
   }
 
-  //if need cookie and cookie is not empty
+  // if need cookie and cookie is not empty
   if (cookies && cookies.length) {
     if (self.originalCookieHeader) {
       // Don't overwrite existing Cookie header
@@ -1437,7 +1423,6 @@ Request.prototype.jar = function (jar) {
   self._jar = jar
   return self
 }
-
 
 // Stream API
 Request.prototype.pipe = function (dest, opts) {
@@ -1461,7 +1446,7 @@ Request.prototype.pipe = function (dest, opts) {
 }
 Request.prototype.write = function () {
   var self = this
-  if (self._aborted) {return}
+  if (self._aborted) { return }
 
   if (!self._started) {
     self.start()
@@ -1472,7 +1457,7 @@ Request.prototype.write = function () {
 }
 Request.prototype.end = function (chunk) {
   var self = this
-  if (self._aborted) {return}
+  if (self._aborted) { return }
 
   if (chunk) {
     self.write(chunk)

@@ -1,10 +1,9 @@
 'use strict'
 
-var http = require('http')
-  , request = require('../index')
-  , tape = require('tape')
-  , server
-
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
+let server
 
 tape('setup', function (t) {
   server = http.createServer()
@@ -12,7 +11,7 @@ tape('setup', function (t) {
     res.writeHead(202)
     req.pipe(res)
   })
-  server.listen(0, function() {
+  server.listen(0, function () {
     server.url = 'http://localhost:' + this.address().port
     t.end()
   })
@@ -21,13 +20,14 @@ tape('setup', function (t) {
 tape('callback option', function (t) {
   request({
     url: server.url,
-    callback: function (err, res, body) {
+    callback: (err, res, body) => {
+      if (err) t.error(err)
       t.equal(res.statusCode, 202)
       t.end()
     }
   })
 })
 
-tape('cleanup', function(t) {
+tape('cleanup', function (t) {
   server.close(t.end)
 })

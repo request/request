@@ -1,13 +1,12 @@
 'use strict'
 
-var http = require('http')
-  , request = require('../index')
-  , tape = require('tape')
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
 
-
-var validUrl
-  , malformedUrl
-  , invalidUrl
+let validUrl
+let malformedUrl
+let invalidUrl
 
 var server = http.createServer(function (req, res) {
   if (req.url === '/valid') {
@@ -20,8 +19,8 @@ var server = http.createServer(function (req, res) {
   res.end('okay')
 })
 
-tape('setup', function(t) {
-  server.listen(0, function() {
+tape('setup', function (t) {
+  server.listen(0, function () {
     server.url = 'http://localhost:' + this.address().port
     validUrl = server.url + '/valid'
     malformedUrl = server.url + '/malformed'
@@ -30,21 +29,21 @@ tape('setup', function(t) {
   })
 })
 
-tape('simple cookie creation', function(t) {
+tape('simple cookie creation', function (t) {
   var cookie = request.cookie('foo=bar')
   t.equals(cookie.key, 'foo')
   t.equals(cookie.value, 'bar')
   t.end()
 })
 
-tape('simple malformed cookie creation', function(t) {
+tape('simple malformed cookie creation', function (t) {
   var cookie = request.cookie('foo')
   t.equals(cookie.key, '')
   t.equals(cookie.value, 'foo')
   t.end()
 })
 
-tape('after server sends a cookie', function(t) {
+tape('after server sends a cookie', function (t) {
   var jar1 = request.jar()
   request({
     method: 'GET',
@@ -64,7 +63,7 @@ tape('after server sends a cookie', function(t) {
   })
 })
 
-tape('after server sends a malformed cookie', function(t) {
+tape('after server sends a malformed cookie', function (t) {
   var jar = request.jar()
   request({
     method: 'GET',
@@ -84,7 +83,7 @@ tape('after server sends a malformed cookie', function(t) {
   })
 })
 
-tape('after server sends a cookie for a different domain', function(t) {
+tape('after server sends a cookie for a different domain', function (t) {
   var jar2 = request.jar()
   request({
     method: 'GET',
@@ -100,9 +99,9 @@ tape('after server sends a cookie for a different domain', function(t) {
   })
 })
 
-tape('make sure setCookie works', function(t) {
-  var jar3 = request.jar()
-    , err = null
+tape('make sure setCookie works', function (t) {
+  let jar3 = request.jar()
+  let err = null
   try {
     jar3.setCookie(request.cookie('foo=bar'), validUrl)
   } catch (e) {
@@ -116,16 +115,16 @@ tape('make sure setCookie works', function(t) {
   t.end()
 })
 
-tape('custom store', function(t) {
-  var Store = function() {}
+tape('custom store', function (t) {
+  var Store = function () {}
   var store = new Store()
   var jar = request.jar(store)
   t.equals(store, jar._jar.store)
   t.end()
 })
 
-tape('cleanup', function(t) {
-  server.close(function() {
+tape('cleanup', function (t) {
+  server.close(function () {
     t.end()
   })
 })
