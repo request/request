@@ -203,6 +203,23 @@ tape('catch invalid characters error - POST', function(t) {
   })
 })
 
+tape('allow custom content type on form data - POST', function(t) {
+  request({
+    url: s.url + '/headers.json',
+    headers: {
+      'content-type': 'custom'
+    },
+    formData: {
+      'field': 'fieldContent'
+    },
+    json: true
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(body['content-type'], 'custom')
+    t.end()
+  })
+})
+
 tape('IPv6 Host header', function(t) {
   // Horrible hack to observe the raw data coming to the server
   var rawData = ''
