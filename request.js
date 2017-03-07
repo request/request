@@ -1251,7 +1251,6 @@ Request.prototype.qs = function (q, clobber, options) {
   if (options && options.encode == false) {
     self.uri.search = '?' + qs
     self.uri.query = qs
-    self.uri.pathname = self.uri.href.split('?')[0]
     self.uri.path = self.uri.pathname + self.uri.search
     self.uri.href = self.uri.protocol + '://' + self.uri.host + self.uri.path
   } else {
