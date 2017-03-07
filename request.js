@@ -1252,7 +1252,7 @@ Request.prototype.qs = function (q, clobber, options) {
     self.uri.search = '?' + qs
     self.uri.query = qs
     self.uri.path = self.uri.pathname + self.uri.search
-    self.uri.href = self.uri.protocol + '://' + self.uri.host + self.uri.path
+    self.uri.href = self.uri.protocol + '//' + self.uri.host + self.uri.path
   } else {
     self.uri = url.parse(self.uri.href.split('?')[0] + '?' + qs)
   }
