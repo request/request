@@ -341,7 +341,11 @@ Request.prototype.init = function (options) {
   }
 
   if (options.qs) {
-    self.qs(options.qs)
+    if (options.qsStringifyOptions) {
+      self.qs(options.qs, false, options.qsStringifyOptions)
+    } else {
+      self.qs(options.qs)
+    }
   }
 
   if (self.uri.path) {
@@ -1225,7 +1229,7 @@ Request.prototype.pipeDest = function (dest) {
   }
 }
 
-Request.prototype.qs = function (q, clobber) {
+Request.prototype.qs = function (q, clobber, options) {
   var self = this
   var base
   if (!clobber && self.uri.query) {
@@ -1244,7 +1248,15 @@ Request.prototype.qs = function (q, clobber) {
     return self
   }
 
-  self.uri = url.parse(self.uri.href.split('?')[0] + '?' + qs)
+  if (options && options.encode == false) {
+    self.uri.search = '?' + qs
+    self.uri.query = qs
+    self.uri.pathname = self.uri.href.split('?')[0]
+    self.uri.path = self.uri.pathname + self.uri.search
+    self.uri.href = self.uri.protocol + '://' + self.uri.host + self.uri.path
+  } else {
+    self.uri = url.parse(self.uri.href.split('?')[0] + '?' + qs)
+  }
   self.url = self.uri
   self.path = self.uri.path
 
