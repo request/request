@@ -205,6 +205,7 @@ tape('catch invalid characters error - POST', function(t) {
 
 tape('allow custom content type on form data - POST', function(t) {
   request({
+    method: 'POST',
     url: s.url + '/headers.json',
     headers: {
       'content-type': 'custom'
