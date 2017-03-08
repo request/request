@@ -1248,7 +1248,7 @@ Request.prototype.qs = function (q, clobber, options) {
     return self
   }
 
-  if (options && options.encode == false) {
+  if (options && options.encode === false) {
     self.uri.search = '?' + qs
     self.uri.query = qs
     self.uri.path = self.uri.pathname + self.uri.search
