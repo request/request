@@ -258,6 +258,8 @@ Request.prototype.init = function (options) {
     self.rejectUnauthorized = false
   }
 
+  self._disableEncoding = !!options.disableEncoding
+
   if (!self.uri.pathname) {self.uri.pathname = '/'}
 
   if (!(self.uri.host || (self.uri.hostname && self.uri.port)) && !self.uri.isUnix) {
@@ -1260,6 +1262,10 @@ Request.prototype.form = function (form) {
     if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
       self.setHeader('content-type', 'application/x-www-form-urlencoded')
     }
+    if (self._disableEncoding) {
+      self.body = form.toString('utf8')
+      return self
+    }
     self.body = (typeof form === 'string')
       ? self._qs.rfc3986(form.toString('utf8'))
       : self._qs.stringify(form).toString('utf8')
@@ -1301,6 +1307,8 @@ Request.prototype.json = function (val) {
     if (self.body !== undefined) {
       if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
         self.body = safeStringify(self.body, self._jsonReplacer)
+      } else if (self._disableEncoding) {
+        self.body = self.body
       } else {
         self.body = self._qs.rfc3986(self.body)
       }
