@@ -56,7 +56,7 @@ function runAllTests(strict, s) {
 
   runTest('testGetChunkBreak', {
     resp : server.createChunkResponse(
-    [ new Buffer([239])
+      [ new Buffer([239])
     , new Buffer([163])
     , new Buffer([191])
     , new Buffer([206])
@@ -64,7 +64,7 @@ function runAllTests(strict, s) {
     , new Buffer([226])
     , new Buffer([152])
     , new Buffer([131])
-    ])
+      ])
     , expectBody: '\uf8ff\u03a9\u2603'
   })
 
@@ -104,9 +104,9 @@ function runAllTests(strict, s) {
       )
     , method: 'PUT'
     , multipart:
-      [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
+    [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
       , {'body': 'Oh hi.'}
-      ]
+    ]
   })
 
   tape(strictMsg + 'cleanup', function(t) {

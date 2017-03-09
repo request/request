@@ -36,7 +36,7 @@ addTest('testGet', {
 
 addTest('testGetChunkBreak', {
   resp : server.createChunkResponse(
-  [ new Buffer([239])
+    [ new Buffer([239])
   , new Buffer([163])
   , new Buffer([191])
   , new Buffer([206])
@@ -44,7 +44,7 @@ addTest('testGetChunkBreak', {
   , new Buffer([226])
   , new Buffer([152])
   , new Buffer([131])
-  ])
+    ])
   , expectBody: '\uF8FF\u03A9\u2603'
 })
 
@@ -102,9 +102,9 @@ addTest('testPutMultipart', {
     )
   , method: 'PUT'
   , multipart:
-    [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
+  [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
     , {'body': 'Oh hi.'}
-    ]
+  ]
 })
 
 addTest('testPutMultipartPreambleCRLF', {
@@ -120,9 +120,9 @@ addTest('testPutMultipartPreambleCRLF', {
   , method: 'PUT'
   , preambleCRLF: true
   , multipart:
-    [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
+  [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
     , {'body': 'Oh hi.'}
-    ]
+  ]
 })
 
 addTest('testPutMultipartPostambleCRLF', {
@@ -140,9 +140,9 @@ addTest('testPutMultipartPostambleCRLF', {
   , preambleCRLF: true
   , postambleCRLF: true
   , multipart:
-    [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
+  [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'}
     , {'body': 'Oh hi.'}
-    ]
+  ]
 })
 
 tape('typed array', function (t) {

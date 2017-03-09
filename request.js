@@ -517,6 +517,11 @@ Request.prototype.init = function (options) {
       }
     }
 
+    // Allow for catching piped stream errors
+    src.on('error', function(err) {
+      self.emit('error', err)
+    })
+
     // self.on('pipe', function () {
     //   console.error('You have already piped to this stream. Pipeing twice is likely to break the request.')
     // })
