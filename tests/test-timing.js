@@ -88,6 +88,53 @@ tape('redirected request is timed with rollup', function(t) {
   })
 })
 
+tape('keepAlive is timed', function(t) {
+  var agent = new require('http').Agent({ keepAlive: true })
+  var options = { time: true, agent: agent }
+  var start1 = new Date().getTime()
+  request('http://localhost:' + plain_server.port + '/', options, function(err1, res1, body1) {
+    var end1 = new Date().getTime()
+
+    // ensure the first request's timestamps look ok
+    t.equal((res1.timingStart >= start1), true)
+    t.equal((start1 <= end1), true)
+
+    t.equal((res1.timings.socket >= 0), true)
+    t.equal((res1.timings.lookup >= res1.timings.socket), true)
+    t.equal((res1.timings.connect >= res1.timings.lookup), true)
+    t.equal((res1.timings.response >= res1.timings.connect), true)
+
+    var start2 = new Date().getTime()
+    request('http://localhost:' + plain_server.port + '/', options, function(err2, res2, body2) {
+      var end2 = new Date().getTime()
+
+      // ensure the second request's timestamps look ok
+      t.equal((res2.timingStart >= start2), true)
+      t.equal((start2 <= end2), true)
+
+      // ensure socket==lookup==connect for the second request
+      t.equal((res2.timings.socket >= 0), true)
+      t.equal((res2.timings.lookup == res2.timings.socket), true)
+      t.equal((res2.timings.connect == res2.timings.lookup), true)
+      t.equal((res2.timings.response >= res2.timings.connect), true)
+
+      // explicitly shut down the agent
+      if (typeof agent.destroy === 'function') {
+        agent.destroy()
+      } else {
+        // node < 0.12
+        Object.keys(agent.sockets).forEach(function (name) {
+          agent.sockets[name].forEach(function (socket) {
+            socket.end()
+          })
+        })
+      }
+
+      t.end()
+    })
+  })
+})
+
 tape('cleanup', function(t) {
   plain_server.close(function() {
     t.end()
