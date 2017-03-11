@@ -571,7 +571,8 @@ Request.prototype.init = function (options) {
         }
         end()
       })
-    } else {
+    } else if (self.endRequest !== false) {
+      // requests with endRequest:false must be closed manually with .end()
       end()
     }
 
