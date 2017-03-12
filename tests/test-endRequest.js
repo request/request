@@ -46,18 +46,13 @@ tape('without endRequest option', function (t) {
   stream = request.post({
     url: server.url
   }, function(err, res, body) {
-    t.equal(res.statusCode, 200)
-    t.equal(body, '')
-  })
+    stream.on('error', function(err) {
+      t.equal(err.message, 'write after end')
+      t.end()
+    })
 
-  stream.on('error', function(err) {
-    t.equal(err.message, 'write after end')
-    t.end()
-  })
-
-  setTimeout(function() {
     stream.write('test data')
-  }, 10)
+  })
 })
 
 tape('cleanup', function(t) {
