@@ -1095,7 +1095,7 @@ Request.prototype.onRequestResponse = function (response) {
     })
     responseContent.on('close', function () {self.emit('close')})
 
-    if (self.callback) {
+    if (self.callback || self.forceReadResponseBody) {
       self.readResponseBody(response)
     }
     //if no callback
