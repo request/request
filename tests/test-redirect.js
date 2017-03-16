@@ -49,7 +49,35 @@ function createLandingEndpoint(landing) {
   })
 }
 
-function bouncer(code, label, hops) {
+function createLandingEndpointForFollowOriginalBody(landing) {
+  s.on('/' + landing, function(req, res) {
+    // Make sure host, content-type, content-length and authorization headers are set properly after redirect
+    assert.equal(req.headers.host, 'localhost')
+    assert.equal(req.headers['content-type'], 'application/json')
+    assert.equal(req.headers['content-length'], '15')
+    // Make sure host is set properly after redirect
+    hits[landing] = true
+    res.writeHead(200, {'x-response': req.method.toUpperCase() + ' ' + landing})
+    res.end(req.method.toUpperCase() + ' ' + landing)
+  })
+}
+
+function createLandingEndpointForNoFollowOriginalBody(landing) {
+  s.on('/' + landing, function(req, res) {
+    // Make sure content-type and content-length headers parameters are removed
+    assert.equal(req.headers['content-type'], undefined)
+    assert.equal(req.headers['content-length'], undefined)
+    hits[landing] = true
+    res.writeHead(200, {'x-response': req.method.toUpperCase() + ' ' + landing})
+    res.end(req.method.toUpperCase() + ' ' + landing)
+  })
+}
+
+function bouncer(code, label, hops, landingEndpointCallback) {
+  if (landingEndpointCallback === undefined) {
+    landingEndpointCallback = createLandingEndpoint
+  }
+
   var hop,
     landing = label + '_landing',
     currentLabel,
@@ -68,7 +96,7 @@ function bouncer(code, label, hops) {
     }
   }
 
-  createLandingEndpoint(landing)
+  landingEndpointCallback(landing)
 }
 
 tape('setup', function(t) {
@@ -78,6 +106,8 @@ tape('setup', function(t) {
       bouncer(301, 'double', 2)
       bouncer(301, 'treble', 3)
       bouncer(302, 'perm')
+      bouncer(302, 'perm2', null, createLandingEndpointForFollowOriginalBody)
+      bouncer(302, 'perm3', null, createLandingEndpointForNoFollowOriginalBody)
       bouncer(302, 'nope')
       bouncer(307, 'fwd')
       t.end()
@@ -98,6 +128,93 @@ tape('permanent bounce', function(t) {
     t.ok(hits.perm, 'Original request is to /perm')
     t.ok(hits.perm_landing, 'Forward to permanent landing URL')
     t.equal(body, 'GET perm_landing', 'Got permanent landing content')
+    t.end()
+  })
+})
+
+tape('preserve HEAD method when using followAllRedirects', function(t) {
+  jar.setCookie('quux=baz', s.url)
+  hits = {}
+  request({
+    method: 'HEAD',
+    uri: s.url + '/perm',
+    followAllRedirects: true,
+    jar: jar,
+    headers: { cookie: 'foo=bar' }
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.ok(hits.perm, 'Original request is to /perm')
+    t.ok(hits.perm_landing, 'Forward to permanent landing URL')
+    t.equal(res.headers['x-response'], 'HEAD perm_landing', 'Got permanent landing content')
+    t.end()
+  })
+})
+
+//TODO: Add check for the body and _form
+tape('preserve host, content-type and content-length headers when using followOriginalBody', function(t) {
+  hits = {}
+  request({
+    method: 'POST',
+    uri: s.url + '/perm2',
+    followAllRedirects: true,
+    followOriginalBody: true,
+    body: '{"var":"value"}',
+    headers: {
+      'host': 'localhost',
+      'content-type': 'application/json',
+      'content-length': '15'
+    }
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.ok(hits.perm2, 'Original request is to /perm2')
+    t.ok(hits.perm2_landing, 'Forward to permanent landing URL')
+    t.end()
+  })
+})
+
+//TODO: Add check for the body and _form
+tape('preserve host, content-type and content-length headers when using followOriginalBodyForCodes', function(t) {
+  hits = {}
+  request({
+    method: 'POST',
+    uri: s.url + '/perm2',
+    followAllRedirects: true,
+    followOriginalBodyForCodes: [302],
+    body: '{"var":"value"}',
+    headers: {
+      'host': 'localhost',
+      'content-type': 'application/json',
+      'content-length': '15'
+    }
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.ok(hits.perm2, 'Original request is to /perm2')
+    t.ok(hits.perm2_landing, 'Forward to permanent landing URL')
+    t.end()
+  })
+})
+
+//TODO: Add check for the body and _form
+tape('do not preserve host, content-type and content-length headers when using status code is not in followOriginalBodyForCodes or followOriginalBodyForCodes is true', function(t) {
+  hits = {}
+  request({
+    method: 'POST',
+    uri: s.url + '/perm3',
+    followAllRedirects: true,
+    body: '{"var":"value"}',
+    headers: {
+      'host': 'localhost',
+      'content-type': 'application/json',
+      'content-length': '15'
+    }
+  }, function(err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.ok(hits.perm3, 'Original request is to /perm3')
+    t.ok(hits.perm3_landing, 'Forward to permanent landing URL')
     t.end()
   })
 })
