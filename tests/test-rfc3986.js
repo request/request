@@ -1,22 +1,19 @@
 'use strict'
 
-var http = require('http')
-  , request = require('../index')
-  , tape = require('tape')
-
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
 
 function runTest (t, options) {
-
-  var server = http.createServer(function(req, res) {
-
+  var server = http.createServer(function (req, res) {
     var data = ''
     req.setEncoding('utf8')
 
-    req.on('data', function(d) {
+    req.on('data', function (d) {
       data += d
     })
 
-    req.on('end', function() {
+    req.on('end', function () {
       if (options.qs) {
         t.equal(req.url, '/?rfc3986=%21%2A%28%29%27')
       }
@@ -27,19 +24,19 @@ function runTest (t, options) {
     })
   })
 
-  server.listen(0, function() {
+  server.listen(0, function () {
     var port = this.address().port
-    request.post('http://localhost:' + port, options, function(err, res, body) {
+    request.post('http://localhost:' + port, options, function (err, res, body) {
       t.equal(err, null)
-      server.close(function() {
+      server.close(function () {
         t.end()
       })
     })
   })
 }
 
-var bodyEscaped = 'rfc3986=%21%2A%28%29%27'
-  , bodyJson    = '{"rfc3986":"!*()\'"}'
+let bodyEscaped = 'rfc3986=%21%2A%28%29%27'
+let bodyJson = '{"rfc3986":"!*()\'"}'
 
 var cases = [
   {
@@ -102,7 +99,7 @@ var libs = ['qs', 'querystring']
 libs.forEach(function (lib) {
   cases.forEach(function (options) {
     options.useQuerystring = (lib === 'querystring')
-    tape(lib + ' rfc3986 ' + options._name, function(t) {
+    tape(lib + ' rfc3986 ' + options._name, function (t) {
       runTest(t, options)
     })
   })

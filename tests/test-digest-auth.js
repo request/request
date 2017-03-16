@@ -1,15 +1,15 @@
 'use strict'
 
-var http = require('http')
-  , request = require('../index')
-  , tape = require('tape')
-  , crypto = require('crypto')
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
+const crypto = require('crypto')
 
-function makeHeader() {
+function makeHeader () {
   return [].join.call(arguments, ', ')
 }
 
-function makeHeaderRegex() {
+function makeHeaderRegex () {
   return new RegExp('^' + makeHeader.apply(null, arguments) + '$')
 }
 
@@ -17,9 +17,9 @@ function md5 (str) {
   return crypto.createHash('md5').update(str).digest('hex')
 }
 
-var digestServer = http.createServer(function(req, res) {
-  var ok
-    , testHeader
+var digestServer = http.createServer(function (req, res) {
+  let ok
+  let testHeader
 
   if (req.url === '/test/') {
     if (req.headers.authorization) {
@@ -61,10 +61,9 @@ var digestServer = http.createServer(function(req, res) {
     var qop = 'auth'
     var algorithm = 'MD5-sess'
     if (req.headers.authorization) {
-
-      //HA1=MD5(MD5(username:realm:password):nonce:cnonce)
-      //HA2=MD5(method:digestURI)
-      //response=MD5(HA1:nonce:nonceCount:clientNonce:qop:HA2)
+      // HA1=MD5(MD5(username:realm:password):nonce:cnonce)
+      // HA2=MD5(method:digestURI)
+      // response=MD5(HA1:nonce:nonceCount:clientNonce:qop:HA2)
 
       var cnonce = /cnonce="(.*)"/.exec(req.headers.authorization)[1]
       var ha1 = md5(md5(user + ':' + realm + ':' + pass) + ':' + nonce + ':' + cnonce)
@@ -131,14 +130,14 @@ var digestServer = http.createServer(function(req, res) {
   }
 })
 
-tape('setup', function(t) {
-  digestServer.listen(0, function() {
+tape('setup', function (t) {
+  digestServer.listen(0, function () {
     digestServer.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('with sendImmediately = false', function(t) {
+tape('with sendImmediately = false', function (t) {
   var numRedirects = 0
 
   request({
@@ -149,18 +148,18 @@ tape('with sendImmediately = false', function(t) {
       pass: 'testing',
       sendImmediately: false
     }
-  }, function(error, response, body) {
+  }, function (error, response, body) {
     t.equal(error, null)
     t.equal(response.statusCode, 200)
     t.equal(numRedirects, 1)
     t.end()
-  }).on('redirect', function() {
+  }).on('redirect', function () {
     t.equal(this.response.statusCode, 401)
     numRedirects++
   })
 })
 
-tape('with MD5-sess algorithm', function(t) {
+tape('with MD5-sess algorithm', function (t) {
   var numRedirects = 0
 
   request({
@@ -171,18 +170,18 @@ tape('with MD5-sess algorithm', function(t) {
       pass: 'testing',
       sendImmediately: false
     }
-  }, function(error, response, body) {
+  }, function (error, response, body) {
     t.equal(error, null)
     t.equal(response.statusCode, 200)
     t.equal(numRedirects, 1)
     t.end()
-  }).on('redirect', function() {
+  }).on('redirect', function () {
     t.equal(this.response.statusCode, 401)
     numRedirects++
   })
 })
 
-tape('without sendImmediately = false', function(t) {
+tape('without sendImmediately = false', function (t) {
   var numRedirects = 0
 
   // If we don't set sendImmediately = false, request will send basic auth
@@ -193,18 +192,18 @@ tape('without sendImmediately = false', function(t) {
       user: 'test',
       pass: 'testing'
     }
-  }, function(error, response, body) {
+  }, function (error, response, body) {
     t.equal(error, null)
     t.equal(response.statusCode, 401)
     t.equal(numRedirects, 0)
     t.end()
-  }).on('redirect', function() {
+  }).on('redirect', function () {
     t.equal(this.response.statusCode, 401)
     numRedirects++
   })
 })
 
-tape('with different credentials', function(t) {
+tape('with different credentials', function (t) {
   var numRedirects = 0
 
   request({
@@ -215,19 +214,19 @@ tape('with different credentials', function(t) {
       pass: 'CircleOfLife',
       sendImmediately: false
     }
-  }, function(error, response, body) {
+  }, function (error, response, body) {
     t.equal(error, null)
     t.equal(response.statusCode, 200)
     t.equal(numRedirects, 1)
     t.end()
-  }).on('redirect', function() {
+  }).on('redirect', function () {
     t.equal(this.response.statusCode, 401)
     numRedirects++
   })
 })
 
-tape('cleanup', function(t) {
-  digestServer.close(function() {
+tape('cleanup', function (t) {
+  digestServer.close(function () {
     t.end()
   })
 })
