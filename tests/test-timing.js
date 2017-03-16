@@ -104,6 +104,7 @@ tape('keepAlive is timed', function(t) {
     t.equal((res1.timings.connect >= res1.timings.lookup), true)
     t.equal((res1.timings.response >= res1.timings.connect), true)
 
+    // open a second request with the same agent so we re-use the same connection
     var start2 = new Date().getTime()
     request('http://localhost:' + plain_server.port + '/', options, function(err2, res2, body2) {
       var end2 = new Date().getTime()
