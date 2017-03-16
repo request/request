@@ -40,6 +40,13 @@ var digestServer = http.createServer(function(req, res) {
       } else {
         // Bad auth header, don't send back WWW-Authenticate header
         ok = false
+        res.setHeader('www-authenticate', makeHeader(
+          'Digest realm="Private"',
+          'nonce="WpcHS2/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93"',
+          'algorithm=MD5',
+          'qop="auth"',
+          'opaque="5ccc069c403ebaf9f0171e9517f40e41"'
+        ))
       }
     } else {
       // No auth header, send back WWW-Authenticate header
@@ -84,6 +91,14 @@ var digestServer = http.createServer(function(req, res) {
       )
 
       ok = testHeader.test(req.headers.authorization)
+      if (!ok) {
+        res.setHeader('www-authenticate', makeHeader(
+          'Digest realm="' + realm + '"',
+          'nonce="' + nonce + '"',
+          'algorithm=' + algorithm,
+          'qop="' + qop + '"'
+        ))
+      }
     } else {
       // No auth header, send back WWW-Authenticate header
       ok = false
@@ -111,6 +126,11 @@ var digestServer = http.createServer(function(req, res) {
       } else {
         // Bad auth header, don't send back WWW-Authenticate header
         ok = false
+        res.setHeader('www-authenticate', makeHeader(
+        'Digest realm="testrealm@host.com"',
+        'nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093"',
+        'opaque="5ccc069c403ebaf9f0171e9517f40e41"'
+      ))
       }
     } else {
       // No auth header, send back WWW-Authenticate header
@@ -231,3 +251,24 @@ tape('cleanup', function(t) {
     t.end()
   })
 })
+
+tape('with disabled authentication methods', function(t) {
+  var numRedirects = 0
+
+  request({
+    method: 'GET',
+    uri: digestServer.url + '/test/',
+    auth: {
+      user: 'test',
+      pass: 'testing',
+      sendImmediately: false,
+      disable: {
+        digest: true
+      }
+    }
+  }, function(error, response, body) {
+    t.notEqual(error, null)
+    t.end()
+  })
+})
+
