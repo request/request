@@ -812,17 +812,23 @@ default in Linux can be anywhere from 20-120 seconds][linux-timeout]).
 
 ---
 
-- `time` - If `true`, the request-response cycle (including all redirects) is timed at millisecond resolution, and the result provided on the response's `elapsedTime` property. The `responseStartTime` property is also available to indicate the timestamp when the response begins. In addition, there is a `.timings` object available with the following properties:
-  - `start`: Timestamp when `request()` was initialized
-  - `socket` Timestamp when the [`http`](https://nodejs.org/api/http.html#http_event_socket) module's `socket` event fires. This happens when the socket is assigned to the request (after DNS has been resolved).
-  - `connect`: Timestamp when the [`http`](https://nodejs.org/api/http.html#http_event_connect) module's `connect` event fires. This happens when the server acknowledges the TCP connection.
-  - `response`: Timestamp when the [`http`](https://nodejs.org/api/http.html#http_event_response) module's `response` event fires. This happens when the first bytes are received from the server.
-  - `end`: Timestamp when the last bytes of the response are received.
-  - `dns`: Duration of DNS lookup (`timings.socket` - `timings.start`)
-  - `tcp`: Duration of TCP connection (`timings.connect` - `timings.socket`)
-  - `firstByte`: Duration of HTTP server response (`timings.response` - `timings.connect`)
-  - `download`: Duration of HTTP download (`timings.end` - `timings.response`)
-  - `total`: Duration entire HTTP round-trip (`timings.end` - `timings.start`)
+- `time` - If `true`, the request-response cycle (including all redirects) is timed at millisecond resolution. When set, the following properties are added to the response object:
+  - `elapsedTime` Duration of the entire request/response in milliseconds (*deprecated*).
+  - `responseStartTime` Timestamp when the response began (in Unix Epoch milliseconds) (*deprecated*).
+  - `timingStart` Timestamp of the start of the request (in Unix Epoch milliseconds).
+  - `timings` Contains event timestamps in millisecond resolution relative to `timingStart`. If there were redirects, the properties reflect the timings of the final request in the redirect chain:
+    - `socket` Relative timestamp when the [`http`](https://nodejs.org/api/http.html#http_event_socket) module's `socket` event fires. This happens when the socket is assigned to the request.
+    - `lookup` Relative timestamp when the [`net`](https://nodejs.org/api/net.html#net_event_lookup) module's `lookup` event fires. This happens when the DNS has been resolved.
+    - `connect`: Relative timestamp when the [`net`](https://nodejs.org/api/net.html#net_event_connect) module's `connect` event fires. This happens when the server acknowledges the TCP connection.
+    - `response`: Relative timestamp when the [`http`](https://nodejs.org/api/http.html#http_event_response) module's `response` event fires. This happens when the first bytes are received from the server.
+    - `end`: Relative timestamp when the last bytes of the response are received.
+  - `timingPhases` Contains the durations of each request phase. If there were redirects, the properties reflect the timings of the final request in the redirect chain:
+    - `wait`: Duration of socket initialization (`timings.socket`)
+    - `dns`: Duration of DNS lookup (`timings.lookup` - `timings.socket`)
+    - `tcp`: Duration of TCP connection (`timings.connect` - `timings.socket`)
+    - `firstByte`: Duration of HTTP server response (`timings.response` - `timings.connect`)
+    - `download`: Duration of HTTP download (`timings.end` - `timings.response`)
+    - `total`: Duration entire HTTP round-trip (`timings.end`)
 
 - `har` - A [HAR 1.2 Request Object](http://www.softwareishard.com/blog/har-12-spec/#request), will be processed from HAR format into options overwriting matching values *(see the [HAR 1.2 section](#support-for-har-1.2) for details)*
 - `callback` - alternatively pass the request's callback in the options object

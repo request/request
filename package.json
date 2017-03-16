@@ -7,7 +7,7 @@
     "util",
     "utility"
   ],
-  "version": "2.79.1",
+  "version": "2.81.1",
   "author": "Mikeal Rogers <mikeal.rogers@gmail.com>",
   "repository": {
     "type": "git",
@@ -34,8 +34,8 @@
     "extend": "~3.0.0",
     "forever-agent": "~0.6.1",
     "form-data": "~2.1.1",
+    "har-validator": "~4.2.1",
     "hawk": "~6.0.0",
-    "har-validator": "~4.2.0",
     "http-signature": "~1.1.0",
     "is-typedarray": "~1.0.0",
     "isstream": "~0.1.2",
@@ -43,10 +43,11 @@
     "mime-types": "~2.1.7",
     "oauth-sign": "~0.8.1",
     "performance-now": "^0.2.0",
-    "qs": "~6.3.0",
+    "qs": "~6.4.0",
+    "safe-buffer": "^5.0.1",
     "stringstream": "~0.0.4",
     "tough-cookie": "~2.3.0",
-    "tunnel-agent": "~0.4.1",
+    "tunnel-agent": "^0.6.0",
     "uuid": "^3.0.0"
   },
   "scripts": {

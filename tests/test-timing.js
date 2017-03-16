@@ -27,23 +27,31 @@ tape('setup', function(t) {
 
 tape('non-redirected request is timed', function(t) {
   var options = {time: true}
+  var start = new Date().getTime()
   var r = request('http://localhost:' + plain_server.port + '/', options, function(err, res, body) {
+    var end = new Date().getTime()
     t.equal(err, null)
     t.equal(typeof res.elapsedTime, 'number')
     t.equal(typeof res.responseStartTime, 'number')
+    t.equal(typeof res.timingStart, 'number')
+    t.equal((res.timingStart >= start), true)
     t.equal(typeof res.timings, 'object')
     t.equal((res.elapsedTime > 0), true)
+    t.equal((res.elapsedTime <= (end - start)), true)
     t.equal((res.responseStartTime > r.startTime), true)
-    t.equal((res.timings.start > 0), true)
-    t.equal((res.timings.socket >= res.timings.start), true)
-    t.equal((res.timings.connect >= res.timings.socket), true)
+    t.equal((res.timings.socket >= 0), true)
+    t.equal((res.timings.lookup >= res.timings.socket), true)
+    t.equal((res.timings.connect >= res.timings.lookup), true)
     t.equal((res.timings.response >= res.timings.connect), true)
     t.equal((res.timings.end >= res.timings.response), true)
-    t.equal((res.timings.dns >= 0), true)
-    t.equal((res.timings.tcp >= 0), true)
-    t.equal((res.timings.firstByte > 0), true)
-    t.equal((res.timings.download > 0), true)
-    t.equal((res.timings.total > 0), true)
+    t.equal(typeof res.timingPhases, 'object')
+    t.equal((res.timingPhases.wait >= 0), true)
+    t.equal((res.timingPhases.dns >= 0), true)
+    t.equal((res.timingPhases.tcp >= 0), true)
+    t.equal((res.timingPhases.firstByte > 0), true)
+    t.equal((res.timingPhases.download > 0), true)
+    t.equal((res.timingPhases.total > 0), true)
+    t.equal((res.timingPhases.total <= (end - start)), true)
 
     // validate there are no unexpected properties
     var propNames = []
@@ -52,8 +60,15 @@ tape('non-redirected request is timed', function(t) {
         propNames.push(propName)
       }
     }
-    t.deepEqual(propNames, ['start', 'socket', 'connect', 'response', 'end', 'dns',
-      'tcp', 'firstByte', 'download', 'total'])
+    t.deepEqual(propNames, ['socket', 'lookup', 'connect', 'response', 'end'])
+
+    propNames = []
+    for (var propName in res.timingPhases) {
+      if (res.timingPhases.hasOwnProperty(propName)) {
+        propNames.push(propName)
+      }
+    }
+    t.deepEqual(propNames, ['wait', 'dns', 'tcp', 'firstByte', 'download', 'total'])
 
     t.end()
   })
