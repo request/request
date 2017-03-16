@@ -62,7 +62,7 @@
     "browserify": "^13.0.1",
     "browserify-istanbul": "^2.0.0",
     "buffer-equal": "^1.0.0",
-    "codecov": "^1.0.1",
+    "codecov": "^2.0.2",
     "coveralls": "^2.11.4",
     "eslint": "^2.5.3",
     "function-bind": "^1.0.2",
