@@ -1,23 +1,23 @@
 'use strict'
 
 var request = require('../index')
-  , http = require('http')
-  , fs = require('fs')
-  , rimraf = require('rimraf')
-  , assert = require('assert')
-  , tape = require('tape')
-  , url = require('url')
+var http = require('http')
+var fs = require('fs')
+var rimraf = require('rimraf')
+var assert = require('assert')
+var tape = require('tape')
+var url = require('url')
 
 var rawPath = [null, 'raw', 'path'].join('/')
-  , queryPath = [null, 'query', 'path'].join('/')
-  , searchString = '?foo=bar'
-  , socket = [__dirname, 'tmp-socket'].join('/')
-  , expectedBody = 'connected'
-  , statusCode = 200
+var queryPath = [null, 'query', 'path'].join('/')
+var searchString = '?foo=bar'
+var socket = [__dirname, 'tmp-socket'].join('/')
+var expectedBody = 'connected'
+var statusCode = 200
 
 rimraf.sync(socket)
 
-var s = http.createServer(function(req, res) {
+var s = http.createServer(function (req, res) {
   var incomingUrl = url.parse(req.url)
   switch (incomingUrl.pathname) {
     case rawPath:
@@ -36,14 +36,14 @@ var s = http.createServer(function(req, res) {
   res.end(expectedBody)
 })
 
-tape('setup', function(t) {
-  s.listen(socket, function() {
+tape('setup', function (t) {
+  s.listen(socket, function () {
     t.end()
   })
 })
 
-tape('unix socket connection', function(t) {
-  request( 'http://unix:' + socket + ':' + rawPath, function(err, res, body) {
+tape('unix socket connection', function (t) {
+  request('http://unix:' + socket + ':' + rawPath, function (err, res, body) {
     t.equal(err, null, 'no error in connection')
     t.equal(res.statusCode, statusCode, 'got HTTP 200 OK response')
     t.equal(body, expectedBody, 'expected response body is received')
@@ -51,13 +51,13 @@ tape('unix socket connection', function(t) {
   })
 })
 
-tape('unix socket connection with qs', function(t) {
+tape('unix socket connection with qs', function (t) {
   request({
     uri: 'http://unix:' + socket + ':' + queryPath,
     qs: {
       foo: 'bar'
     }
-  }, function(err, res, body) {
+  }, function (err, res, body) {
     t.equal(err, null, 'no error in connection')
     t.equal(res.statusCode, statusCode, 'got HTTP 200 OK response')
     t.equal(body, expectedBody, 'expected response body is received')
@@ -65,9 +65,9 @@ tape('unix socket connection with qs', function(t) {
   })
 })
 
-tape('cleanup', function(t) {
-  s.close(function() {
-    fs.unlink(socket, function() {
+tape('cleanup', function (t) {
+  s.close(function () {
+    fs.unlink(socket, function () {
       t.end()
     })
   })

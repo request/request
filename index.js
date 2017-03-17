@@ -14,15 +14,14 @@
 
 'use strict'
 
-var extend                = require('extend')
-  , cookies               = require('./lib/cookies')
-  , helpers               = require('./lib/helpers')
+var extend = require('extend')
+var cookies = require('./lib/cookies')
+var helpers = require('./lib/helpers')
 
 var paramsHaveRequestBody = helpers.paramsHaveRequestBody
 
-
 // organize params for patch, post, put, head, del
-function initParams(uri, options, callback) {
+function initParams (uri, options, callback) {
   if (typeof options === 'function') {
     callback = options
   }
@@ -81,7 +80,6 @@ request.cookie = function (str) {
 }
 
 function wrapRequestMethod (method, options, requester, verb) {
-
   return function (uri, opts, callback) {
     var params = initParams(uri, opts, callback)
 
@@ -112,15 +110,15 @@ request.defaults = function (options, requester) {
     options = {}
   }
 
-  var defaults      = wrapRequestMethod(self, options, requester)
+  var defaults = wrapRequestMethod(self, options, requester)
 
   var verbs = ['get', 'head', 'post', 'put', 'patch', 'del', 'delete']
-  verbs.forEach(function(verb) {
-    defaults[verb]  = wrapRequestMethod(self[verb], options, requester, verb)
+  verbs.forEach(function (verb) {
+    defaults[verb] = wrapRequestMethod(self[verb], options, requester, verb)
   })
 
-  defaults.cookie   = wrapRequestMethod(self.cookie, options, requester)
-  defaults.jar      = self.jar
+  defaults.cookie = wrapRequestMethod(self.cookie, options, requester)
+  defaults.jar = self.jar
   defaults.defaults = self.defaults
   return defaults
 }
@@ -146,11 +144,11 @@ request.initParams = initParams
 
 // Backwards compatibility for request.debug
 Object.defineProperty(request, 'debug', {
-  enumerable : true,
-  get : function() {
+  enumerable: true,
+  get: function () {
     return request.Request.debug
   },
-  set : function(debug) {
+  set: function (debug) {
     request.Request.debug = debug
   }
 })
