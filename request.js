@@ -522,7 +522,7 @@ Request.prototype.init = function (options) {
       return
     }
 
-    var closeRequest = function() {
+    var closeRequest = function () {
       if (self.keepOpen !== true) {
         // requests with keepOpen:true must be closed manually with .end()
         self.end()
