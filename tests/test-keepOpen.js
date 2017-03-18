@@ -17,13 +17,13 @@ tape('setup', function (t) {
   })
 })
 
-tape('endRequest option', function (t) {
+tape('keepOpen option', function (t) {
   var testData = 'test request data'
     , stream
    
   stream = request.post({
     url: server.url,
-    endRequest: false
+    keepOpen: true
   }, function(err, res, body) {
     t.equal(res.statusCode, 200)
     t.equal(body, testData + testData)
@@ -40,7 +40,7 @@ tape('endRequest option', function (t) {
   }, 20)
 })
 
-tape('without endRequest option', function (t) {
+tape('without keepOpen option', function (t) {
   var stream
    
   stream = request.post({

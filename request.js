@@ -523,8 +523,8 @@ Request.prototype.init = function (options) {
     }
 
     var closeRequest = function() {
-      if (self.endRequest !== false) {
-        // requests with endRequest:false must be closed manually with .end()
+      if (self.keepOpen !== true) {
+        // requests with keepOpen:true must be closed manually with .end()
         self.end()
       }
     }
@@ -562,7 +562,7 @@ Request.prototype.init = function (options) {
           closeRequest()
           return
         }
-        if (self.method !== 'GET' && typeof self.method !== 'undefined' && self.endRequest !== false) {
+        if (self.method !== 'GET' && typeof self.method !== 'undefined' && self.keepOpen !== true) {
           self.setHeader('content-length', 0)
         }
         closeRequest()
