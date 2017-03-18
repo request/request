@@ -30,14 +30,14 @@ tape('keepOpen option', function (t) {
     t.end()
   })
 
-  setTimeout(function() {
+  setImmediate(function() {
     stream.write(testData)
-  }, 10)
 
-  setTimeout(function() {
-    stream.write(testData)
-    stream.end()
-  }, 20)
+    setImmediate(function() {
+      stream.write(testData)
+      stream.end()
+    })
+  })
 })
 
 tape('without keepOpen option', function (t) {
@@ -46,12 +46,19 @@ tape('without keepOpen option', function (t) {
   stream = request.post({
     url: server.url
   }, function(err, res, body) {
+    var hasError = false
+
     stream.on('error', function(err) {
       t.equal(err.message, 'write after end')
-      t.end()
+      hasError = true
     })
 
     stream.write('test data')
+
+    setImmediate(function() {
+      t.equal(hasError, true)
+      t.end()
+    })
   })
 })
 
