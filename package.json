@@ -1,5 +1,5 @@
 {
-  "name": "postman-request",
+  "name": "request",
   "description": "Simplified HTTP request client.",
   "keywords": [
     "http",
@@ -7,10 +7,10 @@
     "util",
     "utility"
   ],
-  "version": "2.80.1-postman.1",
+  "version": "2.81.1",
   "repository": {
     "type": "git",
-    "url": "https://github.com/postmanlabs/postman-request.git"
+    "url": "https://github.com/request/request.git"
   },
   "license": "Apache-2.0",
   "engines": {
@@ -30,7 +30,7 @@
     "extend": "~3.0.0",
     "forever-agent": "~0.6.1",
     "form-data": "~2.1.1",
-    "har-validator": "~4.2.1",
+    "har-validator": "~5.0.2",
     "hawk": "~3.1.3",
     "http-signature": "~1.1.0",
     "is-typedarray": "~1.0.0",
@@ -38,9 +38,8 @@
     "json-stringify-safe": "~5.0.1",
     "mime-types": "~2.1.7",
     "oauth-sign": "~0.8.1",
-    "postman-url-encoder": "^1.0.0",
     "performance-now": "^0.2.0",
-    "qs": "~6.3.0",
+    "qs": "~6.4.0",
     "safe-buffer": "^5.0.1",
     "stringstream": "~0.0.4",
     "tough-cookie": "~2.3.0",
@@ -52,16 +51,15 @@
     "test-ci": "taper tests/test-*.js",
     "test-cov": "istanbul cover tape tests/test-*.js",
     "test-browser": "node tests/browser/start.js",
-    "lint": "eslint lib/ *.js tests/ && echo Lint passed."
+    "lint": "standard"
   },
   "devDependencies": {
     "bluebird": "^3.2.1",
     "browserify": "^13.0.1",
     "browserify-istanbul": "^2.0.0",
     "buffer-equal": "^1.0.0",
-    "codecov": "^1.0.1",
+    "codecov": "^2.0.2",
     "coveralls": "^2.11.4",
-    "eslint": "^2.5.3",
     "function-bind": "^1.0.2",
     "istanbul": "^0.4.0",
     "karma": "^1.1.1",
@@ -73,12 +71,12 @@
     "phantomjs-prebuilt": "^2.1.3",
     "rimraf": "^2.2.8",
     "server-destroy": "^1.0.1",
+    "standard": "^9.0.0",
     "tape": "^4.6.0",
     "taper": "^0.5.0"
   },
   "greenkeeper": {
     "ignore": [
-      "eslint",
       "hawk",
       "har-validator"
     ]

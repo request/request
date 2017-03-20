@@ -1,14 +1,14 @@
 'use strict'
 
 var assert = require('assert')
-  , http = require('http')
-  , request = require('../index')
-  , tape = require('tape')
+var http = require('http')
+var request = require('../index')
+var tape = require('tape')
 
 var numBearerRequests = 0
-  , bearerServer
+var bearerServer
 
-tape('setup', function(t) {
+tape('setup', function (t) {
   bearerServer = http.createServer(function (req, res) {
     numBearerRequests++
 
@@ -29,7 +29,7 @@ tape('setup', function(t) {
 
     if (req.url === '/post/') {
       var expectedContent = 'data_key=data_value'
-      req.on('data', function(data) {
+      req.on('data', function (data) {
         assert.equal(data, expectedContent)
       })
       assert.equal(req.method, 'POST')
@@ -43,13 +43,13 @@ tape('setup', function(t) {
       res.statusCode = 401
       res.end('401')
     }
-  }).listen(0, function() {
+  }).listen(0, function () {
     bearerServer.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('bearer auth', function(t) {
+tape('bearer auth', function (t) {
   request({
     'method': 'GET',
     'uri': bearerServer.url + '/test/',
@@ -57,14 +57,15 @@ tape('bearer auth', function(t) {
       'bearer': 'theToken',
       'sendImmediately': false
     }
-  }, function(error, res, body) {
+  }, function (error, res, body) {
+    t.error(error)
     t.equal(res.statusCode, 200)
     t.equal(numBearerRequests, 2)
     t.end()
   })
 })
 
-tape('bearer auth with default sendImmediately', function(t) {
+tape('bearer auth with default sendImmediately', function (t) {
   // If we don't set sendImmediately = false, request will send bearer auth
   request({
     'method': 'GET',
@@ -72,14 +73,15 @@ tape('bearer auth with default sendImmediately', function(t) {
     'auth': {
       'bearer': 'theToken'
     }
-  }, function(error, res, body) {
+  }, function (error, res, body) {
+    t.error(error)
     t.equal(res.statusCode, 200)
     t.equal(numBearerRequests, 3)
     t.end()
   })
 })
 
-tape('', function(t) {
+tape('', function (t) {
   request({
     'method': 'POST',
     'form': { 'data_key': 'data_value' },
@@ -88,14 +90,15 @@ tape('', function(t) {
       'bearer': 'theToken',
       'sendImmediately': false
     }
-  }, function(error, res, body) {
+  }, function (error, res, body) {
+    t.error(error)
     t.equal(res.statusCode, 200)
     t.equal(numBearerRequests, 5)
     t.end()
   })
 })
 
-tape('using .auth, sendImmediately = false', function(t) {
+tape('using .auth, sendImmediately = false', function (t) {
   request
     .get(bearerServer.url + '/test/')
     .auth(null, null, false, 'theToken')
@@ -106,7 +109,7 @@ tape('using .auth, sendImmediately = false', function(t) {
     })
 })
 
-tape('using .auth, sendImmediately = true', function(t) {
+tape('using .auth, sendImmediately = true', function (t) {
   request
     .get(bearerServer.url + '/test/')
     .auth(null, null, true, 'theToken')
@@ -117,65 +120,68 @@ tape('using .auth, sendImmediately = true', function(t) {
     })
 })
 
-tape('bearer is a function', function(t) {
+tape('bearer is a function', function (t) {
   request({
     'method': 'GET',
     'uri': bearerServer.url + '/test/',
     'auth': {
-      'bearer': function() { return 'theToken' },
+      'bearer': function () { return 'theToken' },
       'sendImmediately': false
     }
-  }, function(error, res, body) {
+  }, function (error, res, body) {
+    t.error(error)
     t.equal(res.statusCode, 200)
     t.equal(numBearerRequests, 10)
     t.end()
   })
 })
 
-tape('bearer is a function, path = test2', function(t) {
+tape('bearer is a function, path = test2', function (t) {
   // If we don't set sendImmediately = false, request will send bearer auth
   request({
     'method': 'GET',
     'uri': bearerServer.url + '/test2/',
     'auth': {
-      'bearer': function() { return 'theToken' }
+      'bearer': function () { return 'theToken' }
     }
-  }, function(error, res, body) {
+  }, function (error, res, body) {
+    t.error(error)
     t.equal(res.statusCode, 200)
     t.equal(numBearerRequests, 11)
     t.end()
   })
 })
 
-tape('no auth method', function(t) {
+tape('no auth method', function (t) {
   request({
     'method': 'GET',
     'uri': bearerServer.url + '/test2/',
     'auth': {
       'bearer': undefined
     }
-  }, function(error, res, body) {
+  }, function (error, res, body) {
     t.equal(error.message, 'no auth mechanism defined')
     t.end()
   })
 })
 
-tape('null bearer', function(t) {
+tape('null bearer', function (t) {
   request({
     'method': 'GET',
     'uri': bearerServer.url + '/test2/',
     'auth': {
       'bearer': null
     }
-  }, function(error, res, body) {
+  }, function (error, res, body) {
+    t.error(error)
     t.equal(res.statusCode, 401)
     t.equal(numBearerRequests, 13)
     t.end()
   })
 })
 
-tape('cleanup', function(t) {
-  bearerServer.close(function() {
+tape('cleanup', function (t) {
+  bearerServer.close(function () {
     t.end()
   })
 })

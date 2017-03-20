@@ -1,26 +1,26 @@
 'use strict'
 
 var request = require('../index')
-  , http = require('http')
-  , tape = require('tape')
+var http = require('http')
+var tape = require('tape')
 
 var s = http.createServer(function (req, res) {
   res.statusCode = 200
   res.end('asdf')
 })
 
-tape('setup', function(t) {
-  s.listen(0, function() {
+tape('setup', function (t) {
+  s.listen(0, function () {
     s.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('pool', function(t) {
+tape('pool', function (t) {
   request({
     url: s.url,
     pool: false
-  }, function(err, res, body) {
+  }, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, 'asdf')
@@ -31,12 +31,12 @@ tape('pool', function(t) {
   })
 })
 
-tape('forever', function(t) {
+tape('forever', function (t) {
   var r = request({
     url: s.url,
     forever: true,
     pool: {maxSockets: 1024}
-  }, function(err, res, body) {
+  }, function (err, res, body) {
     // explicitly shut down the agent
     if (typeof r.agent.destroy === 'function') {
       r.agent.destroy()
@@ -59,7 +59,7 @@ tape('forever', function(t) {
   })
 })
 
-tape('forever, should use same agent in sequential requests', function(t) {
+tape('forever, should use same agent in sequential requests', function (t) {
   var r = request.defaults({
     forever: true
   })
@@ -77,7 +77,7 @@ tape('forever, should use same agent in sequential requests', function(t) {
   t.end()
 })
 
-tape('forever, should use same agent in sequential requests(with pool.maxSockets)', function(t) {
+tape('forever, should use same agent in sequential requests(with pool.maxSockets)', function (t) {
   var r = request.defaults({
     forever: true,
     pool: {maxSockets: 1024}
@@ -97,7 +97,7 @@ tape('forever, should use same agent in sequential requests(with pool.maxSockets
   t.end()
 })
 
-tape('forever, should use same agent in request() and request.verb', function(t) {
+tape('forever, should use same agent in request() and request.verb', function (t) {
   var r = request.defaults({
     forever: true,
     pool: {maxSockets: 1024}
@@ -117,7 +117,7 @@ tape('forever, should use same agent in request() and request.verb', function(t)
   t.end()
 })
 
-tape('should use different agent if pool option specified', function(t) {
+tape('should use different agent if pool option specified', function (t) {
   var r = request.defaults({
     forever: true,
     pool: {maxSockets: 1024}
@@ -141,8 +141,8 @@ tape('should use different agent if pool option specified', function(t) {
   t.end()
 })
 
-tape('cleanup', function(t) {
-  s.close(function() {
+tape('cleanup', function (t) {
+  s.close(function () {
     t.end()
   })
 })

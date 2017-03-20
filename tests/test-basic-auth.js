@@ -1,14 +1,14 @@
 'use strict'
 
 var assert = require('assert')
-  , http = require('http')
-  , request = require('../index')
-  , tape = require('tape')
+var http = require('http')
+var request = require('../index')
+var tape = require('tape')
 
 var numBasicRequests = 0
-  , basicServer
+var basicServer
 
-tape('setup', function(t) {
+tape('setup', function (t) {
   basicServer = http.createServer(function (req, res) {
     numBasicRequests++
 
@@ -17,11 +17,11 @@ tape('setup', function(t) {
     if (req.headers.authorization) {
       if (req.headers.authorization === 'Basic ' + new Buffer('user:pass').toString('base64')) {
         ok = true
-      } else if ( req.headers.authorization === 'Basic ' + new Buffer('user:').toString('base64')) {
+      } else if (req.headers.authorization === 'Basic ' + new Buffer('user:').toString('base64')) {
         ok = true
-      } else if ( req.headers.authorization === 'Basic ' + new Buffer(':pass').toString('base64')) {
+      } else if (req.headers.authorization === 'Basic ' + new Buffer(':pass').toString('base64')) {
         ok = true
-      } else if ( req.headers.authorization === 'Basic ' + new Buffer('user:pâss').toString('base64')) {
+      } else if (req.headers.authorization === 'Basic ' + new Buffer('user:pâss').toString('base64')) {
         ok = true
       } else {
         // Bad auth header, don't send back WWW-Authenticate header
@@ -35,7 +35,7 @@ tape('setup', function(t) {
 
     if (req.url === '/post/') {
       var expectedContent = 'key=value'
-      req.on('data', function(data) {
+      req.on('data', function (data) {
         assert.equal(data, expectedContent)
       })
       assert.equal(req.method, 'POST')
@@ -49,14 +49,14 @@ tape('setup', function(t) {
       res.statusCode = 401
       res.end('401')
     }
-  }).listen(0, function() {
+  }).listen(0, function () {
     basicServer.port = this.address().port
     basicServer.url = 'http://localhost:' + basicServer.port
     t.end()
   })
 })
 
-tape('sendImmediately - false', function(t) {
+tape('sendImmediately - false', function (t) {
   var r = request({
     'method': 'GET',
     'uri': basicServer.url + '/test/',
@@ -65,7 +65,8 @@ tape('sendImmediately - false', function(t) {
       'pass': 'pass',
       'sendImmediately': false
     }
-  }, function(error, res, body) {
+  }, function (error, res, body) {
+    t.error(error)
     t.equal(r._auth.user, 'user')
     t.equal(res.statusCode, 200)
     t.equal(numBasicRequests, 2)
@@ -73,7 +74,7 @@ tape('sendImmediately - false', function(t) {
   })
 })
 
-tape('sendImmediately - true', function(t) {
+tape('sendImmediately - true', function (t) {
   // If we don't set sendImmediately = false, request will send basic auth
   var r = request({
     'method': 'GET',
@@ -82,7 +83,8 @@ tape('sendImmediately - true', function(t) {
       'user': 'user',
       'pass': 'pass'
     }
-  }, function(error, res, body) {
+  }, function (error, res, body) {
+    t.error(error)
     t.equal(r._auth.user, 'user')
     t.equal(res.statusCode, 200)
     t.equal(numBasicRequests, 3)
@@ -90,11 +92,12 @@ tape('sendImmediately - true', function(t) {
   })
 })
 
-tape('credentials in url', function(t) {
+tape('credentials in url', function (t) {
   var r = request({
     'method': 'GET',
     'uri': basicServer.url.replace(/:\/\//, '$&user:pass@') + '/test2/'
-  }, function(error, res, body) {
+  }, function (error, res, body) {
+    t.error(error)
     t.equal(r._auth.user, 'user')
     t.equal(res.statusCode, 200)
     t.equal(numBasicRequests, 4)
@@ -102,7 +105,7 @@ tape('credentials in url', function(t) {
   })
 })
 
-tape('POST request', function(t) {
+tape('POST request', function (t) {
   var r = request({
     'method': 'POST',
     'form': { 'key': 'value' },
@@ -112,7 +115,8 @@ tape('POST request', function(t) {
       'pass': 'pass',
       'sendImmediately': false
     }
-  }, function(error, res, body) {
+  }, function (error, res, body) {
+    t.error(error)
     t.equal(r._auth.user, 'user')
     t.equal(res.statusCode, 200)
     t.equal(numBasicRequests, 6)
@@ -120,8 +124,8 @@ tape('POST request', function(t) {
   })
 })
 
-tape('user - empty string', function(t) {
-  t.doesNotThrow( function() {
+tape('user - empty string', function (t) {
+  t.doesNotThrow(function () {
     var r = request({
       'method': 'GET',
       'uri': basicServer.url + '/allow_empty_user/',
@@ -130,7 +134,8 @@ tape('user - empty string', function(t) {
         'pass': 'pass',
         'sendImmediately': false
       }
-    }, function(error, res, body ) {
+    }, function (error, res, body) {
+      t.error(error)
       t.equal(r._auth.user, '')
       t.equal(res.statusCode, 200)
       t.equal(numBasicRequests, 8)
@@ -139,8 +144,8 @@ tape('user - empty string', function(t) {
   })
 })
 
-tape('pass - undefined', function(t) {
-  t.doesNotThrow( function() {
+tape('pass - undefined', function (t) {
+  t.doesNotThrow(function () {
     var r = request({
       'method': 'GET',
       'uri': basicServer.url + '/allow_undefined_password/',
@@ -149,7 +154,8 @@ tape('pass - undefined', function(t) {
         'pass': undefined,
         'sendImmediately': false
       }
-    }, function(error, res, body ) {
+    }, function (error, res, body) {
+      t.error(error)
       t.equal(r._auth.user, 'user')
       t.equal(res.statusCode, 200)
       t.equal(numBasicRequests, 10)
@@ -158,9 +164,8 @@ tape('pass - undefined', function(t) {
   })
 })
 
-
-tape('pass - utf8', function(t) {
-  t.doesNotThrow( function() {
+tape('pass - utf8', function (t) {
+  t.doesNotThrow(function () {
     var r = request({
       'method': 'GET',
       'uri': basicServer.url + '/allow_undefined_password/',
@@ -169,7 +174,8 @@ tape('pass - utf8', function(t) {
         'pass': 'pâss',
         'sendImmediately': false
       }
-    }, function(error, res, body ) {
+    }, function (error, res, body) {
+      t.error(error)
       t.equal(r._auth.user, 'user')
       t.equal(r._auth.pass, 'pâss')
       t.equal(res.statusCode, 200)
@@ -179,7 +185,7 @@ tape('pass - utf8', function(t) {
   })
 })
 
-tape('auth method', function(t) {
+tape('auth method', function (t) {
   var r = request
     .get(basicServer.url + '/test/')
     .auth('user', '', false)
@@ -191,7 +197,7 @@ tape('auth method', function(t) {
     })
 })
 
-tape('get method', function(t) {
+tape('get method', function (t) {
   var r = request.get(basicServer.url + '/test/',
     {
       auth: {
@@ -208,8 +214,8 @@ tape('get method', function(t) {
     })
 })
 
-tape('cleanup', function(t) {
-  basicServer.close(function() {
+tape('cleanup', function (t) {
+  basicServer.close(function () {
     t.end()
   })
 })
