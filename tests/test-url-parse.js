@@ -1,7 +1,7 @@
 'use strict'
 
 var url = require('../lib/url-parse')
-  , tape = require('tape')
+var tape = require('tape')
 
 tape('parse - "a=b&c=d"', function (t) {
   var str = 'a=b&c=d'
@@ -224,7 +224,6 @@ tape('stringify - "a=b&&"', function (t) {
   t.end()
 })
 
-
 tape('stringify - "a=b&&c=d"', function (t) {
   var parsed = [
         { key: 'a', value: 'b' },
@@ -286,7 +285,7 @@ tape('stringify - "a[0]=foo&a[1]=bar"', function (t) {
 
 tape('stringify encodes ( and )- "a=foo(a)"', function (t) {
   var parsed = [
-        { key: 'a', value: 'foo(a)' },
+        { key: 'a', value: 'foo(a)' }
   ]
   t.equal(url.stringify(parsed), 'a=foo%28a%29')
   t.end()
@@ -294,7 +293,7 @@ tape('stringify encodes ( and )- "a=foo(a)"', function (t) {
 
 tape('stringify Russian - "a=Привет Почтальон"', function (t) {
   var parsed = [
-        { key: 'a', value: 'Привет Почтальон' },
+        { key: 'a', value: 'Привет Почтальон' }
   ]
   t.equal(url.stringify(parsed), 'a=%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82%20%D0%9F%D0%BE%D1%87%D1%82%D0%B0%D0%BB%D1%8C%D0%BE%D0%BD')
   t.end()
@@ -302,7 +301,7 @@ tape('stringify Russian - "a=Привет Почтальон"', function (t) {
 
 tape('stringify Chinese- "a=你好"', function (t) {
   var parsed = [
-        { key: 'a', value: '你好' },
+        { key: 'a', value: '你好' }
   ]
   t.equal(url.stringify(parsed), 'a=%E4%BD%A0%E5%A5%BD')
   t.end()
@@ -310,7 +309,7 @@ tape('stringify Chinese- "a=你好"', function (t) {
 
 tape('stringify Japanese- "a=ハローポストマン"', function (t) {
   var parsed = [
-        { key: 'a', value: 'ハローポストマン' },
+        { key: 'a', value: 'ハローポストマン' }
   ]
   t.equal(url.stringify(parsed), 'a=%E3%83%8F%E3%83%AD%E3%83%BC%E3%83%9D%E3%82%B9%E3%83%88%E3%83%9E%E3%83%B3')
   t.end()
@@ -318,7 +317,7 @@ tape('stringify Japanese- "a=ハローポストマン"', function (t) {
 
 tape('stringify Partial Russian - "a=Hello Почтальон"', function (t) {
   var parsed = [
-        { key: 'a', value: 'Hello Почтальон' },
+        { key: 'a', value: 'Hello Почтальон' }
   ]
   t.equal(url.stringify(parsed), 'a=Hello%20%D0%9F%D0%BE%D1%87%D1%82%D0%B0%D0%BB%D1%8C%D0%BE%D0%BD')
   t.end()

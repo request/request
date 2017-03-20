@@ -740,8 +740,9 @@ Request.prototype.start = function () {
 
   // Workaround for a bug in Node: https://github.com/nodejs/node/issues/8321
   if (!self.proxy && !(self.uri.isUnix)) {
-    try { extend(reqOptions, urlParse(self.uri.href)) }
-    catch (e) { } // nothing to do if urlParse fails, "extend" never throws an error.
+    try {
+      extend(reqOptions, urlParse(self.uri.href))
+    } catch (e) { } // nothing to do if urlParse fails, "extend" never throws an error.
   }
 
   debug('make request', self.uri.href)
@@ -1365,7 +1366,7 @@ Request.prototype.aws = function (opts, now) {
     return self
   }
 
-  if (opts.sign_version == 4 || opts.sign_version == '4') {
+  if (opts.sign_version === 4 || opts.sign_version === '4') {
     // use aws4
     var options = {
       host: self.uri.host,
@@ -1458,13 +1459,13 @@ Request.prototype.jar = function (jar) {
   } else {
     var targetCookieJar = (jar && jar.getCookieString) ? jar : globalCookieJar
     var urihref = self.uri.href
-    //fetch cookie in the Specified host
+    // fetch cookie in the Specified host
     if (targetCookieJar) {
       cookies = targetCookieJar.getCookieString(urihref)
     }
   }
 
-  //if need cookie and cookie is not empty
+  // if need cookie and cookie is not empty
   if (cookies && cookies.length) {
     if (self.originalCookieHeader) {
       // Don't overwrite existing Cookie header
