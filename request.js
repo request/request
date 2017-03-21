@@ -376,7 +376,8 @@ Request.prototype.init = function (options) {
       options.auth.user,
       options.auth.pass,
       options.auth.sendImmediately,
-      options.auth.bearer
+      options.auth.bearer,
+      options.auth.disable
     )
   }
 
@@ -1019,7 +1020,6 @@ Request.prototype.onRequestResponse = function (response) {
       var contentEncoding = response.headers['content-encoding'] || 'identity'
       contentEncoding = contentEncoding.trim().toLowerCase()
 
-<<<<<<< HEAD
       // Be more lenient with decoding compressed responses, since (very rarely)
       // servers send slightly invalid gzip responses that are still accepted
       // by common browsers.
@@ -1029,8 +1029,6 @@ Request.prototype.onRequestResponse = function (response) {
         finishFlush: zlib.Z_SYNC_FLUSH
       }
 
-=======
->>>>>>> Improvements in digest authentication implementation
       if (contentEncoding === 'gzip') {
         responseContent = zlib.createGunzip()
         response.pipe(responseContent)
@@ -1346,10 +1344,15 @@ Request.prototype.enableUnixSocket = function () {
   this.uri.isUnix = true
 }
 
+<<<<<<< HEAD
 Request.prototype.auth = function (user, pass, sendImmediately, bearer) {
+=======
+
+Request.prototype.auth = function (user, pass, sendImmediately, bearer, disable) {
+>>>>>>> Method disablement API and documentation
   var self = this
 
-  self._auth.onRequest(user, pass, sendImmediately, bearer)
+  self._auth.onRequest(user, pass, sendImmediately, bearer, disable)
 
   return self
 }
