@@ -28,6 +28,7 @@ request('http://www.google.com', function (error, response, body) {
 ## Table of contents
 
 - [Streaming](#streaming)
+- [Promises & Async/Await](#promises--asyncawait)
 - [Forms](#forms)
 - [HTTP Authentication](#http-authentication)
 - [Custom HTTP Headers](#custom-http-headers)
@@ -135,6 +136,22 @@ http.createServer(function (req, resp) {
 ```
 
 You can still use intermediate proxies, the requests will still follow HTTP forwards, etc.
+
+[back to top](#table-of-contents)
+
+
+---
+
+
+## Promises & Async/Await
+
+`request` supports both streaming and callback interfaces natively. If you'd like `request` to return a Promise instead, you can use an alternative interface wrapper for `request`. These wrappers can be useful if you prefer to work with Promises, or if you'd like to use `async`/`await` in ES2017.
+
+Several alternative interfaces are provided by the request team, including:
+- [`request-promise`](https://github.com/request/request-promise) (uses [Bluebird](https://github.com/petkaantonov/bluebird) Promises)
+- [`request-promise-native`](https://github.com/request/request-promise-native) (uses native Promises)
+- [`request-promise-any`](https://github.com/request/request-promise-any) (uses [any-promise](https://www.npmjs.com/package/any-promise) Promises)
+
 
 [back to top](#table-of-contents)
 
