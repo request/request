@@ -56,17 +56,6 @@ var digestServer = http.createServer(function (req, res) {
           'qop="auth"',
           'opaque="5ccc069c403ebaf9f0171e9517f40e41"'
         ))
-      }
-    } else {
-      // No auth header, send back WWW-Authenticate header
-      ok = false
-      res.setHeader('www-authenticate', makeHeader(
-        'Digest realm="Private"',
-        'nonce="WpcHS2/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93"',
-        'algorithm=MD5',
-        'qop="auth"',
-        'opaque="5ccc069c403ebaf9f0171e9517f40e41"'
-      ))
     }
   } else if (req.url === '/test/md5-sess') { // RFC 2716 MD5-sess w/ qop=auth
     var user = 'test'
@@ -116,17 +105,7 @@ var digestServer = http.createServer(function (req, res) {
           'algorithm=' + algorithm,
           'qop="' + qop + '"'
         ))
-      }
-    } else {
-      // No auth header, send back WWW-Authenticate header
-      ok = false
-      res.setHeader('www-authenticate', makeHeader(
-        'Digest realm="' + realm + '"',
-        'nonce="' + nonce + '"',
-        'algorithm=' + algorithm,
-        'qop="' + qop + '"'
-      ))
-    }
+    } 
   } else if (req.url === '/dir/index.html') {
     // RFC2069-compatible mode
     // check: http://www.rfc-editor.org/errata_search.php?rfc=2069
