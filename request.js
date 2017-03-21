@@ -1344,12 +1344,7 @@ Request.prototype.enableUnixSocket = function () {
   this.uri.isUnix = true
 }
 
-<<<<<<< HEAD
-Request.prototype.auth = function (user, pass, sendImmediately, bearer) {
-=======
-
 Request.prototype.auth = function (user, pass, sendImmediately, bearer, disable) {
->>>>>>> Method disablement API and documentation
   var self = this
 
   self._auth.onRequest(user, pass, sendImmediately, bearer, disable)

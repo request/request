@@ -41,6 +41,20 @@ var digestServer = http.createServer(function (req, res) {
         // Bad auth header, don't send back WWW-Authenticate header
         ok = false
         res.setHeader('www-authenticate', makeHeader(
+<<<<<<< HEAD
+=======
+          'Digest realm="Private"',
+          'nonce="WpcHS2/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93"',
+          'algorithm=MD5',
+          'qop="auth"',
+          'opaque="5ccc069c403ebaf9f0171e9517f40e41"'
+        ))
+      }
+    } else {
+      // No auth header, send back WWW-Authenticate header
+      ok = false
+      res.setHeader('www-authenticate', makeHeader(
+>>>>>>> d1a7db1d8da8a070715d146d48ae0d0ea3b6c589
           'Digest realm="Private"',
           'nonce="WpcHS2/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93"',
           'algorithm=MD5',
@@ -92,6 +106,16 @@ var digestServer = http.createServer(function (req, res) {
       ok = testHeader.test(req.headers.authorization)
       if (!ok) {
         res.setHeader('www-authenticate', makeHeader(
+          'Digest realm="' + realm + '"',
+          'nonce="' + nonce + '"',
+          'algorithm=' + algorithm,
+          'qop="' + qop + '"'
+        ))
+      }
+    } else {
+      // No auth header, send back WWW-Authenticate header
+      ok = false
+      res.setHeader('www-authenticate', makeHeader(
           'Digest realm="' + realm + '"',
           'nonce="' + nonce + '"',
           'algorithm=' + algorithm,
