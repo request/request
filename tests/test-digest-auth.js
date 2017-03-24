@@ -105,7 +105,7 @@ var digestServer = http.createServer(function (req, res) {
           'algorithm=' + algorithm,
           'qop="' + qop + '"'
         ))
-    } 
+    }
   } else if (req.url === '/dir/index.html') {
     // RFC2069-compatible mode
     // check: http://www.rfc-editor.org/errata_search.php?rfc=2069
@@ -249,7 +249,7 @@ tape('cleanup', function (t) {
   })
 })
 
-tape('with disabled authentication methods', function(t) {
+tape('with disabled authentication methods', function (t) {
   request({
     method: 'GET',
     uri: digestServer.url + '/test/',
@@ -261,9 +261,8 @@ tape('with disabled authentication methods', function(t) {
         digest: true
       }
     }
-  }, function(error, response, body) {
+  }, function (error, response, body) {
     t.notEqual(error, null)
     t.end()
   })
 })
-
