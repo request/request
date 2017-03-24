@@ -138,7 +138,7 @@ var digestServer = http.createServer(function (req, res) {
         'opaque="5ccc069c403ebaf9f0171e9517f40e41"'
       ))
     }
-  } else if (req.url === '/basic') {   //Basic authentication
+  } else if (req.url === '/basic') {   // Basic authentication
     if (req.headers.authorization) {
       if (req.headers.authorization === 'Basic ' + new Buffer('test:tesing').toString('base64')) {
         ok = true
@@ -150,9 +150,9 @@ var digestServer = http.createServer(function (req, res) {
       }
     } else {
       ok = false
-        res.setHeader('www-authenticate', makeHeader(
-        'Basic realm="testrealm@host.com'
-      ))
+      res.setHeader('www-authenticate', makeHeader(
+      'Basic realm="testrealm@host.com'
+    ))
     }
   }
 
@@ -296,7 +296,6 @@ tape('with disabled basic authentication methods', function (t) {
 })
 
 tape('two consecutive methods must reuse the nonce', function (t) {
- 
   request({
     method: 'GET',
     uri: digestServer.url + '/test/',
