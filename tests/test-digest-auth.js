@@ -138,6 +138,22 @@ var digestServer = http.createServer(function (req, res) {
         'opaque="5ccc069c403ebaf9f0171e9517f40e41"'
       ))
     }
+  } else if (req.url === '/basic') {   //Basic authentication
+    if (req.headers.authorization) {
+      if (req.headers.authorization === 'Basic ' + new Buffer('test:tesing').toString('base64')) {
+        ok = true
+      } else {
+        ok = false
+        res.setHeader('www-authenticate', makeHeader(
+        'Basic realm="testrealm@host.com'
+      ))
+      }
+    } else {
+      ok = false
+        res.setHeader('www-authenticate', makeHeader(
+        'Basic realm="testrealm@host.com'
+      ))
+    }
   }
 
   if (ok) {
@@ -243,13 +259,7 @@ tape('with different credentials', function (t) {
   })
 })
 
-tape('cleanup', function (t) {
-  digestServer.close(function () {
-    t.end()
-  })
-})
-
-tape('with disabled authentication methods', function (t) {
+tape('with disabled digest authentication methods', function (t) {
   request({
     method: 'GET',
     uri: digestServer.url + '/test/',
@@ -263,6 +273,57 @@ tape('with disabled authentication methods', function (t) {
     }
   }, function (error, response, body) {
     t.notEqual(error, null)
+    t.end()
+  })
+})
+
+tape('with disabled basic authentication methods', function (t) {
+  request({
+    method: 'GET',
+    uri: digestServer.url + '/basic',
+    auth: {
+      user: 'test',
+      pass: 'testing',
+      sendImmediately: false,
+      disable: {
+        basic: true
+      }
+    }
+  }, function (error, response, body) {
+    t.notEqual(error, null)
+    t.end()
+  })
+})
+
+tape('two consecutive methods must reuse the nonce', function (t) {
+ 
+  request({
+    method: 'GET',
+    uri: digestServer.url + '/test/',
+    auth: {
+      user: 'test',
+      pass: 'testing',
+      sendImmediately: false
+    }
+  }, function (error, response, body) {
+    t.equal(error, null)
+    request({
+      method: 'GET',
+      uri: digestServer.url + '/test/',
+      auth: {
+        user: 'test',
+        pass: 'testing',
+        sendImmediately: false
+      }
+    }, function (error, response, body) {
+      t.equal(error, null)
+      t.end()
+    })
+  })
+})
+
+tape('cleanup', function (t) {
+  digestServer.close(function () {
     t.end()
   })
 })
