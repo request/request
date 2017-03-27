@@ -27,6 +27,7 @@ request('http://www.google.com', function (error, response, body) {
 
 ## Table of contents
 
+- [Simple JSON with oAuth](#simple-json-with-oauth)
 - [Streaming](#streaming)
 - [Forms](#forms)
 - [HTTP Authentication](#http-authentication)
@@ -46,6 +47,33 @@ lots of [usage examples](#examples) and several
 
 ---
 
+## Simple JSON with oAuth
+
+```js
+request(
+    {
+      method: 'POST',
+      url: 'https://api.somedomain.com/user/some-id/v2/endpoint', //update this with endpoint url
+      headers: {
+        'X-Auth-Client': 'your-client-id',  //update this with your auth client
+        'X-Auth-Token': 'your-auth-token-id', //update this with your auth token
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      json: {
+        "some-data": "some-value" //add your data here
+      }
+    }, 
+    function (error, response, body) {
+      if (!error && response.statusCode == 200) {
+        console.log(body); //handle success
+      }
+      else {
+        console.log("Error "+response.statusCode);  //handle error
+      }
+    }
+  );
+```
 
 ## Streaming
 
