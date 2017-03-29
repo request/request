@@ -148,9 +148,10 @@ You can still use intermediate proxies, the requests will still follow HTTP forw
 `request` supports both streaming and callback interfaces natively. If you'd like `request` to return a Promise instead, you can use an alternative interface wrapper for `request`. These wrappers can be useful if you prefer to work with Promises, or if you'd like to use `async`/`await` in ES2017.
 
 Several alternative interfaces are provided by the request team, including:
-- [`request-promise`](https://github.com/request/request-promise) (uses [Bluebird](https://github.com/petkaantonov/bluebird) Promises)
-- [`request-promise-native`](https://github.com/request/request-promise-native) (uses native Promises)
-- [`request-promise-any`](https://github.com/request/request-promise-any) (uses [any-promise](https://www.npmjs.com/package/any-promise) Promises)
+- [`request-promises`](https://github.com/franciscop/request-promises/): uses native promises and follows request's interface of passing `response` to the promise like `request(...).then(res => { ... });`.
+- [`request-promise`](https://github.com/request/request-promise): uses [Bluebird](https://github.com/petkaantonov/bluebird) Promises and `then()` receives the `body` like `request(...).then(body => { ... });`.
+- [`request-promise-native`](https://github.com/request/request-promise-native): uses native Promises and `.then()` receives the `body` like `request(...).then(body => { ... }); .
+- [`request-promise-any`](https://github.com/request/request-promise-any) uses [any-promise](https://www.npmjs.com/package/any-promise) Promises and passes `body`  like `request(...).then(body => { ... });`.
 
 
 [back to top](#table-of-contents)
