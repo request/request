@@ -1109,8 +1109,8 @@ var FileCookieStore = require('tough-cookie-filestore');
 var j = request.jar(new FileCookieStore('cookies.json'));
 request = request.defaults({ jar : j })
 request('http://www.google.com', function() {
-  request('http://images.google.com')
-})
+  request('http://images.google.com');
+});
 ```
 
 The cookie store must be a
