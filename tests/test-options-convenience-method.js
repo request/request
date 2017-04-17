@@ -1,9 +1,9 @@
 'use strict'
 
 var server = require('./server')
-  , request = require('../index')
-  , tape = require('tape')
-  , destroyable = require('server-destroy')
+var request = require('../index')
+var tape = require('tape')
+var destroyable = require('server-destroy')
 
 var s = server.createServer()
 
@@ -45,7 +45,7 @@ tape('options(object, function)', function (t) {
   })
 })
 
-tape('cleanup', function(t) {
+tape('cleanup', function (t) {
   s.destroy(function () {
     t.end()
   })
