@@ -891,55 +891,19 @@ var specialRequest = baseRequest.defaults({
 })
 ```
 
-### request.put
+### request.METHOD()
 
-Same as `request()`, but defaults to `method: "PUT"`.
+These HTTP method convenience functions act just like `request()` but with a default method already set for you:
 
-```js
-request.put(url)
-```
+- *request.get()*: Defaults to `method: "GET"`.
+- *request.post()*: Defaults to `method: "POST"`.
+- *request.put()*: Defaults to `method: "PUT"`.
+- *request.patch()*: Defaults to `method: "PATCH"`.
+- *request.del() / request.delete()*: Defaults to `method: "DELETE"`.
+- *request.head()*: Defaults to `method: "HEAD"`.
+- *request.options()*: Defaults to `method: "OPTIONS"`.
 
-### request.patch
-
-Same as `request()`, but defaults to `method: "PATCH"`.
-
-```js
-request.patch(url)
-```
-
-### request.post
-
-Same as `request()`, but defaults to `method: "POST"`.
-
-```js
-request.post(url)
-```
-
-### request.head
-
-Same as `request()`, but defaults to `method: "HEAD"`.
-
-```js
-request.head(url)
-```
-
-### request.del / request.delete
-
-Same as `request()`, but defaults to `method: "DELETE"`.
-
-```js
-request.del(url)
-request.delete(url)
-```
-
-### request.get
-
-Same as `request()` (for uniformity).
-
-```js
-request.get(url)
-```
-### request.cookie
+### request.cookie()
 
 Function that creates a new cookie.
 
