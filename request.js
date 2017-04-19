@@ -169,7 +169,7 @@ Request.prototype.init = function (options) {
   self._qs.init(options)
 
   debug(options)
-  if (!self.pool && self.pool !== false) {
+  if (self.pool === undefined) {
     self.pool = globalPool
   }
   self.dests = self.dests || []
