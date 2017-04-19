@@ -414,6 +414,11 @@ Request.prototype.init = function (options) {
   }
 
   function setContentLength () {
+
+    if (typeof self.body === 'string') {
+      self.body = new Buffer(self.body)
+    }
+
     if (isTypedArray(self.body)) {
       self.body = Buffer.from(self.body)
     }
