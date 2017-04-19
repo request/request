@@ -31,6 +31,9 @@ var Tunnel = require('./lib/tunnel').Tunnel
 var now = require('performance-now')
 var Buffer = require('safe-buffer').Buffer
 
+var httpSocks5Agent = require('socks5-http-client/lib/Agent')
+var httpsSocks5Agent = require('socks5-https-client/lib/Agent')
+
 var safeStringify = helpers.safeStringify
 var isReadStream = helpers.isReadStream
 var toBase64 = helpers.toBase64
@@ -307,6 +310,18 @@ Request.prototype.init = function (options) {
   } else {
     self.port = self.uri.port
     self.host = self.uri.hostname
+  }
+
+  if (options.socks5){
+    if (options.agentClass !== undefined) {
+      throw new Error('options socks5 and agentClass can be used at same time')
+    }
+    options.agentClass = self.uri.protocol === 'http:' ? httpSocks5Agent : httpsSocks5Agent
+    options.agentOptions = {
+      socksHost: options.socks5.slice(0, options.socks5.indexOf(':')),
+      socksPort: options.socks5.slice(options.socks5.indexOf(':') + 1)
+    }
+    delete options.socks5
   }
 
   if (options.form) {
