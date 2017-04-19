@@ -737,6 +737,20 @@ Request.prototype.start = function () {
   var reqOptions = copy(self)
   delete reqOptions.auth
 
+  // Remove a bunch of attributes that are not used by the request API to avoid leaks.
+  // The leaks will happen when an Agent pool is used, for keepAlive=true requests,
+  // and without removing these attributes references to the callback function will stay
+  // in memory for each socket that is kept in the pool
+  delete reqOptions._callback
+  delete reqOptions.callback
+  delete reqOptions._events
+  delete reqOptions._multipart
+  delete reqOptions._qs
+  delete reqOptions._tunnel
+  delete reqOptions._auth
+  delete reqOptions._oauth
+  delete reqOptions._redirect
+
   debug('make request', self.uri.href)
 
   // node v6.8.0 now supports a `timeout` value in `http.request()`, but we
