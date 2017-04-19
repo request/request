@@ -1364,6 +1364,7 @@ Request.prototype.aws = function (opts, now) {
       host: self.uri.host,
       path: self.uri.path,
       method: self.method,
+      service: self.service,
       headers: {
         'content-type': self.getHeader('content-type') || ''
       },
