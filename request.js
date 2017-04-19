@@ -617,6 +617,10 @@ Request.prototype.getNewAgent = function () {
     options.passphrase = self.passphrase
   }
 
+  if (self.servername) {
+    options.servername = self.servername
+  }
+
   var poolKey = ''
 
   // different types of agents are in different pools
@@ -679,6 +683,13 @@ Request.prototype.getNewAgent = function () {
         poolKey += ':'
       }
       poolKey += options.secureOptions
+    }
+
+    if (options.servername) {
+      if (poolKey) {
+        poolKey += ':'
+      }
+      poolKey += options.servername
     }
   }
 
