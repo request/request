@@ -120,7 +120,7 @@ function Request (options) {
     self.explicitMethod = true
   }
   self._qs = new Querystring(self)
-  self._auth = new Auth(self)
+  self._auth = new Auth(self, options.auth)
   self._oauth = new OAuth(self)
   self._multipart = new Multipart(self)
   self._redirect = new Redirect(self)
@@ -376,7 +376,8 @@ Request.prototype.init = function (options) {
       options.auth.user,
       options.auth.pass,
       options.auth.sendImmediately,
-      options.auth.bearer
+      options.auth.bearer,
+      options.auth.disable
     )
   }
 
@@ -1343,10 +1344,10 @@ Request.prototype.enableUnixSocket = function () {
   this.uri.isUnix = true
 }
 
-Request.prototype.auth = function (user, pass, sendImmediately, bearer) {
+Request.prototype.auth = function (user, pass, sendImmediately, bearer, disable) {
   var self = this
 
-  self._auth.onRequest(user, pass, sendImmediately, bearer)
+  self._auth.onRequest(user, pass, sendImmediately, bearer, disable)
 
   return self
 }
