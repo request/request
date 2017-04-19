@@ -40,12 +40,21 @@ function createRedirectEndpoint (code, label, landing) {
 
 function createLandingEndpoint (landing) {
   s.on('/' + landing, function (req, res) {
-    // Make sure the cookie doesn't get included twice, see #139:
-    // Make sure cookies are set properly after redirect
-    assert.equal(req.headers.cookie, 'foo=bar; quux=baz; ham=eggs')
-    hits[landing] = true
-    res.writeHead(200, {'x-response': req.method.toUpperCase() + ' ' + landing})
-    res.end(req.method.toUpperCase() + ' ' + landing)
+    var body = ''
+    req.on('data', function (chunk) { body += chunk })
+    req.on('end', function () {
+      // Make sure the cookie doesn't get included twice, see #139:
+      // Make sure cookies are set properly after redirect
+      assert.equal(req.headers.cookie, 'foo=bar; quux=baz; ham=eggs')
+      hits[landing] = true
+      res.writeHead(200, {
+        'x-response': req.method.toUpperCase() + ' ' + landing,
+        'x-body': req.method.toUpperCase() + ' ' + body,
+        'x-content-type': req.method.toUpperCase() + ' ' + req.headers['content-type'],
+        'x-content-length': req.method.toUpperCase() + ' ' + req.headers['content-length']
+      })
+      res.end(req.method.toUpperCase() + ' ' + landing)
+    })
   })
 }
 
@@ -192,6 +201,8 @@ tape('should follow post redirects when followallredirects true and followOrigin
     uri: s.url + '/temp',
     followAllRedirects: true,
     followOriginalHttpMethod: true,
+    body: {'test': true},
+    json: true,
     jar: jar,
     headers: { cookie: 'foo=bar' }
   }, function (err, res, body) {
@@ -200,6 +211,9 @@ tape('should follow post redirects when followallredirects true and followOrigin
     t.ok(hits.temp, 'Original request is to /temp')
     t.ok(hits.temp_landing, 'Forward to temporary landing URL')
     t.equal(body, 'POST temp_landing', 'Got temporary landing content')
+    t.equal(res.headers['x-body'], 'POST {"test":true}', 'Got body')
+    t.equal(res.headers['x-content-type'], 'POST application/json', 'Got content type application/json')
+    t.equal(res.headers['x-content-length'], 'POST 13', 'Got content length')
     t.end()
   })
 })
