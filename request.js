@@ -119,6 +119,7 @@ function Request (options) {
   if (options.method) {
     self.explicitMethod = true
   }
+  self.transferred = 0
   self._qs = new Querystring(self)
   self._auth = new Auth(self)
   self._oauth = new OAuth(self)
@@ -1498,6 +1499,12 @@ Request.prototype.write = function () {
     self.start()
   }
   if (self.req) {
+    var contentLength = self.req._headers['content-length']
+    self.emit('progress', {
+      lengthComputable: !!contentLength,
+      total: contentLength,
+      loaded: self.transferred += arguments[0].length
+    })
     return self.req.write.apply(self.req, arguments)
   }
 }
