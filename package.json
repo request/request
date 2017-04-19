@@ -45,6 +45,8 @@
     "performance-now": "^0.2.0",
     "qs": "~6.4.0",
     "safe-buffer": "^5.0.1",
+    "socks5-http-client": "^1.0.2",
+    "socks5-https-client": "^1.2.0",
     "stringstream": "~0.0.4",
     "tough-cookie": "~2.3.0",
     "tunnel-agent": "^0.6.0",
