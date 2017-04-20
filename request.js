@@ -1247,12 +1247,14 @@ Request.prototype.qs = function (q, clobber) {
 Request.prototype.form = function (form) {
   var self = this
   if (form) {
-    if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
-      self.setHeader('content-type', 'application/x-www-form-urlencoded')
+    //Support application/octet-stream
+    if (/^application\/octet-stream\b/.test(self.getHeader('content-type'))) {
+      self.setHeader('content-type', 'application/octet-stream');
+      self.body = form;
+    }else{
+      self.setHeader('content-type', 'application/x-www-form-urlencoded');
+      self.body = (typeof form === 'string') ? self._qs.rfc3986(form.toString('utf8')) : self._qs.stringify(form).toString('utf8');
     }
-    self.body = (typeof form === 'string')
-      ? self._qs.rfc3986(form.toString('utf8'))
-      : self._qs.stringify(form).toString('utf8')
     return self
   }
   // create form-data object
