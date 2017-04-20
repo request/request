@@ -130,7 +130,7 @@ request.forever = function (agentOptions, optionsArg) {
     extend(options, optionsArg)
   }
   if (agentOptions) {
-    options.agentOptions = agentOptions
+    options.extend({agentOptions: agentOptions})
   }
 
   options.forever = true
