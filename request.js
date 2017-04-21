@@ -932,7 +932,7 @@ Request.prototype.onRequestResponse = function (response) {
 
   if (self._aborted) {
     debug('aborted', self.uri.href)
-    response.resume()
+    if(typeof response.resume == 'function') response.resume();
     return
   }
 
@@ -1168,7 +1168,7 @@ Request.prototype.abort = function () {
   var self = this
   self._aborted = true
 
-  if (self.req) {
+  if (self.req && typeof self.req.abort == 'function') {
     self.req.abort()
   } else if (self.response) {
     self.response.destroy()
