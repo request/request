@@ -987,9 +987,10 @@ Request.prototype.onRequestResponse = function (response) {
     }
   }
 
-  if (self._redirect.onResponse(response)) {
-    return // Ignore the rest of the response
-  } else {
+  self._redirect.onResponse(response, function (err, followingRedirect) {
+    if (!err && followingRedirect) return // Ignore the rest of the response
+    if (err) self.emit('error', err)
+
     // Be a good stream and emit end when the response is finished.
     // Hack to emit end on close because of a core bug that never fires end
     response.on('close', function () {
@@ -1100,8 +1101,8 @@ Request.prototype.onRequestResponse = function (response) {
         self.emit('complete', response)
       })
     }
-  }
-  debug('finish init function', self.uri.href)
+    debug('finish init function', self.uri.href)
+  })
 }
 
 Request.prototype.readResponseBody = function (response) {

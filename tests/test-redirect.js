@@ -6,6 +6,7 @@ var request = require('../index')
 var tape = require('tape')
 var http = require('http')
 var destroyable = require('server-destroy')
+var Promise = require('bluebird')
 
 var s = server.createServer()
 var ss = server.createSSLServer()
@@ -337,6 +338,105 @@ tape('triple bounce terminated after second redirect', function (t) {
     t.equal(res.statusCode, 301)
     t.ok(hits.treble, 'Original request is to /treble')
     t.equal(res.headers.location, s.url + '/treble_3', 'Current location should be ' + s.url + '/treble_3')
+    t.end()
+  })
+})
+
+tape('asynchronous followRedirect filter via callback', function (t) {
+  function filterAsync (response, callback) {
+    setImmediate(function () { callback(null, true) })
+    return false // it should ignore this due to the function arity
+  }
+
+  hits = {}
+  request({
+    uri: s.url + '/temp',
+    jar: jar,
+    headers: { cookie: 'foo=bar' },
+    followRedirect: filterAsync
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.ok(hits.temp, 'Original request is to /temp')
+    t.ok(hits.temp_landing, 'Forward to temporary landing URL')
+    t.equal(body, 'GET temp_landing', 'Got temporary landing content')
+    t.end()
+  })
+})
+
+tape('asynchronous followRedirect filter via callback with error', function (t) {
+  var sampleError = new Error('Error during followRedirect callback')
+  function filterAsync (response, callback) {
+    setImmediate(function () { callback(sampleError) })
+  }
+
+  hits = {}
+  request({
+    uri: s.url + '/temp',
+    jar: jar,
+    headers: { cookie: 'foo=bar' },
+    followRedirect: filterAsync
+  }, function (err, res, body) {
+    t.equal(err, sampleError)
+    t.end()
+  })
+})
+
+tape('asynchronous followRedirect filter via promise', function (t) {
+  function filterPromise (response) {
+    return Promise.resolve(false)
+  }
+
+  hits = {}
+  request({
+    uri: s.url + '/temp',
+    jar: jar,
+    headers: { cookie: 'foo=bar' },
+    followRedirect: filterPromise
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 301)
+    t.ok(hits.temp, 'Original request is to /temp')
+    t.ok(!hits.temp_landing, 'No chasing the redirect promise returns false')
+    t.equal(res.statusCode, 301, 'Response is the bounce itself')
+    t.end()
+  })
+})
+
+tape('asynchronous followRedirect filter via promise (rejected)', function (t) {
+  var sampleError = new Error('Rejected followRedirect promise')
+  function filterPromise (response) {
+    return Promise.reject(sampleError)
+  }
+
+  hits = {}
+  request({
+    uri: s.url + '/temp',
+    jar: jar,
+    headers: { cookie: 'foo=bar' },
+    followRedirect: filterPromise
+  }, function (err, res, body) {
+    t.equal(err, sampleError)
+    t.end()
+  })
+})
+
+tape('overridden redirect url', function (t) {
+  hits = {}
+  request({
+    uri: s.url + '/temp',
+    jar: jar,
+    headers: { cookie: 'foo=bar' },
+    followRedirect: function (response) {
+      if (/temp_landing/.test(response.headers.location)) return s.url + '/perm'
+      return true
+    }
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.ok(hits.perm, 'Original request to /perm')
+    t.ok(hits.perm_landing, 'Forward to permanent landing URL')
+    t.equal(body, 'GET perm_landing', 'Got permanent landing content')
     t.end()
   })
 })

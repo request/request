@@ -777,7 +777,10 @@ The first argument can be either a `url` or an `options` object. The only requir
 
 ---
 
-- `followRedirect` - follow HTTP 3xx responses as redirects (default: `true`). This property can also be implemented as function which gets `response` object as a single argument and should return `true` if redirects should continue or `false` otherwise.
+- `followRedirect` - follow HTTP 3xx responses as redirects (default: `true`). This property can also be implemented as function which gets `response` object as the first argument.
+  - *(synchronous usage)* It should return `true` if redirects should continue or `false` otherwise. If it returns a url string, the destination of the redirect will be overridden.
+  - *(async callback usage)* If the function has two arguments, it will be treated as an asynchronous function and will be passed a callback as the second argument. Invoke the callback with an error (`null` if no error) and the boolean/url result as the second.
+  - *(async promise usage)* Return a promise that resolves to the boolean/url result.
 - `followAllRedirects` - follow non-GET HTTP 3xx responses as redirects (default: `false`)
 - `followOriginalHttpMethod` - by default we redirect to HTTP method GET. you can enable this property to redirect to the original HTTP method (default: `false`)
 - `maxRedirects` - the maximum number of redirects to follow (default: `10`)
