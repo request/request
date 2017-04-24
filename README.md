@@ -218,7 +218,7 @@ For advanced cases, you can access the form-data object itself via `r.form()`. T
 
 ```js
 // NOTE: Advanced use-case, for normal use see 'formData' usage above
-var r = request.post('http://service.com/upload', function optionalCallback(err, httpResponse, body) {...})
+var r = request.post('http://service.com/upload');
 var form = r.form();
 form.append('my_field', 'my_value');
 form.append('my_buffer', new Buffer([1, 2, 3]));
