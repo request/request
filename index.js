@@ -65,6 +65,7 @@ function verbFunc (verb) {
 // define like this to please codeintel/intellisense IDEs
 request.get = verbFunc('get')
 request.head = verbFunc('head')
+request.options = verbFunc('options')
 request.post = verbFunc('post')
 request.put = verbFunc('put')
 request.patch = verbFunc('patch')

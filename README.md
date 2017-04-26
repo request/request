@@ -20,6 +20,7 @@ request('http://www.google.com', function (error, response, body) {
 ## Table of contents
 
 - [Streaming](#streaming)
+- [Promises & Async/Await](#promises--asyncawait)
 - [Forms](#forms)
 - [HTTP Authentication](#http-authentication)
 - [Custom HTTP Headers](#custom-http-headers)
@@ -127,6 +128,22 @@ http.createServer(function (req, resp) {
 ```
 
 You can still use intermediate proxies, the requests will still follow HTTP forwards, etc.
+
+[back to top](#table-of-contents)
+
+
+---
+
+
+## Promises & Async/Await
+
+`request` supports both streaming and callback interfaces natively. If you'd like `request` to return a Promise instead, you can use an alternative interface wrapper for `request`. These wrappers can be useful if you prefer to work with Promises, or if you'd like to use `async`/`await` in ES2017.
+
+Several alternative interfaces are provided by the request team, including:
+- [`request-promise`](https://github.com/request/request-promise) (uses [Bluebird](https://github.com/petkaantonov/bluebird) Promises)
+- [`request-promise-native`](https://github.com/request/request-promise-native) (uses native Promises)
+- [`request-promise-any`](https://github.com/request/request-promise-any) (uses [any-promise](https://www.npmjs.com/package/any-promise) Promises)
+
 
 [back to top](#table-of-contents)
 
@@ -866,55 +883,19 @@ var specialRequest = baseRequest.defaults({
 })
 ```
 
-### request.put
+### request.METHOD()
 
-Same as `request()`, but defaults to `method: "PUT"`.
+These HTTP method convenience functions act just like `request()` but with a default method already set for you:
 
-```js
-request.put(url)
-```
+- *request.get()*: Defaults to `method: "GET"`.
+- *request.post()*: Defaults to `method: "POST"`.
+- *request.put()*: Defaults to `method: "PUT"`.
+- *request.patch()*: Defaults to `method: "PATCH"`.
+- *request.del() / request.delete()*: Defaults to `method: "DELETE"`.
+- *request.head()*: Defaults to `method: "HEAD"`.
+- *request.options()*: Defaults to `method: "OPTIONS"`.
 
-### request.patch
-
-Same as `request()`, but defaults to `method: "PATCH"`.
-
-```js
-request.patch(url)
-```
-
-### request.post
-
-Same as `request()`, but defaults to `method: "POST"`.
-
-```js
-request.post(url)
-```
-
-### request.head
-
-Same as `request()`, but defaults to `method: "HEAD"`.
-
-```js
-request.head(url)
-```
-
-### request.del / request.delete
-
-Same as `request()`, but defaults to `method: "DELETE"`.
-
-```js
-request.del(url)
-request.delete(url)
-```
-
-### request.get
-
-Same as `request()` (for uniformity).
-
-```js
-request.get(url)
-```
-### request.cookie
+### request.cookie()
 
 Function that creates a new cookie.
 
