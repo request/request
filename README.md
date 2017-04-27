@@ -25,19 +25,37 @@ request('http://www.google.com', function (error, response, body) {
 ```
 
 
-## Table of contents
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+## Table of Contents
 
 - [Streaming](#streaming)
 - [Promises & Async/Await](#promises--asyncawait)
 - [Forms](#forms)
+    - [application/x-www-form-urlencoded (URL-Encoded Forms)](#applicationx-www-form-urlencoded-url-encoded-forms)
+    - [multipart/form-data (Multipart Form Uploads)](#multipartform-data-multipart-form-uploads)
+    - [multipart/related](#multipartrelated)
 - [HTTP Authentication](#http-authentication)
 - [Custom HTTP Headers](#custom-http-headers)
 - [OAuth Signing](#oauth-signing)
 - [Proxies](#proxies)
-- [Unix Domain Sockets](#unix-domain-sockets)
+  - [Controlling proxy behaviour using environment variables](#controlling-proxy-behaviour-using-environment-variables)
+- [UNIX Domain Sockets](#unix-domain-sockets)
 - [TLS/SSL Protocol](#tlsssl-protocol)
+  - [Using `options.agentOptions`](#using-optionsagentoptions)
 - [Support for HAR 1.2](#support-for-har-12)
-- [**All Available Options**](#requestoptions-callback)
+- [request(options, callback)](#requestoptions-callback)
+- [Convenience methods](#convenience-methods)
+  - [request.defaults(options)](#requestdefaultsoptions)
+  - [request.METHOD()](#requestmethod)
+  - [request.cookie()](#requestcookie)
+  - [request.jar()](#requestjar)
+  - [response.caseless.get('header-name')](#responsecaselessgetheader-name)
+- [Debugging](#debugging)
+- [Timeouts](#timeouts)
+- [Examples:](#examples)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 Request also offers [convenience methods](#convenience-methods) like
 `request.defaults` and `request.post`, and there are
