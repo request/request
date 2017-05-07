@@ -493,7 +493,7 @@ Request.prototype.init = function (options) {
     }
     self.src = src
     if (isReadStream(src)) {
-      if (!self.hasHeader('content-type')) {
+      if (!self.hasHeader('content-type') && !options.ignoreMime) {
         self.setHeader('content-type', mime.lookup(src.path))
       }
     } else {
