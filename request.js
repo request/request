@@ -37,7 +37,7 @@ var toBase64 = helpers.toBase64
 var defer = helpers.defer
 var copy = helpers.copy
 var version = helpers.version
-var globalCookieJar = cookies.jar()
+var globalCookieJar
 
 var globalPool = {}
 
@@ -966,8 +966,14 @@ Request.prototype.onRequestResponse = function (response) {
     self.timeoutTimer = null
   }
 
-  var targetCookieJar = (self._jar && self._jar.setCookie) ? self._jar : globalCookieJar
+  var targetCookieJar
   var addCookie = function (cookie) {
+    if (!targetCookieJar) {
+      if (!globalCookieJar) {
+        globalCookieJar = cookies.jar()
+      }
+      targetCookieJar = (self._jar && self._jar.setCookie) ? self._jar : globalCookieJar
+    }
     // set the cookie if it's domain in the href's domain.
     try {
       targetCookieJar.setCookie(cookie, self.uri.href, {ignoreError: true})
@@ -1438,7 +1444,7 @@ Request.prototype.oauth = function (_oauth) {
 
 Request.prototype.jar = function (jar) {
   var self = this
-  var cookies
+  var _cookies
 
   if (self._redirect.redirectsFollowed === 0) {
     self.originalCookieHeader = self.getHeader('cookie')
@@ -1446,24 +1452,27 @@ Request.prototype.jar = function (jar) {
 
   if (!jar) {
     // disable cookies
-    cookies = false
+    _cookies = false
     self._disableCookies = true
   } else {
+    if (!globalCookieJar) {
+      globalCookieJar = cookies.jar()
+    }
     var targetCookieJar = (jar && jar.getCookieString) ? jar : globalCookieJar
     var urihref = self.uri.href
     // fetch cookie in the Specified host
     if (targetCookieJar) {
-      cookies = targetCookieJar.getCookieString(urihref)
+      _cookies = targetCookieJar.getCookieString(urihref)
     }
   }
 
   // if need cookie and cookie is not empty
-  if (cookies && cookies.length) {
+  if (_cookies && _cookies.length) {
     if (self.originalCookieHeader) {
       // Don't overwrite existing Cookie header
-      self.setHeader('cookie', self.originalCookieHeader + '; ' + cookies)
+      self.setHeader('cookie', self.originalCookieHeader + '; ' + _cookies)
     } else {
-      self.setHeader('cookie', cookies)
+      self.setHeader('cookie', _cookies)
     }
   }
   self._jar = jar
