@@ -1,7 +1,10 @@
 
 # Request - Simplified HTTP client
 
-This is a fork of the excellent `request` module, which is used inside Postman Runtime.
+This is a fork of the excellent `request` module, which is used inside Postman Runtime. It contains a few bugfixes that are not fixed in `request`:
+
+- Handling of old-style deflate responses: https://github.com/request/request/issues/2197
+- Correct encoding of URL Parameters: https://github.com/nodejs/node/issues/8321
 
 ## Super simple to use
 
