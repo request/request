@@ -5,8 +5,8 @@ var request = require('../index')
 var tape = require('tape')
 
 // test data
-var redirecter = 'test1.local.postman.wtf' // always resolves to 127.0.0.1
-var responder = 'test2.local.postman.wtf'  // this too.
+var redirecter = 'test1.local.omg' // always resolves to 127.0.0.1
+var responder = 'test2.local.omg'  // this too.
 
 var server = http.createServer(function (req, res) {
   if (req.headers.host.indexOf(redirecter) === 0) {
@@ -41,7 +41,10 @@ tape('307 redirect should work when host is set explicitly, but changes on redir
     },
     followAllRedirects: true,
     followRedirect: true,
-    encoding: null
+    encoding: null,
+    lookup: function (hostname, options, callback) {
+      callback(null, '127.0.0.1', 4)  // All hosts will resolve to 127.0.0.1
+    }
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(body.toString(), 'ok')
