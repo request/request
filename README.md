@@ -847,7 +847,7 @@ default in Linux can be anywhere from 20-120 seconds][linux-timeout]).
     - `download`: Duration of HTTP download (`timings.end` - `timings.response`)
     - `total`: Duration entire HTTP round-trip (`timings.end`)
 
-- `har` - A [HAR 1.2 Request Object](http://www.softwareishard.com/blog/har-12-spec/#request), will be processed from HAR format into options overwriting matching values *(see the [HAR 1.2 section](#support-for-har-1.2) for details)*
+- `har` - A [HAR 1.2 Request Object](http://www.softwareishard.com/blog/har-12-spec/#request), will be processed from HAR format into options overwriting matching values *(see the [HAR 1.2 section](#support-for-har-12) for details)*
 - `callback` - alternatively pass the request's callback in the options object
 
 The callback argument gets 3 arguments:
