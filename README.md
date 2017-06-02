@@ -173,7 +173,7 @@ request.post('http://service.com/upload', {form:{key:'value'}})
 // or
 request.post('http://service.com/upload').form({key:'value'})
 // or
-request.post({url:'http://service.com/upload', form: {key:'value'}}, function(err,httpResponse,body){ /* ... */ })
+request.post({url:'http://service.com/upload', {form: {key:'value'}}, function(err,httpResponse,body){ /* ... */ })
 ```
 
 
