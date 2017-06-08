@@ -416,7 +416,7 @@ tape('should have proxy deleted when following redirect', function (t) {
     t.end()
   })
   .on('redirect', function () {
-    t.ok(typeof this.proxy === "undefined")
+    t.ok(typeof this.proxy === 'undefined')
   })
 })
 
