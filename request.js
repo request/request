@@ -274,7 +274,7 @@ Request.prototype.init = function (options) {
     return self.emit('error', new Error(message))
   }
 
-  if (!self.hasOwnProperty('proxy') || self.proxy == null) {
+  if (!self.hasOwnProperty('proxy')) {
     self.proxy = getProxyFromURI(self.uri)
   }
 
