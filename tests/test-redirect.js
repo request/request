@@ -31,7 +31,7 @@ function createRedirectEndpoint (code, label, landing) {
   s.on('/' + label, function (req, res) {
     hits[label] = true
     res.writeHead(code, {
-      'location': s.url + '/' + landing,
+      'location': label === 'external' ? 'http://www.google.com' : s.url + '/' + landing,
       'set-cookie': 'ham=eggs'
     })
     res.end()
@@ -75,6 +75,7 @@ tape('setup', function (t) {
   s.listen(0, function () {
     ss.listen(0, function () {
       bouncer(301, 'temp')
+      bouncer(301, 'external')
       bouncer(301, 'double', 2)
       bouncer(301, 'treble', 3)
       bouncer(302, 'perm')
@@ -406,9 +407,7 @@ tape('should preserve referer header set in the initial request when removeRefer
 
 tape('should have proxy deleted when following redirect', function (t) {
   request.get({
-    uri: s.url + '/temp',
-    jar: jar,
-    headers: { cookie: 'foo=bar' },
+    uri: s.url + '/external',
     proxy: null
   }, function (err, res, body) {
     t.equal(err, null)

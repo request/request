@@ -7,7 +7,7 @@ var tape = require('tape')
 var s = server.createServer()
 var currResponseHandler
 
-['http://google.com/', 'https://google.com/'].forEach(function (url) {
+['http://google.se/', 'https://google.se/'].forEach(function (url) {
   s.on(url, function (req, res) {
     currResponseHandler(req, res)
     res.writeHeader(200)
@@ -50,7 +50,7 @@ function runTest (name, options, responseHandler) {
     currResponseHandler = function (req, res) {
       if (responseHandler) {
         called = true
-        t.equal(req.headers.host, 'google.com')
+        t.equal(req.headers.host, 'google.se')
         if (typeof responseHandler === 'function') {
           responseHandler(t, req, res)
         }
@@ -59,7 +59,7 @@ function runTest (name, options, responseHandler) {
       }
     }
 
-    options.url = options.url || 'http://google.com'
+    options.url = options.url || 'http://google.se'
     request(options, function (err, res, body) {
       if (responseHandler && !called) {
         t.fail('proxy response should be called')
@@ -133,26 +133,26 @@ function addTests () {
 
     runTest('HTTP_PROXY environment variable and https: url', {
       env: { HTTP_PROXY: s.url },
-      url: 'https://google.com',
+      url: 'https://google.se',
       tunnel: false,
       pool: false
     }, true)
 
     runTest('http_proxy environment variable and https: url', {
       env: { http_proxy: s.url },
-      url: 'https://google.com',
+      url: 'https://google.se',
       tunnel: false
     }, true)
 
     runTest('HTTPS_PROXY environment variable and https: url', {
       env: { HTTPS_PROXY: s.url },
-      url: 'https://google.com',
+      url: 'https://google.se',
       tunnel: false
     }, true)
 
     runTest('https_proxy environment variable and https: url', {
       env: { https_proxy: s.url },
-      url: 'https://google.com',
+      url: 'https://google.se',
       tunnel: false
     }, true)
 
@@ -161,7 +161,7 @@ function addTests () {
         HTTPS_PROXY: s.url,
         HTTP_PROXY: 'http://localhost:0/'
       },
-      url: 'https://google.com',
+      url: 'https://google.se',
       tunnel: false
     }, true)
 
@@ -170,21 +170,21 @@ function addTests () {
     runTest('NO_PROXY hostnames are case insensitive', {
       env: {
         HTTP_PROXY: s.url,
-        NO_PROXY: 'GOOGLE.COM'
+        NO_PROXY: 'GOOGLE.SE'
       }
     }, false)
 
     runTest('NO_PROXY hostnames are case insensitive 2', {
       env: {
         http_proxy: s.url,
-        NO_PROXY: 'GOOGLE.COM'
+        NO_PROXY: 'GOOGLE.SE'
       }
     }, false)
 
     runTest('NO_PROXY hostnames are case insensitive 3', {
       env: {
         HTTP_PROXY: s.url,
-        no_proxy: 'GOOGLE.COM'
+        no_proxy: 'GOOGLE.SE'
       }
     }, false)
 
@@ -196,14 +196,14 @@ function addTests () {
     runTest('NO_PROXY overrides HTTP_PROXY for specific hostname', {
       env: {
         HTTP_PROXY: s.url,
-        NO_PROXY: 'google.com'
+        NO_PROXY: 'google.se'
       }
     }, false)
 
     runTest('no_proxy overrides HTTP_PROXY for specific hostname', {
       env: {
         HTTP_PROXY: s.url,
-        no_proxy: 'google.com'
+        no_proxy: 'google.se'
       }
     }, false)
 
@@ -217,21 +217,21 @@ function addTests () {
     runTest('NO_PROXY overrides HTTP_PROXY if a hostname matches', {
       env: {
         HTTP_PROXY: s.url,
-        NO_PROXY: 'foo.bar,google.com'
+        NO_PROXY: 'foo.bar,google.se'
       }
     }, false)
 
     runTest('NO_PROXY allows an explicit port', {
       env: {
         HTTP_PROXY: s.url,
-        NO_PROXY: 'google.com:80'
+        NO_PROXY: 'google.se:80'
       }
     }, false)
 
     runTest('NO_PROXY only overrides HTTP_PROXY if the port matches', {
       env: {
         HTTP_PROXY: s.url,
-        NO_PROXY: 'google.com:1234'
+        NO_PROXY: 'google.se:1234'
       }
     }, true)
 
@@ -245,22 +245,22 @@ function addTests () {
     runTest('NO_PROXY should override HTTP_PROXY for all subdomains', {
       env: {
         HTTP_PROXY: s.url,
-        NO_PROXY: 'google.com'
+        NO_PROXY: 'google.se'
       },
-      headers: { host: 'www.google.com' }
+      headers: { host: 'www.google.se' }
     }, false)
 
     runTest('NO_PROXY should not override HTTP_PROXY for partial domain matches', {
       env: {
         HTTP_PROXY: s.url,
-        NO_PROXY: 'oogle.com'
+        NO_PROXY: 'oogle.se'
       }
     }, true)
 
     runTest('NO_PROXY with port should not override HTTP_PROXY for partial domain matches', {
       env: {
         HTTP_PROXY: s.url,
-        NO_PROXY: 'oogle.com:80'
+        NO_PROXY: 'oogle.se:80'
       }
     }, true)
 
@@ -271,7 +271,7 @@ function addTests () {
     runTest('http_proxy with length of one more than the URL', {
       env: {
         HTTP_PROXY: s.url,
-        NO_PROXY: 'elgoog1.com' // one more char than google.com
+        NO_PROXY: 'elgoog1.se' // one more char than google.se
       }
     }, true)
 
@@ -282,7 +282,7 @@ function addTests () {
     }, false)
 
     runTest('uri auth without proxy auth', {
-      url: 'http://user:pass@google.com',
+      url: 'http://user:pass@google.se',
       proxy: s.url
     }, function (t, req, res) {
       t.equal(req.headers['proxy-authorization'], undefined)
