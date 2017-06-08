@@ -404,6 +404,22 @@ tape('should preserve referer header set in the initial request when removeRefer
   })
 })
 
+tape('should have proxy deleted when following redirect', function (t) {
+  request.get({
+    uri: s.url + '/temp',
+    jar: jar,
+    headers: { cookie: 'foo=bar' },
+    proxy: null
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.end()
+  })
+  .on('redirect', function () {
+    t.ok(typeof this.proxy === "undefined")
+  })
+})
+
 tape('should use same agent class on redirect', function (t) {
   var agent
   var calls = 0
