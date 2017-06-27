@@ -418,7 +418,9 @@ Request.prototype.init = function (options) {
       self.body = Buffer.from(self.body)
     }
 
-    if (!self.hasHeader('content-length')) {
+    //sometimes the urlencode method is different from the original's method, such as: chrome. The content length is wrong.
+    //so we need to fix it.
+    //if (!self.hasHeader('content-length')) {
       var length
       if (typeof self.body === 'string') {
         length = Buffer.byteLength(self.body)
@@ -433,7 +435,7 @@ Request.prototype.init = function (options) {
       } else {
         self.emit('error', new Error('Argument error, options.body.'))
       }
-    }
+    //}
   }
   if (self.body && !isstream(self.body)) {
     setContentLength()
