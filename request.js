@@ -421,20 +421,20 @@ Request.prototype.init = function (options) {
     // sometimes the urlencode method is different from the original's method, such as: chrome. The content length is wrong.
     // so we need to fix it.
     // if (!self.hasHeader('content-length')) {
-      var length
-      if (typeof self.body === 'string') {
-        length = Buffer.byteLength(self.body)
-      } else if (Array.isArray(self.body)) {
-        length = self.body.reduce(function (a, b) { return a + b.length }, 0)
-      } else {
-        length = self.body.length
-      }
-
-      if (length) {
-        self.setHeader('content-length', length)
-      } else {
-        self.emit('error', new Error('Argument error, options.body.'))
-      }
+    var length
+    if (typeof self.body === 'string') {
+      length = Buffer.byteLength(self.body)
+    } else if (Array.isArray(self.body)) {
+      length = self.body.reduce(function (a, b) { return a + b.length }, 0)
+    } else {
+      length = self.body.length
+    }
+    
+    if (length) {
+      self.setHeader('content-length', length)
+    } else {
+      self.emit('error', new Error('Argument error, options.body.'))
+    }
     // }
   }
   if (self.body && !isstream(self.body)) {
