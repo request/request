@@ -429,7 +429,7 @@ Request.prototype.init = function (options) {
     } else {
       length = self.body.length
     }
-    
+
     if (length) {
       self.setHeader('content-length', length)
     } else {
