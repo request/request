@@ -555,7 +555,7 @@ Request.prototype.init = function (options) {
           self.end()
           return
         }
-        if (self.method !== 'GET' && typeof self.method !== 'undefined') {
+        if (self.method !== 'HEAD' && self.method !== 'GET' && typeof self.method !== 'undefined') {
           self.setHeader('content-length', 0)
         }
         self.end()
