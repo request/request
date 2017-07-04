@@ -204,7 +204,7 @@ tape('should follow post redirects when followallredirects true and followOrigin
   })
 })
 
-tape('should not follow post redirects when followallredirects false', function (t) {
+tape('should not follow post redirects when followAllRedirects false', function (t) {
   hits = {}
   request.post({
     uri: s.url + '/temp',
@@ -232,6 +232,19 @@ tape('should not follow delete redirects by default', function (t) {
     t.ok(hits.temp, 'Original request is to /temp')
     t.ok(!hits.temp_landing, 'No chasing the redirect when delete')
     t.equal(res.statusCode, 301, 'Response is the bounce itself')
+    t.end()
+  })
+})
+
+tape('should set the cookie when receiving a redirect', function (t) {
+  request.del({
+    url: s.url + '/temp',
+    jar: jar,
+    headers: { cookie: 'foo=bar' }
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.ok(res.statusCode >= 301 && res.statusCode < 400, 'Status is a redirect')
+    t.equal(res.request.headers.cookie, 'foo=bar; quux=baz; ham=eggs', 'Headers contain correct new cookie')
     t.end()
   })
 })

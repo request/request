@@ -295,7 +295,7 @@ Request.prototype.init = function (options) {
     self.setHost = true
   }
 
-  self.jar(self._jar || options.jar)
+  self.jar(self._jar || options.jar || self.jar())
 
   if (!self.uri.port) {
     if (self.uri.protocol === 'http:') { self.uri.port = 80 } else if (self.uri.protocol === 'https:') { self.uri.port = 443 }
