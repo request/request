@@ -1367,7 +1367,9 @@ Request.prototype.aws = function (opts, now) {
       headers: {
         'content-type': self.getHeader('content-type') || ''
       },
-      body: self.body
+      body: self.body,
+      service: opts.service,
+      region: opts.region
     }
     var signRes = aws4.sign(options, {
       accessKeyId: opts.key,
