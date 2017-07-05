@@ -1378,7 +1378,10 @@ Request.prototype.aws = function (opts, now) {
     })
     self.setHeader('authorization', signRes.headers.Authorization)
     self.setHeader('x-amz-date', signRes.headers['X-Amz-Date'])
-    self.setHeader('x-amz-content-sha256', signRes.headers['X-Amz-Content-Sha256'])
+    if (signRes.headers['X-Amz-Content-Sha256']) {
+      // only when service is 's3', this header is needed
+      self.setHeader('x-amz-content-sha256', signRes.headers['X-Amz-Content-Sha256'])
+    }
     if (signRes.headers['X-Amz-Security-Token']) {
       self.setHeader('x-amz-security-token', signRes.headers['X-Amz-Security-Token'])
     }
