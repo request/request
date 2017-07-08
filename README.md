@@ -6,6 +6,7 @@ This is a fork of the excellent `request` module, which is used inside Postman R
 - Handling of old-style deflate responses: https://github.com/request/request/issues/2197
 - Correct encoding of URL Parameters: https://github.com/nodejs/node/issues/8321
 - Redirect behavior for 307 responses when Host header is set: https://github.com/request/request/issues/2666
+- Fix missing `content-length` header for streaming requests: https://github.com/request/request/issues/316
 
 ## Super simple to use
 

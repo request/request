@@ -31,6 +31,22 @@ tape('request body stream', function (t) {
   })
 })
 
+tape('request body stream content-length', function (t) {
+  var fpath = path.join(__dirname, 'unicycle.jpg')
+  var input = fs.createReadStream(fpath, {highWaterMark: 1000})
+  var r = request({
+    uri: server.url,
+    method: 'POST',
+    body: input,
+    encoding: null
+  }, function (err, res, body) {
+    t.error(err)
+    t.equal(body.length, fs.statSync(fpath).size)
+    t.equal(r.getHeader('content-length'), body.length)
+    t.end()
+  })
+})
+
 tape('after', function (t) {
   server.close(t.end)
 })
