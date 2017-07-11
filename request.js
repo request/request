@@ -17,6 +17,7 @@ var ForeverAgent = require('forever-agent')
 var FormData = require('form-data')
 var extend = require('extend')
 var isstream = require('isstream')
+var streamLength = require('stream-length')
 var isTypedArray = require('is-typedarray').strict
 var helpers = require('./lib/helpers')
 var cookies = require('./lib/cookies')
@@ -536,7 +537,16 @@ Request.prototype.init = function (options) {
       }
       if (self.body) {
         if (isstream(self.body)) {
-          self.body.pipe(self)
+          if (self.hasHeader('content-length')) {
+            self.body.pipe(self)
+          } else { // certain servers require content-length to function. we try to pre-detect if possible
+            streamLength(self.body, {}, function (err, len) {
+              if (!(err || self._started || self.hasHeader('content-length') || len === null || len < 0)) {
+                self.setHeader('content-length', len)
+              }
+              self.body.pipe(self)
+            })
+          }
         } else {
           setContentLength()
           if (Array.isArray(self.body)) {
