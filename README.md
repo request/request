@@ -348,7 +348,7 @@ custom `User-Agent` header as well as https.
 
 ```js
 var request = require('request');
-var url = 'https://api.github.com/repos/request/request'
+var url = 'https://api.github.com/repos/request/request';
 var options = {
   headers: {
     'User-Agent': 'request'
