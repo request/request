@@ -77,7 +77,7 @@ tape('aws-sign4 options with session token', function (t) {
   })
 })
 
-tape('aws-sign4 options with service,region', function(t) {
+tape('aws-sign4 options with service,region', function (t) {
   var options = {
     url: s.url + path,
     aws: {
@@ -89,7 +89,8 @@ tape('aws-sign4 options with service,region', function(t) {
     },
     json: true
   }
-  request(options, function(err, res, body) {
+  request(options, function (err, res, body) {
+    t.error(err)
     t.ok(body.authorization)
     var credential = body.authorization.match(/Credential=([^,]+)/)[1]
     var testRegex = /my_key\/[0-9]{8}\/ap-northeast-1\/execute-api\/aws4_request/
