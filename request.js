@@ -1,12 +1,14 @@
 'use strict'
 
+var paraquire = require('paraquire')(module)
+
 var http = require('http')
 var https = require('https')
 var url = require('url')
 var util = require('util')
 var stream = require('stream')
 var zlib = require('zlib')
-var hawk = require('hawk')
+var hawk = paraquire('hawk', {builtin: ['crypto']})
 var aws2 = require('aws-sign2')
 var aws4 = require('aws4')
 var httpSignature = require('http-signature')
