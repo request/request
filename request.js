@@ -16,7 +16,7 @@ var aws4 = paraquire('aws4', {builtin: ['crypto', 'querystring']})
 // Could not be paraquired: paraquire does not support cycled dependencies yet
 var httpSignature = require('http-signature')
 
-var mime = require('mime-types')
+var mime = paraquire('mime-types', {builtin: ['path']})
 var stringstream = require('stringstream')
 var caseless = require('caseless')
 var ForeverAgent = require('forever-agent')
