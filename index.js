@@ -14,7 +14,9 @@
 
 'use strict'
 
-var extend = require('extend')
+var paraquire = require('paraquire')(module)
+
+var extend = paraquire('extend')
 var cookies = require('./lib/cookies')
 var helpers = require('./lib/helpers')
 
