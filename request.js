@@ -11,7 +11,11 @@ var zlib = require('zlib')
 var hawk = paraquire('hawk', {builtin: ['crypto']})
 var aws2 = paraquire('aws-sign2', {builtin: ['crypto', 'url']})
 var aws4 = paraquire('aws4', {builtin: ['crypto', 'querystring']})
+
+// var httpSignature = paraquire('http-signature', {builtinErrors: 1, builtin: ['assert', 'crypto', 'stream', 'util'], 'process.env': ['NODE_NDEBUG'], sandbox: {Buffer: global.Buffer}})
+// Could not be paraquired: paraquire does not support cycled dependencies yet
 var httpSignature = require('http-signature')
+
 var mime = require('mime-types')
 var stringstream = require('stringstream')
 var caseless = require('caseless')
