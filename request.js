@@ -18,7 +18,7 @@ var httpSignature = require('http-signature')
 
 var mime = paraquire('mime-types', {builtin: ['path']})
 var stringstream = paraquire('stringstream', {builtin: ['stream', 'string_decoder', 'util']})
-var caseless = require('caseless')
+var caseless = paraquire('caseless')
 var ForeverAgent = require('forever-agent')
 var FormData = require('form-data')
 var extend = require('extend')
