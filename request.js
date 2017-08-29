@@ -17,7 +17,7 @@ var aws4 = paraquire('aws4', {builtin: ['crypto', 'querystring']})
 var httpSignature = require('http-signature')
 
 var mime = paraquire('mime-types', {builtin: ['path']})
-var stringstream = require('stringstream')
+var stringstream = paraquire('stringstream', {builtin: ['stream', 'string_decoder', 'util']})
 var caseless = require('caseless')
 var ForeverAgent = require('forever-agent')
 var FormData = require('form-data')
