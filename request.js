@@ -25,7 +25,7 @@ var ForeverAgent = paraquire('forever-agent', {builtin: ['http', 'https', 'util'
 // Could not be paraquired: some tests failed. Possibly "outer" TypeError !== "inner" TypeError
 var FormData = require('form-data')
 
-var extend = require('extend')
+var extend = paraquire('extend')
 var isstream = require('isstream')
 var isTypedArray = require('is-typedarray').strict
 var helpers = require('./lib/helpers')
