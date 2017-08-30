@@ -38,7 +38,7 @@ var OAuth = require('./lib/oauth').OAuth
 var Multipart = require('./lib/multipart').Multipart
 var Redirect = require('./lib/redirect').Redirect
 var Tunnel = require('./lib/tunnel').Tunnel
-var now = require('performance-now')
+var now = paraquire('performance-now')
 var Buffer = require('safe-buffer').Buffer
 
 var safeStringify = helpers.safeStringify
