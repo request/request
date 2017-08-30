@@ -39,6 +39,9 @@ var Multipart = require('./lib/multipart').Multipart
 var Redirect = require('./lib/redirect').Redirect
 var Tunnel = require('./lib/tunnel').Tunnel
 var now = paraquire('performance-now')
+
+// Could not be paraquired: some tests failed. Possibly "outer" String !== "inner" String
+// var Buffer = paraquire('safe-buffer', {builtinErrors: 1, builtin: ['buffer'], sandbox: {_Buffer: global.Buffer}}).Buffer
 var Buffer = require('safe-buffer').Buffer
 
 var safeStringify = helpers.safeStringify
