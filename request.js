@@ -27,7 +27,11 @@ var FormData = require('form-data')
 
 var extend = paraquire('extend')
 var isstream = paraquire('isstream', {builtin: ['stream']})
+
+// Could not be paraquired, reason unknown
+// var isTypedArray = paraquire('is-typedarray', {builtinErrors: 1}).strict
 var isTypedArray = require('is-typedarray').strict
+
 var helpers = require('./lib/helpers')
 var cookies = require('./lib/cookies')
 var getProxyFromURI = require('./lib/getProxyFromURI')
