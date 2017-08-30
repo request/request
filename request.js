@@ -20,7 +20,11 @@ var mime = paraquire('mime-types', {builtin: ['path']})
 var stringstream = paraquire('stringstream', {builtin: ['stream', 'string_decoder', 'util']})
 var caseless = paraquire('caseless')
 var ForeverAgent = paraquire('forever-agent', {builtin: ['http', 'https', 'util']})
+
+// var FormData = paraquire('form-data', {builtinErrors: 1, builtin: ['fs', 'http', 'https', 'path', 'stream', 'url', 'util'], process: ['nextTick'], sandbox: {Buffer: global.Buffer, TypeError: TypeError}})
+// Could not be paraquired: some tests failed. Possibly "outer" TypeError !== "inner" TypeError
 var FormData = require('form-data')
+
 var extend = require('extend')
 var isstream = require('isstream')
 var isTypedArray = require('is-typedarray').strict
