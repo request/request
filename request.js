@@ -26,7 +26,7 @@ var ForeverAgent = paraquire('forever-agent', {builtin: ['http', 'https', 'util'
 var FormData = require('form-data')
 
 var extend = paraquire('extend')
-var isstream = require('isstream')
+var isstream = paraquire('isstream', {builtin: ['stream']})
 var isTypedArray = require('is-typedarray').strict
 var helpers = require('./lib/helpers')
 var cookies = require('./lib/cookies')
