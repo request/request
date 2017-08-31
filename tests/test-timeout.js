@@ -1,12 +1,12 @@
 'use strict'
 
-function checkErrCode(t, err) {
+function checkErrCode (t, err) {
   t.notEqual(err, null)
   t.ok(err.code === 'ETIMEDOUT' || err.code === 'ESOCKETTIMEDOUT',
     'Error ETIMEDOUT or ESOCKETTIMEDOUT')
 }
 
-function checkEventHandlers(t, socket) {
+function checkEventHandlers (t, socket) {
   var connectListeners = socket.listeners('connect')
   var found = false
   for (var i = 0; i < connectListeners.length; ++i) {
@@ -20,52 +20,52 @@ function checkEventHandlers(t, socket) {
 }
 
 var server = require('./server')
-  , request = require('../index')
-  , tape = require('tape')
+var request = require('../index')
+var tape = require('tape')
 
 var s = server.createServer()
 
 // Request that waits for 200ms
-s.on('/timeout', function(req, res) {
-  setTimeout(function() {
-    res.writeHead(200, {'content-type':'text/plain'})
+s.on('/timeout', function (req, res) {
+  setTimeout(function () {
+    res.writeHead(200, {'content-type': 'text/plain'})
     res.write('waited')
     res.end()
   }, 200)
 })
 
-tape('setup', function(t) {
-  s.listen(0, function() {
+tape('setup', function (t) {
+  s.listen(0, function () {
     t.end()
   })
 })
 
-tape('should timeout', function(t) {
+tape('should timeout', function (t) {
   var shouldTimeout = {
     url: s.url + '/timeout',
     timeout: 100
   }
 
-  request(shouldTimeout, function(err, res, body) {
+  request(shouldTimeout, function (err, res, body) {
     checkErrCode(t, err)
     t.end()
   })
 })
 
-tape('should set connect to false', function(t) {
+tape('should set connect to false', function (t) {
   var shouldTimeout = {
     url: s.url + '/timeout',
     timeout: 100
   }
 
-  request(shouldTimeout, function(err, res, body) {
+  request(shouldTimeout, function (err, res, body) {
     checkErrCode(t, err)
     t.ok(err.connect === false, 'Read Timeout Error should set \'connect\' property to false')
     t.end()
   })
 })
 
-tape('should timeout with events', function(t) {
+tape('should timeout with events', function (t) {
   t.plan(3)
 
   var shouldTimeoutWithEvents = {
@@ -75,49 +75,49 @@ tape('should timeout with events', function(t) {
 
   var eventsEmitted = 0
   request(shouldTimeoutWithEvents)
-    .on('error', function(err) {
+    .on('error', function (err) {
       eventsEmitted++
       t.equal(1, eventsEmitted)
       checkErrCode(t, err)
     })
 })
 
-tape('should not timeout', function(t) {
+tape('should not timeout', function (t) {
   var shouldntTimeout = {
     url: s.url + '/timeout',
     timeout: 1200
   }
 
   var socket
-  request(shouldntTimeout, function(err, res, body) {
+  request(shouldntTimeout, function (err, res, body) {
     t.equal(err, null)
     t.equal(body, 'waited')
     checkEventHandlers(t, socket)
     t.end()
-  }).on('socket', function(socket_) {
+  }).on('socket', function (socket_) {
     socket = socket_
   })
 })
 
-tape('no timeout', function(t) {
+tape('no timeout', function (t) {
   var noTimeout = {
     url: s.url + '/timeout'
   }
 
-  request(noTimeout, function(err, res, body) {
+  request(noTimeout, function (err, res, body) {
     t.equal(err, null)
     t.equal(body, 'waited')
     t.end()
   })
 })
 
-tape('negative timeout', function(t) { // should be treated a zero or the minimum delay
+tape('negative timeout', function (t) { // should be treated a zero or the minimum delay
   var negativeTimeout = {
     url: s.url + '/timeout',
     timeout: -1000
   }
 
-  request(negativeTimeout, function(err, res, body) {
+  request(negativeTimeout, function (err, res, body) {
     // Only verify error if it is set, since using a timeout value of 0 can lead
     // to inconsistent results, depending on a variety of factors
     if (err) {
@@ -127,13 +127,13 @@ tape('negative timeout', function(t) { // should be treated a zero or the minimu
   })
 })
 
-tape('float timeout', function(t) { // should be rounded by setTimeout anyway
+tape('float timeout', function (t) { // should be rounded by setTimeout anyway
   var floatTimeout = {
     url: s.url + '/timeout',
     timeout: 100.76
   }
 
-  request(floatTimeout, function(err, res, body) {
+  request(floatTimeout, function (err, res, body) {
     checkErrCode(t, err)
     t.end()
   })
@@ -151,7 +151,7 @@ var nonRoutable = [
   '172.31.255.255'
 ]
 var nrIndex = 0
-function getNonRoutable() {
+function getNonRoutable () {
   var ip = nonRoutable[nrIndex]
   if (!ip) {
     throw new Error('No more non-routable addresses')
@@ -159,14 +159,14 @@ function getNonRoutable() {
   ++nrIndex
   return ip
 }
-tape('connect timeout', function tryConnect(t) {
+tape('connect timeout', function tryConnect (t) {
   var tarpitHost = 'http://' + getNonRoutable()
   var shouldConnectTimeout = {
     url: tarpitHost + '/timeout',
     timeout: 100
   }
   var socket
-  request(shouldConnectTimeout, function(err) {
+  request(shouldConnectTimeout, function (err) {
     t.notEqual(err, null)
     if (err.code === 'ENETUNREACH' && nrIndex < nonRoutable.length) {
       // With some network configurations, some addresses will be reported as
@@ -179,19 +179,19 @@ tape('connect timeout', function tryConnect(t) {
     checkEventHandlers(t, socket)
     nrIndex = 0
     t.end()
-  }).on('socket', function(socket_) {
+  }).on('socket', function (socket_) {
     socket = socket_
   })
 })
 
-tape('connect timeout with non-timeout error', function tryConnect(t) {
+tape('connect timeout with non-timeout error', function tryConnect (t) {
   var tarpitHost = 'http://' + getNonRoutable()
   var shouldConnectTimeout = {
     url: tarpitHost + '/timeout',
     timeout: 1000
   }
   var socket
-  request(shouldConnectTimeout, function(err) {
+  request(shouldConnectTimeout, function (err) {
     t.notEqual(err, null)
     if (err.code === 'ENETUNREACH' && nrIndex < nonRoutable.length) {
       // With some network configurations, some addresses will be reported as
@@ -201,26 +201,27 @@ tape('connect timeout with non-timeout error', function tryConnect(t) {
     }
     // Delay the check since the 'connect' handler is removed in a separate
     // 'error' handler which gets triggered after this callback
-    setImmediate(function() {
+    setImmediate(function () {
       checkEventHandlers(t, socket)
       nrIndex = 0
       t.end()
     })
-  }).on('socket', function(socket_) {
+  }).on('socket', function (socket_) {
     socket = socket_
-    setImmediate(function() {
+    setImmediate(function () {
       socket.emit('error', new Error('Fake Error'))
     })
   })
 })
 
-tape('request timeout with keep-alive connection', function(t) {
-  var agent = new require('http').Agent({ keepAlive: true })
+tape('request timeout with keep-alive connection', function (t) {
+  var Agent = require('http').Agent
+  var agent = new Agent({ keepAlive: true })
   var firstReq = {
     url: s.url + '/timeout',
     agent: agent
   }
-  request(firstReq, function(err) {
+  request(firstReq, function (err) {
     // We should now still have a socket open. For the second request we should
     // see a request timeout on the active socket ...
     t.equal(err, null)
@@ -229,22 +230,22 @@ tape('request timeout with keep-alive connection', function(t) {
       timeout: 100,
       agent: agent
     }
-    request(shouldReqTimeout, function(err) {
+    request(shouldReqTimeout, function (err) {
       checkErrCode(t, err)
       t.ok(err.connect === false, 'Error should have been a request timeout error')
       t.end()
-    }).on('socket', function(socket) {
+    }).on('socket', function (socket) {
       var isConnecting = socket._connecting || socket.connecting
       t.ok(isConnecting !== true, 'Socket should already be connected')
     })
-  }).on('socket', function(socket) {
+  }).on('socket', function (socket) {
     var isConnecting = socket._connecting || socket.connecting
     t.ok(isConnecting === true, 'Socket should be new')
   })
 })
 
-tape('cleanup', function(t) {
-  s.close(function() {
+tape('cleanup', function (t) {
+  s.close(function () {
     t.end()
   })
 })
