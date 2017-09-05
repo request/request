@@ -42,7 +42,7 @@
     "json-stringify-safe": "~5.0.1",
     "mime-types": "~2.1.7",
     "oauth-sign": "~0.8.1",
-    "paraquire": "^1.4.0-alpha0",
+    "paraquire": "^1.4.1",
     "performance-now": "^0.2.0",
     "qs": "~6.5.0",
     "safe-buffer": "^5.0.1",
