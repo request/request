@@ -14,9 +14,9 @@
 
 'use strict'
 
-var paraquire = require('paraquire')(module)
+require = require('paraquire')(module, {require: require, inherit: true}) // eslint-disable-line no-global-assign
 
-var extend = paraquire('extend')
+var extend = require('extend', {})
 var cookies = require('./lib/cookies')
 var helpers = require('./lib/helpers')
 

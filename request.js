@@ -1,6 +1,6 @@
 'use strict'
 
-var paraquire = require('paraquire')(module)
+require = require('paraquire')(module, {require: require, inherit: true}) // eslint-disable-line no-global-assign
 
 var http = require('http')
 var https = require('https')
@@ -8,25 +8,25 @@ var url = require('url')
 var util = require('util')
 var stream = require('stream')
 var zlib = require('zlib')
-var hawk = paraquire('hawk', {builtin: ['crypto']})
-var aws2 = paraquire('aws-sign2', {builtin: ['crypto', 'url']})
-var aws4 = paraquire('aws4', {builtin: ['crypto', 'querystring']})
+var hawk = require('hawk', {builtin: ['crypto']})
+var aws2 = require('aws-sign2', {builtin: ['crypto', 'url']})
+var aws4 = require('aws4', {builtin: ['crypto', 'querystring']})
 
 // var httpSignature = paraquire('http-signature', {builtinErrors: 1, builtin: ['assert', 'crypto', 'stream', 'util'], 'process.env': ['NODE_NDEBUG'], sandbox: {Buffer: global.Buffer}})
 // Could not be paraquired: paraquire does not support cycled dependencies yet
 var httpSignature = require('http-signature')
 
-var mime = paraquire('mime-types', {builtin: ['path']})
-var stringstream = paraquire('stringstream', {builtin: ['stream', 'string_decoder', 'util']})
-var caseless = paraquire('caseless')
-var ForeverAgent = paraquire('forever-agent', {builtin: ['http', 'https', 'util']})
+var mime = require('mime-types', {builtin: ['path']})
+var stringstream = require('stringstream', {builtin: ['stream', 'string_decoder', 'util']})
+var caseless = require('caseless', {})
+var ForeverAgent = require('forever-agent', {builtin: ['http', 'https', 'util']})
 
 // var FormData = paraquire('form-data', {builtinErrors: 1, builtin: ['fs', 'http', 'https', 'path', 'stream', 'url', 'util'], process: ['nextTick'], sandbox: {Buffer: global.Buffer, TypeError: TypeError}})
 // Could not be paraquired: some tests failed. Possibly "outer" TypeError !== "inner" TypeError
 var FormData = require('form-data')
 
-var extend = paraquire('extend')
-var isstream = paraquire('isstream', {builtin: ['stream']})
+var extend = require('extend', {})
+var isstream = require('isstream', {builtin: ['stream']})
 
 // Could not be paraquired, reason unknown
 // var isTypedArray = paraquire('is-typedarray', {builtinErrors: 1}).strict
@@ -42,7 +42,7 @@ var OAuth = require('./lib/oauth').OAuth
 var Multipart = require('./lib/multipart').Multipart
 var Redirect = require('./lib/redirect').Redirect
 var Tunnel = require('./lib/tunnel').Tunnel
-var now = paraquire('performance-now')
+var now = require('performance-now', {})
 
 // Could not be paraquired: some tests failed. Possibly "outer" String !== "inner" String
 // var Buffer = paraquire('safe-buffer', {builtinErrors: 1, builtin: ['buffer'], sandbox: {_Buffer: global.Buffer}}).Buffer
