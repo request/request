@@ -1135,9 +1135,9 @@ Request.prototype.readResponseBody = function (response) {
       response.body = Buffer.concat(buffers, bufferLength)
       if (self.encoding !== null) {
         try {
-	        response.body = response.body.toString(self.encoding)
+          response.body = response.body.toString(self.encoding)
         } catch (err) {
-	        self.emit('error', err)
+          self.emit('error', err)
         }
       }
       // `buffer` is defined in the parent scope and used in a closure it exists for the life of the Request.
