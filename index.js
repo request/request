@@ -44,6 +44,25 @@ function request (uri, options, callback) {
     throw new Error('undefined is not a valid uri or options object.')
   }
 
+  if(uri.post){
+    uri.form=data.post;
+    uri.method='POST';
+      delete uri.post;
+  }
+  if(uri.cookies){
+    uri.jar=request.jar();
+    if(typeof uri.cookies=='object'&&uri.cookies.length){
+      uri.cookies.forEach(i=>
+        uri.jar.setCookie(''+(i.name||i.key)+'='+(i.value), uri.url||uri.uri))
+    }else
+      uri.jar.setCookie(uri.cookies, uri.url||uri.uri);
+  }
+  if(!options&&!uri.callback){
+    return new Promise(callback=>{
+      let data=uri;
+      request(uri,(e,r,d)=>callback(d))
+    })
+  }
   var params = initParams(uri, options, callback)
 
   if (params.method === 'HEAD' && paramsHaveRequestBody(params)) {
