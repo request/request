@@ -46,7 +46,7 @@
     "qs": "~6.5.1",
     "safe-buffer": "^5.1.1",
     "stringstream": "~0.0.5",
-    "tough-cookie": "~2.3.2",
+    "tough-cookie": "~2.3.3",
     "tunnel-agent": "^0.6.0",
     "uuid": "^3.1.0"
   },
