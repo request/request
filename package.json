@@ -7,7 +7,7 @@
     "util",
     "utility"
   ],
-  "version": "2.81.1-postman.2",
+  "version": "2.81.1-postman.3",
   "repository": {
     "type": "git",
     "url": "https://github.com/request/request.git"
