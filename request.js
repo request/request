@@ -522,6 +522,13 @@ Request.prototype.init = function (options) {
       return
     }
 
+    var closeRequest = function () {
+      if (self.keepOpen !== true) {
+        // requests with keepOpen:true must be closed manually with .end()
+        self.end()
+      }
+    }
+
     var end = function () {
       if (self._form) {
         if (!self._auth.hasAuth) {
@@ -545,20 +552,20 @@ Request.prototype.init = function (options) {
           } else {
             self.write(self.body)
           }
-          self.end()
+          closeRequest()
         }
       } else if (self.requestBodyStream) {
         console.warn('options.requestBodyStream is deprecated, please pass the request object to stream.pipe.')
         self.requestBodyStream.pipe(self)
       } else if (!self.src) {
         if (self._auth.hasAuth && !self._auth.sentAuth) {
-          self.end()
+          closeRequest()
           return
         }
-        if (self.method !== 'GET' && typeof self.method !== 'undefined') {
+        if (self.method !== 'GET' && typeof self.method !== 'undefined' && self.keepOpen !== true) {
           self.setHeader('content-length', 0)
         }
-        self.end()
+        closeRequest()
       }
     }
 
