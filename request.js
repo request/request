@@ -1364,10 +1364,11 @@ Request.prototype.aws = function (opts, now) {
       host: self.uri.host,
       path: self.uri.path,
       method: self.method,
-      headers: {
-        'content-type': self.getHeader('content-type') || ''
-      },
+      headers: self.headers,
       body: self.body
+    }
+    if (opts.service) {
+      options.service = opts.service
     }
     var signRes = aws4.sign(options, {
       accessKeyId: opts.key,
