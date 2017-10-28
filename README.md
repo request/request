@@ -682,7 +682,7 @@ request.get({
 
 ## Support for HAR 1.2
 
-The `options.har` property will override the values: `url`, `method`, `qs`, `headers`, `form`, `formData`, `body`, `json`, as well as construct multipart data and read files from disk when `request.postData.params[].fileName` is present without a matching `value`.
+The `options.har` property will override the values: `url`, `method`, `qs`, `headers`, `form`, `formData`, `body`, `json`, as well as construct multipart data  and read files from disk when `request.postData.params[].fileName` is present without a matching `value`.
 
 A validation step will check if the HAR Request format matches the latest spec (v1.2) and will skip parsing if not matching.
 
@@ -737,6 +737,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 - `baseUrl` - fully qualified uri string used as the base url. Most useful with `request.defaults`, for example when you want to do many requests to the same domain. If `baseUrl` is `https://example.com/api/`, then requesting `/end/point?test=true` will fetch `https://example.com/api/end/point?test=true`. When `baseUrl` is given, `uri` must also be a string.
 - `method` - http method (default: `"GET"`)
 - `headers` - http headers (default: `{}`)
+- `uriData` || `urlData` - object to populate route-like uri. `uri` can be provided as a template using route-like syntax. For example, if `uri` is `https://example.com/api/categories/:categoryId/products/:productId/reviews` and `uriData` is `{ categoryId: 123, productId: 'prod@cat' }` then `request` will fetch `https://example.com/api/categories/123/products/prod%40cat/reviews`. If `uriData` is provided, it must satisfy all parameters of `uri`. Provided values will be encoded if needed.
 
 ---
 

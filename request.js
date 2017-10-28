@@ -30,6 +30,7 @@ var Redirect = require('./lib/redirect').Redirect
 var Tunnel = require('./lib/tunnel').Tunnel
 var now = require('performance-now')
 var Buffer = require('safe-buffer').Buffer
+var compileRoute = require('path-to-regexp').compile
 
 var safeStringify = helpers.safeStringify
 var isReadStream = helpers.isReadStream
@@ -235,6 +236,20 @@ Request.prototype.init = function (options) {
   // If a string URI/URL was given, parse it into a URL object
   if (typeof self.uri === 'string') {
     self.uri = url.parse(self.uri)
+  }
+
+  // If there is a uriData or urlData, use
+  var uriData = self.uriData || self.urlData
+  if (uriData) {
+    try {
+      self.uri.pathname = compileRoute(self.uri.pathname)(uriData)
+    } catch (err) {
+      return self.emit('error', err)
+    }
+    self.uri.path = self.uri.pathname + (self.uri.search || '')
+    delete self.uriData
+    delete self.urlData
+    delete self.uri.href
   }
 
   // Some URL objects are not from a URL parsed string and need href added
