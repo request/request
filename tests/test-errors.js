@@ -12,6 +12,13 @@ tape('without uri', function (t) {
   t.end()
 })
 
+tape('without uri but with baseUrl', function (t) {
+  t.throws(function () {
+    request({ baseUrl: 'https://github.com' })
+  }, /^Error: options\.uri is a required argument$/)
+  t.end()
+})
+
 tape('invalid uri 1', function (t) {
   t.throws(function () {
     request({

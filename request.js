@@ -197,7 +197,7 @@ Request.prototype.init = function (options) {
 
   // If there's a baseUrl, then use it as the base URL (i.e. uri must be
   // specified as a relative path and is appended to baseUrl).
-  if (self.baseUrl) {
+  if (self.baseUrl && (self.uri || self.uri === '')) {
     if (typeof self.baseUrl !== 'string') {
       return self.emit('error', new Error('options.baseUrl must be a string'))
     }
