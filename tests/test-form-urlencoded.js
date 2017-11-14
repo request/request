@@ -6,7 +6,7 @@ var tape = require('tape')
 
 function runTest (t, options, index) {
   var server = http.createServer(function (req, res) {
-    if (index === 0 || index === 3) {
+    if (index === 0 || index === 5) {
       t.equal(req.headers['content-type'], 'application/x-www-form-urlencoded')
     } else {
       t.equal(req.headers['content-type'], 'application/x-www-form-urlencoded; charset=UTF-8')
@@ -39,7 +39,8 @@ function runTest (t, options, index) {
         t.end()
       })
     })
-    if (!options.form && !options.body) {
+
+    if (!options.form && !options.body && typeof options.json === 'boolean') {
       r.form({some: 'url', encoded: 'data'})
     }
   })
@@ -59,6 +60,16 @@ var cases = [
     headers: {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'},
     body: 'some=url&encoded=data',
     json: true
+  },
+  {
+    headers: {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+    body: {some: 'url', encoded: 'data'},
+    json: true
+  },
+  {
+    headers: {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+    body: {some: 'url', encoded: 'data'},
+    json: {foo: 'bar'}
   },
   {
     // body set via .form() method

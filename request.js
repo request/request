@@ -309,7 +309,7 @@ Request.prototype.init = function (options) {
     self.host = self.uri.hostname
   }
 
-  if (options.form) {
+  if (self.isForm(options)) {
     self.form(options.form)
   }
 
@@ -399,7 +399,7 @@ Request.prototype.init = function (options) {
     self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
   }
 
-  if (options.json) {
+  if (self.isJSON(options)) {
     self.json(options.json)
   }
   if (options.multipart) {
@@ -1246,13 +1246,21 @@ Request.prototype.qs = function (q, clobber) {
 }
 Request.prototype.form = function (form) {
   var self = this
+  var formData
+
   if (form) {
+    formData = form
+  } else {
+    formData = self.body
+  }
+
+  if (typeof formData !== 'undefined') {
     if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
       self.setHeader('content-type', 'application/x-www-form-urlencoded')
     }
-    self.body = (typeof form === 'string')
-      ? self._qs.rfc3986(form.toString('utf8'))
-      : self._qs.stringify(form).toString('utf8')
+    self.body = (typeof formData === 'string')
+      ? self._qs.rfc3986(formData.toString('utf8'))
+      : self._qs.stringify(formData).toString('utf8')
     return self
   }
   // create form-data object
@@ -1277,31 +1285,30 @@ Request.prototype.multipart = function (multipart) {
 }
 Request.prototype.json = function (val) {
   var self = this
+  var bodyData
+
+  self._json = true
+
+  if (typeof val === 'boolean') {
+    bodyData = self.body
+  } else {
+    bodyData = val
+  }
 
   if (!self.hasHeader('accept')) {
     self.setHeader('accept', 'application/json')
   }
 
-  if (typeof self.jsonReplacer === 'function') {
-    self._jsonReplacer = self.jsonReplacer
-  }
-
-  self._json = true
-  if (typeof val === 'boolean') {
-    if (self.body !== undefined) {
-      if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
-        self.body = safeStringify(self.body, self._jsonReplacer)
-      } else {
-        self.body = self._qs.rfc3986(self.body)
+  if (typeof bodyData !== 'undefined') {
+    if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
+      if (typeof self.jsonReplacer === 'function') {
+        self._jsonReplacer = self.jsonReplacer
       }
+
+      self.body = safeStringify(bodyData, self._jsonReplacer)
       if (!self.hasHeader('content-type')) {
         self.setHeader('content-type', 'application/json')
       }
-    }
-  } else {
-    self.body = safeStringify(val, self._jsonReplacer)
-    if (!self.hasHeader('content-type')) {
-      self.setHeader('content-type', 'application/json')
     }
   }
 
@@ -1310,6 +1317,16 @@ Request.prototype.json = function (val) {
   }
 
   return self
+}
+Request.prototype.isForm = function (options) {
+  var self = this
+
+  return (options.form || /^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type')))
+}
+Request.prototype.isJSON = function (options) {
+  var self = this
+
+  return (options.json || /^application\/json\b/.test(self.getHeader('content-type')))
 }
 Request.prototype.getHeader = function (name, headers) {
   var self = this
