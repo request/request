@@ -152,6 +152,8 @@ Several alternative interfaces are provided by the request team, including:
 - [`request-promise-native`](https://github.com/request/request-promise-native) (uses native Promises)
 - [`request-promise-any`](https://github.com/request/request-promise-any) (uses [any-promise](https://www.npmjs.com/package/any-promise) Promises)
 
+Also, [`util.promisify`](https://nodejs.org/api/util.html#util_util_promisify_original), which is available from Node.js v8.0 can be used to convert a regular function that takes a callback to return a promise instead.
+
 
 [back to top](#table-of-contents)
 
