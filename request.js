@@ -234,7 +234,15 @@ Request.prototype.init = function (options) {
 
   // If a string URI/URL was given, parse it into a URL object
   if (typeof self.uri === 'string') {
-    self.uri = url.parse(self.uri)
+    var tempUri = self.uri
+    // Encode path if needed
+    var parts = url.parse(tempUri)
+    if (parts.pathname && parts.host !== 'unix') {
+      // Prevent double encoding
+      parts.pathname = encodeURI(decodeURI(parts.pathname))
+      tempUri = url.format(parts)
+    }
+    self.uri = url.parse(tempUri)
   }
 
   // Some URL objects are not from a URL parsed string and need href added
