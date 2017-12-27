@@ -530,10 +530,9 @@ Request.prototype.init = function (options) {
           try {
             self._form.pipe(self)
           } catch (err) {
-            if (options.callback) {
-              self.abort()
-              return options.callback(err)
-            }
+            self.abort()
+            options.callback && options.callback(err)
+            return
           }
         }
       }
