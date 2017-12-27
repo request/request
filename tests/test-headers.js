@@ -203,7 +203,9 @@ tape('catch invalid characters error - POST', function (t) {
   })
 })
 
-tape('IPv6 Host header', function (t) {
+// IPv6 is disabled on Travis
+var skipOnTravis = process.env.TRAVIS ? tape.skip : tape
+skipOnTravis('IPv6 Host header', function (t) {
   // Horrible hack to observe the raw data coming to the server
   var rawData = ''
 
