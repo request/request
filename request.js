@@ -526,10 +526,14 @@ Request.prototype.init = function (options) {
 
     var end = function () {
       if (self._form) {
-        if (!self._auth.hasAuth) {
-          self._form.pipe(self)
-        } else if (self._auth.hasAuth && self._auth.sentAuth) {
-          self._form.pipe(self)
+        if (!self._auth.hasAuth || (self._auth.hasAuth && self._auth.sentAuth)) {
+          try {
+            self._form.pipe(self)
+          } catch (err) {
+            if (options.callback) {
+              return options.callback(err)
+            }
+          }
         }
       }
       if (self._multipart && self._multipart.chunked) {
