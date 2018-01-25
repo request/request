@@ -1,27 +1,27 @@
 'use strict'
 
 var http = require('http')
-  , https = require('https')
-  , destroyable = require('server-destroy')
-  , server = require('./server')
-  , request = require('../index')
-  , tape = require('tape')
+var https = require('https')
+var destroyable = require('server-destroy')
+var server = require('./server')
+var request = require('../index')
+var tape = require('tape')
 
-var faux_requests_made
+var fauxRequestsMade
 
-function clear_faux_requests() {
-  faux_requests_made = { http: 0, https: 0 }
+function clearFauxRequests () {
+  fauxRequestsMade = { http: 0, https: 0 }
 }
 
-function wrap_request(name, module) {
+function wrapRequest (name, module) {
   // Just like the http or https module, but note when a request is made.
   var wrapped = {}
-  Object.keys(module).forEach(function(key) {
+  Object.keys(module).forEach(function (key) {
     var value = module[key]
 
     if (key === 'request') {
-      wrapped[key] = function(/*options, callback*/) {
-        faux_requests_made[name] += 1
+      wrapped[key] = function (/* options, callback */) {
+        fauxRequestsMade[name] += 1
         return value.apply(this, arguments)
       }
     } else {
@@ -32,32 +32,32 @@ function wrap_request(name, module) {
   return wrapped
 }
 
-var faux_http = wrap_request('http', http)
-  , faux_https = wrap_request('https', https)
-  , plain_server = server.createServer()
-  , https_server = server.createSSLServer()
+var fauxHTTP = wrapRequest('http', http)
+var fauxHTTPS = wrapRequest('https', https)
+var plainServer = server.createServer()
+var httpsServer = server.createSSLServer()
 
-destroyable(plain_server)
-destroyable(https_server)
+destroyable(plainServer)
+destroyable(httpsServer)
 
-tape('setup', function(t) {
-  plain_server.listen(plain_server.port, function() {
-    plain_server.on('/plain', function (req, res) {
+tape('setup', function (t) {
+  plainServer.listen(0, function () {
+    plainServer.on('/plain', function (req, res) {
       res.writeHead(200)
       res.end('plain')
     })
-    plain_server.on('/to_https', function (req, res) {
-      res.writeHead(301, { 'location': 'https://localhost:' + https_server.port + '/https' })
+    plainServer.on('/to_https', function (req, res) {
+      res.writeHead(301, { 'location': 'https://localhost:' + httpsServer.port + '/https' })
       res.end()
     })
 
-    https_server.listen(https_server.port, function() {
-      https_server.on('/https', function (req, res) {
+    httpsServer.listen(0, function () {
+      httpsServer.on('/https', function (req, res) {
         res.writeHead(200)
         res.end('https')
       })
-      https_server.on('/to_plain', function (req, res) {
-        res.writeHead(302, { 'location': 'http://localhost:' + plain_server.port + '/plain' })
+      httpsServer.on('/to_plain', function (req, res) {
+        res.writeHead(302, { 'location': 'http://localhost:' + plainServer.port + '/plain' })
         res.end()
       })
 
@@ -66,30 +66,30 @@ tape('setup', function(t) {
   })
 })
 
-function run_tests(name, httpModules) {
-  tape(name, function(t) {
-    var to_https = 'http://localhost:' + plain_server.port + '/to_https'
-      , to_plain = 'https://localhost:' + https_server.port + '/to_plain'
-      , options = { httpModules: httpModules, strictSSL: false }
-      , modulesTest = httpModules || {}
+function runTests (name, httpModules) {
+  tape(name, function (t) {
+    var toHttps = 'http://localhost:' + plainServer.port + '/to_https'
+    var toPlain = 'https://localhost:' + httpsServer.port + '/to_plain'
+    var options = { httpModules: httpModules, strictSSL: false }
+    var modulesTest = httpModules || {}
 
-    clear_faux_requests()
+    clearFauxRequests()
 
-    request(to_https, options, function (err, res, body) {
+    request(toHttps, options, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.equal(body, 'https', 'Received HTTPS server body')
 
-      t.equal(faux_requests_made.http,  modulesTest['http:' ] ? 1 : 0)
-      t.equal(faux_requests_made.https, modulesTest['https:'] ? 1 : 0)
+      t.equal(fauxRequestsMade.http, modulesTest['http:'] ? 1 : 0)
+      t.equal(fauxRequestsMade.https, modulesTest['https:'] ? 1 : 0)
 
-      request(to_plain, options, function (err, res, body) {
+      request(toPlain, options, function (err, res, body) {
         t.equal(err, null)
         t.equal(res.statusCode, 200)
         t.equal(body, 'plain', 'Received HTTPS server body')
 
-        t.equal(faux_requests_made.http,  modulesTest['http:' ] ? 2 : 0)
-        t.equal(faux_requests_made.https, modulesTest['https:'] ? 2 : 0)
+        t.equal(fauxRequestsMade.http, modulesTest['http:'] ? 2 : 0)
+        t.equal(fauxRequestsMade.https, modulesTest['https:'] ? 2 : 0)
 
         t.end()
       })
@@ -97,15 +97,15 @@ function run_tests(name, httpModules) {
   })
 }
 
-run_tests('undefined')
-run_tests('empty', {})
-run_tests('http only', { 'http:': faux_http })
-run_tests('https only', { 'https:': faux_https })
-run_tests('http and https', { 'http:': faux_http, 'https:': faux_https })
+runTests('undefined')
+runTests('empty', {})
+runTests('http only', { 'http:': fauxHTTP })
+runTests('https only', { 'https:': fauxHTTPS })
+runTests('http and https', { 'http:': fauxHTTP, 'https:': fauxHTTPS })
 
-tape('cleanup', function(t) {
-  plain_server.destroy(function() {
-    https_server.destroy(function() {
+tape('cleanup', function (t) {
+  plainServer.destroy(function () {
+    httpsServer.destroy(function () {
       t.end()
     })
   })

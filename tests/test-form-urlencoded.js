@@ -1,14 +1,11 @@
 'use strict'
 
 var http = require('http')
-  , request = require('../index')
-  , tape = require('tape')
-
+var request = require('../index')
+var tape = require('tape')
 
 function runTest (t, options, index) {
-
-  var server = http.createServer(function(req, res) {
-
+  var server = http.createServer(function (req, res) {
     if (index === 0 || index === 3) {
       t.equal(req.headers['content-type'], 'application/x-www-form-urlencoded')
     } else {
@@ -20,11 +17,11 @@ function runTest (t, options, index) {
     var data = ''
     req.setEncoding('utf8')
 
-    req.on('data', function(d) {
+    req.on('data', function (d) {
       data += d
     })
 
-    req.on('end', function() {
+    req.on('end', function () {
       t.equal(data, 'some=url&encoded=data')
 
       res.writeHead(200)
@@ -32,13 +29,13 @@ function runTest (t, options, index) {
     })
   })
 
-  server.listen(6767, function() {
-
-    var r = request.post('http://localhost:6767', options, function(err, res, body) {
+  server.listen(0, function () {
+    var url = 'http://localhost:' + this.address().port
+    var r = request.post(url, options, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.equal(body, 'done')
-      server.close(function() {
+      server.close(function () {
         t.end()
       })
     })
@@ -70,7 +67,7 @@ var cases = [
 ]
 
 cases.forEach(function (options, index) {
-  tape('application/x-www-form-urlencoded ' + index, function(t) {
+  tape('application/x-www-form-urlencoded ' + index, function (t) {
     runTest(t, options, index)
   })
 })

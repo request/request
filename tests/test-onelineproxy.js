@@ -1,11 +1,11 @@
 'use strict'
 
 var http = require('http')
-  , assert = require('assert')
-  , request = require('../index')
-  , tape = require('tape')
+var assert = require('assert')
+var request = require('../index')
+var tape = require('tape')
 
-var server = http.createServer(function(req, resp) {
+var server = http.createServer(function (req, resp) {
   resp.statusCode = 200
   if (req.url === '/get') {
     assert.equal(req.method, 'GET')
@@ -16,10 +16,10 @@ var server = http.createServer(function(req, resp) {
   if (req.url === '/put') {
     var x = ''
     assert.equal(req.method, 'PUT')
-    req.on('data', function(chunk) {
+    req.on('data', function (chunk) {
       x += chunk
     })
-    req.on('end', function() {
+    req.on('end', function () {
       assert.equal(x, 'content')
       resp.write('success')
       resp.end()
@@ -28,24 +28,25 @@ var server = http.createServer(function(req, resp) {
   }
   if (req.url === '/proxy') {
     assert.equal(req.method, 'PUT')
-    req.pipe(request('http://localhost:6767/put')).pipe(resp)
+    req.pipe(request(server.url + '/put')).pipe(resp)
     return
   }
   if (req.url === '/test') {
-    request('http://localhost:6767/get').pipe(request.put('http://localhost:6767/proxy')).pipe(resp)
+    request(server.url + '/get').pipe(request.put(server.url + '/proxy')).pipe(resp)
     return
   }
   throw new Error('Unknown url', req.url)
 })
 
-tape('setup', function(t) {
-  server.listen(6767, function() {
+tape('setup', function (t) {
+  server.listen(0, function () {
+    server.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('chained one-line proxying', function(t) {
-  request('http://localhost:6767/test', function(err, res, body) {
+tape('chained one-line proxying', function (t) {
+  request(server.url + '/test', function (err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, 'success')
@@ -53,8 +54,8 @@ tape('chained one-line proxying', function(t) {
   })
 })
 
-tape('cleanup', function(t) {
-  server.close(function() {
+tape('cleanup', function (t) {
+  server.close(function () {
     t.end()
   })
 })

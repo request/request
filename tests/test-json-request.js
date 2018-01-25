@@ -1,19 +1,19 @@
 'use strict'
 
 var server = require('./server')
-  , request = require('../index')
-  , tape = require('tape')
+var request = require('../index')
+var tape = require('tape')
 
 var s = server.createServer()
 
-tape('setup', function(t) {
-  s.listen(s.port, function() {
+tape('setup', function (t) {
+  s.listen(0, function () {
     t.end()
   })
 })
 
-function testJSONValue(testId, value) {
-  tape('test ' + testId, function(t) {
+function testJSONValue (testId, value) {
+  tape('test ' + testId, function (t) {
     var testUrl = '/' + testId
     s.on(testUrl, server.createPostJSONValidator(value, 'application/json'))
     var opts = {
@@ -31,8 +31,8 @@ function testJSONValue(testId, value) {
   })
 }
 
-function testJSONValueReviver(testId, value, reviver, revivedValue) {
-  tape('test ' + testId, function(t) {
+function testJSONValueReviver (testId, value, reviver, revivedValue) {
+  tape('test ' + testId, function (t) {
     var testUrl = '/' + testId
     s.on(testUrl, server.createPostJSONValidator(value, 'application/json'))
     var opts = {
@@ -51,8 +51,8 @@ function testJSONValueReviver(testId, value, reviver, revivedValue) {
   })
 }
 
-function testJSONValueReplacer(testId, value, replacer, replacedValue) {
-  tape('test ' + testId, function(t) {
+function testJSONValueReplacer (testId, value, replacer, replacedValue) {
+  tape('test ' + testId, function (t) {
     var testUrl = '/' + testId
     s.on(testUrl, server.createPostJSONValidator(replacedValue, 'application/json'))
     var opts = {
@@ -95,24 +95,23 @@ testJSONValueReviver('jsonReviverInvalid', -48269.592, 'invalid reviver', -48269
 testJSONValueReplacer('jsonReplacer', -48269.592, function (k, v) {
   return v * -1
 }, 48269.592)
-testJSONValueReplacer('jsonReplacerInvalid', -48269.592,'invalid replacer', -48269.592) 
+testJSONValueReplacer('jsonReplacerInvalid', -48269.592, 'invalid replacer', -48269.592)
 testJSONValueReplacer('jsonReplacerObject', {foo: 'bar'}, function (k, v) {
   return v.toUpperCase ? v.toUpperCase() : v
 }, {foo: 'BAR'})
-
 
 tape('missing body', function (t) {
   s.on('/missing-body', function (req, res) {
     t.equal(req.headers['content-type'], undefined)
     res.end()
   })
-  request({url:s.url + '/missing-body', json:true}, function () {
+  request({url: s.url + '/missing-body', json: true}, function () {
     t.end()
   })
 })
 
-tape('cleanup', function(t) {
-  s.close(function() {
+tape('cleanup', function (t) {
+  s.close(function () {
     t.end()
   })
 })

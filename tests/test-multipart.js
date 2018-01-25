@@ -1,18 +1,17 @@
 'use strict'
 
 var http = require('http')
-  , path = require('path')
-  , request = require('../index')
-  , fs = require('fs')
-  , tape = require('tape')
+var path = require('path')
+var request = require('../index')
+var fs = require('fs')
+var tape = require('tape')
 
-
-function runTest(t, a) {
+function runTest (t, a) {
   var remoteFile = path.join(__dirname, 'googledoodle.jpg')
-    , localFile = path.join(__dirname, 'unicycle.jpg')
-    , multipartData = []
+  var localFile = path.join(__dirname, 'unicycle.jpg')
+  var multipartData = []
 
-  var server = http.createServer(function(req, res) {
+  var server = http.createServer(function (req, res) {
     if (req.url === '/file') {
       res.writeHead(200, {'content-type': 'image/jpg'})
       res.end(fs.readFileSync(remoteFile), 'binary')
@@ -34,17 +33,17 @@ function runTest(t, a) {
     var data = ''
     req.setEncoding('utf8')
 
-    req.on('data', function(d) {
+    req.on('data', function (d) {
       data += d
     })
 
-    req.on('end', function() {
+    req.on('end', function () {
       // check for the fields traces
 
       // my_field
       t.ok(data.indexOf('name: my_field') !== -1)
       t.ok(data.indexOf(multipartData[0].body) !== -1)
-      
+
       // my_number
       t.ok(data.indexOf('name: my_number') !== -1)
       t.ok(data.indexOf(multipartData[1].body) !== -1)
@@ -60,7 +59,7 @@ function runTest(t, a) {
 
       // remote_file
       t.ok(data.indexOf('name: remote_file') !== -1)
-      // check for http://localhost:6767/file traces
+      // check for http://localhost:nnnn/file traces
       t.ok(data.indexOf('Photoshop ICC') !== -1)
 
       if (a.header && a.header.indexOf('boundary=XXX') !== -1) {
@@ -72,19 +71,19 @@ function runTest(t, a) {
     })
   })
 
-  server.listen(6767, function() {
-
+  server.listen(0, function () {
+    var url = 'http://localhost:' + this.address().port
     // @NOTE: multipartData properties must be set here so that my_file read stream does not leak in node v0.8
     multipartData = [
       {name: 'my_field', body: 'my_value'},
       {name: 'my_number', body: 1000},
       {name: 'my_buffer', body: new Buffer([1, 2, 3])},
       {name: 'my_file', body: fs.createReadStream(localFile)},
-      {name: 'remote_file', body: request('http://localhost:6767/file')}
+      {name: 'remote_file', body: request(url + '/file')}
     ]
 
     var reqOptions = {
-      url: 'http://localhost:6767/upload',
+      url: url + '/upload',
       multipart: multipartData
     }
     if (a.header) {
@@ -99,7 +98,7 @@ function runTest(t, a) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.deepEqual(body, a.json ? {status: 'done'} : 'done')
-      server.close(function() {
+      server.close(function () {
         t.end()
       })
     })
@@ -113,16 +112,16 @@ var testHeaders = [
 ]
 
 var methods = ['post', 'get']
-methods.forEach(function(method) {
-  testHeaders.forEach(function(header) {
-    [true, false].forEach(function(json) {
+methods.forEach(function (method) {
+  testHeaders.forEach(function (header) {
+    [true, false].forEach(function (json) {
       var name = [
         'multipart-related', method.toUpperCase(),
         (header || 'default'),
         (json ? '+' : '-') + 'json'
       ].join(' ')
 
-      tape(name, function(t) {
+      tape(name, function (t) {
         runTest(t, {method: method, header: header, json: json})
       })
     })

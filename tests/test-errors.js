@@ -1,19 +1,19 @@
 'use strict'
 
 var request = require('../index')
-  , tape = require('tape')
+var tape = require('tape')
 
-var local = 'http://localhost:8888/asdf'
+var local = 'http://localhost:0/asdf'
 
-tape('without uri', function(t) {
-  t.throws(function() {
+tape('without uri', function (t) {
+  t.throws(function () {
     request({})
   }, /^Error: options\.uri is a required argument$/)
   t.end()
 })
 
-tape('invalid uri 1', function(t) {
-  t.throws(function() {
+tape('invalid uri 1', function (t) {
+  t.throws(function () {
     request({
       uri: 'this-is-not-a-valid-uri'
     })
@@ -21,8 +21,8 @@ tape('invalid uri 1', function(t) {
   t.end()
 })
 
-tape('invalid uri 2', function(t) {
-  t.throws(function() {
+tape('invalid uri 2', function (t) {
+  t.throws(function () {
     request({
       uri: 'github.com/uri-is-not-valid-without-protocol'
     })
@@ -30,9 +30,9 @@ tape('invalid uri 2', function(t) {
   t.end()
 })
 
-tape('invalid uri + NO_PROXY', function(t) {
+tape('invalid uri + NO_PROXY', function (t) {
   process.env.NO_PROXY = 'google.com'
-  t.throws(function() {
+  t.throws(function () {
     request({
       uri: 'invalid'
     })
@@ -41,8 +41,8 @@ tape('invalid uri + NO_PROXY', function(t) {
   t.end()
 })
 
-tape('deprecated unix URL', function(t) {
-  t.throws(function() {
+tape('deprecated unix URL', function (t) {
+  t.throws(function () {
     request({
       uri: 'unix://path/to/socket/and/then/request/path'
     })
@@ -50,8 +50,8 @@ tape('deprecated unix URL', function(t) {
   t.end()
 })
 
-tape('invalid body', function(t) {
-  t.throws(function() {
+tape('invalid body', function (t) {
+  t.throws(function () {
     request({
       uri: local, body: {}
     })
@@ -59,8 +59,8 @@ tape('invalid body', function(t) {
   t.end()
 })
 
-tape('invalid multipart', function(t) {
-  t.throws(function() {
+tape('invalid multipart', function (t) {
+  t.throws(function () {
     request({
       uri: local,
       multipart: 'foo'
@@ -69,8 +69,8 @@ tape('invalid multipart', function(t) {
   t.end()
 })
 
-tape('multipart without body 1', function(t) {
-  t.throws(function() {
+tape('multipart without body 1', function (t) {
+  t.throws(function () {
     request({
       uri: local,
       multipart: [ {} ]
@@ -79,8 +79,8 @@ tape('multipart without body 1', function(t) {
   t.end()
 })
 
-tape('multipart without body 2', function(t) {
-  t.throws(function() {
+tape('multipart without body 2', function (t) {
+  t.throws(function () {
     request(local, {
       multipart: [ {} ]
     })
@@ -88,8 +88,8 @@ tape('multipart without body 2', function(t) {
   t.end()
 })
 
-tape('head method with a body', function(t) {
-  t.throws(function() {
+tape('head method with a body', function (t) {
+  t.throws(function () {
     request(local, {
       method: 'HEAD',
       body: 'foo'
@@ -98,8 +98,8 @@ tape('head method with a body', function(t) {
   t.end()
 })
 
-tape('head method with a body 2', function(t) {
-  t.throws(function() {
+tape('head method with a body 2', function (t) {
+  t.throws(function () {
     request.head(local, {
       body: 'foo'
     })

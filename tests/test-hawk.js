@@ -1,13 +1,13 @@
 'use strict'
 
 var http = require('http')
-  , request = require('../index')
-  , hawk = require('hawk')
-  , tape = require('tape')
-  , assert = require('assert')
+var request = require('../index')
+var hawk = require('hawk')
+var tape = require('tape')
+var assert = require('assert')
 
-var server = http.createServer(function(req, res) {
-  var getCred = function(id, callback) {
+var server = http.createServer(function (req, res) {
+  var getCred = function (id, callback) {
     assert.equal(id, 'dh37fgj492je')
     var credentials = {
       key: 'werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn',
@@ -17,7 +17,7 @@ var server = http.createServer(function(req, res) {
     return callback(null, credentials)
   }
 
-  hawk.server.authenticate(req, getCred, {}, function(err, credentials, attributes) {
+  hawk.server.authenticate(req, getCred, {}, function (err, credentials, attributes) {
     res.writeHead(err ? 401 : 200, {
       'Content-Type': 'text/plain'
     })
@@ -25,21 +25,22 @@ var server = http.createServer(function(req, res) {
   })
 })
 
-tape('setup', function(t) {
-  server.listen(6767, function() {
+tape('setup', function (t) {
+  server.listen(0, function () {
+    server.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('hawk', function(t) {
+tape('hawk', function (t) {
   var creds = {
     key: 'werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn',
     algorithm: 'sha256',
     id: 'dh37fgj492je'
   }
-  request('http://localhost:6767', {
+  request(server.url, {
     hawk: { credentials: creds }
-  }, function(err, res, body) {
+  }, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, 'Hello Steve')
@@ -47,8 +48,8 @@ tape('hawk', function(t) {
   })
 })
 
-tape('cleanup', function(t) {
-  server.close(function() {
+tape('cleanup', function (t) {
+  server.close(function () {
     t.end()
   })
 })

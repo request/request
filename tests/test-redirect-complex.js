@@ -1,27 +1,29 @@
 'use strict'
 
 var server = require('./server')
-  , request = require('../index')
-  , events = require('events')
-  , tape = require('tape')
-  , destroyable = require('server-destroy')
+var request = require('../index')
+var events = require('events')
+var tape = require('tape')
+var destroyable = require('server-destroy')
 
 var s = server.createServer()
-  , ss = server.createSSLServer()
-  , e = new events.EventEmitter()
+var ss = server.createSSLServer()
+var e = new events.EventEmitter()
 
 destroyable(s)
 destroyable(ss)
 
-function bouncy(s, serverUrl) {
-  var redirs = { a: 'b'
-               , b: 'c'
-               , c: 'd'
-               , d: 'e'
-               , e: 'f'
-               , f: 'g'
-               , g: 'h'
-               , h: 'end' }
+function bouncy (s, serverUrl) {
+  var redirs = {
+    a: 'b',
+    b: 'c',
+    c: 'd',
+    d: 'e',
+    e: 'f',
+    f: 'g',
+    g: 'h',
+    h: 'end'
+  }
 
   var perm = true
   Object.keys(redirs).forEach(function (p) {
@@ -31,7 +33,7 @@ function bouncy(s, serverUrl) {
     var type = perm ? 301 : 302
     perm = !perm
     s.on('/' + p, function (req, res) {
-      setTimeout(function() {
+      setTimeout(function () {
         res.writeHead(type, { location: serverUrl + '/' + t })
         res.end()
       }, Math.round(Math.random() * 25))
@@ -46,33 +48,33 @@ function bouncy(s, serverUrl) {
   })
 }
 
-tape('setup', function(t) {
-  s.listen(s.port, function() {
-    bouncy(s, ss.url)
-    ss.listen(ss.port, function() {
+tape('setup', function (t) {
+  s.listen(0, function () {
+    ss.listen(0, function () {
+      bouncy(s, ss.url)
       bouncy(ss, s.url)
       t.end()
     })
   })
 })
 
-tape('lots of redirects', function(t) {
+tape('lots of redirects', function (t) {
   var n = 10
   t.plan(n * 4)
 
-  function doRedirect(i) {
+  function doRedirect (i) {
     var key = 'test_' + i
     request({
       url: (i % 2 ? s.url : ss.url) + '/a',
       headers: { 'x-test-key': key },
       rejectUnauthorized: false
-    }, function(err, res, body) {
+    }, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.equal(body, key)
     })
 
-    e.once('hit-' + key, function(v) {
+    e.once('hit-' + key, function (v) {
       t.equal(v, key)
     })
   }
@@ -82,9 +84,9 @@ tape('lots of redirects', function(t) {
   }
 })
 
-tape('cleanup', function(t) {
-  s.destroy(function() {
-    ss.destroy(function() {
+tape('cleanup', function (t) {
+  s.destroy(function () {
+    ss.destroy(function () {
       t.end()
     })
   })
