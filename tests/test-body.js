@@ -67,8 +67,16 @@ addTest('testPutString', {
   resp: server.createPostValidator('PUTTINGDATA'), method: 'PUT', body: 'PUTTINGDATA'
 })
 
+addTest('testPutEmptyString', {
+  resp: server.createPostValidator(''), method: 'PUT', body: ''
+})
+
 addTest('testPutBuffer', {
   resp: server.createPostValidator('PUTTINGDATA'), method: 'PUT', body: new Buffer('PUTTINGDATA')
+})
+
+addTest('testPutEmptyBuffer', {
+  resp: server.createPostValidator(''), method: 'PUT', body: new Buffer('')
 })
 
 addTest('testPutJSON', {
