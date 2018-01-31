@@ -111,6 +111,12 @@ function addTests () {
       t.equal(req.headers['proxy-authorization'], 'Basic dXNlcjpwYXNz')
     })
 
+    runTest('proxy auth without pass', {
+      proxy: 'http://user@localhost:' + s.port
+    }, function (t, req, res) {
+      t.equal(req.headers['proxy-authorization'], 'Basic dXNlcjo=')
+    })
+
     // http: urls and basic proxy settings
 
     runTest('HTTP_PROXY environment variable and http: url', {

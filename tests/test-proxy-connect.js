@@ -34,6 +34,8 @@ tape('setup', function (t) {
 })
 
 tape('proxy', function (t) {
+  data = ''
+
   request({
     tunnel: true,
     url: 'http://' + proxiedHost,
@@ -66,6 +68,60 @@ tape('proxy', function (t) {
       'accept: yo',
       'user-agent: just another foobar',
       'host: google.com'
+    ].join('\r\n'))
+    t.equal(true, re.test(data))
+    t.equal(called, true, 'the request must be made to the proxy server')
+    t.end()
+  })
+})
+
+tape('proxy auth in url', function (t) {
+  data = ''
+
+  request({
+    tunnel: true,
+    url: 'http://' + proxiedHost,
+    proxy: s.url.replace('://', '://user:pass@')
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'derp\n')
+    var re = new RegExp([
+      'CONNECT google.com:80 HTTP/1.1',
+      'host: google.com:80',
+      'Proxy-Authorization: Basic dXNlcjpwYXNz',
+      'Connection: close',
+      '',
+      'GET / HTTP/1.1',
+      'host: google.com',
+      'Connection: close' // Not sure why it's sent here but not above
+    ].join('\r\n'))
+    t.equal(true, re.test(data))
+    t.equal(called, true, 'the request must be made to the proxy server')
+    t.end()
+  })
+})
+
+tape('proxy auth in url without password', function (t) {
+  data = ''
+
+  request({
+    tunnel: true,
+    url: 'http://' + proxiedHost,
+    proxy: s.url.replace('://', '://user@')
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'derp\n')
+    var re = new RegExp([
+      'CONNECT google.com:80 HTTP/1.1',
+      'host: google.com:80',
+      'Proxy-Authorization: Basic dXNlcjo=',
+      'Connection: close',
+      '',
+      'GET / HTTP/1.1',
+      'host: google.com',
+      'Connection: close' // Not sure why it's sent here but not above
     ].join('\r\n'))
     t.equal(true, re.test(data))
     t.equal(called, true, 'the request must be made to the proxy server')

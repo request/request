@@ -105,6 +105,19 @@ tape('credentials in url', function (t) {
   })
 })
 
+tape('credentials in url without pass', function (t) {
+  var r = request({
+    'method': 'GET',
+    'uri': basicServer.url.replace(/:\/\//, '$&user@') + '/test2/'
+  }, function (error, res, body) {
+    t.error(error)
+    t.equal(r._auth.user, 'user')
+    t.equal(res.statusCode, 200)
+    t.equal(numBasicRequests, 5)
+    t.end()
+  })
+})
+
 tape('POST request', function (t) {
   var r = request({
     'method': 'POST',
@@ -119,7 +132,7 @@ tape('POST request', function (t) {
     t.error(error)
     t.equal(r._auth.user, 'user')
     t.equal(res.statusCode, 200)
-    t.equal(numBasicRequests, 6)
+    t.equal(numBasicRequests, 7)
     t.end()
   })
 })
@@ -138,7 +151,7 @@ tape('user - empty string', function (t) {
       t.error(error)
       t.equal(r._auth.user, '')
       t.equal(res.statusCode, 200)
-      t.equal(numBasicRequests, 8)
+      t.equal(numBasicRequests, 9)
       t.end()
     })
   })
@@ -158,7 +171,7 @@ tape('pass - undefined', function (t) {
       t.error(error)
       t.equal(r._auth.user, 'user')
       t.equal(res.statusCode, 200)
-      t.equal(numBasicRequests, 10)
+      t.equal(numBasicRequests, 11)
       t.end()
     })
   })
@@ -179,7 +192,7 @@ tape('pass - utf8', function (t) {
       t.equal(r._auth.user, 'user')
       t.equal(r._auth.pass, 'pâss')
       t.equal(res.statusCode, 200)
-      t.equal(numBasicRequests, 12)
+      t.equal(numBasicRequests, 13)
       t.end()
     })
   })
@@ -192,7 +205,7 @@ tape('auth method', function (t) {
     .on('response', function (res) {
       t.equal(r._auth.user, 'user')
       t.equal(res.statusCode, 200)
-      t.equal(numBasicRequests, 14)
+      t.equal(numBasicRequests, 15)
       t.end()
     })
 })
@@ -209,7 +222,7 @@ tape('get method', function (t) {
       t.equal(r._auth.user, 'user')
       t.equal(err, null)
       t.equal(res.statusCode, 200)
-      t.equal(numBasicRequests, 16)
+      t.equal(numBasicRequests, 17)
       t.end()
     })
 })
