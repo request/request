@@ -33,7 +33,7 @@
     "combined-stream": "~1.0.5",
     "extend": "~3.0.1",
     "forever-agent": "~0.6.1",
-    "form-data": "~2.3.1",
+    "form-data": "~2.3.2",
     "har-validator": "~5.0.3",
     "hawk": "~6.0.2",
     "http-signature": "~1.2.0",
