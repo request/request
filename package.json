@@ -35,7 +35,7 @@
     "forever-agent": "~0.6.1",
     "form-data": "~2.3.1",
     "har-validator": "~5.0.3",
-    "hawk": "~6.0.2",
+    "hawk": "~7.0.0",
     "http-signature": "~1.2.0",
     "is-typedarray": "~1.0.0",
     "isstream": "~0.1.2",
