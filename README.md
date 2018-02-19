@@ -781,6 +781,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 - `followAllRedirects` - follow non-GET HTTP 3xx responses as redirects (default: `false`)
 - `followOriginalHttpMethod` - by default we redirect to HTTP method GET. you can enable this property to redirect to the original HTTP method (default: `false`)
 - `maxRedirects` - the maximum number of redirects to follow (default: `10`)
+- `redirectLocationTrusted` - if a redirect causes a domain change then the authorization header is, by default, prevented from being sent to the new location. If this option is set to true then the authorization header will be retained.
 - `removeRefererHeader` - removes the referer header when a redirect happens (default: `false`). **Note:** if true, referer header set in the initial request is preserved during redirect chain.
 
 ---

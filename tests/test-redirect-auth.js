@@ -5,6 +5,7 @@ var request = require('../index')
 var util = require('util')
 var tape = require('tape')
 var destroyable = require('server-destroy')
+var extend = require('extend')
 
 var s = server.createServer()
 var ss = server.createSSLServer()
@@ -66,9 +67,10 @@ function handleRequests (srv) {
 handleRequests(s)
 handleRequests(ss)
 
-function runTest (name, redir, expectAuth) {
+function runTest (name, redir, additionalOpts, expectAuth) {
   tape('redirect to ' + name, function (t) {
-    request(redir.src, function (err, res, body) {
+    var opts = extend({url: redir.src}, additionalOpts)
+    request(opts, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.request.uri.href, redir.dst)
       t.equal(res.statusCode, 200)
@@ -83,19 +85,33 @@ function runTest (name, redir, expectAuth) {
 function addTests () {
   runTest('same host and protocol',
     redirect.from('http', 'localhost').to('http', 'localhost'),
+    {},
     true)
 
   runTest('same host different protocol',
     redirect.from('http', 'localhost').to('https', 'localhost'),
+    {},
     true)
 
   runTest('different host same protocol',
     redirect.from('https', '127.0.0.1').to('https', 'localhost'),
+    {},
     false)
 
   runTest('different host and protocol',
     redirect.from('http', 'localhost').to('https', '127.0.0.1'),
+    {},
     false)
+
+  runTest('different host same protocol, redirectLocationTrusted enabled',
+    redirect.from('https', '127.0.0.1').to('https', 'localhost'),
+    {redirectLocationTrusted: true},
+    true)
+
+  runTest('different host and protocol, redirectLocationTrusted enabled',
+    redirect.from('http', 'localhost').to('https', '127.0.0.1'),
+    {redirectLocationTrusted: true},
+    true)
 }
 
 tape('setup', function (t) {
