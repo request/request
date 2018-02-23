@@ -1426,7 +1426,7 @@ Request.prototype.httpSignature = function (opts) {
 }
 Request.prototype.hawk = function (opts) {
   var self = this
-  self.setHeader('Authorization', hawk.client.header(self.uri, self.method, opts).field)
+  self.setHeader('Authorization', hawk.client.header(self.uri, self.method, opts).header)
 }
 Request.prototype.oauth = function (_oauth) {
   var self = this
