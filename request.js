@@ -205,7 +205,7 @@ Request.prototype.init = function (options) {
       return self.emit('error', new Error('options.uri must be a string when using options.baseUrl'))
     }
 
-    if (self.uri.indexOf('//') === 0 || self.uri.indexOf('://') !== -1) {
+    if (self.uri.indexOf('//') === 0 || self.uri.match(/^\w+:\/\//)) {
       return self.emit('error', new Error('options.uri must be a path when using options.baseUrl'))
     }
 

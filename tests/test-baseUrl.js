@@ -131,3 +131,12 @@ tape('error on baseUrl and uri with scheme-relative url', function (t) {
     t.end()
   })
 })
+
+tape('no error when scheme occurs later in path', function (t) {
+  request('/login?next=http://yourhome.com', {
+    baseUrl: s.url + '/path/'
+  }, function (err, resp, body) {
+    t.equal(err, null)
+    t.end()
+  })
+})
