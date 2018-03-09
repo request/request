@@ -1360,13 +1360,16 @@ Request.prototype.aws = function (opts, now) {
 
   if (opts.sign_version === 4 || opts.sign_version === '4') {
     // use aws4
+    var headers = {
+      'content-type': self.getHeader('content-type') || ''
+    }
+    Object.assign(headers, opts.headers)
+
     var options = {
       host: self.uri.host,
       path: self.uri.path,
       method: self.method,
-      headers: {
-        'content-type': self.getHeader('content-type') || ''
-      },
+      headers,
       body: self.body,
       service: opts.service,
       region: opts.region
