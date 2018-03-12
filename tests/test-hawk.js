@@ -7,24 +7,22 @@ var tape = require('tape')
 var assert = require('assert')
 
 var server = http.createServer(function (req, res) {
-  var getCred = function (id) {
+  var getCred = function (id, callback) {
     assert.equal(id, 'dh37fgj492je')
     var credentials = {
       key: 'werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn',
       algorithm: 'sha256',
       user: 'Steve'
     }
-    return credentials
+    return callback(null, credentials)
   }
-  hawk.server.authenticate(req, getCred)
-    .then((credentials, artifacts) => {
-      res.writeHead(200, {'Content-Type': 'text/plain'})
-      res.end('Hello ' + credentials.credentials.user)
+
+  hawk.server.authenticate(req, getCred, {}, function (err, credentials, attributes) {
+    res.writeHead(err ? 401 : 200, {
+      'Content-Type': 'text/plain'
     })
-    .catch(() => {
-      res.writeHead(401, {'Content-Type': 'text/plain'})
-      res.end('Shoosh!')
-    })
+    res.end(err ? 'Shoosh!' : 'Hello ' + credentials.user)
+  })
 })
 
 tape('setup', function (t) {
