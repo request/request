@@ -1,5 +1,8 @@
 ## Change Log
 
+### v2.85.0 (2018/03/12)
+- [#2880](https://github.com/request/request/pull/2880) Revert "Update hawk to 7.0.7 (#2880)" (@simov)
+
 ### v2.84.0 (2018/03/12)
 - [#2793](https://github.com/request/request/pull/2793) Fixed calculation of oauth_body_hash, issue #2792 (@dvishniakov)
 - [#2880](https://github.com/request/request/pull/2880) Update hawk to 7.0.7 (#2880) (@kornel-kedzierski)
