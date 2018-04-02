@@ -6,7 +6,6 @@ var fs = require('fs')
 var path = require('path')
 var request = require('../index')
 var tape = require('tape')
-var crypto = require('crypto')
 var http = require('http')
 
 function getSignature (r) {
@@ -540,32 +539,42 @@ tape('body transport_method + form option + url params', function (t) {
   })
 })
 
-tape('body_hash manual built', function (t) {
-  function buildBodyHash (body) {
-    var shasum = crypto.createHash('sha1')
-    shasum.update(body || '')
-    var sha1 = shasum.digest('hex')
-    return new Buffer(sha1).toString('base64')
-  }
-
-  var json = {foo: 'bar'}
+tape('body_hash manually set', function (t) {
   var r = request.post(
     { url: 'http://example.com',
       oauth: { consumer_secret: 'consumer_secret',
-        body_hash: buildBodyHash(JSON.stringify(json))
+        body_hash: 'ManuallySetHash'
       },
-      json: json
+      json: {foo: 'bar'}
     })
 
   process.nextTick(function () {
     var hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
-    t.equal('YTVlNzQ0ZDAxNjQ1NDBkMzNiMWQ3ZWE2MTZjMjhmMmZhOTdlNzU0YQ%3D%3D', hash)
+    t.equal('ManuallySetHash', hash)
     r.abort()
     t.end()
   })
 })
 
-tape('body_hash automatic built', function (t) {
+tape('body_hash automatically built for string', function (t) {
+  var r = request.post(
+    { url: 'http://example.com',
+      oauth: { consumer_secret: 'consumer_secret',
+        body_hash: true
+      },
+      body: 'Hello World!'
+    })
+
+  process.nextTick(function () {
+    var hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
+    // from https://tools.ietf.org/id/draft-eaton-oauth-bodyhash-00.html#anchor15
+    t.equal('Lve95gjOVATpfV8EL5X4nxwjKHE%3D', hash)
+    r.abort()
+    t.end()
+  })
+})
+
+tape('body_hash automatically built for JSON', function (t) {
   var r = request.post(
     { url: 'http://example.com',
       oauth: { consumer_secret: 'consumer_secret',
@@ -576,7 +585,7 @@ tape('body_hash automatic built', function (t) {
 
   process.nextTick(function () {
     var hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
-    t.equal('YTVlNzQ0ZDAxNjQ1NDBkMzNiMWQ3ZWE2MTZjMjhmMmZhOTdlNzU0YQ%3D%3D', hash)
+    t.equal('pedE0BZFQNM7HX6mFsKPL6l%2BdUo%3D', hash)
     r.abort()
     t.end()
   })
