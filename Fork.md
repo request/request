@@ -1,6 +1,6 @@
 # Fork Guidelines
 
-This fork is meant to always follow changes in the `upstream`. 
+This fork is meant to always follow changes in the `upstream`.
 That is, there should be no changes done in this fork which would prevent drop in replacement of `postman-request` with `request`
 (and vice-versa)
 
@@ -17,10 +17,10 @@ That is, there should be no changes done in this fork which would prevent drop i
 3. Fetch commits from the upstream
 
         git fetch upstreamrepo
-        
+
 4. Checkout a local branch from the upstream master
 
-        git checkout --track upstreammaster upstreamrepo/master
+        git checkout --track upstreamrepo/master -b upstreammaster
 
 You can now merge in upstream changes as required,
 
