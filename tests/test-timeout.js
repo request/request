@@ -71,7 +71,7 @@ tape('should set host and port', function (t) {
     timeout: 100
   }
 
-  request(shouldTimeout, function(err, res, body) {
+  request(shouldTimeout, function (err, res, body) {
     checkErrCode(t, err)
     t.ok(err.host === 'localhost', 'Read Timeout Error should set \'host\' property')
     t.ok(err.port === String(s.port), 'Read Timeout Error should set \'port\' property')
