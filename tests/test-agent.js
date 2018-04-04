@@ -1,10 +1,10 @@
 'use strict'
 
 var request = require('../index')
-  , version = require('../lib/helpers').version
-  , http = require('http')
-  , ForeverAgent = require('forever-agent')
-  , tape = require('tape')
+var version = require('../lib/helpers').version
+var http = require('http')
+var ForeverAgent = require('forever-agent')
+var tape = require('tape')
 
 var s = http.createServer(function (req, res) {
   res.statusCode = 200
@@ -12,7 +12,7 @@ var s = http.createServer(function (req, res) {
 })
 
 tape('setup', function (t) {
-  s.listen(0, function() {
+  s.listen(0, function () {
     s.port = this.address().port
     s.url = 'http://localhost:' + s.port
     t.end()
@@ -21,13 +21,12 @@ tape('setup', function (t) {
 
 function httpAgent (t, options, req) {
   var r = (req || request)(options, function (_err, res, body) {
-
     t.ok(r.agent instanceof http.Agent, 'is http.Agent')
     t.equal(r.agent.options.keepAlive, true, 'is keepAlive')
     t.equal(Object.keys(r.agent.sockets).length, 1, '1 socket name')
 
     var name = (typeof r.agent.getName === 'function')
-      ? r.agent.getName({port:s.port})
+      ? r.agent.getName({port: s.port})
       : 'localhost:' + s.port // node 0.10-
     t.equal(r.agent.sockets[name].length, 1, '1 open socket')
 
@@ -42,7 +41,6 @@ function httpAgent (t, options, req) {
 
 function foreverAgent (t, options, req) {
   var r = (req || request)(options, function (_err, res, body) {
-
     t.ok(r.agent instanceof ForeverAgent, 'is ForeverAgent')
     t.equal(Object.keys(r.agent.sockets).length, 1, '1 socket name')
 
@@ -84,8 +82,7 @@ tape('options.forever = true', function (t) {
     forever: true
   }
 
-  if (v.major === 0 && v.minor <= 10) {foreverAgent(t, options)}
-  else {httpAgent(t, options)}
+  if (v.major === 0 && v.minor <= 10) { foreverAgent(t, options) } else { httpAgent(t, options) }
 })
 
 tape('forever() method', function (t) {
@@ -95,12 +92,11 @@ tape('forever() method', function (t) {
   }
   var r = request.forever({maxSockets: 1})
 
-  if (v.major === 0 && v.minor <= 10) {foreverAgent(t, options, r)}
-  else {httpAgent(t, options, r)}
+  if (v.major === 0 && v.minor <= 10) { foreverAgent(t, options, r) } else { httpAgent(t, options, r) }
 })
 
 tape('cleanup', function (t) {
-  s.close(function() {
+  s.close(function () {
     t.end()
   })
 })

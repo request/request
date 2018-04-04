@@ -1,6 +1,6 @@
 'use strict'
 var request = require('../index')
-  , tape = require('tape')
+var tape = require('tape')
 
 tape('bind to invalid address', function (t) {
   request.get({
@@ -39,7 +39,7 @@ tape('bind to local address on redirect', function (t) {
     })
   })
   request.get({
-    uri: 'http://google.com', //redirects to 'http://google.com'
+    uri: 'http://google.com', // redirects to 'http://google.com'
     localAddress: localIPS[0]
   }, function (err, res) {
     t.equal(err, null)
