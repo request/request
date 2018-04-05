@@ -1137,6 +1137,7 @@ Request.prototype.readResponseBody = function (response) {
         try {
           response.body = response.body.toString(self.encoding)
         } catch (e) {
+          e.code = 'NODE_RESPONSE_SIZE_LIMIT_REACHED'
           return self.emit('error', e)
         }
       }
