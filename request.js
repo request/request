@@ -291,8 +291,8 @@ Request.prototype.init = function (options) {
     self.setHeader(hostHeaderName, self.uri.host)
     // Drop :port suffix from Host header if known protocol.
     if (self.uri.port) {
-      if ((self.uri.port === 80 && self.uri.protocol === 'http:') ||
-          (self.uri.port === 443 && self.uri.protocol === 'https:')) {
+      if ((self.uri.port == 80 && self.uri.protocol === 'http:') ||
+          (self.uri.port == 443 && self.uri.protocol === 'https:')) {
         self.setHeader(hostHeaderName, self.uri.hostname)
       }
     }
