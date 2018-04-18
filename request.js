@@ -1331,7 +1331,7 @@ Request.prototype.getHeader = function (name, headers) {
 }
 Request.prototype.enableUnixSocket = function () {
   // Get the socket & request paths from the URL
-  const colonIndex = this.uri.path.indexOf(':')
+  var colonIndex = this.uri.path.indexOf(':')
   var host = this.uri.path.slice(0, colonIndex)
   var path = this.uri.path.slice(colonIndex + 1)
   // Apply unix properties to request
