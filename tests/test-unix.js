@@ -9,6 +9,7 @@ var tape = require('tape')
 var url = require('url')
 
 var rawPath = [null, 'raw', 'path'].join('/')
+var rawPathSearch = '?foo=bar:bar'
 var queryPath = [null, 'query', 'path'].join('/')
 var searchString = '?foo=bar'
 var socket = [__dirname, 'tmp-socket'].join('/')
@@ -21,7 +22,8 @@ var s = http.createServer(function (req, res) {
   var incomingUrl = url.parse(req.url)
   switch (incomingUrl.pathname) {
     case rawPath:
-      assert.equal(incomingUrl.pathname, rawPath, 'requested path is sent to server')
+      assert.equal(incomingUrl.pathname, rawPath, 'requested pathname is sent to server')
+      assert.equal(incomingUrl.search, rawPathSearch, 'requested search is sent to server')
       break
 
     case queryPath:
@@ -43,7 +45,7 @@ tape('setup', function (t) {
 })
 
 tape('unix socket connection', function (t) {
-  request('http://unix:' + socket + ':' + rawPath, function (err, res, body) {
+  request('http://unix:' + socket + ':' + rawPath + rawPathSearch, function (err, res, body) {
     t.equal(err, null, 'no error in connection')
     t.equal(res.statusCode, statusCode, 'got HTTP 200 OK response')
     t.equal(body, expectedBody, 'expected response body is received')
