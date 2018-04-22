@@ -5,6 +5,15 @@ var request = require('../index')
 var util = require('util')
 var tape = require('tape')
 var url = require('url')
+var os = require('os')
+
+var interfaces = os.networkInterfaces()
+var loopbackKeyTest = exports.isWindows ? /Loopback Pseudo-Interface/ : /lo/
+var hasIPv6interface = Object.keys(interfaces).some(function (name) {
+  return loopbackKeyTest.test(name) && interfaces[name].some(function (info) {
+    return info.family === 'IPv6'
+  })
+})
 
 var s = server.createServer()
 
@@ -171,6 +180,11 @@ tape('undefined headers', function (t) {
   })
 })
 
+var isExpectedHeaderCharacterError = function (headerName, err) {
+  return err.message === 'The header content contains invalid characters' ||
+    err.message === ('Invalid character in header content ["' + headerName + '"]')
+}
+
 tape('catch invalid characters error - GET', function (t) {
   request({
     url: s.url + '/headers.json',
@@ -178,10 +192,10 @@ tape('catch invalid characters error - GET', function (t) {
       'test': 'אבגד'
     }
   }, function (err, res, body) {
-    t.equal(err.message, 'The header content contains invalid characters')
+    t.true(isExpectedHeaderCharacterError('test', err))
   })
   .on('error', function (err) {
-    t.equal(err.message, 'The header content contains invalid characters')
+    t.true(isExpectedHeaderCharacterError('test', err))
     t.end()
   })
 })
@@ -195,49 +209,51 @@ tape('catch invalid characters error - POST', function (t) {
     },
     body: 'beep'
   }, function (err, res, body) {
-    t.equal(err.message, 'The header content contains invalid characters')
+    t.true(isExpectedHeaderCharacterError('test', err))
   })
   .on('error', function (err) {
-    t.equal(err.message, 'The header content contains invalid characters')
+    t.true(isExpectedHeaderCharacterError('test', err))
     t.end()
   })
 })
 
-tape('IPv6 Host header', function (t) {
-  // Horrible hack to observe the raw data coming to the server
-  var rawData = ''
+if (hasIPv6interface) {
+  tape('IPv6 Host header', function (t) {
+    // Horrible hack to observe the raw data coming to the server
+    var rawData = ''
 
-  s.on('connection', function (socket) {
-    if (socket.ondata) {
-      var ondata = socket.ondata
-    }
-    function handledata (d, start, end) {
-      if (ondata) {
-        rawData += d.slice(start, end).toString()
-        return ondata.apply(this, arguments)
-      } else {
-        rawData += d
+    s.on('connection', function (socket) {
+      if (socket.ondata) {
+        var ondata = socket.ondata
       }
+      function handledata (d, start, end) {
+        if (ondata) {
+          rawData += d.slice(start, end).toString()
+          return ondata.apply(this, arguments)
+        } else {
+          rawData += d
+        }
+      }
+      socket.on('data', handledata)
+      socket.ondata = handledata
+    })
+
+    function checkHostHeader (host) {
+      t.ok(
+        new RegExp('^Host: ' + host + '$', 'im').test(rawData),
+        util.format(
+          'Expected "Host: %s" in data "%s"',
+          host, rawData.trim().replace(/\r?\n/g, '\\n')))
+      rawData = ''
     }
-    socket.on('data', handledata)
-    socket.ondata = handledata
-  })
 
-  function checkHostHeader (host) {
-    t.ok(
-      new RegExp('^Host: ' + host + '$', 'im').test(rawData),
-      util.format(
-        'Expected "Host: %s" in data "%s"',
-        host, rawData.trim().replace(/\r?\n/g, '\\n')))
-    rawData = ''
-  }
-
-  request({
-    url: s.url.replace(url.parse(s.url).hostname, '[::1]') + '/headers.json'
-  }, function (err, res, body) {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    checkHostHeader('\\[::1\\]:' + s.port)
-    t.end()
+    request({
+      url: s.url.replace(url.parse(s.url).hostname, '[::1]') + '/headers.json'
+    }, function (err, res, body) {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      checkHostHeader('\\[::1\\]:' + s.port)
+      t.end()
+    })
   })
-})
+}
