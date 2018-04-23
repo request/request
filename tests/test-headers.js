@@ -8,7 +8,7 @@ var url = require('url')
 var os = require('os')
 
 var interfaces = os.networkInterfaces()
-var loopbackKeyTest = exports.isWindows ? /Loopback Pseudo-Interface/ : /lo/
+var loopbackKeyTest = os.platform() === 'win32' ? /Loopback Pseudo-Interface/ : /lo/
 var hasIPv6interface = Object.keys(interfaces).some(function (name) {
   return loopbackKeyTest.test(name) && interfaces[name].some(function (info) {
     return info.family === 'IPv6'
