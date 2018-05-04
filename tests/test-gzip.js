@@ -69,7 +69,7 @@ tape('setup', function (t) {
   var a = 48271
   var m = 0x7FFFFFFF
   var x = 1
-  testContentBig = new Buffer(10240)
+  testContentBig = Buffer.alloc(10240)
   for (var i = 0; i < testContentBig.length; ++i) {
     x = (a * x) & m
     // Printable ASCII range from 32-126, inclusive

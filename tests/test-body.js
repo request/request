@@ -35,28 +35,28 @@ addTest('testGet', {
 
 addTest('testGetChunkBreak', {
   resp: server.createChunkResponse(
-    [ new Buffer([239]),
-      new Buffer([163]),
-      new Buffer([191]),
-      new Buffer([206]),
-      new Buffer([169]),
-      new Buffer([226]),
-      new Buffer([152]),
-      new Buffer([131])
+    [ Buffer.from([239]),
+      Buffer.from([163]),
+      Buffer.from([191]),
+      Buffer.from([206]),
+      Buffer.from([169]),
+      Buffer.from([226]),
+      Buffer.from([152]),
+      Buffer.from([131])
     ]),
   expectBody: '\uF8FF\u03A9\u2603'
 })
 
 addTest('testGetBuffer', {
-  resp: server.createGetResponse(new Buffer('TESTING!')), encoding: null, expectBody: new Buffer('TESTING!')
+  resp: server.createGetResponse(Buffer.from('TESTING!')), encoding: null, expectBody: Buffer.from('TESTING!')
 })
 
 addTest('testGetEncoding', {
-  resp: server.createGetResponse(new Buffer('efa3bfcea9e29883', 'hex')), encoding: 'hex', expectBody: 'efa3bfcea9e29883'
+  resp: server.createGetResponse(Buffer.from('efa3bfcea9e29883', 'hex')), encoding: 'hex', expectBody: 'efa3bfcea9e29883'
 })
 
 addTest('testGetUTF', {
-  resp: server.createGetResponse(new Buffer([0xEF, 0xBB, 0xBF, 226, 152, 131])), encoding: 'utf8', expectBody: '\u2603'
+  resp: server.createGetResponse(Buffer.from([0xEF, 0xBB, 0xBF, 226, 152, 131])), encoding: 'utf8', expectBody: '\u2603'
 })
 
 addTest('testGetJSON', {
@@ -68,7 +68,7 @@ addTest('testPutString', {
 })
 
 addTest('testPutBuffer', {
-  resp: server.createPostValidator('PUTTINGDATA'), method: 'PUT', body: new Buffer('PUTTINGDATA')
+  resp: server.createPostValidator('PUTTINGDATA'), method: 'PUT', body: Buffer.from('PUTTINGDATA')
 })
 
 addTest('testPutJSON', {
@@ -141,7 +141,7 @@ tape('typed array', function (t) {
       encoding: null
     }, function (err, res, body) {
       t.error(err)
-      t.deepEqual(new Buffer(data), body)
+      t.deepEqual(Buffer.from(data), body)
       server.close(t.end)
     })
   })
