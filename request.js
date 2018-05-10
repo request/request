@@ -1363,7 +1363,7 @@ Request.prototype.aws = function (opts, now) {
     var options = {
       host: self.uri.host,
       path: self.uri.path,
-      method: self.method,
+      method: self.method.toUpperCase(),
       headers: {
         'content-type': self.getHeader('content-type') || ''
       },
