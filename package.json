@@ -41,6 +41,7 @@
     "isstream": "~0.1.2",
     "json-stringify-safe": "~5.0.1",
     "mime-types": "~2.1.17",
+    "nsp": "^3.2.1",
     "oauth-sign": "~0.8.2",
     "performance-now": "^2.1.0",
     "qs": "~6.5.1",
@@ -51,10 +52,11 @@
     "uuid": "^3.1.0"
   },
   "scripts": {
-    "test": "npm run lint && npm run test-ci && npm run test-browser",
+    "test": "npm run test-vulnerabilities && npm run lint && npm run test-ci && npm run test-browser",
     "test-ci": "taper tests/test-*.js",
     "test-cov": "istanbul cover tape tests/test-*.js",
     "test-browser": "node tests/browser/start.js",
+    "test-vulnerabilities": "nsp check",
     "lint": "standard"
   },
   "devDependencies": {
