@@ -270,28 +270,23 @@ tape('do not try to pipe HEAD request responses', function (t) {
 tape('do not try to pipe responses with no body', function (t) {
   var options = { url: server.url + '/foo', gzip: true }
 
-  options.headers = {code: 105}
-  request.post(options, function (err, res, body) {
-    t.equal(err, null)
-    t.equal(res.headers.code, '105')
-    t.equal(body, '')
+  // skip 105 on Node >= v10
+  var statusCodes = process.version.split('.')[0].slice(1) >= 10
+    ? [204, 304] : [105, 204, 304]
 
-    options.headers = {code: 204}
+  ;(function next (index) {
+    if (index === statusCodes.length) {
+      t.end()
+      return
+    }
+    options.headers = {code: statusCodes[index]}
     request.post(options, function (err, res, body) {
       t.equal(err, null)
-      t.equal(res.headers.code, '204')
+      t.equal(res.headers.code, statusCodes[index].toString())
       t.equal(body, '')
-
-      options.headers = {code: 304}
-      request.post(options, function (err, res, body) {
-        t.equal(err, null)
-        t.equal(res.headers.code, '304')
-        t.equal(body, '')
-
-        t.end()
-      })
+      next(++index)
     })
-  })
+  })(0)
 })
 
 tape('cleanup', function (t) {
