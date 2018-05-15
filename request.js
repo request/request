@@ -1284,7 +1284,7 @@ Request.prototype.json = function (val) {
   if (typeof val === 'boolean') {
     if (self.body !== undefined) {
       if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
-        self.body = safeStringify(self.body, self._jsonReplacer)
+        if (typeof self.body !== 'string') self.body = safeStringify(self.body, self._jsonReplacer)
       } else {
         self.body = self._qs.rfc3986(self.body)
       }
