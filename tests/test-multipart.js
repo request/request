@@ -77,7 +77,7 @@ function runTest (t, a) {
     multipartData = [
       {name: 'my_field', body: 'my_value'},
       {name: 'my_number', body: 1000},
-      {name: 'my_buffer', body: new Buffer([1, 2, 3])},
+      {name: 'my_buffer', body: Buffer.from([1, 2, 3])},
       {name: 'my_file', body: fs.createReadStream(localFile)},
       {name: 'remote_file', body: request(url + '/file')}
     ]
