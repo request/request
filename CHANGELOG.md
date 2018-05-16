@@ -1,5 +1,10 @@
 ## Change Log
 
+### v2.86.0 (2018/05/15)
+- [#2885](https://github.com/request/request/pull/2885) Remove redundant code (for Node.js 0.9.4 and below) and dependency (@ChALkeR)
+- [#2942](https://github.com/request/request/pull/2942) Make Test GREEN Again! (@simov)
+- [#2923](https://github.com/request/request/pull/2923) Alterations for failing CI tests (@gareth-robinson)
+
 ### v2.85.0 (2018/03/12)
 - [#2880](https://github.com/request/request/pull/2880) Revert "Update hawk to 7.0.7 (#2880)" (@simov)
 
