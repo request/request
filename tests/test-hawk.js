@@ -38,7 +38,7 @@ tape('hawk-get', function (t) {
 })
 
 tape('hawk-post', function (t) {
-  request.post({ url: server.url, form: { key: 'value' }, hawk: { credentials: creds } }, function (err, res, body) {
+  request.post({ url: server.url, body: 'hello', hawk: { credentials: creds } }, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, 'OK')
