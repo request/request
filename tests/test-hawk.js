@@ -7,11 +7,10 @@ var tape = require('tape')
 var assert = require('assert')
 
 var server = http.createServer(function (req, res) {
-  var user = authenticate(req)
   res.writeHead(200, {
     'Content-Type': 'text/plain'
   })
-  res.end('Hello ' + user)
+  res.end(authenticate(req))
 })
 
 tape('setup', function (t) {
@@ -21,18 +20,146 @@ tape('setup', function (t) {
   })
 })
 
-tape('hawk', function (t) {
-  var creds = {
-    key: 'werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn',
-    algorithm: 'sha256',
-    id: 'dh37fgj492je'
-  }
+var creds = {
+  key: 'werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn',
+  algorithm: 'sha256',
+  id: 'dh37fgj492je'
+}
+
+tape('hawk-get', function (t) {
   request(server.url, {
     hawk: { credentials: creds }
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
-    t.equal(body, 'Hello Steve')
+    t.equal(body, 'OK')
+    t.end()
+  })
+})
+
+tape('hawk-post', function (t) {
+  request.post({ url: server.url, form: { key: 'value' }, hawk: { credentials: creds } }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'OK')
+    t.end()
+  })
+})
+
+tape('hawk-resource-relative', function (t) {
+  request(server.url, {
+    hawk: { credentials: creds, resource: '/test' }
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'OK')
+    t.end()
+  })
+})
+
+tape('hawk-resource-absolute', function (t) {
+  request(server.url, {
+    hawk: { credentials: creds, resource: 'http://example.com/test' }
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'OK')
+    t.end()
+  })
+})
+
+tape('hawk-ext', function (t) {
+  request(server.url, {
+    hawk: { credentials: creds, ext: 'test' }
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'OK')
+    t.end()
+  })
+})
+
+tape('hawk-app', function (t) {
+  request(server.url, {
+    hawk: { credentials: creds, app: 'test' }
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'OK')
+    t.end()
+  })
+})
+
+tape('hawk-app+dlg', function (t) {
+  request(server.url, {
+    hawk: { credentials: creds, app: 'test', dlg: 'asd' }
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'OK')
+    t.end()
+  })
+})
+
+tape('hawk-missing-creds', function (t) {
+  request(server.url, {
+    hawk: {}
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'FAIL')
+    t.end()
+  })
+})
+
+tape('hawk-missing-creds-id', function (t) {
+  request(server.url, {
+    hawk: {
+      credentials: {}
+    }
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'FAIL')
+    t.end()
+  })
+})
+
+tape('hawk-missing-creds-key', function (t) {
+  request(server.url, {
+    hawk: {
+      credentials: { id: 'asd' }
+    }
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'FAIL')
+    t.end()
+  })
+})
+
+tape('hawk-missing-creds-algo', function (t) {
+  request(server.url, {
+    hawk: {
+      credentials: { key: '123', id: '123' }
+    }
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'FAIL')
+    t.end()
+  })
+})
+
+tape('hawk-invalid-creds-algo', function (t) {
+  request(server.url, {
+    hawk: {
+      credentials: { key: '123', id: '123', algorithm: 'xx' }
+    }
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'FAIL')
     t.end()
   })
 })
@@ -44,6 +171,10 @@ tape('cleanup', function (t) {
 })
 
 function authenticate (req) {
+  if (!req.headers.authorization) {
+    return 'FAIL'
+  }
+
   var headerParts = req.headers.authorization.match(/^(\w+)(?:\s+(.*))?$/)
   assert.equal(headerParts[1], 'Hawk')
   var attributes = {}
@@ -74,5 +205,5 @@ function authenticate (req) {
 
   const mac = hawk.calculateMac(credentials, artifacts)
   assert.equal(mac, attributes.mac)
-  return credentials.user
+  return 'OK'
 }
