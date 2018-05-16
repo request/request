@@ -38,29 +38,7 @@ tape('hawk-get', function (t) {
 })
 
 tape('hawk-post', function (t) {
-  request.post({ url: server.url, body: 'hello', hawk: { credentials: creds } }, function (err, res, body) {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    t.equal(body, 'OK')
-    t.end()
-  })
-})
-
-tape('hawk-resource-relative', function (t) {
-  request(server.url, {
-    hawk: { credentials: creds, resource: '/test' }
-  }, function (err, res, body) {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    t.equal(body, 'OK')
-    t.end()
-  })
-})
-
-tape('hawk-resource-absolute', function (t) {
-  request(server.url, {
-    hawk: { credentials: creds, resource: 'http://example.com/test' }
-  }, function (err, res, body) {
+  request.post({ url: server.url, body: 'hello', hawk: { credentials: creds, payload: 'hello' } }, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, 'OK')
