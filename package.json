@@ -10,7 +10,7 @@
   "version": "2.85.1-postman.1",
   "repository": {
     "type": "git",
-    "url": "https://github.com/request/request.git"
+    "url": "https://github.com/postmanlabs/postman-request.git"
   },
   "license": "Apache-2.0",
   "engines": {
@@ -43,7 +43,6 @@
     "qs": "~6.5.1",
     "safe-buffer": "^5.1.1",
     "stream-length": "^1.0.2",
-    "stringstream": "~0.0.5",
     "tough-cookie": "~2.3.3",
     "tunnel-agent": "^0.6.0",
     "uuid": "^3.1.0"
