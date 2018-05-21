@@ -251,7 +251,8 @@ Request.prototype.init = function (options) {
     self.enableUnixSocket()
   }
 
-  if (self.strictSSL === false) {
+  if (self.strictSSL === false ||
+      process.env.npm_config_strict_ssl === false) {
     self.rejectUnauthorized = false
   }
 
