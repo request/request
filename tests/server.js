@@ -76,7 +76,7 @@ exports.createPostStream = function (text) {
   postStream.writeable = true
   postStream.readable = true
   setTimeout(function () {
-    postStream.emit('data', new Buffer(text))
+    postStream.emit('data', Buffer.from(text))
     postStream.emit('end')
   }, 0)
   return postStream
