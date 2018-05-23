@@ -735,6 +735,11 @@ Request.prototype.start = function () {
   // auth option.  If we don't remove it, we're gonna have a bad time.
   var reqOptions = copy(self)
   delete reqOptions.auth
+  
+  // if encodeURI is false, don't encodeURIComponent
+  if (self.encodeURI != null && !self.encodeURI) {
+    reqOptions.path = decodeURIComponent(reqOptions.path);
+  }
 
   debug('make request', self.uri.href)
 
