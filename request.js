@@ -422,7 +422,12 @@ Request.prototype.init = function (options) {
       if (typeof self.body === 'string') {
         length = Buffer.byteLength(self.body)
       } else if (Array.isArray(self.body)) {
-        length = self.body.reduce(function (a, b) { return a + b.length }, 0)
+        length = self.body.reduce(function (a, b) {
+          if (typeof b === 'string') {
+            return a + Buffer.byteLength(b)
+          }
+          return a + b.length
+        }, 0)
       } else {
         length = self.body.length
       }
