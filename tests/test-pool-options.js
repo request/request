@@ -1,34 +1,34 @@
 'use strict'
 
 var request = require('../index')
-  , server  = require('./server')
-  , tape = require('tape')
+var server = require('./server')
+var tape = require('tape')
 
 var s = server.createSSLServer(function (req, res) {
   res.statusCode = 200
   res.end('asdf')
 })
 
-function abortRequest(request) {
+function abortRequest (request) {
   request.abort()
   if (typeof request.agent.destroy === 'function') {
     request.agent.destroy()
   }
 }
 
-function abortRequests(requests) {
-  for (var i=0; i < requests.length; i++) {
+function abortRequests (requests) {
+  for (var i = 0; i < requests.length; i++) {
     abortRequest(requests[i])
   }
 }
 
-tape('setup', function(t) {
-  s.listen(s.port, function() {
+tape('setup', function (t) {
+  s.listen(s.port, function () {
     t.end()
   })
 })
 
-tape('should use different agent if agentOptions.servername option is different', function(t) {
+tape('should use different agent if agentOptions.servername option is different', function (t) {
   var req1 = request({
     url: s.url,
     agentOptions: {servername: 'foo.bar.com'}
@@ -42,7 +42,7 @@ tape('should use different agent if agentOptions.servername option is different'
   t.end()
 })
 
-tape('should use different agent if servername option is different', function(t) {
+tape('should use different agent if servername option is different', function (t) {
   var req1 = request({
     url: s.url,
     servername: 'foo.bar.com'
@@ -56,7 +56,7 @@ tape('should use different agent if servername option is different', function(t)
   t.end()
 })
 
-tape('should not use different agent if agentOptions.servername option is equal', function(t) {
+tape('should not use different agent if agentOptions.servername option is equal', function (t) {
   var req1 = request({
     url: s.url,
     agentOptions: {servername: 'foo.bar.com'}
@@ -70,7 +70,7 @@ tape('should not use different agent if agentOptions.servername option is equal'
   t.end()
 })
 
-tape('should not use different agent if servername option is equal', function(t) {
+tape('should not use different agent if servername option is equal', function (t) {
   var req1 = request({
     url: s.url,
     servername: 'foo.bar.com',
@@ -86,8 +86,8 @@ tape('should not use different agent if servername option is equal', function(t)
   t.end()
 })
 
-tape('cleanup', function(t) {
-  s.close(function() {
+tape('cleanup', function (t) {
+  s.close(function () {
     t.end()
   })
 })
