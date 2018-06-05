@@ -1,8 +1,8 @@
 'use strict'
 
 var http = require('http')
-  , request = require('../index')
-  , tape = require('tape')
+var request = require('../index')
+var tape = require('tape')
 
 var server = http.createServer(function (req, res) {
   // redirect everything 3 times, no matter what.
@@ -25,17 +25,18 @@ var server = http.createServer(function (req, res) {
   res.end('try again')
 })
 
-tape('setup', function(t) {
-  server.listen(6767, function() {
+tape('setup', function (t) {
+  server.listen(0, function () {
+    server.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('followAllRedirects', function(t) {
+tape('followAllRedirects', function (t) {
   var redirects = 0
 
   request.post({
-    url: 'http://localhost:6767/foo',
+    url: server.url + '/foo',
     followAllRedirects: true,
     jar: true,
     form: { foo: 'bar' }
@@ -44,13 +45,13 @@ tape('followAllRedirects', function(t) {
     t.equal(body, 'ok')
     t.equal(redirects, 4)
     t.end()
-  }).on('redirect', function() {
+  }).on('redirect', function () {
     redirects++
   })
 })
 
-tape('cleanup', function(t) {
-  server.close(function() {
+tape('cleanup', function (t) {
+  server.close(function () {
     t.end()
   })
 })

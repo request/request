@@ -1,9 +1,9 @@
 'use strict'
 
 var http = require('http')
-  , request = require('../index')
-  , httpSignature = require('http-signature')
-  , tape = require('tape')
+var request = require('../index')
+var httpSignature = require('http-signature')
+var tape = require('tape')
 
 var privateKeyPEMs = {}
 
@@ -68,42 +68,43 @@ var server = http.createServer(function (req, res) {
   res.end()
 })
 
-tape('setup', function(t) {
-  server.listen(6767, function() {
+tape('setup', function (t) {
+  server.listen(0, function () {
+    server.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('correct key', function(t) {
+tape('correct key', function (t) {
   var options = {
     httpSignature: {
       keyId: 'key-1',
       key: privateKeyPEMs['key-1']
     }
   }
-  request('http://localhost:6767', options, function(err, res, body) {
+  request(server.url, options, function (err, res, body) {
     t.equal(err, null)
     t.equal(200, res.statusCode)
     t.end()
   })
 })
 
-tape('incorrect key', function(t) {
+tape('incorrect key', function (t) {
   var options = {
     httpSignature: {
       keyId: 'key-2',
       key: privateKeyPEMs['key-1']
     }
   }
-  request('http://localhost:6767', options, function(err, res, body) {
+  request(server.url, options, function (err, res, body) {
     t.equal(err, null)
     t.equal(400, res.statusCode)
     t.end()
   })
 })
 
-tape('cleanup', function(t) {
-  server.close(function() {
+tape('cleanup', function (t) {
+  server.close(function () {
     t.end()
   })
 })

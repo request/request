@@ -1,11 +1,10 @@
 'use strict'
 
 var http = require('http')
-  , path = require('path')
-  , request = require('../index')
-  , fs = require('fs')
-  , tape = require('tape')
-
+var path = require('path')
+var request = require('../index')
+var fs = require('fs')
+var tape = require('tape')
 
 var localFile = path.join(__dirname, 'unicycle.jpg')
 var cases = {
@@ -83,10 +82,8 @@ var cases = {
   }
 }
 
-function runTest(t, test) {
-
-  var server = http.createServer(function(req, res) {
-
+function runTest (t, test) {
+  var server = http.createServer(function (req, res) {
     t.ok(req.headers['content-type'].match(/^multipart\/related; boundary=[^\s;]+$/))
 
     if (test.expected.chunked) {
@@ -101,11 +98,11 @@ function runTest(t, test) {
     var data = ''
     req.setEncoding('utf8')
 
-    req.on('data', function(d) {
+    req.on('data', function (d) {
       data += d
     })
 
-    req.on('end', function() {
+    req.on('end', function () {
       // check for the fields traces
       if (test.expected.chunked && data.indexOf('name: file') !== -1) {
         // file
@@ -124,7 +121,8 @@ function runTest(t, test) {
     })
   })
 
-  server.listen(6767, function() {
+  server.listen(0, function () {
+    var url = 'http://localhost:' + this.address().port
     // @NOTE: multipartData properties must be set here
     // so that file read stream does not leak in node v0.8
     var parts = test.options.multipart.data || test.options.multipart
@@ -132,7 +130,7 @@ function runTest(t, test) {
       parts[0].body = fs.createReadStream(localFile)
     }
 
-    request.post('http://localhost:6767', test.options, function (err, res, body) {
+    request.post(url, test.options, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       server.close(function () {
@@ -143,7 +141,7 @@ function runTest(t, test) {
 }
 
 Object.keys(cases).forEach(function (name) {
-  tape('multipart-encoding ' + name, function(t) {
+  tape('multipart-encoding ' + name, function (t) {
     runTest(t, cases[name])
   })
 })

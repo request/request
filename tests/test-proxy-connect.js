@@ -1,14 +1,13 @@
 'use strict'
 
 var request = require('../index')
-  , tape = require('tape')
+var tape = require('tape')
 
-var port = 6768
-  , called = false
-  , proxiedHost = 'google.com'
-  , data = ''
+var called = false
+var proxiedHost = 'google.com'
+var data = ''
 
-var s = require('net').createServer(function(sock) {
+var s = require('net').createServer(function (sock) {
   called = true
   sock.once('data', function (c) {
     data += c
@@ -27,27 +26,28 @@ var s = require('net').createServer(function(sock) {
   })
 })
 
-tape('setup', function(t) {
-  s.listen(port, function() {
+tape('setup', function (t) {
+  s.listen(0, function () {
+    s.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('proxy', function(t) {
+tape('proxy', function (t) {
   request({
     tunnel: true,
     url: 'http://' + proxiedHost,
-    proxy: 'http://localhost:' + port,
+    proxy: s.url,
     headers: {
-      'Proxy-Authorization' : 'Basic dXNlcjpwYXNz',
-      'authorization'       : 'Token deadbeef',
-      'dont-send-to-proxy'  : 'ok',
-      'dont-send-to-dest'   : 'ok',
-      'accept'              : 'yo',
-      'user-agent'          : 'just another foobar'
+      'Proxy-Authorization': 'Basic dXNlcjpwYXNz',
+      'authorization': 'Token deadbeef',
+      'dont-send-to-proxy': 'ok',
+      'dont-send-to-dest': 'ok',
+      'accept': 'yo',
+      'user-agent': 'just another foobar'
     },
     proxyHeaderExclusiveList: ['Dont-send-to-dest']
-  }, function(err, res, body) {
+  }, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, 'derp\n')
@@ -73,8 +73,8 @@ tape('proxy', function(t) {
   })
 })
 
-tape('cleanup', function(t) {
-  s.close(function() {
+tape('cleanup', function (t) {
+  s.close(function () {
     t.end()
   })
 })

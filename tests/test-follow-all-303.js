@@ -1,8 +1,8 @@
 'use strict'
 
 var http = require('http')
-  , request = require('../index')
-  , tape = require('tape')
+var request = require('../index')
+var tape = require('tape')
 
 var server = http.createServer(function (req, res) {
   if (req.method === 'POST') {
@@ -14,17 +14,18 @@ var server = http.createServer(function (req, res) {
   }
 })
 
-tape('setup', function(t) {
-  server.listen(6767, function() {
+tape('setup', function (t) {
+  server.listen(0, function () {
+    server.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('followAllRedirects with 303', function(t) {
+tape('followAllRedirects with 303', function (t) {
   var redirects = 0
 
   request.post({
-    url: 'http://localhost:6767/foo',
+    url: server.url + '/foo',
     followAllRedirects: true,
     form: { foo: 'bar' }
   }, function (err, res, body) {
@@ -32,13 +33,13 @@ tape('followAllRedirects with 303', function(t) {
     t.equal(body, 'ok')
     t.equal(redirects, 1)
     t.end()
-  }).on('redirect', function() {
+  }).on('redirect', function () {
     redirects++
   })
 })
 
-tape('cleanup', function(t) {
-  server.close(function() {
+tape('cleanup', function (t) {
+  server.close(function () {
     t.end()
   })
 })
