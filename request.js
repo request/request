@@ -750,7 +750,7 @@ Request.prototype.start = function () {
   }
 
   // postman: emit start event
-  self.emit('abort')
+  self.emit('start')
   
   self._started = true
   self.method = self.method || 'GET'
