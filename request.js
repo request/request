@@ -133,11 +133,13 @@ util.inherits(Request, stream.Stream)
 
 // Debugging
 Request.debug = process.env.NODE_DEBUG && /\brequest\b/.test(process.env.NODE_DEBUG)
+
 function debug () {
   if (Request.debug) {
     console.error('REQUEST %s', util.format.apply(util, arguments))
   }
 }
+
 Request.prototype.debug = debug
 
 Request.prototype.init = function (options) {
@@ -149,27 +151,27 @@ Request.prototype.init = function (options) {
     options = {}
   }
   self.headers = self.headers ? copy(self.headers) : {}
-  
+
   // additional postman feature starts
   // bind default events sent via options
   if (options.bindOn) {
     Object.keys(options.bindOn).forEach(function (eventName) {
-        !Array.isArray(options.bindOn[eventName]) && (options.bindOn[eventName] = [options.bindOn[eventName]])
-        options.bindOn[eventName].forEach(function (listener) {
-            self.on(eventName, listener);
-        });
-    });
+      !Array.isArray(options.bindOn[eventName]) && (options.bindOn[eventName] = [options.bindOn[eventName]])
+      options.bindOn[eventName].forEach(function (listener) {
+        self.on(eventName, listener)
+      })
+    })
   }
   if (options.once) {
     Object.keys(options.once).forEach(function (eventName) {
-        !Array.isArray(options.bindOnce[eventName]) && (options.bindOnce[eventName] = [options.bindOnce[eventName]])
-        options.bindOnce[eventName].forEach(function (listener) {
-            self.once(eventName, listener);
-        });
-    });
+      !Array.isArray(options.bindOnce[eventName]) && (options.bindOnce[eventName] = [options.bindOnce[eventName]])
+      options.bindOnce[eventName].forEach(function (listener) {
+        self.once(eventName, listener)
+      })
+    })
   }
   // additional postman feature ends
-  
+
   // Delete headers with value undefined since they break
   // ClientRequest.OutgoingMessage.setHeader in node 0.12
   for (var headerName in self.headers) {
@@ -456,6 +458,7 @@ Request.prototype.init = function (options) {
       }
     }
   }
+
   if (self.body && !isstream(self.body)) {
     setContentLength()
   }
@@ -533,9 +536,9 @@ Request.prototype.init = function (options) {
       }
     }
 
-  // self.on('pipe', function () {
-  //   console.error('You have already piped to this stream. Pipeing twice is likely to break the request.')
-  // })
+    // self.on('pipe', function () {
+    //   console.error('You have already piped to this stream. Pipeing twice is likely to break the request.')
+    // })
   })
 
   defer(function () {
@@ -757,7 +760,7 @@ Request.prototype.start = function () {
 
   // postman: emit start event
   self.emit('start')
-  
+
   self._started = true
   self.method = self.method || 'GET'
   self.href = self.uri.href
@@ -910,7 +913,7 @@ Request.prototype.onRequestError = function (error) {
   }
   if (self.req && self.req._reusedSocket && error.code === 'ECONNRESET' &&
     self.agent.addRequestNoreuse) {
-    self.agent = { addRequest: self.agent.addRequestNoreuse.bind(self.agent) }
+    self.agent = {addRequest: self.agent.addRequestNoreuse.bind(self.agent)}
     self.start()
     self.req.end()
     return
@@ -987,7 +990,7 @@ Request.prototype.onRequestResponse = function (response) {
   // XXX This is different on 0.10, because SSL is strict by default
   if (self.httpModule === https &&
     self.strictSSL && (!response.hasOwnProperty('socket') ||
-    !response.socket.authorized)) {
+      !response.socket.authorized)) {
     debug('strict ssl error', self.uri.href)
     var sslErr = response.hasOwnProperty('socket') ? response.socket.authorizationError : self.uri.href + ' does not support SSL'
     self.emit('error', new Error('SSL Error: ' + sslErr))
@@ -1145,7 +1148,7 @@ Request.prototype.onRequestResponse = function (response) {
 
 Request.prototype.readResponseBody = function (response) {
   var self = this
-  debug("reading response's body")
+  debug('reading response\'s body')
   var buffers = []
   var bufferLength = 0
   var strings = []
