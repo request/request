@@ -149,7 +149,21 @@ Request.prototype.init = function (options) {
     options = {}
   }
   self.headers = self.headers ? copy(self.headers) : {}
-
+  
+  // bind default events sent via options
+  // additional postman feature starts
+  if (options.bindOn) {
+      Object.keys(options.bindOn).forEach(function (eventName) {
+          self.on(eventName, options.bindOn[eventName]);
+      });
+  }
+  
+  if (options.bindOnce) {
+    Object.keys(options.bindOnce).forEach(function (eventName) {
+        self.once(eventName, options.bindOnce[eventName]);
+    });
+  }
+  // additional postman feature ends
   // Delete headers with value undefined since they break
   // ClientRequest.OutgoingMessage.setHeader in node 0.12
   for (var headerName in self.headers) {
