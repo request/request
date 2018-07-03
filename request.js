@@ -150,20 +150,26 @@ Request.prototype.init = function (options) {
   }
   self.headers = self.headers ? copy(self.headers) : {}
   
-  // bind default events sent via options
   // additional postman feature starts
+  // bind default events sent via options
   if (options.bindOn) {
-      Object.keys(options.bindOn).forEach(function (eventName) {
-          self.on(eventName, options.bindOn[eventName]);
-      });
+    Object.keys(options.bindOn).forEach(function (eventName) {
+        !Array.isArray(options.bindOn[eventName]) && (options.bindOn[eventName] = [options.bindOn[eventName]])
+        options.bindOn[eventName].forEach(function (listener) {
+            self.on(eventName, listener);
+        });
+    });
   }
-  
-  if (options.bindOnce) {
-    Object.keys(options.bindOnce).forEach(function (eventName) {
-        self.once(eventName, options.bindOnce[eventName]);
+  if (options.once) {
+    Object.keys(options.once).forEach(function (eventName) {
+        !Array.isArray(options.bindOnce[eventName]) && (options.bindOnce[eventName] = [options.bindOnce[eventName]])
+        options.bindOnce[eventName].forEach(function (listener) {
+            self.once(eventName, listener);
+        });
     });
   }
   // additional postman feature ends
+  
   // Delete headers with value undefined since they break
   // ClientRequest.OutgoingMessage.setHeader in node 0.12
   for (var headerName in self.headers) {
