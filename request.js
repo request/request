@@ -749,6 +749,9 @@ Request.prototype.start = function () {
     return
   }
 
+  // postman: emit start event
+  self.emit('abort')
+  
   self._started = true
   self.method = self.method || 'GET'
   self.href = self.uri.href
