@@ -1063,12 +1063,12 @@ request({url: url, jar: j}, function () {
 ```
 
 To use a custom cookie store (such as a
-[`FileCookieStore`](https://github.com/mitsuru/tough-cookie-filestore)
+[`FileCookieStore`](https://github.com/ivanmarban/tough-cookie-file-store)
 which supports saving to and restoring from JSON files), pass it as a parameter
 to `request.jar()`:
 
 ```js
-var FileCookieStore = require('tough-cookie-filestore');
+var FileCookieStore = require('tough-cookie-file-store');
 // NOTE - currently the 'cookies.json' file must already exist!
 var j = request.jar(new FileCookieStore('cookies.json'));
 request = request.defaults({ jar : j })
