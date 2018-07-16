@@ -77,6 +77,45 @@ tape('aws-sign4 options with session token', function (t) {
   })
 })
 
+tape('aws-sign4 options with service', function (t) {
+  var serviceName = 'UNIQUE_SERVICE_NAME'
+  var options = {
+    url: s.url + path,
+    aws: {
+      key: 'my_key',
+      secret: 'my_secret',
+      sign_version: 4,
+      service: serviceName
+    },
+    json: true
+  }
+  request(options, function (err, res, body) {
+    t.error(err)
+    t.ok(body.authorization.includes(serviceName))
+    t.end()
+  })
+})
+
+tape('aws-sign4 with additional headers', function (t) {
+  var options = {
+    url: s.url + path,
+    headers: {
+      'X-Custom-Header': 'custom'
+    },
+    aws: {
+      key: 'my_key',
+      secret: 'my_secret',
+      sign_version: 4
+    },
+    json: true
+  }
+  request(options, function (err, res, body) {
+    t.error(err)
+    t.ok(body.authorization.includes('x-custom-header'))
+    t.end()
+  })
+})
+
 tape('cleanup', function (t) {
   s.close(function () {
     t.end()
