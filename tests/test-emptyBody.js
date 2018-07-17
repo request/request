@@ -32,7 +32,7 @@ tape('empty body without encoding', function (t) {
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
-    t.same(body, new Buffer(0))
+    t.same(body, Buffer.alloc(0))
     t.end()
   })
 })
