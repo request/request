@@ -69,6 +69,22 @@ function filterOutReservedFunctions (reserved, options) {
   return object
 }
 
+// RFC3986 Sec 5.2.4 Handle /./ and /../
+function removeDotSegments (uri) {
+  var inBuf = uri.split('/')
+  var outBuf = []
+  for (var i in inBuf) {
+    var segment = inBuf[i]
+    if (segment === '..' && outBuf.length > 1) {
+      outBuf.pop()
+    }
+    if (segment !== '.' && segment !== '..') {
+      outBuf.push(segment)
+    }
+  }
+  return outBuf.join('/')
+}
+
 // Return a simpler request object to allow serialization
 function requestToJSON () {
   var self = this
@@ -349,6 +365,8 @@ Request.prototype.init = function (options) {
   if (self.path.length === 0) {
     self.path = '/'
   }
+
+  self.path = removeDotSegments(self.path)
 
   // Auth must happen last in case signing is dependent on other headers
   if (options.aws) {

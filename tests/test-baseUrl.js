@@ -37,6 +37,10 @@ function addTests () {
   addTest(s.url + '/api/', '', '/api/')
   addTest(s.url + '/api', '/', '/api/')
   addTest(s.url + '/api/', '/', '/api/')
+  addTest(s.url + '/api/', '/../', '/')
+  addTest(s.url + '/api/', '../', '/')
+  addTest(s.url + '/api/', '/./', '/api/')
+  addTest(s.url + '/api/', './', '/api/')
   addTest(s.url + '/api', 'resource', '/api/resource')
   addTest(s.url + '/api/', 'resource', '/api/resource')
   addTest(s.url + '/api', '/resource', '/api/resource')
@@ -45,6 +49,10 @@ function addTests () {
   addTest(s.url + '/api/', 'resource/', '/api/resource/')
   addTest(s.url + '/api', '/resource/', '/api/resource/')
   addTest(s.url + '/api/', '/resource/', '/api/resource/')
+  addTest(s.url + '/api/', '/../resource/', '/resource/')
+  addTest(s.url + '/api/', '/../resource', '/resource')
+  addTest(s.url + '/api/', '/./resource/', '/api/resource/')
+  addTest(s.url + '/api/', '/./resource', '/api/resource')
 }
 
 tape('setup', function (t) {
