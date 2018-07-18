@@ -180,6 +180,56 @@ tape('undefined headers', function (t) {
   })
 })
 
+tape('preserve port in host header if non-standard port', function (t) {
+  var r = request({
+    url: s.url + '/headers.json'
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(r.originalHost, 'localhost:' + s.port)
+    t.end()
+  })
+})
+
+tape('strip port in host header if explicit standard port (:80) & protocol (HTTP)', function (t) {
+  var r = request({
+    url: 'http://localhost:80/headers.json'
+  }, function (err, res, body) {
+    t.notEqual(err, null)
+    t.equal(r.req.socket._host, 'localhost')
+    t.end()
+  })
+})
+
+tape('strip port in host header if explicit standard port (:443) & protocol (HTTPS)', function (t) {
+  var r = request({
+    url: 'https://localhost:443/headers.json'
+  }, function (err, res, body) {
+    t.notEqual(err, null)
+    t.equal(r.req.socket._host, 'localhost')
+    t.end()
+  })
+})
+
+tape('strip port in host header if implicit standard port & protocol (HTTP)', function (t) {
+  var r = request({
+    url: 'http://localhost/headers.json'
+  }, function (err, res, body) {
+    t.notEqual(err, null)
+    t.equal(r.req.socket._host, 'localhost')
+    t.end()
+  })
+})
+
+tape('strip port in host header if implicit standard port & protocol (HTTPS)', function (t) {
+  var r = request({
+    url: 'https://localhost/headers.json'
+  }, function (err, res, body) {
+    t.notEqual(err, null)
+    t.equal(r.req.socket._host, 'localhost')
+    t.end()
+  })
+})
+
 var isExpectedHeaderCharacterError = function (headerName, err) {
   return err.message === 'The header content contains invalid characters' ||
     err.message === ('Invalid character in header content ["' + headerName + '"]')
