@@ -193,8 +193,7 @@ tape('preserve port in host header if non-standard port', function (t) {
 tape('strip port in host header if explicit standard port (:80) & protocol (HTTP)', function (t) {
   var r = request({
     url: 'http://localhost:80/headers.json'
-  }, function (err, res, body) {
-    t.notEqual(err, null)
+  }, function (_err, res, body) {
     t.equal(r.req.socket._host, 'localhost')
     t.end()
   })
@@ -203,8 +202,7 @@ tape('strip port in host header if explicit standard port (:80) & protocol (HTTP
 tape('strip port in host header if explicit standard port (:443) & protocol (HTTPS)', function (t) {
   var r = request({
     url: 'https://localhost:443/headers.json'
-  }, function (err, res, body) {
-    t.notEqual(err, null)
+  }, function (_err, res, body) {
     t.equal(r.req.socket._host, 'localhost')
     t.end()
   })
@@ -213,8 +211,7 @@ tape('strip port in host header if explicit standard port (:443) & protocol (HTT
 tape('strip port in host header if implicit standard port & protocol (HTTP)', function (t) {
   var r = request({
     url: 'http://localhost/headers.json'
-  }, function (err, res, body) {
-    t.notEqual(err, null)
+  }, function (_err, res, body) {
     t.equal(r.req.socket._host, 'localhost')
     t.end()
   })
@@ -223,8 +220,7 @@ tape('strip port in host header if implicit standard port & protocol (HTTP)', fu
 tape('strip port in host header if implicit standard port & protocol (HTTPS)', function (t) {
   var r = request({
     url: 'https://localhost/headers.json'
-  }, function (err, res, body) {
-    t.notEqual(err, null)
+  }, function (_err, res, body) {
     t.equal(r.req.socket._host, 'localhost')
     t.end()
   })
