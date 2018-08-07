@@ -525,13 +525,18 @@ Request.prototype.init = function (options) {
       return
     }
 
+    var sendForm = false
+    if (self._form) {
+      if (!self._auth.hasAuth || (self._auth.hasAuth && self._auth.sentAuth)) {
+        sendForm = true
+      }
+    }
+
     var end = function () {
-      if (self._form) {
-        if (!self._auth.hasAuth) {
-          self._form.pipe(self)
-        } else if (self._auth.hasAuth && self._auth.sentAuth) {
-          self._form.pipe(self)
-        }
+      if (sendForm) {
+        self.setHeader(self._form.getHeaders(), true)
+        self.setHeader('content-length', self._formContentLength)
+        self._form.pipe(self)
       }
       if (self._multipart && self._multipart.chunked) {
         self._multipart.body.pipe(self)
@@ -567,10 +572,12 @@ Request.prototype.init = function (options) {
 
     if (self._form && !self.hasHeader('content-length')) {
       // Before ending the request, we had to compute the length of the whole form, asyncly
-      self.setHeader(self._form.getHeaders(), true)
       self._form.getLength(function (err, length) {
         if (!err && !isNaN(length)) {
-          self.setHeader('content-length', length)
+          self._formContentLength = length
+          if (!sendForm) {
+            self.setHeader('content-length', 0)
+          }
         }
         end()
       })
