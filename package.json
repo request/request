@@ -44,13 +44,14 @@
     "performance-now": "^2.1.0",
     "qs": "~6.5.2",
     "safe-buffer": "^5.1.2",
+    "tap": "^12.0.1",
     "tough-cookie": "~2.4.3",
     "tunnel-agent": "^0.6.0",
     "uuid": "^3.3.2"
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
-    "test-ci": "taper tests/test-*.js",
+    "test-ci": "tap tests/test-*.js",
     "test-cov": "istanbul cover tape tests/test-*.js",
     "test-browser": "node tests/browser/start.js",
     "lint": "standard"
@@ -74,8 +75,7 @@
     "rimraf": "^2.2.8",
     "server-destroy": "^1.0.1",
     "standard": "^9.0.0",
-    "tape": "^4.6.0",
-    "taper": "^0.5.0"
+    "tape": "^4.6.0"
   },
   "greenkeeper": {
     "ignore": [
