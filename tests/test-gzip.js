@@ -5,7 +5,7 @@ var http = require('http')
 var zlib = require('zlib')
 var assert = require('assert')
 var bufferEqual = require('buffer-equal')
-var tape = require('tape')
+var tape = require('tap').test
 
 var testContent = 'Compressible response content.\n'
 var testContentBig

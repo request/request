@@ -4,7 +4,7 @@ var http = require('http')
 var path = require('path')
 var request = require('../index')
 var fs = require('fs')
-var tape = require('tape')
+var tape = require('tap').test
 
 function runTest (t, a) {
   var remoteFile = path.join(__dirname, 'googledoodle.jpg')

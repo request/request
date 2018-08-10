@@ -1,14 +1,14 @@
 'use strict'
 
 var request = require('../index')
-var tape = require('tape')
+var tape = require('tap').test
 
 var local = 'http://localhost:0/asdf'
 
 tape('without uri', function (t) {
   t.throws(function () {
     request({})
-  }, /^Error: options\.uri is a required argument$/)
+  }, /^options\.uri is a required argument$/)
   t.end()
 })
 
@@ -17,7 +17,7 @@ tape('invalid uri 1', function (t) {
     request({
       uri: 'this-is-not-a-valid-uri'
     })
-  }, /^Error: Invalid URI/)
+  }, /^Invalid URI/)
   t.end()
 })
 
@@ -26,7 +26,7 @@ tape('invalid uri 2', function (t) {
     request({
       uri: 'github.com/uri-is-not-valid-without-protocol'
     })
-  }, /^Error: Invalid URI/)
+  }, /^Invalid URI/)
   t.end()
 })
 
@@ -36,7 +36,7 @@ tape('invalid uri + NO_PROXY', function (t) {
     request({
       uri: 'invalid'
     })
-  }, /^Error: Invalid URI/)
+  }, /^Invalid URI/)
   delete process.env.NO_PROXY
   t.end()
 })
@@ -46,7 +46,7 @@ tape('deprecated unix URL', function (t) {
     request({
       uri: 'unix://path/to/socket/and/then/request/path'
     })
-  }, /^Error: `unix:\/\/` URL scheme is no longer supported/)
+  }, /^`unix:\/\/` URL scheme is no longer supported/)
   t.end()
 })
 
@@ -55,7 +55,7 @@ tape('invalid body', function (t) {
     request({
       uri: local, body: {}
     })
-  }, /^Error: Argument error, options\.body\.$/)
+  }, /^Argument error, options\.body\.$/)
   t.end()
 })
 
@@ -65,7 +65,7 @@ tape('invalid multipart', function (t) {
       uri: local,
       multipart: 'foo'
     })
-  }, /^Error: Argument error, options\.multipart\.$/)
+  }, /^Argument error, options\.multipart\.$/)
   t.end()
 })
 
@@ -75,7 +75,7 @@ tape('multipart without body 1', function (t) {
       uri: local,
       multipart: [ {} ]
     })
-  }, /^Error: Body attribute missing in multipart\.$/)
+  }, /^Body attribute missing in multipart\.$/)
   t.end()
 })
 
@@ -84,7 +84,7 @@ tape('multipart without body 2', function (t) {
     request(local, {
       multipart: [ {} ]
     })
-  }, /^Error: Body attribute missing in multipart\.$/)
+  }, /^Body attribute missing in multipart\.$/)
   t.end()
 })
 

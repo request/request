@@ -3,7 +3,7 @@
 var server = require('./server')
 var request = require('../index')
 var qs = require('qs')
-var tape = require('tape')
+var tape = require('tap').test
 
 var s = server.createServer()
 

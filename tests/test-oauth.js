@@ -5,7 +5,7 @@ var qs = require('querystring')
 var fs = require('fs')
 var path = require('path')
 var request = require('../index')
-var tape = require('tape')
+var tape = require('tap').test
 var http = require('http')
 
 function getSignature (r) {

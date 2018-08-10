@@ -3,7 +3,7 @@
 var server = require('./server')
 var request = require('../index')
 var events = require('events')
-var tape = require('tape')
+var tape = require('tap').test
 var destroyable = require('server-destroy')
 
 var s = server.createServer()

@@ -2,7 +2,7 @@
 
 var http = require('http')
 var request = require('../index')
-var tape = require('tape')
+var tape = require('tap').test
 var server
 
 tape('setup', function (t) {

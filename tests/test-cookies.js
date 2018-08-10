@@ -2,7 +2,7 @@
 
 var http = require('http')
 var request = require('../index')
-var tape = require('tape')
+var tape = require('tap').test
 
 var validUrl
 var malformedUrl

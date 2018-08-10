@@ -2,7 +2,7 @@
 
 var http = require('http')
 var request = require('../index')
-var tape = require('tape')
+var tape = require('tap').test
 var crypto = require('crypto')
 
 function makeHeader () {

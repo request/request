@@ -3,7 +3,7 @@
 var http = require('http')
 var request = require('../index')
 var hawk = require('../lib/hawk')
-var tape = require('tape')
+var tape = require('tap').test
 var assert = require('assert')
 
 var server = http.createServer(function (req, res) {

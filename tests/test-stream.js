@@ -1,7 +1,7 @@
 var fs = require('fs')
 var path = require('path')
 var http = require('http')
-var tape = require('tape')
+var tape = require('tap').test
 var request = require('../')
 var server
 

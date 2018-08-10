@@ -4,7 +4,7 @@ var request = require('../index')
 var version = require('../lib/helpers').version
 var http = require('http')
 var ForeverAgent = require('forever-agent')
-var tape = require('tape')
+var tape = require('tap').test
 
 var s = http.createServer(function (req, res) {
   res.statusCode = 200

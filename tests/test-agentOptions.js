@@ -6,7 +6,7 @@ if (!process.env.running_under_istanbul) {
   var request = require('../index')
   var http = require('http')
   var server = require('./server')
-  var tape = require('tape')
+  var tape = require('tap').test
 
   var s = server.createServer()
 

@@ -1,7 +1,7 @@
 'use strict'
 
 var server = require('./server')
-var tape = require('tape')
+var tape = require('tap').test
 var request = require('../index')
 var https = require('https')
 var net = require('net')
@@ -454,12 +454,16 @@ tape('setup', function (t) {
           s.destroy(function () {
             ss.destroy(function () {
               ss2.destroy(function () {
-                t.end()
+                setTimeout(() => {
+                  t.end()
+                }, 0)
               })
             })
           })
         })
-        t.end()
+        setTimeout(() => {
+          t.end()
+        }, 0)
       })
     })
   })

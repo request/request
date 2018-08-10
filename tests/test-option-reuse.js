@@ -2,7 +2,7 @@
 
 var request = require('../index')
 var http = require('http')
-var tape = require('tape')
+var tape = require('tap').test
 
 var methodsSeen = {
   head: 0,

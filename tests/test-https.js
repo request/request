@@ -7,7 +7,7 @@ var server = require('./server')
 var request = require('../index')
 var fs = require('fs')
 var path = require('path')
-var tape = require('tape')
+var tape = require('tap').test
 
 var s = server.createSSLServer()
 var caFile = path.resolve(__dirname, 'ssl/ca/ca.crt')

@@ -2,7 +2,7 @@
 
 var request = require('../index')
 var http = require('http')
-var tape = require('tape')
+var tape = require('tap').test
 
 var s = http.createServer(function (req, resp) {
   resp.statusCode = 200

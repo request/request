@@ -3,7 +3,7 @@
 var http = require('http')
 var request = require('../index')
 var httpSignature = require('http-signature')
-var tape = require('tape')
+var tape = require('tap').test
 
 var privateKeyPEMs = {}
 

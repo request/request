@@ -1,7 +1,7 @@
 'use strict'
 
 var request = require('../index')
-var tape = require('tape')
+var tape = require('tap').test
 
 // Run a querystring test.  `options` can have the following keys:
 //   - suffix              : a string to be added to the URL

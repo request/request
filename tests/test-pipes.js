@@ -6,7 +6,7 @@ var fs = require('fs')
 var request = require('../index')
 var path = require('path')
 var util = require('util')
-var tape = require('tape')
+var tape = require('tap').test
 
 var s = server.createServer()
 
@@ -371,7 +371,9 @@ tape('request.pipefilter is called correctly', function (t) {
   r3.pipefilter = function (res, dest) {
     t.equal(res, r3.response)
     t.equal(dest, validatePipeFilter)
-    t.end()
+    setTimeout(() => {
+      t.end()
+    }, 0)
   }
 })
 

@@ -21,7 +21,7 @@ function checkEventHandlers (t, socket) {
 
 var server = require('./server')
 var request = require('../index')
-var tape = require('tape')
+var tape = require('tap').test
 
 var s = server.createServer()
 

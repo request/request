@@ -2,7 +2,7 @@
 
 var path = require('path')
 var request = require('..')
-var tape = require('tape')
+var tape = require('tap').test
 var fixture = require('./fixtures/har.json')
 var server = require('./server')
 

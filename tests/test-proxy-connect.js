@@ -1,7 +1,7 @@
 'use strict'
 
 var request = require('../index')
-var tape = require('tape')
+var tape = require('tap').test
 
 var called = false
 var proxiedHost = 'google.com'

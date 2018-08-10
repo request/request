@@ -5,7 +5,7 @@ var http = require('http')
 var fs = require('fs')
 var rimraf = require('rimraf')
 var assert = require('assert')
-var tape = require('tape')
+var tape = require('tap').test
 var url = require('url')
 
 var rawPath = [null, 'raw', 'path'].join('/')

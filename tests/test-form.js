@@ -5,7 +5,7 @@ var path = require('path')
 var mime = require('mime-types')
 var request = require('../index')
 var fs = require('fs')
-var tape = require('tape')
+var tape = require('tap').test
 
 tape('multipart form append', function (t) {
   var remoteFile = path.join(__dirname, 'googledoodle.jpg')

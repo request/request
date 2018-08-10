@@ -3,7 +3,7 @@
 var server = require('./server')
 var assert = require('assert')
 var request = require('../index')
-var tape = require('tape')
+var tape = require('tap').test
 var http = require('http')
 var destroyable = require('server-destroy')
 

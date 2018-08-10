@@ -3,7 +3,7 @@
 var http = require('http')
 var assert = require('assert')
 var request = require('../index')
-var tape = require('tape')
+var tape = require('tap').test
 
 var server = http.createServer(function (req, resp) {
   resp.statusCode = 200

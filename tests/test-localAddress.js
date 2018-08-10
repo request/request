@@ -1,6 +1,6 @@
 'use strict'
 var request = require('../index')
-var tape = require('tape')
+var tape = require('tap').test
 
 tape('bind to invalid address', function (t) {
   request.get({
