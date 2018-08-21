@@ -22,8 +22,13 @@ function runTest (t, a) {
       if (a.header.indexOf('mixed') !== -1) {
         t.ok(req.headers['content-type'].match(/^multipart\/mixed; boundary=[^\s;]+$/))
       } else {
-        t.ok(req.headers['content-type']
-          .match(/^multipart\/related; boundary=XXX; type=text\/xml; start="<root>"$/))
+        if (a.header.indexOf('boundary=XXX') !== -1) {
+          t.ok(req.headers['content-type']
+            .match(/^multipart\/related; boundary=XXX; type=text\/xml; start="<root>"$/))
+        } else {
+          t.ok(req.headers['content-type']
+            .match(/^multipart\/related; boundary="XXX"; type=text\/xml; start="<root>"$/))
+        }
       }
     } else {
       t.ok(req.headers['content-type'].match(/^multipart\/related; boundary=[^\s;]+$/))
@@ -64,6 +69,14 @@ function runTest (t, a) {
 
       if (a.header && a.header.indexOf('boundary=XXX') !== -1) {
         t.ok(data.indexOf('--XXX') !== -1)
+      }
+
+      if (a.header && a.header.indexOf('boundary="XXX"') !== -1) {
+        t.ok(data.indexOf('--XXX') !== -1)
+      }
+
+      if (a.header && a.header.indexOf('boundary="XXX"') !== -1) {
+        t.ok(data.indexOf('--"XXX"') === -1)
       }
 
       res.writeHead(200)
@@ -108,7 +121,8 @@ function runTest (t, a) {
 var testHeaders = [
   null,
   'multipart/mixed',
-  'multipart/related; boundary=XXX; type=text/xml; start="<root>"'
+  'multipart/related; boundary=XXX; type=text/xml; start="<root>"',
+  'multipart/related; boundary="XXX"; type=text/xml; start="<root>"'
 ]
 
 var methods = ['post', 'get']
