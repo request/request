@@ -1,1 +1,5 @@
 node_modules
+coverage
+.idea
+npm-debug.log
+package-lock.json

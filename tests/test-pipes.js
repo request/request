@@ -1,231 +1,382 @@
+'use strict'
+
 var server = require('./server')
-  , events = require('events')
-  , stream = require('stream')
-  , assert = require('assert')
-  , fs = require('fs')
-  , request = require('../index')
-  , path = require('path')
-  , util = require('util')
-  ;
+var stream = require('stream')
+var fs = require('fs')
+var request = require('../index')
+var path = require('path')
+var util = require('util')
+var tape = require('tape')
 
-var s = server.createServer(3453);
+var s = server.createServer()
 
-function ValidationStream(str) {
+s.on('/cat', function (req, res) {
+  if (req.method === 'GET') {
+    res.writeHead(200, {
+      'content-type': 'text/plain-test',
+      'content-length': 4
+    })
+    res.end('asdf')
+  } else if (req.method === 'PUT') {
+    var body = ''
+    req.on('data', function (chunk) {
+      body += chunk
+    }).on('end', function () {
+      res.writeHead(201)
+      res.end()
+      s.emit('catDone', req, res, body)
+    })
+  }
+})
+
+s.on('/doodle', function (req, res) {
+  if (req.headers['x-oneline-proxy']) {
+    res.setHeader('x-oneline-proxy', 'yup')
+  }
+  res.writeHead('200', { 'content-type': 'image/jpeg' })
+  fs.createReadStream(path.join(__dirname, 'googledoodle.jpg')).pipe(res)
+})
+
+function ValidationStream (t, str) {
   this.str = str
   this.buf = ''
   this.on('data', function (data) {
     this.buf += data
   })
   this.on('end', function () {
-    assert.equal(this.str, this.buf)
+    t.equal(this.str, this.buf)
   })
   this.writable = true
 }
+
 util.inherits(ValidationStream, stream.Stream)
+
 ValidationStream.prototype.write = function (chunk) {
   this.emit('data', chunk)
 }
+
 ValidationStream.prototype.end = function (chunk) {
-  if (chunk) this.emit('data', chunk)
+  if (chunk) {
+    this.emit('data', chunk)
+  }
   this.emit('end')
 }
 
-s.listen(s.port, function () {
-  var counter = 0;
+tape('setup', function (t) {
+  s.listen(0, function () {
+    t.end()
+  })
+})
 
-  var check = function () {
-    counter = counter - 1
-    if (counter === 0) {
-      console.log('All tests passed.')
-      setTimeout(function () {
-        process.exit();
-      }, 500)
-    }
-  }
+tape('piping to a request object', function (t) {
+  s.once('/push', server.createPostValidator('mydata'))
 
-  // Test pipeing to a request object
-  s.once('/push', server.createPostValidator("mydata"));
-
-  var mydata = new stream.Stream();
+  var mydata = new stream.Stream()
   mydata.readable = true
 
-  counter++
-  var r1 = request.put({url:'http://localhost:3453/push'}, function () {
-    check();
+  var r1 = request.put({
+    url: s.url + '/push'
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(body, 'mydata')
+    t.end()
   })
   mydata.pipe(r1)
 
-  mydata.emit('data', 'mydata');
-  mydata.emit('end');
+  mydata.emit('data', 'mydata')
+  mydata.emit('end')
+})
 
-  // Test pipeing to a request object with a json body
-  s.once('/push-json', server.createPostValidator("{\"foo\":\"bar\"}", "application/json"));
-
-  var mybodydata = new stream.Stream();
+tape('piping to a request object with invalid uri', function (t) {
+  var mybodydata = new stream.Stream()
   mybodydata.readable = true
 
-  counter++
-  var r2 = request.put({url:'http://localhost:3453/push-json',json:true}, function () {
-    check();
+  var r2 = request.put({
+    url: '/bad-uri',
+    json: true
+  }, function (err, res, body) {
+    t.ok(err instanceof Error)
+    t.equal(err.message, 'Invalid URI "/bad-uri"')
+    t.end()
   })
   mybodydata.pipe(r2)
 
-  mybodydata.emit('data', JSON.stringify({foo:"bar"}));
-  mybodydata.emit('end');
+  mybodydata.emit('data', JSON.stringify({ foo: 'bar' }))
+  mybodydata.emit('end')
+})
 
-  // Test pipeing from a request object.
-  s.once('/pull', server.createGetResponse("mypulldata"));
+tape('piping to a request object with a json body', function (t) {
+  var obj = {foo: 'bar'}
+  var json = JSON.stringify(obj)
+  s.once('/push-json', server.createPostValidator(json, 'application/json'))
+  var mybodydata = new stream.Stream()
+  mybodydata.readable = true
 
-  var mypulldata = new stream.Stream();
+  var r2 = request.put({
+    url: s.url + '/push-json',
+    json: true
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.deepEqual(body, obj)
+    t.end()
+  })
+  mybodydata.pipe(r2)
+
+  mybodydata.emit('data', JSON.stringify({ foo: 'bar' }))
+  mybodydata.emit('end')
+})
+
+tape('piping from a request object', function (t) {
+  s.once('/pull', server.createGetResponse('mypulldata'))
+
+  var mypulldata = new stream.Stream()
   mypulldata.writable = true
 
-  counter++
-  request({url:'http://localhost:3453/pull'}).pipe(mypulldata)
+  request({
+    url: s.url + '/pull'
+  }).pipe(mypulldata)
 
-  var d = '';
+  var d = ''
 
   mypulldata.write = function (chunk) {
-    d += chunk;
+    d += chunk
   }
   mypulldata.end = function () {
-    assert.equal(d, 'mypulldata');
-    check();
-  };
+    t.equal(d, 'mypulldata')
+    t.end()
+  }
+})
 
+tape('pause when piping from a request object', function (t) {
+  s.once('/chunks', function (req, res) {
+    res.writeHead(200, {
+      'content-type': 'text/plain'
+    })
+    res.write('Chunk 1')
+    setTimeout(function () { res.end('Chunk 2') }, 10)
+  })
 
-  s.on('/cat', function (req, resp) {
-    if (req.method === "GET") {
-      resp.writeHead(200, {'content-type':'text/plain-test', 'content-length':4});
-      resp.end('asdf')
-    } else if (req.method === "PUT") {
-      assert.equal(req.headers['content-type'], 'text/plain-test');
-      assert.equal(req.headers['content-length'], 4)
-      var validate = '';
+  var chunkNum = 0
+  var paused = false
+  request({
+    url: s.url + '/chunks'
+  })
+    .on('data', function (chunk) {
+      var self = this
 
-      req.on('data', function (chunk) {validate += chunk})
-      req.on('end', function () {
-        resp.writeHead(201);
-        resp.end();
-        assert.equal(validate, 'asdf');
-        check();
-      })
+      t.notOk(paused, 'Only receive data when not paused')
+
+      ++chunkNum
+      if (chunkNum === 1) {
+        t.equal(chunk.toString(), 'Chunk 1')
+        self.pause()
+        paused = true
+        setTimeout(function () {
+          paused = false
+          self.resume()
+        }, 100)
+      } else {
+        t.equal(chunk.toString(), 'Chunk 2')
+      }
+    })
+    .on('end', t.end.bind(t))
+})
+
+tape('pause before piping from a request object', function (t) {
+  s.once('/pause-before', function (req, res) {
+    res.writeHead(200, {
+      'content-type': 'text/plain'
+    })
+    res.end('Data')
+  })
+
+  var paused = true
+  var r = request({
+    url: s.url + '/pause-before'
+  })
+  r.pause()
+  r.on('data', function (data) {
+    t.notOk(paused, 'Only receive data when not paused')
+    t.equal(data.toString(), 'Data')
+  })
+  r.on('end', t.end.bind(t))
+
+  setTimeout(function () {
+    paused = false
+    r.resume()
+  }, 100)
+})
+
+var fileContents = fs.readFileSync(__filename)
+function testPipeFromFile (testName, hasContentLength) {
+  tape(testName, function (t) {
+    s.once('/pushjs', function (req, res) {
+      if (req.method === 'PUT') {
+        t.equal(req.headers['content-type'], 'application/javascript')
+        t.equal(
+          req.headers['content-length'],
+          (hasContentLength ? '' + fileContents.length : undefined))
+        var body = ''
+        req.setEncoding('utf8')
+        req.on('data', function (data) {
+          body += data
+        })
+        req.on('end', function () {
+          res.end()
+          t.equal(body, fileContents.toString())
+          t.end()
+        })
+      } else {
+        res.end()
+      }
+    })
+    var r = request.put(s.url + '/pushjs')
+    fs.createReadStream(__filename).pipe(r)
+    if (hasContentLength) {
+      r.setHeader('content-length', fileContents.length)
     }
   })
-  s.on('/pushjs', function (req, resp) {
-    if (req.method === "PUT") {
-      assert.equal(req.headers['content-type'], 'application/javascript');
-      check();
-    }
+}
+
+// TODO Piping from a file does not send content-length header
+testPipeFromFile('piping from a file', false)
+testPipeFromFile('piping from a file with content-length', true)
+
+tape('piping to and from same URL', function (t) {
+  s.once('catDone', function (req, res, body) {
+    t.equal(req.headers['content-type'], 'text/plain-test')
+    t.equal(req.headers['content-length'], '4')
+    t.equal(body, 'asdf')
+    t.end()
   })
-  s.on('/catresp', function (req, resp) {
-    request.get('http://localhost:3453/cat').pipe(resp)
-  })
-  s.on('/doodle', function (req, resp) {
-    if (req.headers['x-oneline-proxy']) {
-      resp.setHeader('x-oneline-proxy', 'yup')
-    }
-    resp.writeHead('200', {'content-type':'image/jpeg'})
-    fs.createReadStream(path.join(__dirname, 'googledoodle.jpg')).pipe(resp)
-  })
-  s.on('/onelineproxy', function (req, resp) {
-    var x = request('http://localhost:3453/doodle')
-    req.pipe(x)
-    x.pipe(resp)
+  request.get(s.url + '/cat')
+    .pipe(request.put(s.url + '/cat'))
+})
+
+tape('piping between urls', function (t) {
+  s.once('/catresp', function (req, res) {
+    request.get(s.url + '/cat').pipe(res)
   })
 
-  counter++
-  fs.createReadStream(__filename).pipe(request.put('http://localhost:3453/pushjs'))
-
-  counter++
-  request.get('http://localhost:3453/cat').pipe(request.put('http://localhost:3453/cat'))
-
-  counter++
-  request.get('http://localhost:3453/catresp', function (e, resp, body) {
-    assert.equal(resp.headers['content-type'], 'text/plain-test');
-    assert.equal(resp.headers['content-length'], 4)
-    check();
+  request.get(s.url + '/catresp', function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.headers['content-type'], 'text/plain-test')
+    t.equal(res.headers['content-length'], '4')
+    t.end()
   })
+})
 
+tape('writing to file', function (t) {
   var doodleWrite = fs.createWriteStream(path.join(__dirname, 'test.jpg'))
 
-  counter++
-  request.get('http://localhost:3453/doodle').pipe(doodleWrite)
+  request.get(s.url + '/doodle').pipe(doodleWrite)
 
   doodleWrite.on('close', function () {
-    assert.deepEqual(fs.readFileSync(path.join(__dirname, 'googledoodle.jpg')), fs.readFileSync(path.join(__dirname, 'test.jpg')))
-    check()
-  })
-
-  process.on('exit', function () {
+    t.deepEqual(
+      fs.readFileSync(path.join(__dirname, 'googledoodle.jpg')),
+      fs.readFileSync(path.join(__dirname, 'test.jpg')))
     fs.unlinkSync(path.join(__dirname, 'test.jpg'))
+    t.end()
+  })
+})
+
+tape('one-line proxy', function (t) {
+  s.once('/onelineproxy', function (req, res) {
+    var x = request(s.url + '/doodle')
+    req.pipe(x)
+    x.pipe(res)
   })
 
-  counter++
-  request.get({uri:'http://localhost:3453/onelineproxy', headers:{'x-oneline-proxy':'nope'}}, function (err, resp, body) {
-    assert.equal(resp.headers['x-oneline-proxy'], 'yup')
-    check()
+  request.get({
+    uri: s.url + '/onelineproxy',
+    headers: { 'x-oneline-proxy': 'nope' }
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.headers['x-oneline-proxy'], 'yup')
+    t.end()
+  })
+})
+
+tape('piping after response', function (t) {
+  s.once('/afterresponse', function (req, res) {
+    res.write('d')
+    res.end()
   })
 
-  s.on('/afterresponse', function (req, resp) {
-    resp.write('d')
-    resp.end()
+  var rAfterRes = request.post(s.url + '/afterresponse')
+
+  rAfterRes.on('response', function () {
+    var v = new ValidationStream(t, 'd')
+    rAfterRes.pipe(v)
+    v.on('end', function () {
+      t.end()
+    })
+  })
+})
+
+tape('piping through a redirect', function (t) {
+  s.once('/forward1', function (req, res) {
+    res.writeHead(302, { location: '/forward2' })
+    res.end()
+  })
+  s.once('/forward2', function (req, res) {
+    res.writeHead('200', { 'content-type': 'image/png' })
+    res.write('d')
+    res.end()
   })
 
-  counter++
-  var afterresp = request.post('http://localhost:3453/afterresponse').on('response', function () {
-    var v = new ValidationStream('d')
-    afterresp.pipe(v)
-    v.on('end', check)
+  var validateForward = new ValidationStream(t, 'd')
+
+  request.get(s.url + '/forward1').pipe(validateForward)
+
+  validateForward.on('end', function () {
+    t.end()
   })
+})
 
-  s.on('/forward1', function (req, resp) {
-   resp.writeHead(302, {location:'/forward2'})
-    resp.end()
-  })
-  s.on('/forward2', function (req, resp) {
-    resp.writeHead('200', {'content-type':'image/png'})
-    resp.write('d')
-    resp.end()
-  })
+tape('pipe options', function (t) {
+  s.once('/opts', server.createGetResponse('opts response'))
 
-  counter++
-  var validateForward = new ValidationStream('d')
-  validateForward.on('end', check)
-  request.get('http://localhost:3453/forward1').pipe(validateForward)
+  var optsStream = new stream.Stream()
+  var optsData = ''
 
-  // Test pipe options
-  s.once('/opts', server.createGetResponse('opts response'));
-
-  var optsStream = new stream.Stream();
   optsStream.writable = true
-
-  var optsData = '';
   optsStream.write = function (buf) {
-    optsData += buf;
+    optsData += buf
     if (optsData === 'opts response') {
-      setTimeout(check, 10);
+      setTimeout(function () {
+        t.end()
+      }, 10)
     }
   }
-
   optsStream.end = function () {
-    assert.fail('end called')
-  };
-
-  counter++
-  request({url:'http://localhost:3453/opts'}).pipe(optsStream, { end : false })
-
-  // test request.pipefilter is called correctly
-  counter++
-  s.on('/pipefilter', function(req, resp) {
-    resp.end('d')
-  })
-  var validatePipeFilter = new ValidationStream('d')
-
-  var r3 = request.get('http://localhost:3453/pipefilter')
-  r3.pipe(validatePipeFilter)
-  r3.pipefilter = function(resp, dest) {
-    assert.equal(resp, r3.response)
-    assert.equal(dest, validatePipeFilter)
-    check()
+    t.fail('end called')
   }
+
+  request({
+    url: s.url + '/opts'
+  }).pipe(optsStream, { end: false })
+})
+
+tape('request.pipefilter is called correctly', function (t) {
+  s.once('/pipefilter', function (req, res) {
+    res.end('d')
+  })
+  var validatePipeFilter = new ValidationStream(t, 'd')
+
+  var r3 = request.get(s.url + '/pipefilter')
+  r3.pipe(validatePipeFilter)
+  r3.pipefilter = function (res, dest) {
+    t.equal(res, r3.response)
+    t.equal(dest, validatePipeFilter)
+    t.end()
+  }
+})
+
+tape('cleanup', function (t) {
+  s.close(function () {
+    t.end()
+  })
 })

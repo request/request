@@ -12,155 +12,144 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+'use strict'
+
+var extend = require('extend')
 var cookies = require('./lib/cookies')
-  , copy = require('./lib/copy')
-  , Request = require('./request')
-  , util = require('util')
-  ;
+var helpers = require('./lib/helpers')
 
-
+var paramsHaveRequestBody = helpers.paramsHaveRequestBody
 
 // organize params for patch, post, put, head, del
-function initParams(uri, options, callback) {
-  var opts;
-  if ((typeof options === 'function') && !callback) callback = options
-  if (options && typeof options === 'object') {
-    opts = util._extend({}, options);
-    opts.uri = uri
-  } else if (typeof uri === 'string') {
-    opts = {uri:uri}
-  } else {
-    opts = util._extend({}, uri);
-    uri = opts.uri
+function initParams (uri, options, callback) {
+  if (typeof options === 'function') {
+    callback = options
   }
 
-  return { uri: uri, options: opts, callback: callback }
+  var params = {}
+  if (typeof options === 'object') {
+    extend(params, options, {uri: uri})
+  } else if (typeof uri === 'string') {
+    extend(params, {uri: uri})
+  } else {
+    extend(params, uri)
+  }
+
+  params.callback = callback || params.callback
+  return params
 }
 
 function request (uri, options, callback) {
-  var opts;
-  if (typeof uri === 'undefined') throw new Error('undefined is not a valid uri or options object.')
-  if ((typeof options === 'function') && !callback) callback = options
-  if (options && typeof options === 'object') {
-    opts = util._extend({}, options);
-    opts.uri = uri
-  } else if (typeof uri === 'string') {
-    opts = {uri:uri}
-  } else {
-    opts = util._extend({}, uri);
+  if (typeof uri === 'undefined') {
+    throw new Error('undefined is not a valid uri or options object.')
   }
 
-  if (callback) opts.callback = callback
-  var r = new Request(opts)
-  return r
+  var params = initParams(uri, options, callback)
+
+  if (params.method === 'HEAD' && paramsHaveRequestBody(params)) {
+    throw new Error('HTTP HEAD requests MUST NOT include a request body.')
+  }
+
+  return new request.Request(params)
 }
 
-module.exports = request
+function verbFunc (verb) {
+  var method = verb.toUpperCase()
+  return function (uri, options, callback) {
+    var params = initParams(uri, options, callback)
+    params.method = method
+    return request(params, params.callback)
+  }
+}
 
-request.Request = Request;
+// define like this to please codeintel/intellisense IDEs
+request.get = verbFunc('get')
+request.head = verbFunc('head')
+request.options = verbFunc('options')
+request.post = verbFunc('post')
+request.put = verbFunc('put')
+request.patch = verbFunc('patch')
+request.del = verbFunc('delete')
+request['delete'] = verbFunc('delete')
 
-request.debug = process.env.NODE_DEBUG && /request/.test(process.env.NODE_DEBUG)
+request.jar = function (store) {
+  return cookies.jar(store)
+}
 
-request.initParams = initParams
+request.cookie = function (str) {
+  return cookies.parse(str)
+}
+
+function wrapRequestMethod (method, options, requester, verb) {
+  return function (uri, opts, callback) {
+    var params = initParams(uri, opts, callback)
+
+    var target = {}
+    extend(true, target, options, params)
+
+    target.pool = params.pool || options.pool
+
+    if (verb) {
+      target.method = verb.toUpperCase()
+    }
+
+    if (typeof requester === 'function') {
+      method = requester
+    }
+
+    return method(target, target.callback)
+  }
+}
 
 request.defaults = function (options, requester) {
-  var def = function (method) {
-    var d = function (uri, opts, callback) {
-      var params = initParams(uri, opts, callback)
-      Object.keys(options).forEach(function (key) {
-        if (key !== 'headers' && params.options[key] === undefined) {
-          params.options[key] = options[key]
-        }
-      })
-      if (options.headers) {
-        var headers = {}
-        util._extend(headers, options.headers)
-        util._extend(headers, params.options.headers)
-        params.options.headers = headers
-      }
-      if(typeof requester === 'function') {
-        if(method === request) {
-          method = requester
-        } else {
-          params.options._requester = requester
-        }
-      }
-      return method(params.options, params.callback)
-    }
-    return d
-  }
-  var de = def(request)
-  de.get = def(request.get)
-  de.patch = def(request.patch)
-  de.post = def(request.post)
-  de.put = def(request.put)
-  de.head = def(request.head)
-  de.del = def(request.del)
-  de.cookie = def(request.cookie)
-  de.jar = request.jar
-  return de
-}
+  var self = this
 
-function requester(params) {
-  if(typeof params.options._requester === 'function') {
-    return params.options._requester
-  } else {
-    return request
+  options = options || {}
+
+  if (typeof options === 'function') {
+    requester = options
+    options = {}
   }
+
+  var defaults = wrapRequestMethod(self, options, requester)
+
+  var verbs = ['get', 'head', 'post', 'put', 'patch', 'del', 'delete']
+  verbs.forEach(function (verb) {
+    defaults[verb] = wrapRequestMethod(self[verb], options, requester, verb)
+  })
+
+  defaults.cookie = wrapRequestMethod(self.cookie, options, requester)
+  defaults.jar = self.jar
+  defaults.defaults = self.defaults
+  return defaults
 }
 
 request.forever = function (agentOptions, optionsArg) {
   var options = {}
   if (optionsArg) {
-    for (var option in optionsArg) {
-      options[option] = optionsArg[option]
-    }
+    extend(options, optionsArg)
   }
-  if (agentOptions) options.agentOptions = agentOptions
+  if (agentOptions) {
+    options.agentOptions = agentOptions
+  }
+
   options.forever = true
   return request.defaults(options)
 }
 
-request.get = function (uri, options, callback) {
-  var params = initParams(uri, options, callback)
-  params.options.method = 'GET'
-  return requester(params)(params.uri || null, params.options, params.callback)
-}
-request.post = function (uri, options, callback) {
-  var params = initParams(uri, options, callback)
-  params.options.method = 'POST'
-  return requester(params)(params.uri || null, params.options, params.callback)
-}
-request.put = function (uri, options, callback) {
-  var params = initParams(uri, options, callback)
-  params.options.method = 'PUT'
-  return requester(params)(params.uri || null, params.options, params.callback)
-}
-request.patch = function (uri, options, callback) {
-  var params = initParams(uri, options, callback)
-  params.options.method = 'PATCH'
-  return requester(params)(params.uri || null, params.options, params.callback)
-}
-request.head = function (uri, options, callback) {
-  var params = initParams(uri, options, callback)
-  params.options.method = 'HEAD'
-  if (params.options.body ||
-      params.options.requestBodyStream ||
-      (params.options.json && typeof params.options.json !== 'boolean') ||
-      params.options.multipart) {
-    throw new Error("HTTP HEAD requests MUST NOT include a request body.")
-  }
+// Exports
 
-  return requester(params)(params.uri || null, params.options, params.callback)
-}
-request.del = function (uri, options, callback) {
-  var params = initParams(uri, options, callback)
-  params.options.method = 'DELETE'
-  return requester(params)(params.uri || null, params.options, params.callback)
-}
-request.jar = function () {
-  return cookies.jar();
-}
-request.cookie = function (str) {
-  return cookies.parse(str);
-}
+module.exports = request
+request.Request = require('./request')
+request.initParams = initParams
+
+// Backwards compatibility for request.debug
+Object.defineProperty(request, 'debug', {
+  enumerable: true,
+  get: function () {
+    return request.Request.debug
+  },
+  set: function (debug) {
+    request.Request.debug = debug
+  }
+})
