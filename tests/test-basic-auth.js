@@ -15,13 +15,13 @@ tape('setup', function (t) {
     var ok
 
     if (req.headers.authorization) {
-      if (req.headers.authorization === 'Basic ' + new Buffer('user:pass').toString('base64')) {
+      if (req.headers.authorization === 'Basic ' + Buffer.from('user:pass').toString('base64')) {
         ok = true
-      } else if (req.headers.authorization === 'Basic ' + new Buffer('user:').toString('base64')) {
+      } else if (req.headers.authorization === 'Basic ' + Buffer.from('user:').toString('base64')) {
         ok = true
-      } else if (req.headers.authorization === 'Basic ' + new Buffer(':pass').toString('base64')) {
+      } else if (req.headers.authorization === 'Basic ' + Buffer.from(':pass').toString('base64')) {
         ok = true
-      } else if (req.headers.authorization === 'Basic ' + new Buffer('user:pâss').toString('base64')) {
+      } else if (req.headers.authorization === 'Basic ' + Buffer.from('user:pâss').toString('base64')) {
         ok = true
       } else {
         // Bad auth header, don't send back WWW-Authenticate header

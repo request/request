@@ -6,7 +6,6 @@ var fs = require('fs')
 var path = require('path')
 var request = require('../index')
 var tape = require('tape')
-var crypto = require('crypto')
 var http = require('http')
 
 function getSignature (r) {
@@ -22,13 +21,17 @@ function getSignature (r) {
 // Tests from Twitter documentation https://dev.twitter.com/docs/auth/oauth
 
 var hmacsign = oauth.hmacsign
+var hmacsign256 = oauth.hmacsign256
 var rsasign = oauth.rsasign
 var rsaPrivatePEM = fs.readFileSync(path.join(__dirname, 'ssl', 'test.key'))
 var reqsign
+var reqsign256
 var reqsignRSA
 var accsign
+var accsign256
 var accsignRSA
 var upsign
+var upsign256
 var upsignRSA
 
 tape('reqsign', function (t) {
@@ -42,6 +45,20 @@ tape('reqsign', function (t) {
     }, 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98')
 
   t.equal(reqsign, '8wUi7m5HFQy76nowoCThusfgB+Q=')
+  t.end()
+})
+
+tape('reqsign256', function (t) {
+  reqsign256 = hmacsign256('POST', 'https://api.twitter.com/oauth/request_token',
+    { oauth_callback: 'http://localhost:3005/the_dance/process_callback?service_provider_id=11',
+      oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
+      oauth_nonce: 'QP70eNmVz8jvdPevU3oJD2AfF7R7odC2XJcn4XlZJqk',
+      oauth_signature_method: 'HMAC-SHA256',
+      oauth_timestamp: '1272323042',
+      oauth_version: '1.0'
+    }, 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98')
+
+  t.equal(reqsign256, 'N0KBpiPbuPIMx2B77eIg7tNfGNF81iq3bcO9RO6lH+k=')
   t.end()
 })
 
@@ -74,6 +91,21 @@ tape('accsign', function (t) {
   t.end()
 })
 
+tape('accsign256', function (t) {
+  accsign256 = hmacsign256('POST', 'https://api.twitter.com/oauth/access_token',
+    { oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
+      oauth_nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
+      oauth_signature_method: 'HMAC-SHA256',
+      oauth_token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc',
+      oauth_timestamp: '1272323047',
+      oauth_verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY',
+      oauth_version: '1.0'
+    }, 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98', 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA')
+
+  t.equal(accsign256, 'y7S9eUhA0tC9/YfRzCPqkg3/bUdYRDpZ93Xi51AvhjQ=')
+  t.end()
+})
+
 tape('accsignRSA', function (t) {
   accsignRSA = rsasign('POST', 'https://api.twitter.com/oauth/access_token',
     { oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
@@ -101,6 +133,21 @@ tape('upsign', function (t) {
     }, 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98', 'J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA')
 
   t.equal(upsign, 'yOahq5m0YjDDjfjxHaXEsW9D+X0=')
+  t.end()
+})
+
+tape('upsign256', function (t) {
+  upsign256 = hmacsign256('POST', 'http://api.twitter.com/1/statuses/update.json',
+    { oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
+      oauth_nonce: 'oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y',
+      oauth_signature_method: 'HMAC-SHA256',
+      oauth_token: '819797-Jxq8aYUDRmykzVKrgoLhXSq67TEa5ruc4GJC2rWimw',
+      oauth_timestamp: '1272325550',
+      oauth_version: '1.0',
+      status: 'setting up my twitter 私のさえずりを設定する'
+    }, 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98', 'J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA')
+
+  t.equal(upsign256, 'xYhKjozxc3NYef7C26WU+gORdhEURdZRxSDzRttEKH0=')
   t.end()
 })
 
@@ -540,32 +587,42 @@ tape('body transport_method + form option + url params', function (t) {
   })
 })
 
-tape('body_hash manual built', function (t) {
-  function buildBodyHash (body) {
-    var shasum = crypto.createHash('sha1')
-    shasum.update(body || '')
-    var sha1 = shasum.digest('hex')
-    return new Buffer(sha1).toString('base64')
-  }
-
-  var json = {foo: 'bar'}
+tape('body_hash manually set', function (t) {
   var r = request.post(
     { url: 'http://example.com',
       oauth: { consumer_secret: 'consumer_secret',
-        body_hash: buildBodyHash(JSON.stringify(json))
+        body_hash: 'ManuallySetHash'
       },
-      json: json
+      json: {foo: 'bar'}
     })
 
   process.nextTick(function () {
     var hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
-    t.equal('YTVlNzQ0ZDAxNjQ1NDBkMzNiMWQ3ZWE2MTZjMjhmMmZhOTdlNzU0YQ%3D%3D', hash)
+    t.equal('ManuallySetHash', hash)
     r.abort()
     t.end()
   })
 })
 
-tape('body_hash automatic built', function (t) {
+tape('body_hash automatically built for string', function (t) {
+  var r = request.post(
+    { url: 'http://example.com',
+      oauth: { consumer_secret: 'consumer_secret',
+        body_hash: true
+      },
+      body: 'Hello World!'
+    })
+
+  process.nextTick(function () {
+    var hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
+    // from https://tools.ietf.org/id/draft-eaton-oauth-bodyhash-00.html#anchor15
+    t.equal('Lve95gjOVATpfV8EL5X4nxwjKHE%3D', hash)
+    r.abort()
+    t.end()
+  })
+})
+
+tape('body_hash automatically built for JSON', function (t) {
   var r = request.post(
     { url: 'http://example.com',
       oauth: { consumer_secret: 'consumer_secret',
@@ -576,7 +633,7 @@ tape('body_hash automatic built', function (t) {
 
   process.nextTick(function () {
     var hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
-    t.equal('YTVlNzQ0ZDAxNjQ1NDBkMzNiMWQ3ZWE2MTZjMjhmMmZhOTdlNzU0YQ%3D%3D', hash)
+    t.equal('pedE0BZFQNM7HX6mFsKPL6l%2BdUo%3D', hash)
     r.abort()
     t.end()
   })

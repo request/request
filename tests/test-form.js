@@ -74,7 +74,7 @@ tape('multipart form append', function (t) {
     var url = 'http://localhost:' + this.address().port
     FIELDS = [
       { name: 'my_field', value: 'my_value' },
-      { name: 'my_buffer', value: new Buffer([1, 2, 3]) },
+      { name: 'my_buffer', value: Buffer.from([1, 2, 3]) },
       { name: 'my_file', value: fs.createReadStream(localFile) },
       { name: 'remote_file', value: request(url + '/file') }
     ]

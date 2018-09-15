@@ -25,7 +25,7 @@ function runTest (t, options) {
         res.end()
         return
       } else {
-        t.ok(req.headers.authorization === 'Basic ' + new Buffer('user:pass').toString('base64'))
+        t.ok(req.headers.authorization === 'Basic ' + Buffer.from('user:pass').toString('base64'))
       }
     }
 
@@ -84,7 +84,7 @@ function runTest (t, options) {
     var url = 'http://localhost:' + this.address().port
     // @NOTE: multipartFormData properties must be set here so that my_file read stream does not leak in node v0.8
     multipartFormData.my_field = 'my_value'
-    multipartFormData.my_buffer = new Buffer([1, 2, 3])
+    multipartFormData.my_buffer = Buffer.from([1, 2, 3])
     multipartFormData.my_file = fs.createReadStream(localFile)
     multipartFormData.remote_file = request(url + '/file')
     multipartFormData.secret_file = {
