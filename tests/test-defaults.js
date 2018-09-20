@@ -230,7 +230,7 @@ tape('recursive defaults requester', function (t) {
 })
 
 tape('test custom request handler function', function (t) {
-  t.plan(3)
+  t.plan(6)
 
   var requestWithCustomHandler = request.defaults({
     headers: { foo: 'bar' },
@@ -241,11 +241,13 @@ tape('test custom request handler function', function (t) {
     return request(params.uri, params, params.callback)
   })
 
-  t.throws(function () {
-    requestWithCustomHandler.head(s.url + '/', function (e, r, b) {
-      throw new Error('We should never get here')
-    })
-  }, /HTTP HEAD requests MUST NOT include a request body/)
+  requestWithCustomHandler.head(s.url + '/', function (e, r, b) {
+    t.equal(r.request.method, 'HEAD')
+    t.equal(r.request.body, 'TESTING!')
+    // body not parsed by Node's http-parser
+    t.equal(r.body, '')
+    t.equal(b, '')
+  })
 
   requestWithCustomHandler.get(s.url + '/', function (e, r, b) {
     b = JSON.parse(b)
