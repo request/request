@@ -16,9 +16,6 @@
 
 var extend = require('extend')
 var cookies = require('./lib/cookies')
-var helpers = require('./lib/helpers')
-
-var paramsHaveRequestBody = helpers.paramsHaveRequestBody
 
 // organize params for patch, post, put, head, del
 function initParams (uri, options, callback) {
@@ -45,10 +42,6 @@ function request (uri, options, callback) {
   }
 
   var params = initParams(uri, options, callback)
-
-  if (params.method === 'HEAD' && paramsHaveRequestBody(params)) {
-    throw new Error('HTTP HEAD requests MUST NOT include a request body.')
-  }
 
   return new request.Request(params)
 }
