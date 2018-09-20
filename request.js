@@ -311,10 +311,14 @@ Request.prototype.init = function (options) {
   self.setHost = false
   if (!self.hasHeader('host')) {
     var hostHeaderName = self.originalHostHeaderName || 'host'
-    // When used with an IPv6 address, `host` will provide
-    // the correct bracketed format, unlike using `hostname` and
-    // optionally adding the `port` when necessary.
     self.setHeader(hostHeaderName, self.uri.host)
+    // Drop :port suffix from Host header if known protocol.
+    if (self.uri.port) {
+      if ((self.uri.port === '80' && self.uri.protocol === 'http:') ||
+          (self.uri.port === '443' && self.uri.protocol === 'https:')) {
+        self.setHeader(hostHeaderName, self.uri.hostname)
+      }
+    }
     self.setHost = true
   }
 
@@ -1406,10 +1410,11 @@ Request.prototype.aws = function (opts, now) {
       host: self.uri.host,
       path: self.uri.path,
       method: self.method,
-      headers: {
-        'content-type': self.getHeader('content-type') || ''
-      },
+      headers: self.headers,
       body: self.body
+    }
+    if (opts.service) {
+      options.service = opts.service
     }
     var signRes = aws4.sign(options, {
       accessKeyId: opts.key,
