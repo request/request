@@ -71,6 +71,19 @@ exports.createSSLServer = function (opts) {
   return s
 }
 
+exports.createUnixSockServer = function (unixSockPath) {
+  var s = http.createServer(function (req, resp) {
+    s.emit(req.url, req, resp)
+  })
+  if (fs.existsSync(unixSockPath)) {
+    s.on('close', function () {
+      fs.unlinkSync(unixSockPath)
+    })
+  }
+  s.listen(unixSockPath)
+  return s
+}
+
 exports.createPostStream = function (text) {
   var postStream = new stream.Stream()
   postStream.writeable = true

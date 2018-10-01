@@ -263,6 +263,31 @@ tape('catch invalid characters error - POST', function (t) {
   })
 })
 
+tape('Host header is not required when use UNIX Domain Sockets', function (t) {
+  if (os.platform() === 'win32') {
+    t.end()
+  }
+  var sockPath = '/tmp/request.sock'
+  var sockServer = server.createUnixSockServer(sockPath)
+  sockServer.on('/', function (req, res) {
+    res.writeHead(200, {
+      'Content-Type': 'application/json'
+    })
+    res.end(JSON.stringify(req.headers))
+  })
+
+  request({
+    method: 'GET',
+    url: 'http://unix:' + sockPath + ':/',
+    json: true
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(typeof body['host'], 'undefined')
+    sockServer.close()
+    t.end()
+  })
+})
+
 if (hasIPv6interface) {
   tape('IPv6 Host header', function (t) {
     // Horrible hack to observe the raw data coming to the server

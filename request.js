@@ -285,7 +285,7 @@ Request.prototype.init = function (options) {
   self._redirect.onRequest(options)
 
   self.setHost = false
-  if (!self.hasHeader('host')) {
+  if (!self.hasHeader('host') && !self.uri.isUnix) {
     var hostHeaderName = self.originalHostHeaderName || 'host'
     self.setHeader(hostHeaderName, self.uri.host)
     // Drop :port suffix from Host header if known protocol.
