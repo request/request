@@ -114,44 +114,44 @@ function addTests () {
     // http: urls and basic proxy settings
 
     runTest('HTTP_PROXY environment variable and http: url', {
-      env: { HTTP_PROXY: s.url }
+      env: {HTTP_PROXY: s.url}
     }, true)
 
     runTest('http_proxy environment variable and http: url', {
-      env: { http_proxy: s.url }
+      env: {http_proxy: s.url}
     }, true)
 
     runTest('HTTPS_PROXY environment variable and http: url', {
-      env: { HTTPS_PROXY: s.url }
+      env: {HTTPS_PROXY: s.url}
     }, false)
 
     runTest('https_proxy environment variable and http: url', {
-      env: { https_proxy: s.url }
+      env: {https_proxy: s.url}
     }, false)
 
     // https: urls and basic proxy settings
 
     runTest('HTTP_PROXY environment variable and https: url', {
-      env: { HTTP_PROXY: s.url },
+      env: {HTTP_PROXY: s.url},
       url: 'https://google.com',
       tunnel: false,
       pool: false
     }, true)
 
     runTest('http_proxy environment variable and https: url', {
-      env: { http_proxy: s.url },
+      env: {http_proxy: s.url},
       url: 'https://google.com',
       tunnel: false
     }, true)
 
     runTest('HTTPS_PROXY environment variable and https: url', {
-      env: { HTTPS_PROXY: s.url },
+      env: {HTTPS_PROXY: s.url},
       url: 'https://google.com',
       tunnel: false
     }, true)
 
     runTest('https_proxy environment variable and https: url', {
-      env: { https_proxy: s.url },
+      env: {https_proxy: s.url},
       url: 'https://google.com',
       tunnel: false
     }, true)
@@ -167,16 +167,16 @@ function addTests () {
 
     // no_proxy logic
 
-    runTest('NO_PROXY hostnames are case insensitive', {
+    runTest('NO_PROXY hostnames are case insensitive 2', {
       env: {
-        HTTP_PROXY: s.url,
+        http_proxy: s.url,
         NO_PROXY: 'GOOGLE.COM'
       }
     }, false)
 
-    runTest('NO_PROXY hostnames are case insensitive 2', {
+    runTest('NO_PROXY hostnames are case insensitive', {
       env: {
-        http_proxy: s.url,
+        HTTP_PROXY: s.url,
         NO_PROXY: 'GOOGLE.COM'
       }
     }, false)
@@ -189,7 +189,7 @@ function addTests () {
     }, false)
 
     runTest('NO_PROXY ignored with explicit proxy passed', {
-      env: { NO_PROXY: '*' },
+      env: {NO_PROXY: '*'},
       proxy: s.url
     }, true)
 
@@ -247,7 +247,7 @@ function addTests () {
         HTTP_PROXY: s.url,
         NO_PROXY: 'google.com'
       },
-      headers: { host: 'www.google.com' }
+      headers: {host: 'www.google.com'}
     }, false)
 
     runTest('NO_PROXY should not override HTTP_PROXY for partial domain matches', {
@@ -264,6 +264,34 @@ function addTests () {
       }
     }, true)
 
+    runTest('NO_PROXY hostnames support wildcards', {
+      env: {
+        HTTP_PROXY: s.url,
+        NO_PROXY: '*.com'
+      }
+    }, false)
+
+    runTest('NO_PROXY hostnames support wildcards 2', {
+      env: {
+        HTTP_PROXY: s.url,
+        NO_PROXY: '*.GOOGLE.COM'
+      }
+    }, false)
+
+    runTest('NO_PROXY hostnames support wildcards 3', {
+      env: {
+        HTTP_PROXY: s.url,
+        NO_PROXY: '*.subdomain.google.com'
+      }
+    }, true)
+
+    runTest('NO_PROXY hostnames support wildcards 4', {
+      env: {
+        HTTP_PROXY: s.url,
+        NO_PROXY: '*'
+      }
+    }, false)
+
     // misc
 
     // this fails if the check 'isMatchedAt > -1' in lib/getProxyFromURI.js is
@@ -276,7 +304,7 @@ function addTests () {
     }, true)
 
     runTest('proxy: null should override HTTP_PROXY', {
-      env: { HTTP_PROXY: s.url },
+      env: {HTTP_PROXY: s.url},
       proxy: null,
       timeout: 500
     }, false)
