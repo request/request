@@ -10,7 +10,7 @@ node_js:
 
 os:
   - linux
-  - mac
+  - osx
   - windows
 
 after_script:
