@@ -1,4 +1,5 @@
 #!/bin/sh
+set -ex
 
 # Adapted from:
 # http://nodejs.org/api/tls.html
@@ -18,4 +19,4 @@ openssl x509 -req \
     -set_serial 0x`cat ca.srl` \
     -passin 'pass:password' \
     -out localhost.crt \
-    -days 1095
+    -days 3650

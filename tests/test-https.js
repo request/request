@@ -55,14 +55,14 @@ function runAllTests (strict, s) {
 
   runTest('testGetChunkBreak', {
     resp: server.createChunkResponse(
-      [ new Buffer([239]),
-        new Buffer([163]),
-        new Buffer([191]),
-        new Buffer([206]),
-        new Buffer([169]),
-        new Buffer([226]),
-        new Buffer([152]),
-        new Buffer([131])
+      [ Buffer.from([239]),
+        Buffer.from([163]),
+        Buffer.from([191]),
+        Buffer.from([206]),
+        Buffer.from([169]),
+        Buffer.from([226]),
+        Buffer.from([152]),
+        Buffer.from([131])
       ]),
     expectBody: '\uf8ff\u03a9\u2603'
   })
@@ -76,7 +76,7 @@ function runAllTests (strict, s) {
   })
 
   runTest('testPutBuffer', {
-    resp: server.createPostValidator('PUTTINGDATA'), method: 'PUT', body: new Buffer('PUTTINGDATA')
+    resp: server.createPostValidator('PUTTINGDATA'), method: 'PUT', body: Buffer.from('PUTTINGDATA')
   })
 
   runTest('testPutJSON', {
