@@ -675,6 +675,25 @@ request.get({
 });
 ```
 
+The `ca` value can be an array of certificates, in the event you have a private or internal corporate public-key infrastructure hierarchy. For example, if you want to connect to https://api.some-server.com which presents a key chain consisting of:
+1. its own public key, which is signed by:
+2. an intermediate "Corp Issuing Server", that is in turn signed by: 
+3. a root CA "Corp Root CA";
+
+you can configure your request as follows:
+
+```js
+request.get({
+    url: 'https://api.some-server.com/',
+    agentOptions: {
+        ca: [
+          fs.readFileSync('Corp Issuing Server.pem'),
+          fs.readFileSync('Corp Root CA.pem')
+        ]
+    }
+});
+```
+
 [back to top](#table-of-contents)
 
 
