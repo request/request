@@ -940,6 +940,17 @@ Function that creates a new cookie jar.
 request.jar()
 ```
 
+### response.caseless.get('header-name')
+
+Function that returns the specified response header field using a [case-insensitive match](https://tools.ietf.org/html/rfc7230#section-3.2)
+
+```js
+request('http://www.google.com', function (error, response, body) {
+  // print the Content-Type header even if the server returned it as 'content-type' (lowercase)
+  console.log('Content-Type is:', response.caseless.get('Content-Type')); 
+});
+```
+
 [back to top](#table-of-contents)
 
 
