@@ -322,7 +322,7 @@ Request.prototype.init = function (options) {
     var appendFormValue = function (key, value) {
       if (value && value.hasOwnProperty('value') && value.hasOwnProperty('options')) {
         requestForm.append(key, value.value, value.options)
-      } else {
+      } else if (value !== null && value !== undefined) {
         requestForm.append(key, value)
       }
     }

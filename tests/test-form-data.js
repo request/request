@@ -71,6 +71,10 @@ function runTest (t, options) {
       t.ok(data.indexOf('form-data; name="batch"') !== -1)
       t.ok(data.match(/form-data; name="batch"/g).length === 2)
 
+      // my_undefined and my_null should have been removed
+      t.ok(data.indexOf('form-data; name="my_undefined"') === -1)
+      t.ok(data.indexOf('form-data; name="my_null"') === -1)
+
       // check for http://localhost:nnnn/file traces
       t.ok(data.indexOf('Photoshop ICC') !== -1)
       t.ok(data.indexOf('Content-Type: ' + mime.lookup(remoteFile)) !== -1)
@@ -98,6 +102,8 @@ function runTest (t, options) {
       fs.createReadStream(localFile),
       fs.createReadStream(localFile)
     ]
+    multipartFormData.my_undefined = undefined
+    multipartFormData.my_null = null
 
     var reqOptions = {
       url: url + '/upload',
