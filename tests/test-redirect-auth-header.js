@@ -14,12 +14,10 @@ s.on('/', function (req, res) {
   if (req.headers.host === `${s.redirectHost}:${s.port}`) {
     res.writeHead(302, { location: `http://${s.respondHost}:${s.port}/` })
     res.end()
-  }
-  else if (req.headers.host === `${s.respondHost}:${s.port}`) {
+  } else if (req.headers.host === `${s.respondHost}:${s.port}`) {
     res.writeHead(200)
     res.end('ok')
-  }
-  else {
+  } else {
     res.writeHead(400)
     res.end('unknown host')
   }
