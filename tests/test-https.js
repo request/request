@@ -29,7 +29,7 @@ function runAllTests (strict, s) {
   })
 
   function runTest (name, test) {
-    tape.skip(strictMsg + name, function (t) {
+    tape(strictMsg + name, function (t) {
       s.on('/' + name, test.resp)
       test.uri = s.url + '/' + name
       if (strict) {
