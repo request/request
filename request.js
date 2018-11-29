@@ -1448,7 +1448,7 @@ Request.prototype.jar = function (jar) {
     cookies = false
     self._disableCookies = true
   } else {
-    var targetCookieJar = (jar && jar.getCookieString) ? jar : globalCookieJar
+    var targetCookieJar = jar.getCookieString ? jar : globalCookieJar
     var urihref = self.uri.href
     // fetch cookie in the Specified host
     if (targetCookieJar) {
