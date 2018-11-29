@@ -17,7 +17,7 @@ This is a fork of the excellent `request` module, which is used inside Postman R
 Request is designed to be the simplest way possible to make http calls. It supports HTTPS and follows redirects by default.
 
 ```js
-var request = require('postman-request');
+const request = require('postman-request');
 request('http://www.google.com', function (error, response, body) {
   console.log('error:', error); // Print the error if one occurred
   console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
@@ -111,7 +111,7 @@ You can also `pipe()` from `http.ServerRequest` instances, as well as to `http.S
 ```js
 http.createServer(function (req, resp) {
   if (req.url === '/doodle.png') {
-    var x = request('http://mysite.com/doodle.png')
+    const x = request('http://mysite.com/doodle.png')
     req.pipe(x)
     x.pipe(resp)
   }
@@ -127,7 +127,7 @@ req.pipe(request('http://mysite.com/doodle.png')).pipe(resp)
 Also, none of this new functionality conflicts with requests previous features, it just expands them.
 
 ```js
-var r = request.defaults({'proxy':'http://localproxy.com'})
+const r = request.defaults({'proxy':'http://localproxy.com'})
 
 http.createServer(function (req, resp) {
   if (req.url === '/doodle.png') {
@@ -152,6 +152,8 @@ Several alternative interfaces are provided by the request team, including:
 - [`request-promise`](https://github.com/request/request-promise) (uses [Bluebird](https://github.com/petkaantonov/bluebird) Promises)
 - [`request-promise-native`](https://github.com/request/request-promise-native) (uses native Promises)
 - [`request-promise-any`](https://github.com/request/request-promise-any) (uses [any-promise](https://www.npmjs.com/package/any-promise) Promises)
+
+Also, [`util.promisify`](https://nodejs.org/api/util.html#util_util_promisify_original), which is available from Node.js v8.0 can be used to convert a regular function that takes a callback to return a promise instead.
 
 
 [back to top](#table-of-contents)
@@ -184,7 +186,7 @@ For `multipart/form-data` we use the [form-data](https://github.com/form-data/fo
 
 
 ```js
-var formData = {
+const formData = {
   // Pass a simple key-value pair
   my_field: 'my_value',
   // Pass data via Buffers
@@ -219,8 +221,8 @@ For advanced cases, you can access the form-data object itself via `r.form()`. T
 
 ```js
 // NOTE: Advanced use-case, for normal use see 'formData' usage above
-var r = request.post('http://service.com/upload', function optionalCallback(err, httpResponse, body) {...})
-var form = r.form();
+const r = request.post('http://service.com/upload', function optionalCallback(err, httpResponse, body) {...})
+const form = r.form();
 form.append('my_field', 'my_value');
 form.append('my_buffer', Buffer.from([1, 2, 3]));
 form.append('custom_file', fs.createReadStream(__dirname + '/unicycle.jpg'), {filename: 'unicycle.jpg'});
@@ -315,11 +317,11 @@ detailed in [RFC 1738](http://www.ietf.org/rfc/rfc1738.txt). Simply pass the
 `user:password` before the host with an `@` sign:
 
 ```js
-var username = 'username',
+const username = 'username',
     password = 'password',
     url = 'http://' + username + ':' + password + '@some.server.com';
 
-request({url: url}, function (error, response, body) {
+request({url}, function (error, response, body) {
    // Do more stuff with 'body' here
 });
 ```
@@ -348,9 +350,9 @@ of stars and forks for the request repository. This requires a
 custom `User-Agent` header as well as https.
 
 ```js
-var request = require('postman-request');
+const request = require('postman-request');
 
-var options = {
+const options = {
   url: 'https://api.github.com/repos/request/request',
   headers: {
     'User-Agent': 'postman-request'
@@ -359,7 +361,7 @@ var options = {
 
 function callback(error, response, body) {
   if (!error && response.statusCode == 200) {
-    var info = JSON.parse(body);
+    const info = JSON.parse(body);
     console.log(info.stargazers_count + " Stars");
     console.log(info.forks_count + " Forks");
   }
@@ -383,7 +385,7 @@ default signing algorithm is
 ```js
 // OAuth1.0 - 3-legged server side flow (Twitter example)
 // step 1
-var qs = require('querystring')
+const qs = require('querystring')
   , oauth =
     { callback: 'http://mysite.com/callback/'
     , consumer_key: CONSUMER_KEY
@@ -398,14 +400,14 @@ request.post({url:url, oauth:oauth}, function (e, r, body) {
   // verified with twitter that they are authorizing your app.
 
   // step 2
-  var req_data = qs.parse(body)
-  var uri = 'https://api.twitter.com/oauth/authenticate'
+  const req_data = qs.parse(body)
+  const uri = 'https://api.twitter.com/oauth/authenticate'
     + '?' + qs.stringify({oauth_token: req_data.oauth_token})
   // redirect the user to the authorize uri
 
   // step 3
   // after the user is redirected back to your server
-  var auth_data = qs.parse(body)
+  const auth_data = qs.parse(body)
     , oauth =
       { consumer_key: CONSUMER_KEY
       , consumer_secret: CONSUMER_SECRET
@@ -417,7 +419,7 @@ request.post({url:url, oauth:oauth}, function (e, r, body) {
     ;
   request.post({url:url, oauth:oauth}, function (e, r, body) {
     // ready to make signed requests on behalf of the user
-    var perm_data = qs.parse(body)
+    const perm_data = qs.parse(body)
       , oauth =
         { consumer_key: CONSUMER_KEY
         , consumer_secret: CONSUMER_SECRET
@@ -606,14 +608,14 @@ TLS/SSL Protocol options, such as `cert`, `key` and `passphrase`, can be
 set directly in `options` object, in the `agentOptions` property of the `options` object, or even in `https.globalAgent.options`. Keep in mind that, although `agentOptions` allows for a slightly wider range of configurations, the recommended way is via `options` object directly, as using `agentOptions` or `https.globalAgent.options` would not be applied in the same way in proxied environments (as data travels through a TLS connection instead of an http/https agent).
 
 ```js
-var fs = require('fs')
+const fs = require('fs')
     , path = require('path')
     , certFile = path.resolve(__dirname, 'ssl/client.crt')
     , keyFile = path.resolve(__dirname, 'ssl/client.key')
     , caFile = path.resolve(__dirname, 'ssl/ca.cert.pem')
     , request = require('postman-request');
 
-var options = {
+const options = {
     url: 'https://api.some-server.com/',
     cert: fs.readFileSync(certFile),
     key: fs.readFileSync(keyFile),
@@ -630,13 +632,13 @@ In the example below, we call an API that requires client side SSL certificate
 (in PEM format) with passphrase protected private key (in PEM format) and disable the SSLv3 protocol:
 
 ```js
-var fs = require('fs')
+const fs = require('fs')
     , path = require('path')
     , certFile = path.resolve(__dirname, 'ssl/client.crt')
     , keyFile = path.resolve(__dirname, 'ssl/client.key')
     , request = require('postman-request');
 
-var options = {
+const options = {
     url: 'https://api.some-server.com/',
     agentOptions: {
         cert: fs.readFileSync(certFile),
@@ -676,6 +678,25 @@ request.get({
 });
 ```
 
+The `ca` value can be an array of certificates, in the event you have a private or internal corporate public-key infrastructure hierarchy. For example, if you want to connect to https://api.some-server.com which presents a key chain consisting of:
+1. its own public key, which is signed by:
+2. an intermediate "Corp Issuing Server", that is in turn signed by: 
+3. a root CA "Corp Root CA";
+
+you can configure your request as follows:
+
+```js
+request.get({
+    url: 'https://api.some-server.com/',
+    agentOptions: {
+        ca: [
+          fs.readFileSync('Corp Issuing Server.pem'),
+          fs.readFileSync('Corp Root CA.pem')
+        ]
+    }
+});
+```
+
 [back to top](#table-of-contents)
 
 
@@ -688,7 +709,7 @@ The `options.har` property will override the values: `url`, `method`, `qs`, `hea
 A validation step will check if the HAR Request format matches the latest spec (v1.2) and will skip parsing if not matching.
 
 ```js
-  var request = require('postman-request')
+  const request = require('postman-request')
   request({
     // will be ignored
     method: 'GET',
@@ -804,11 +825,12 @@ The first argument can be either a `url` or an `options` object. The only requir
     work around this, either use [`request.defaults`](#requestdefaultsoptions)
     with your pool options or create the pool object with the `maxSockets`
     property outside of the loop.
-- `timeout` - integer containing the number of milliseconds to wait for a
-server to send response headers (and start the response body) before aborting
-the request. Note that if the underlying TCP connection cannot be established,
-the OS-wide TCP connection timeout will overrule the `timeout` option ([the
-default in Linux can be anywhere from 20-120 seconds][linux-timeout]).
+- `timeout` - integer containing number of milliseconds, controls two timeouts
+  - Time to wait for a server to send response headers (and start the response body) before aborting the request.
+    Note that if the underlying TCP connection cannot be established,
+    the OS-wide TCP connection timeout will overrule the `timeout` option ([the
+    default in Linux can be anywhere from 20-120 seconds][linux-timeout]).
+  - Sets the socket to timeout after `timeout` milliseconds of inactivity on the socket.
 
 [linux-timeout]: http://www.sekuda.com/overriding_the_default_linux_kernel_20_second_tcp_socket_connect_timeout
 
@@ -849,7 +871,7 @@ default in Linux can be anywhere from 20-120 seconds][linux-timeout]).
     - `download`: Duration of HTTP download (`timings.end` - `timings.response`)
     - `total`: Duration entire HTTP round-trip (`timings.end`)
 
-- `har` - a [HAR 1.2 Request Object](http://www.softwareishard.com/blog/har-12-spec/#request), will be processed from HAR format into options overwriting matching values *(see the [HAR 1.2 section](#support-for-har-1.2) for details)*
+- `har` - a [HAR 1.2 Request Object](http://www.softwareishard.com/blog/har-12-spec/#request), will be processed from HAR format into options overwriting matching values *(see the [HAR 1.2 section](#support-for-har-12) for details)*
 - `callback` - alternatively pass the request's callback in the options object
 
 The callback argument gets 3 arguments:
@@ -882,13 +904,13 @@ instead, it **returns a wrapper** that has your default settings applied to it.
 For example:
 ```js
 //requests using baseRequest() will set the 'x-token' header
-var baseRequest = request.defaults({
+const baseRequest = request.defaults({
   headers: {'x-token': 'my-token'}
 })
 
 //requests using specialRequest() will include the 'x-token' header set in
 //baseRequest and will also include the 'special' header
-var specialRequest = baseRequest.defaults({
+const specialRequest = baseRequest.defaults({
   headers: {special: 'special value'}
 })
 ```
@@ -918,6 +940,17 @@ Function that creates a new cookie jar.
 
 ```js
 request.jar()
+```
+
+### response.caseless.get('header-name')
+
+Function that returns the specified response header field using a [case-insensitive match](https://tools.ietf.org/html/rfc7230#section-3.2)
+
+```js
+request('http://www.google.com', function (error, response, body) {
+  // print the Content-Type header even if the server returned it as 'content-type' (lowercase)
+  console.log('Content-Type is:', response.caseless.get('Content-Type')); 
+});
 ```
 
 [back to top](#table-of-contents)
@@ -977,7 +1010,7 @@ request.get('http://10.255.255.1', {timeout: 1500}, function(err) {
 ## Examples:
 
 ```js
-  var request = require('postman-request')
+  const request = require('postman-request')
     , rand = Math.floor(Math.random()*100000000).toString()
     ;
   request(
@@ -1008,7 +1041,7 @@ while the response object is unmodified and will contain compressed data if
 the server sent a compressed response.
 
 ```js
-  var request = require('postman-request')
+  const request = require('postman-request')
   request(
     { method: 'GET'
     , uri: 'http://www.google.com'
@@ -1036,7 +1069,7 @@ the server sent a compressed response.
 Cookies are disabled by default (else, they would be used in subsequent requests). To enable cookies, set `jar` to `true` (either in `defaults` or `options`).
 
 ```js
-var request = request.defaults({jar: true})
+const request = request.defaults({jar: true})
 request('http://www.google.com', function () {
   request('http://images.google.com')
 })
@@ -1045,8 +1078,8 @@ request('http://www.google.com', function () {
 To use a custom cookie jar (instead of `request`’s global cookie jar), set `jar` to an instance of `request.jar()` (either in `defaults` or `options`)
 
 ```js
-var j = request.jar()
-var request = request.defaults({jar:j})
+const j = request.jar()
+const request = request.defaults({jar:j})
 request('http://www.google.com', function () {
   request('http://images.google.com')
 })
@@ -1055,9 +1088,9 @@ request('http://www.google.com', function () {
 OR
 
 ```js
-var j = request.jar();
-var cookie = request.cookie('key1=value1');
-var url = 'http://www.google.com';
+const j = request.jar();
+const cookie = request.cookie('key1=value1');
+const url = 'http://www.google.com';
 j.setCookie(cookie, url);
 request({url: url, jar: j}, function () {
   request('http://images.google.com')
@@ -1070,9 +1103,9 @@ which supports saving to and restoring from JSON files), pass it as a parameter
 to `request.jar()`:
 
 ```js
-var FileCookieStore = require('tough-cookie-filestore');
+const FileCookieStore = require('tough-cookie-filestore');
 // NOTE - currently the 'cookies.json' file must already exist!
-var j = request.jar(new FileCookieStore('cookies.json'));
+const j = request.jar(new FileCookieStore('cookies.json'));
 request = request.defaults({ jar : j })
 request('http://www.google.com', function() {
   request('http://images.google.com')
@@ -1082,16 +1115,16 @@ request('http://www.google.com', function() {
 The cookie store must be a
 [`tough-cookie`](https://github.com/SalesforceEng/tough-cookie)
 store and it must support synchronous operations; see the
-[`CookieStore` API docs](https://github.com/SalesforceEng/tough-cookie#cookiestore-api)
+[`CookieStore` API docs](https://github.com/SalesforceEng/tough-cookie#api)
 for details.
 
 To inspect your cookie jar after a request:
 
 ```js
-var j = request.jar()
+const j = request.jar()
 request({url: 'http://www.google.com', jar: j}, function () {
-  var cookie_string = j.getCookieString(url); // "key1=value1; key2=value2; ..."
-  var cookies = j.getCookies(url);
+  const cookie_string = j.getCookieString(url); // "key1=value1; key2=value2; ..."
+  const cookies = j.getCookies(url);
   // [{key: 'key1', value: 'value1', domain: "www.google.com", ...}, ...]
 })
 ```
