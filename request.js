@@ -878,16 +878,6 @@ Request.prototype.onRequestError = function (error) {
     clearTimeout(self.timeoutTimer)
     self.timeoutTimer = null
   }
-
-  // This is a workaround for a race condition caused by the way that lib/redirect.js
-  // calls Request.init() when processing an HTTP redirect:
-  // https://github.com/request/request/issues/2807
-  // Somehow we end up with an ECONNRESET error from a socket that has already
-  // been destroyed and returned to the pool.
-  if (self.req && self.req.socket && self.req.socket.destroyed) {
-    return
-  }
-
   self.emit('error', error)
 }
 
