@@ -19,6 +19,12 @@ function runTest (t, options) {
       return
     }
 
+    if (req.url === '/redirect') {
+      res.writeHead(307, {location: '/upload'})
+      res.end()
+      return
+    }
+
     if (options.auth) {
       if (!req.headers.authorization) {
         res.writeHead(401, {'www-authenticate': 'Basic realm="Private"'})
@@ -59,8 +65,14 @@ function runTest (t, options) {
       t.ok(data.indexOf('Content-Type: ' + mime.lookup(multipartFormData.my_file.path)) !== -1)
 
       // 4th field : remote_file
-      t.ok(data.indexOf('form-data; name="remote_file"') !== -1)
-      t.ok(data.indexOf('; filename="' + path.basename(multipartFormData.remote_file.path) + '"') !== -1)
+      if (!options.redirect) {
+        t.ok(data.indexOf('form-data; name="remote_file"') !== -1)
+        t.ok(data.indexOf('; filename="' + path.basename(multipartFormData.remote_file.path) + '"') !== -1)
+
+        // check for http://localhost:nnnn/file traces
+        t.ok(data.indexOf('Photoshop ICC') !== -1)
+        t.ok(data.indexOf('Content-Type: ' + mime.lookup(remoteFile)) !== -1)
+      }
 
       // 5th field : file with metadata
       t.ok(data.indexOf('form-data; name="secret_file"') !== -1)
@@ -70,10 +82,6 @@ function runTest (t, options) {
       // 6th field : batch of files
       t.ok(data.indexOf('form-data; name="batch"') !== -1)
       t.ok(data.match(/form-data; name="batch"/g).length === 2)
-
-      // check for http://localhost:nnnn/file traces
-      t.ok(data.indexOf('Photoshop ICC') !== -1)
-      t.ok(data.indexOf('Content-Type: ' + mime.lookup(remoteFile)) !== -1)
 
       res.writeHead(200)
       res.end(options.json ? JSON.stringify({status: 'done'}) : 'done')
@@ -86,7 +94,6 @@ function runTest (t, options) {
     multipartFormData.my_field = 'my_value'
     multipartFormData.my_buffer = Buffer.from([1, 2, 3])
     multipartFormData.my_file = fs.createReadStream(localFile)
-    multipartFormData.remote_file = request(url + '/file')
     multipartFormData.secret_file = {
       value: fs.createReadStream(localFile),
       options: {
@@ -98,9 +105,13 @@ function runTest (t, options) {
       fs.createReadStream(localFile),
       fs.createReadStream(localFile)
     ]
+    if (!options.redirect) {
+      // request stream will not be handled on 307 redirect
+      multipartFormData.remote_file = request(url + '/file')
+    }
 
     var reqOptions = {
-      url: url + '/upload',
+      url: url + (options.redirect ? '/redirect' : '/upload'),
       formData: multipartFormData
     }
     if (options.json) {
@@ -108,6 +119,9 @@ function runTest (t, options) {
     }
     if (options.auth) {
       reqOptions.auth = {user: 'user', pass: 'pass', sendImmediately: false}
+    }
+    if (options.redirect) {
+      reqOptions.followAllRedirects = true
     }
     request.post(reqOptions, function (err, res, body) {
       t.equal(err, null)
@@ -130,4 +144,8 @@ tape('multipart formData + JSON', function (t) {
 
 tape('multipart formData + basic auth', function (t) {
   runTest(t, {json: false, auth: true})
+})
+
+tape('multipart formData + 307 redirect', function (t) {
+  runTest(t, {redirect: true})
 })
