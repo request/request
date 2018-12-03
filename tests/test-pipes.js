@@ -295,6 +295,7 @@ tape('one-line proxy', function (t) {
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.headers['x-oneline-proxy'], 'yup')
+    t.equal(body, fs.readFileSync(path.join(__dirname, 'googledoodle.jpg')).toString())
     t.end()
   })
 })

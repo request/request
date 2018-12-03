@@ -1,4 +1,5 @@
 #!/bin/sh
+set -ex
 
 # Adapted from:
 # http://nodejs.org/api/tls.html
