@@ -2,7 +2,6 @@
 
 var http = require('http')
 var path = require('path')
-var mime = require('mime-types')
 var request = require('../index')
 var fs = require('fs')
 var tape = require('tape')
