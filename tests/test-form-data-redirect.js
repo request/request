@@ -2,7 +2,7 @@
 
 var http = require('http')
 var path = require('path')
-var request = require('../index')
+var request = require('../')
 var fs = require('fs')
 var tape = require('tape')
 
@@ -23,13 +23,12 @@ function runTest (t, options) {
 
     // temp workaround
     var data = ''
-    req.setEncoding('utf8')
 
     req.on('data', function (d) {
       data += d
     })
 
-    req.on('end', function () {
+    req.once('end', function () {
       // check for the fields' traces
 
       if (options.batch) {
@@ -59,6 +58,7 @@ function runTest (t, options) {
     })
   })
 
+  // this will cause servers to listen on a random port
   server.listen(0, function () {
     var url = 'http://localhost:' + this.address().port
     // both together have flaky behavior because of the following issue:
@@ -77,12 +77,11 @@ function runTest (t, options) {
       }
     }
 
-    var reqOptions = {
+    request.post({
       url: url + options.url,
       formData: multipartFormData,
       followAllRedirects: true
-    }
-    request.post(reqOptions, function (err, res, body) {
+    }, function (err, res, body) {
       t.equal(err, null)
       t.equal(redirects, 1)
       t.equal(res.statusCode, 200)

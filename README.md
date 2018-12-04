@@ -11,6 +11,7 @@ This is a fork of the excellent `request` module, which is used inside Postman R
 - Added feature to bind on stream emits via options
 - Allowed sending request body with HEAD method
 - Added option to retain `authorization` header when a redirect happens to a different hostname
+- Reinitialize FormData stream on 307 or 308 redirects
 
 ## Super simple to use
 
