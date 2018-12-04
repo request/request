@@ -32,18 +32,24 @@ function runTest (t, options) {
     req.on('end', function () {
       // check for the fields' traces
 
-      // 1st field : my_field
-      t.ok(data.indexOf('form-data; name="my_field"') !== -1)
-      t.ok(data.indexOf(multipartFormData.my_field) !== -1)
+      if (options.batch) {
+        t.ok(data.indexOf('form-data; name="my_field_batch"') !== -1)
+        t.ok(data.indexOf(multipartFormData.my_field_batch[0]) !== -1)
+        t.ok(data.indexOf(multipartFormData.my_field_batch[1]) !== -1)
+      } else {
+        // 1st field : my_field
+        t.ok(data.indexOf('form-data; name="my_field"') !== -1)
+        t.ok(data.indexOf(multipartFormData.my_field) !== -1)
 
-      // 2nd field : my_buffer
-      t.ok(data.indexOf('form-data; name="my_buffer"') !== -1)
-      t.ok(data.indexOf(multipartFormData.my_buffer) !== -1)
+        // 2nd field : my_buffer
+        t.ok(data.indexOf('form-data; name="my_buffer"') !== -1)
+        t.ok(data.indexOf(multipartFormData.my_buffer) !== -1)
 
-      // 3rd field : file with metadata
-      t.ok(data.indexOf('form-data; name="secret_file"') !== -1)
-      t.ok(data.indexOf('Content-Disposition: form-data; name="secret_file"; filename="topsecret.jpg"') !== -1)
-      t.ok(data.indexOf('Content-Type: image/custom') !== -1)
+        // 3rd field : file with metadata
+        t.ok(data.indexOf('form-data; name="secret_file"') !== -1)
+        t.ok(data.indexOf('Content-Disposition: form-data; name="secret_file"; filename="topsecret.jpg"') !== -1)
+        t.ok(data.indexOf('Content-Type: image/custom') !== -1)
+      }
 
       // formdata boundary
       t.ok(data.endsWith((/boundary=(.*)$/).exec(req.headers['content-type'])[1] + '--\r\n'))
@@ -55,14 +61,19 @@ function runTest (t, options) {
 
   server.listen(0, function () {
     var url = 'http://localhost:' + this.address().port
-    // @NOTE: multipartFormData properties must be set here so that my_file read stream does not leak in node v0.8
-    multipartFormData.my_field = 'my_value'
-    multipartFormData.my_buffer = Buffer.from([1, 2, 3])
-    multipartFormData.secret_file = {
-      value: fs.createReadStream(localFile),
-      options: {
-        filename: 'topsecret.jpg',
-        contentType: 'image/custom'
+    // both together have flaky behavior because of the following issue:
+    // https://github.com/request/request/issues/887#issuecomment-347050137
+    if (options.batch) {
+      multipartFormData.my_field_batch = ['my_value_1', 'my_value_2']
+    } else {
+      multipartFormData.my_field = 'my_value'
+      multipartFormData.my_buffer = Buffer.from([1, 2, 3])
+      multipartFormData.secret_file = {
+        value: fs.createReadStream(localFile),
+        options: {
+          filename: 'topsecret.jpg',
+          contentType: 'image/custom'
+        }
       }
     }
 
@@ -91,4 +102,8 @@ function runTest (t, options) {
 
 tape('multipart formData + 308 redirect', function (t) {
   runTest(t, {url: '/redirect', responseCode: 308, location: '/upload'})
+})
+
+tape('multipart formData + 307 redirect + batch', function (t) {
+  runTest(t, {url: '/redirect', responseCode: 307, location: '/upload', batch: true})
 })
