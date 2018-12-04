@@ -36,11 +36,16 @@ function runTest (t, options) {
       t.ok(data.indexOf('form-data; name="my_field"') !== -1)
       t.ok(data.indexOf(multipartFormData.my_field) !== -1)
 
-      // 2nd field : my_buffer
+      // 2nd field : my_field_batch
+      t.ok(data.indexOf('form-data; name="my_field_batch"') !== -1)
+      t.ok(data.indexOf(multipartFormData.my_field_batch[0]) !== -1)
+      t.ok(data.indexOf(multipartFormData.my_field_batch[1]) !== -1)
+
+      // 3rd field : my_buffer
       t.ok(data.indexOf('form-data; name="my_buffer"') !== -1)
       t.ok(data.indexOf(multipartFormData.my_buffer) !== -1)
 
-      // 3rd field : file with metadata
+      // 4th field : file with metadata
       t.ok(data.indexOf('form-data; name="secret_file"') !== -1)
       t.ok(data.indexOf('Content-Disposition: form-data; name="secret_file"; filename="topsecret.jpg"') !== -1)
       t.ok(data.indexOf('Content-Type: image/custom') !== -1)
@@ -57,6 +62,7 @@ function runTest (t, options) {
     var url = 'http://localhost:' + this.address().port
     // @NOTE: multipartFormData properties must be set here so that my_file read stream does not leak in node v0.8
     multipartFormData.my_field = 'my_value'
+    multipartFormData.my_field_batch = ['my_value_1', 'my_value_2']
     multipartFormData.my_buffer = Buffer.from([1, 2, 3])
     multipartFormData.secret_file = {
       value: fs.createReadStream(localFile),
