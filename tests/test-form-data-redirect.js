@@ -102,3 +102,7 @@ tape('multipart formData + 307 redirect', function (t) {
 tape('multipart formData + 307 redirect + batch', function (t) {
   runTest(t, {url: '/redirect', responseCode: 307, location: '/upload', batch: true})
 })
+
+tape('multipart formData + 308 redirect', function (t) {
+  runTest(t, {url: '/redirect', responseCode: 308, location: '/upload'})
+})
