@@ -431,7 +431,7 @@ Request.prototype.init = function (options) {
         length = self.body.length
       }
 
-      if (length) {
+      if (length !== undefined) {
         self.setHeader('content-length', length)
       } else {
         self.emit('error', new Error('Argument error, options.body.'))
