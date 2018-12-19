@@ -77,7 +77,8 @@ function runTest (t, options) {
       multipartFormData.my_field_batch = ['my_value_1', 'my_value_2']
     } else if (options.preserveOrder) {
       multipartFormData = [{
-        key: 'my_field', value: 'my_value'
+        key: 'my_field',
+        value: 'my_value'
       }, {
         key: '0',
         value: fs.createReadStream(localFile),

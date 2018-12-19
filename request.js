@@ -81,11 +81,11 @@ function transformFormData (formData) {
   // https://tools.ietf.org/html/rfc7578#section-5.2
 
   var transformedFormData = []
-  var appendFormParam = function (key, value) {
+  var appendFormParam = function (key, param) {
     transformedFormData.push({
       key: key,
-      value: value && value.hasOwnProperty('value') ? value.value : value,
-      options: value && value.hasOwnProperty('options') ? value.options : undefined
+      value: param && param.hasOwnProperty('value') ? param.value : param,
+      options: param && param.hasOwnProperty('options') ? param.options : undefined
     })
   }
   for (var formKey in formData) {
