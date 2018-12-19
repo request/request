@@ -142,7 +142,7 @@ function Request (options) {
 
   // transform `formData` for backward compatibility
   // don't check for explicit object type to support legacy shenanigans
-  if (options.formData && !Array.isArray(formData)) {
+  if (options.formData && !Array.isArray(options.formData)) {
     options.formData = transformFormData(options.formData)
   }
 
