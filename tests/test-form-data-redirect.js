@@ -8,7 +8,7 @@ var tape = require('tape')
 var destroyable = require('server-destroy')
 
 function runTest (t, options) {
-  var localFile = path.join(__dirname, 'unicycle.jpg')
+  var localFile = path.join(__dirname, 'googledoodle.jpg')
   var multipartFormData = {}
   var redirects = 0
 
