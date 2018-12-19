@@ -6,6 +6,7 @@ var mime = require('mime-types')
 var request = require('../index')
 var fs = require('fs')
 var tape = require('tape')
+var destroyable = require('server-destroy')
 
 function runTest (t, options) {
   var remoteFile = path.join(__dirname, 'googledoodle.jpg')
@@ -80,6 +81,8 @@ function runTest (t, options) {
     })
   })
 
+  destroyable(server)
+
   server.listen(0, function () {
     var url = 'http://localhost:' + this.address().port
     // @NOTE: multipartFormData properties must be set here so that my_file read stream does not leak in node v0.8
@@ -113,7 +116,7 @@ function runTest (t, options) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.deepEqual(body, options.json ? {status: 'done'} : 'done')
-      server.close(function () {
+      server.destroy(function () {
         t.end()
       })
     })

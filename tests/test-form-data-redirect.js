@@ -5,6 +5,7 @@ var path = require('path')
 var request = require('../')
 var fs = require('fs')
 var tape = require('tape')
+var destroyable = require('server-destroy')
 
 function runTest (t, options) {
   var localFile = path.join(__dirname, 'unicycle.jpg')
@@ -58,6 +59,8 @@ function runTest (t, options) {
     })
   })
 
+  destroyable(server)
+
   // this will cause servers to listen on a random port
   server.listen(0, function () {
     var url = 'http://localhost:' + this.address().port
@@ -86,7 +89,7 @@ function runTest (t, options) {
       t.equal(redirects, 1)
       t.equal(res.statusCode, 200)
       t.deepEqual(body, options.json ? {status: 'done'} : 'done')
-      server.close(function () {
+      server.destroy(function () {
         t.end()
       })
     }).on('redirect', function () {
