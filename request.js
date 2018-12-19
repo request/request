@@ -89,7 +89,7 @@ function transformFormData (formData) {
     transformedFormData.push({
       key: key,
       value: value && value.hasOwnProperty('value') ? value.value : value,
-      options: value && value.hasOwnProperty('options') ? value.options : {}
+      options: value && value.hasOwnProperty('options') ? value.options : undefined
     })
   }
   for (var formKey in formData) {
@@ -386,7 +386,11 @@ Request.prototype.init = function (options) {
     var requestForm = self.form()
     for (var i = 0, ii = formData.length; i < ii; i++) {
       var formParam = formData[i]
-      requestForm.append(formParam.key, formParam.value, formParam.options)
+      if (formParam.options) {
+        requestForm.append(formParam.key, formParam.value, formParam.options)
+      } else {
+        requestForm.append(formParam.key, formParam.value)
+      }
     }
   }
 
