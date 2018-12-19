@@ -96,7 +96,7 @@ function runTest (t, options) {
 
   server.listen(0, function () {
     var url = 'http://localhost:' + this.address().port
-    // @NOTE: multipartFormData properties must be set here so that my_file read stream does not leak in node v0.8
+
     multipartFormData.push({key: 'my_field', value: 'my_value'})
     multipartFormData.push({key: 'my_buffer', value: Buffer.from([1, 2, 3])})
     multipartFormData.push({key: 'my_file', value: fs.createReadStream(localFile)})
