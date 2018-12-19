@@ -80,10 +80,6 @@ function transformFormData (formData) {
   // RFC 7578#section-5.2  Ordered Fields and Duplicated Field Names
   // https://tools.ietf.org/html/rfc7578#section-5.2
 
-  // bail out if `formData` is not defined or already in array form
-  // don't check for explicit object type to support legacy shenanigans
-  if (!formData || Array.isArray(formData)) return formData
-
   var transformedFormData = []
   var appendFormParam = function (key, value) {
     transformedFormData.push({
@@ -145,7 +141,8 @@ function Request (options) {
   }
 
   // transform `formData` for backward compatibility
-  if (options.formData) {
+  // don't check for explicit object type to support legacy shenanigans
+  if (options.formData && !Array.isArray(formData)) {
     options.formData = transformFormData(options.formData)
   }
 
@@ -386,6 +383,7 @@ Request.prototype.init = function (options) {
     var requestForm = self.form()
     for (var i = 0, ii = formData.length; i < ii; i++) {
       var formParam = formData[i]
+      if (!formParam) { continue }
       if (formParam.options) {
         requestForm.append(formParam.key, formParam.value, formParam.options)
       } else {
