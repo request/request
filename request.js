@@ -71,6 +71,42 @@ function filterOutReservedFunctions (reserved, options) {
   return object
 }
 
+function transformFormData (formData) {
+  // Transform the object representation of form-data fields to array representation.
+  // This might not preserve the order of form fields defined in object representation.
+  // But, this transformation is required to support backward compatibility.
+  //
+  // Form-Data should be stored as an array to respect the fields order.
+  // RFC 7578#section-5.2  Ordered Fields and Duplicated Field Names
+  // https://tools.ietf.org/html/rfc7578#section-5.2
+
+  // bail out if `formData` is not defined or already in array form
+  // don't check for explicit object type to support legacy shenanigans
+  if (!formData || Array.isArray(formData)) return formData
+
+  var transformedFormData = []
+  var appendFormParam = function (key, value) {
+    transformedFormData.push({
+      key: key,
+      value: value && value.hasOwnProperty('value') ? value.value : value,
+      options: value && value.hasOwnProperty('options') ? value.options : {}
+    })
+  }
+  for (var formKey in formData) {
+    if (formData.hasOwnProperty(formKey)) {
+      var formValue = formData[formKey]
+      if (Array.isArray(formValue)) {
+        for (var j = 0; j < formValue.length; j++) {
+          appendFormParam(formKey, formValue[j])
+        }
+      } else {
+        appendFormParam(formKey, formValue)
+      }
+    }
+  }
+  return transformedFormData
+}
+
 // Return a simpler request object to allow serialization
 function requestToJSON () {
   var self = this
@@ -106,6 +142,11 @@ function Request (options) {
   if (options.har) {
     self._har = new Har(self)
     options = self._har.options(options)
+  }
+
+  // transform `formData` for backward compatibility
+  if (options.formData) {
+    options.formData = transformFormData(options.formData)
   }
 
   stream.Stream.call(self)
@@ -343,24 +384,9 @@ Request.prototype.init = function (options) {
   if (options.formData) {
     var formData = options.formData
     var requestForm = self.form()
-    var appendFormValue = function (key, value) {
-      if (value && value.hasOwnProperty('value') && value.hasOwnProperty('options')) {
-        requestForm.append(key, value.value, value.options)
-      } else {
-        requestForm.append(key, value)
-      }
-    }
-    for (var formKey in formData) {
-      if (formData.hasOwnProperty(formKey)) {
-        var formValue = formData[formKey]
-        if (formValue instanceof Array) {
-          for (var j = 0; j < formValue.length; j++) {
-            appendFormValue(formKey, formValue[j])
-          }
-        } else {
-          appendFormValue(formKey, formValue)
-        }
-      }
+    for (var i = 0, ii = formData.length; i < ii; i++) {
+      var formParam = formData[i]
+      requestForm.append(formParam.key, formParam.value, formParam.options)
     }
   }
 
