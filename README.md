@@ -12,6 +12,7 @@ This is a fork of the excellent `request` module, which is used inside Postman R
 - Allowed sending request body with HEAD method
 - Added option to retain `authorization` header when a redirect happens to a different hostname
 - Reinitialize FormData stream on 307 or 308 redirects
+- Respect form-data fields ordering
 
 ## Super simple to use
 

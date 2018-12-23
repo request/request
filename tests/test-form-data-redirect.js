@@ -5,9 +5,10 @@ var path = require('path')
 var request = require('../')
 var fs = require('fs')
 var tape = require('tape')
+var destroyable = require('server-destroy')
 
 function runTest (t, options) {
-  var localFile = path.join(__dirname, 'unicycle.jpg')
+  var localFile = path.join(__dirname, 'googledoodle.jpg')
   var multipartFormData = {}
   var redirects = 0
 
@@ -35,6 +36,18 @@ function runTest (t, options) {
         t.ok(data.indexOf('form-data; name="my_field_batch"') !== -1)
         t.ok(data.indexOf(multipartFormData.my_field_batch[0]) !== -1)
         t.ok(data.indexOf(multipartFormData.my_field_batch[1]) !== -1)
+      } else if (options.preserveOrder) {
+        // 1st field : my_field
+        t.ok(data.indexOf('form-data; name="my_field"') !== -1)
+        t.ok(data.indexOf(multipartFormData[0].value) !== -1)
+
+        // 2nd field : file with metadata
+        t.ok(data.indexOf('Content-Disposition: form-data; name="0"; filename="topsecret.jpg"') !== -1)
+        t.ok(data.indexOf('Content-Type: image/custom') !== -1)
+
+        // check for form-data fields order
+        t.ok(data.indexOf(`form-data; name="${multipartFormData[0].key}"`) <
+          data.indexOf(`form-data; name="${multipartFormData[1].key}"`))
       } else {
         // 1st field : my_field
         t.ok(data.indexOf('form-data; name="my_field"') !== -1)
@@ -43,11 +56,6 @@ function runTest (t, options) {
         // 2nd field : my_buffer
         t.ok(data.indexOf('form-data; name="my_buffer"') !== -1)
         t.ok(data.indexOf(multipartFormData.my_buffer) !== -1)
-
-        // 3rd field : file with metadata
-        t.ok(data.indexOf('form-data; name="secret_file"') !== -1)
-        t.ok(data.indexOf('Content-Disposition: form-data; name="secret_file"; filename="topsecret.jpg"') !== -1)
-        t.ok(data.indexOf('Content-Type: image/custom') !== -1)
       }
 
       // formdata boundary
@@ -58,6 +66,8 @@ function runTest (t, options) {
     })
   })
 
+  destroyable(server)
+
   // this will cause servers to listen on a random port
   server.listen(0, function () {
     var url = 'http://localhost:' + this.address().port
@@ -65,16 +75,21 @@ function runTest (t, options) {
     // https://github.com/request/request/issues/887#issuecomment-347050137
     if (options.batch) {
       multipartFormData.my_field_batch = ['my_value_1', 'my_value_2']
-    } else {
-      multipartFormData.my_field = 'my_value'
-      multipartFormData.my_buffer = Buffer.from([1, 2, 3])
-      multipartFormData.secret_file = {
+    } else if (options.preserveOrder) {
+      multipartFormData = [{
+        key: 'my_field',
+        value: 'my_value'
+      }, {
+        key: '0',
         value: fs.createReadStream(localFile),
         options: {
           filename: 'topsecret.jpg',
           contentType: 'image/custom'
         }
-      }
+      }]
+    } else {
+      multipartFormData.my_field = 'my_value'
+      multipartFormData.my_buffer = Buffer.from([1, 2, 3])
     }
 
     request.post({
@@ -86,7 +101,7 @@ function runTest (t, options) {
       t.equal(redirects, 1)
       t.equal(res.statusCode, 200)
       t.deepEqual(body, options.json ? {status: 'done'} : 'done')
-      server.close(function () {
+      server.destroy(function () {
         t.end()
       })
     }).on('redirect', function () {
@@ -105,4 +120,8 @@ tape('multipart formData + 307 redirect + batch', function (t) {
 
 tape('multipart formData + 308 redirect', function (t) {
   runTest(t, {url: '/redirect', responseCode: 308, location: '/upload'})
+})
+
+tape('multipart formData + 308 redirect + preserveOrder', function (t) {
+  runTest(t, {url: '/redirect', responseCode: 308, location: '/upload', preserveOrder: true})
 })
