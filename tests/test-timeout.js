@@ -244,6 +244,15 @@ tape('request timeout with keep-alive connection', function (t) {
   })
 })
 
+tape('calling abort clears the timeout', function (t) {
+  const req = request({ url: s.url + '/timeout', timeout: 2500 })
+  setTimeout(function () {
+    req.abort()
+    t.equal(req.timeoutTimer, null)
+    t.end()
+  }, 5)
+})
+
 tape('cleanup', function (t) {
   s.close(function () {
     t.end()

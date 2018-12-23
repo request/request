@@ -828,8 +828,7 @@ Request.prototype.start = function () {
       if (isConnecting) {
         var onReqSockConnect = function () {
           socket.removeListener('connect', onReqSockConnect)
-          clearTimeout(self.timeoutTimer)
-          self.timeoutTimer = null
+          self.clearTimeout()
           setReqTimeout()
         }
 
@@ -1527,6 +1526,7 @@ Request.prototype.resume = function () {
 }
 Request.prototype.destroy = function () {
   var self = this
+  this.clearTimeout()
   if (!self._ended) {
     self.end()
   } else if (self.response) {
@@ -1535,7 +1535,7 @@ Request.prototype.destroy = function () {
 }
 
 Request.prototype.clearTimeout = function () {
-  if (this.timeout && this.timeoutTimer) {
+  if (this.timeoutTimer) {
     clearTimeout(this.timeoutTimer)
     this.timeoutTimer = null
   }
