@@ -679,7 +679,7 @@ request.get({
 
 The `ca` value can be an array of certificates, in the event you have a private or internal corporate public-key infrastructure hierarchy. For example, if you want to connect to https://api.some-server.com which presents a key chain consisting of:
 1. its own public key, which is signed by:
-2. an intermediate "Corp Issuing Server", that is in turn signed by: 
+2. an intermediate "Corp Issuing Server", that is in turn signed by:
 3. a root CA "Corp Root CA";
 
 you can configure your request as follows:
@@ -947,7 +947,7 @@ Function that returns the specified response header field using a [case-insensit
 ```js
 request('http://www.google.com', function (error, response, body) {
   // print the Content-Type header even if the server returned it as 'content-type' (lowercase)
-  console.log('Content-Type is:', response.caseless.get('Content-Type')); 
+  console.log('Content-Type is:', response.caseless.get('Content-Type'));
 });
 ```
 
@@ -1111,9 +1111,9 @@ request('http://www.google.com', function() {
 ```
 
 The cookie store must be a
-[`tough-cookie`](https://github.com/SalesforceEng/tough-cookie)
+[`tough-cookie`](https://github.com/salesforce/tough-cookie)
 store and it must support synchronous operations; see the
-[`CookieStore` API docs](https://github.com/SalesforceEng/tough-cookie#api)
+[`CookieStore` API docs](https://github.com/salesforce/tough-cookie#api)
 for details.
 
 To inspect your cookie jar after a request:
