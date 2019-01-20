@@ -13,6 +13,7 @@ This is a fork of the excellent `request` module, which is used inside Postman R
 - Added option to retain `authorization` header when a redirect happens to a different hostname
 - Reinitialize FormData stream on 307 or 308 redirects
 - Respect form-data fields ordering
+- Fixed authentication leak in 307 and 308 redirects
 
 ## Super simple to use
 
