@@ -443,6 +443,20 @@ function addTests () {
     'https response',
     '200 https ok'
   ])
+
+  runTest('mutual https over http using agentOptions, tunnel=default', {
+    url: ss2.url,
+    proxy: s.url,
+    agentOptions: {
+      cert: clientCert,
+      key: clientKey,
+      passphrase: clientPassword
+    }
+  }, [
+    'http connect to localhost:' + ss2.port,
+    'https response',
+    '200 https ok'
+  ])
 }
 
 tape('setup', function (t) {
