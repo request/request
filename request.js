@@ -320,6 +320,10 @@ Request.prototype.init = function (options) {
     var formData = options.formData
     var requestForm = self.form()
     var appendFormValue = function (key, value) {
+      // cast undefined value to empty string otherwise form-data barks
+      if (typeof value === 'undefined') {
+        value = '';
+      }
       if (value && value.hasOwnProperty('value') && value.hasOwnProperty('options')) {
         requestForm.append(key, value.value, value.options)
       } else {
