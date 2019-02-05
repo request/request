@@ -328,6 +328,18 @@ request({url}, function (error, response, body) {
 Digest authentication is supported, but it only works with `sendImmediately`
 set to `false`; otherwise `request` will send basic authentication on the
 initial request, which will probably cause the request to fail.
+You will also need to set `withCredentials` to `true`.
+
+```js
+request.get('http://some.server.com/', {
+  'auth': {
+    'user': 'username',
+    'pass': 'password',
+    'sendImmediately': false
+  },
+  'withCredentials': true
+});
+```
 
 Bearer authentication is supported, and is activated when the `bearer` value is
 available. The value may be either a `String` or a `Function` returning a
