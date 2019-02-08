@@ -268,7 +268,7 @@ tape('should follow delete redirects when followallredirects true', function (t)
   })
 })
 
-// @note Previously all the methods get redirected with there request method
+// @note Previously all the methods get redirected with their request method
 // preserved(not changed to GET) other than the following 4:
 // PATCH, PUT, POST, DELETE (Probably accounted for only GET & HEAD).
 // BUT, with followAllRedirects set, the request method is changed to GET for
