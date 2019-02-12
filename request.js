@@ -1010,9 +1010,9 @@ Request.prototype.onRequestResponse = function (response) {
         total: self.timings.end
       }
 
-      // if secureConnect is present, add sslHandshake and update firstByte
+      // if secureConnect is present, add secureHandshake and update firstByte
       if (self.timings.secureConnect) {
-        response.timingPhases.sslHandshake = self.timings.secureConnect - self.timings.connect
+        response.timingPhases.secureHandshake = self.timings.secureConnect - self.timings.connect
         response.timingPhases.firstByte = self.timings.response - self.timings.secureConnect
       }
     }

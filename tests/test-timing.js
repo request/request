@@ -187,7 +187,7 @@ tape('HTTPS: non-redirected request is timed', function (t) {
     t.equal((res.timingPhases.wait >= 0), true)
     t.equal((res.timingPhases.dns >= 0), true)
     t.equal((res.timingPhases.tcp >= 0), true)
-    t.equal((res.timingPhases.sslHandshake >= 0), true)
+    t.equal((res.timingPhases.secureHandshake >= 0), true)
     t.equal((res.timingPhases.firstByte > 0), true)
     t.equal((res.timingPhases.download > 0), true)
     t.equal((res.timingPhases.total > 0), true)
@@ -208,7 +208,7 @@ tape('HTTPS: non-redirected request is timed', function (t) {
         propNames.push(propName)
       }
     }
-    t.deepEqual(propNames, ['wait', 'dns', 'tcp', 'firstByte', 'download', 'total', 'sslHandshake'])
+    t.deepEqual(propNames, ['wait', 'dns', 'tcp', 'firstByte', 'download', 'total', 'secureHandshake'])
 
     t.end()
   })
