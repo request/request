@@ -14,6 +14,7 @@ This is a fork of the excellent `request` module, which is used inside Postman R
 - Reinitialize FormData stream on 307 or 308 redirects
 - Respect form-data fields ordering
 - Fixed authentication leak in 307 and 308 redirects
+- Added `secureConnect` to timings and `secureHandshake` to timingPhases
 
 ## Super simple to use
 
@@ -864,13 +865,15 @@ The first argument can be either a `url` or an `options` object. The only requir
     - `socket` Relative timestamp when the [`http`](https://nodejs.org/api/http.html#http_event_socket) module's `socket` event fires. This happens when the socket is assigned to the request.
     - `lookup` Relative timestamp when the [`net`](https://nodejs.org/api/net.html#net_event_lookup) module's `lookup` event fires. This happens when the DNS has been resolved.
     - `connect`: Relative timestamp when the [`net`](https://nodejs.org/api/net.html#net_event_connect) module's `connect` event fires. This happens when the server acknowledges the TCP connection.
+    - `secureConnect`: Relative timestamp when the [`tls`](https://nodejs.org/api/tls.html#tls_event_secureconnect) module's `secureconnect` event fires. This happens when the handshaking process for a new connection has successfully completed.
     - `response`: Relative timestamp when the [`http`](https://nodejs.org/api/http.html#http_event_response) module's `response` event fires. This happens when the first bytes are received from the server.
     - `end`: Relative timestamp when the last bytes of the response are received.
   - `timingPhases` Contains the durations of each request phase. If there were redirects, the properties reflect the timings of the final request in the redirect chain:
     - `wait`: Duration of socket initialization (`timings.socket`)
     - `dns`: Duration of DNS lookup (`timings.lookup` - `timings.socket`)
-    - `tcp`: Duration of TCP connection (`timings.connect` - `timings.socket`)
-    - `firstByte`: Duration of HTTP server response (`timings.response` - `timings.connect`)
+    - `tcp`: Duration of TCP connection (`timings.connect` - `timings.lookup`)
+    - `secureHandshake`: Duration of SSL handshake (`timings.secureConnect` - `timings.connect`)
+    - `firstByte`: Duration of HTTP server response (`timings.response` - `timings.connect`|`timings.secureConnect`)
     - `download`: Duration of HTTP download (`timings.end` - `timings.response`)
     - `total`: Duration entire HTTP round-trip (`timings.end`)
 

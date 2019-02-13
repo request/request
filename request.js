@@ -869,8 +869,13 @@ Request.prototype.start = function () {
           self.timings.connect = now() - self.startTimeNow
         }
 
+        var onSecureConnectTiming = function () {
+          self.timings.secureConnect = now() - self.startTimeNow
+        }
+
         socket.once('lookup', onLookupTiming)
         socket.once('connect', onConnectTiming)
+        socket.once('secureConnect', onSecureConnectTiming)
 
         // clean up timing event listeners if needed on error
         self.req.once('error', function () {
@@ -977,6 +982,9 @@ Request.prototype.onRequestResponse = function (response) {
       if (!self.timings.connect) {
         self.timings.connect = self.timings.lookup
       }
+      if (!self.timings.secureConnect && self.httpModule === https) {
+        self.timings.secureConnect = self.timings.connect
+      }
       if (!self.timings.response) {
         self.timings.response = self.timings.connect
       }
@@ -1000,6 +1008,12 @@ Request.prototype.onRequestResponse = function (response) {
         firstByte: self.timings.response - self.timings.connect,
         download: self.timings.end - self.timings.response,
         total: self.timings.end
+      }
+
+      // if secureConnect is present, add secureHandshake and update firstByte
+      if (self.timings.secureConnect) {
+        response.timingPhases.secureHandshake = self.timings.secureConnect - self.timings.connect
+        response.timingPhases.firstByte = self.timings.response - self.timings.secureConnect
       }
     }
     debug('response end', self.uri.href, response.statusCode, response.headers)
