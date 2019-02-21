@@ -118,7 +118,7 @@ request.defaults = function (options, requester) {
     defaults[verb] = wrapRequestMethod(self[verb], options, requester, verb)
   })
 
-  defaults.cookie = wrapRequestMethod(self.cookie, options, requester)
+  defaults.cookie = self.cookie
   defaults.jar = self.jar
   defaults.defaults = self.defaults
   return defaults
