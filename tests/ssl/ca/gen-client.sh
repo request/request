@@ -23,3 +23,10 @@ openssl x509 -req \
 
 # Encrypt with password
 openssl rsa -aes128 -in client.key -out client-enc.key -passout 'pass:password'
+
+# Use the generated CRT and the KEY to create a PKCS12 certificate
+openssl pkcs12 -export \
+    -inkey client.key \
+    -in client.crt \
+    -out client.pfx \
+    -passout 'pass:password'
