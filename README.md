@@ -823,12 +823,9 @@ The first argument can be either a `url` or an `options` object. The only requir
     work around this, either use [`request.defaults`](#requestdefaultsoptions)
     with your pool options or create the pool object with the `maxSockets`
     property outside of the loop.
-- `timeout` - integer containing number of milliseconds, controls two timeouts
-  - Time to wait for a server to send response headers (and start the response body) before aborting the request.
-    Note that if the underlying TCP connection cannot be established,
-    the OS-wide TCP connection timeout will overrule the `timeout` option ([the
-    default in Linux can be anywhere from 20-120 seconds][linux-timeout]).
-  - Sets the socket to timeout after `timeout` milliseconds of inactivity on the socket.
+- `timeout` - integer containing number of milliseconds, controls two timeouts.
+  - **Read timeout**: Time to wait for a server to send response headers (and start the response body) before aborting the request.
+  - **Connection timeout**: Sets the socket to timeout after `timeout` milliseconds of inactivity. Note that increasing the timeout beyond the OS-wide TCP connection timeout will not have any effect ([the default in Linux can be anywhere from 20-120 seconds][linux-timeout])
 
 [linux-timeout]: http://www.sekuda.com/overriding_the_default_linux_kernel_20_second_tcp_socket_connect_timeout
 
