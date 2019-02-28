@@ -686,7 +686,7 @@ request.get({
 
 The `ca` value can be an array of certificates, in the event you have a private or internal corporate public-key infrastructure hierarchy. For example, if you want to connect to https://api.some-server.com which presents a key chain consisting of:
 1. its own public key, which is signed by:
-2. an intermediate "Corp Issuing Server", that is in turn signed by: 
+2. an intermediate "Corp Issuing Server", that is in turn signed by:
 3. a root CA "Corp Root CA";
 
 you can configure your request as follows:
@@ -701,6 +701,27 @@ request.get({
         ]
     }
 });
+```
+
+### Extending root CAs
+
+When this feature is enabled, the root CAs can be extended using the `extraCA` option. The file should consist of one or more trusted certificates in PEM format.
+
+This is similar to [NODE_EXTRA_CA_CERTS](https://nodejs.org/api/cli.html#cli_node_extra_ca_certs_file). But, if `options.ca` is specified, those will be extended as well.
+
+```js
+// enable extending CAs
+request.enableNodeExtraCACerts();
+
+// request with extra CA certs
+request.get({
+    url: 'https://api.some-server.com/',
+    extraCA: fs.readFileSync('Extra CA Certificates .pem')
+});
+
+// disable this feature
+request.disableNodeExtraCACerts()
+
 ```
 
 [back to top](#table-of-contents)
