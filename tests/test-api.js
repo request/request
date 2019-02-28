@@ -1,9 +1,14 @@
 'use strict'
 
+var tls = require('tls')
 var http = require('http')
-var request = require('../index')
+
 var tape = require('tape')
+
+var request = require('../index')
+
 var server
+var origCreateSecureContext = tls.createSecureContext // fixture
 
 tape('setup', function (t) {
   server = http.createServer()
@@ -25,6 +30,95 @@ tape('callback option', function (t) {
       t.equal(res.statusCode, 202)
       t.end()
     }
+  })
+})
+
+tape('enableNodeExtraCACerts', function (t) {
+  request.enableNodeExtraCACerts(function (err) {
+    t.error(err)
+    t.equal(typeof tls.createSecureContext, 'function')
+    t.equal(typeof tls.__createSecureContext, 'function')
+    t.equal(tls.__createSecureContext, origCreateSecureContext) // backup
+    request.disableNodeExtraCACerts() // RESET
+    t.end()
+  })
+})
+
+tape('enableNodeExtraCACerts: without callback', function (t) {
+  request.enableNodeExtraCACerts()
+
+  t.equal(typeof tls.createSecureContext, 'function')
+  t.equal(typeof tls.__createSecureContext, 'function')
+  t.equal(tls.__createSecureContext, origCreateSecureContext) // backup
+  request.disableNodeExtraCACerts() // RESET
+  t.end()
+})
+
+tape('enableNodeExtraCACerts: with missing addCACert', function (t) {
+  // override createSecureContext
+  tls.createSecureContext = function () {
+    return {
+      context: {
+        addCACert: undefined
+      }
+    }
+  }
+
+  request.enableNodeExtraCACerts(function (err) {
+    t.ok(err, 'SecureContext.addCACert is not a function')
+    t.equal(typeof tls.__createSecureContext, 'undefined')
+    tls.createSecureContext = origCreateSecureContext // RESET
+    t.end()
+  })
+})
+
+tape('enableNodeExtraCACerts: called twice', function (t) {
+  request.enableNodeExtraCACerts(function (err) {
+    t.error(err)
+    t.equal(typeof tls.createSecureContext, 'function')
+    t.equal(typeof tls.__createSecureContext, 'function')
+    t.equal(tls.__createSecureContext, origCreateSecureContext)
+
+    // called twice
+    request.enableNodeExtraCACerts(function (err) {
+      t.error(err)
+      t.equal(typeof tls.createSecureContext, 'function')
+      t.equal(typeof tls.__createSecureContext, 'function')
+      t.equal(tls.__createSecureContext, origCreateSecureContext)
+      request.disableNodeExtraCACerts() // RESET
+      t.end()
+    })
+  })
+})
+
+tape('disableNodeExtraCACerts', function (t) {
+  // enable first
+  request.enableNodeExtraCACerts(function (err) {
+    t.error(err)
+
+    // disable
+    request.disableNodeExtraCACerts()
+
+    t.equal(typeof tls.createSecureContext, 'function')
+    t.equal(typeof tls.__createSecureContext, 'undefined')
+    t.equal(tls.createSecureContext, origCreateSecureContext) // restored
+    t.end()
+  })
+})
+
+tape('disableNodeExtraCACerts: called twice', function (t) {
+  // enable first
+  request.enableNodeExtraCACerts(function (err) {
+    t.error(err)
+
+    // disable
+    request.disableNodeExtraCACerts()
+    request.disableNodeExtraCACerts()
+
+    t.equal(typeof tls.createSecureContext, 'function')
+    t.equal(typeof tls.__createSecureContext, 'undefined')
+    t.equal(tls.createSecureContext, origCreateSecureContext) // restored
+    t.end()
   })
 })
 

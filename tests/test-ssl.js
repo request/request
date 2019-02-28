@@ -118,7 +118,7 @@ tape('extraCA(NodeExtraCACerts: enabled)', function (t) {
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(body.toString(), 'authorized')
-    request.disableNodeExtraCACerts()
+    request.disableNodeExtraCACerts() // RESET
     t.end()
   })
 })
@@ -148,7 +148,7 @@ tape('ca + extraCA(NodeExtraCACerts: enabled)', function (t) {
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(body.toString(), 'authorized')
-    request.disableNodeExtraCACerts()
+    request.disableNodeExtraCACerts() // RESET
     t.end()
   })
 })
