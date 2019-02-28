@@ -76,7 +76,7 @@ tape('enableNodeExtraCACerts: with missing addCACert', function (t) {
 tape('enableNodeExtraCACerts: on createSecureContext error', function (t) {
   // override createSecureContext
   tls.createSecureContext = function () {
-    throw 'something went wrong';
+    throw 'something went wrong'
   }
 
   request.enableNodeExtraCACerts(function (err) {
