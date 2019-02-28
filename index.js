@@ -155,18 +155,18 @@ request.forever = function (agentOptions, optionsArg) {
 request.enableNodeExtraCACerts = function () {
   // bail out if already enabled
   if (tls.__createSecureContext) {
-    return;
+    return
   }
 
   // store the original tls.createSecureContext method.
   // used to extend existing functionality as well as restore later.
-  tls.__createSecureContext = tls.createSecureContext;
+  tls.__createSecureContext = tls.createSecureContext
 
   // override tls.createSecureContext with extraCA support
   // @note if agent is keepAlive, same context will be reused.
   tls.createSecureContext = function () {
     // call original createSecureContext and store the context
-    var secureContext = tls.__createSecureContext.apply(this, arguments);
+    var secureContext = tls.__createSecureContext.apply(this, arguments)
 
     // if `extraCA` is present in options, extend CA certs
     // @note this request option is available here because all the
@@ -177,25 +177,25 @@ request.enableNodeExtraCACerts = function () {
       // extend root CA with specified CA certificates
       // @note `addCACert` is an undocumented API and performs an expensive operations
       // Refer: https://github.com/nodejs/node/blob/v10.15.1/lib/_tls_common.js#L97
-      secureContext.context.addCACert(arguments[0].extraCA);
+      secureContext.context.addCACert(arguments[0].extraCA)
     }
 
-    return secureContext;
-  };
+    return secureContext
+  }
 }
 
 // disable the extended CA certificates feature
 request.disableNodeExtraCACerts = function () {
   // bail out if not enabled
   if (typeof tls.__createSecureContext !== 'function') {
-    return;
+    return
   }
 
   // reset `tls.createSecureContext` with the original method
-  tls.createSecureContext = tls.__createSecureContext;
+  tls.createSecureContext = tls.__createSecureContext
 
   // delete the reference of original method
-  delete tls.__createSecureContext;
+  delete tls.__createSecureContext
 }
 
 // Exports
