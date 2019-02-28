@@ -106,6 +106,35 @@ tape('pfx + passphrase(invalid)', function (t) {
   })
 })
 
+tape('extraCA(enabled)', function (t) {
+  // enable extraCA support
+  request.enableNodeExtraCACerts();
+
+  request({
+    url: sslServer.url,
+    extraCA: ca,
+    key: clientKey,
+    cert: clientCert
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(body.toString(), 'authorized')
+    request.disableNodeExtraCACerts()
+    t.end()
+  })
+})
+
+tape('extraCA(disabled)', function (t) {
+  request({
+    url: sslServer.url,
+    extraCA: ca,
+    key: clientKey,
+    cert: clientCert
+  }, function (err, res, body) {
+    t.ok(err)
+    t.end()
+  })
+})
+
 tape('cleanup', function (t) {
   sslServer.close(function () {
     t.end()
