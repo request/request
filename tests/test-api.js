@@ -65,7 +65,23 @@ tape('enableNodeExtraCACerts: with missing addCACert', function (t) {
   }
 
   request.enableNodeExtraCACerts(function (err) {
-    t.ok(err, 'SecureContext.addCACert is not a function')
+    t.ok(err)
+    t.equal(err.message, 'SecureContext.addCACert is not a function')
+    t.equal(typeof tls.__createSecureContext, 'undefined')
+    tls.createSecureContext = origCreateSecureContext // RESET
+    t.end()
+  })
+})
+
+tape('enableNodeExtraCACerts: on createSecureContext error', function (t) {
+  // override createSecureContext
+  tls.createSecureContext = function () {
+    throw 'something went wrong';
+  }
+
+  request.enableNodeExtraCACerts(function (err) {
+    t.ok(err)
+    t.equal(err, 'something went wrong')
     t.equal(typeof tls.__createSecureContext, 'undefined')
     tls.createSecureContext = origCreateSecureContext // RESET
     t.end()
