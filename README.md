@@ -16,6 +16,7 @@ This is a fork of the excellent `request` module, which is used inside Postman R
 - Fixed authentication leak in 307 and 308 redirects
 - Added `secureConnect` to timings and `secureHandshake` to timingPhases
 - Fixed `Request~getNewAgent` to account for `passphrase` while generating poolKey
+- Added support for extending the root CA certificates.
 
 ## Super simple to use
 

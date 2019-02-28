@@ -708,6 +708,13 @@ Request.prototype.getNewAgent = function () {
       poolKey += options.ca
     }
 
+    if (options.extraCA) {
+      if (poolKey) {
+        poolKey += ':'
+      }
+      poolKey += options.extraCA
+    }
+
     if (typeof options.rejectUnauthorized !== 'undefined') {
       if (poolKey) {
         poolKey += ':'
