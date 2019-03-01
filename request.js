@@ -989,6 +989,7 @@ Request.prototype.onRequestResponse = function (response) {
     if (self.timing) {
       self.timings.end = now() - self.startTimeNow
       response.timingStart = self.startTime
+      response.timingStartHRTime = self.startTimeNow
 
       // fill in the blanks for any periods that didn't trigger, such as
       // no lookup or connect due to keep alive
