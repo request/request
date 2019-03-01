@@ -1,5 +1,6 @@
 'use strict'
 
+var tls = require('tls')
 var http = require('http')
 var https = require('https')
 var url = require('url')
@@ -660,6 +661,9 @@ Request.prototype.getNewAgent = function () {
   if (self.ca) {
     options.ca = self.ca
   }
+  if (self.extraCA) {
+    options.extraCA = self.extraCA
+  }
   if (self.ciphers) {
     options.ciphers = self.ciphers
   }
@@ -706,6 +710,14 @@ Request.prototype.getNewAgent = function () {
         poolKey += ':'
       }
       poolKey += options.ca
+    }
+
+    // only add when NodeExtraCACerts is enabled
+    if (tls.__createSecureContext && options.extraCA) {
+      if (poolKey) {
+        poolKey += ':'
+      }
+      poolKey += options.extraCA
     }
 
     if (typeof options.rejectUnauthorized !== 'undefined') {
