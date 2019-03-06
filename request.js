@@ -462,11 +462,24 @@ Request.prototype.init = function (options) {
     self.multipart(options.multipart)
   }
 
-  if (options.time) {
+  // enable timings if verbose is true
+  if (options.time || options.verbose) {
     self.timing = true
 
     // NOTE: elapsedTime is deprecated in favor of .timings
     self.elapsedTime = self.elapsedTime || 0
+  }
+
+  if (options.verbose) {
+    self.verbose = {}
+
+    // to track redirects, store all the verbose in an array
+    if (Array.isArray(options._verbose)) {
+      self._verbose = options._verbose
+      self._verbose.push(self.verbose)
+    } else {
+      self._verbose = [self.verbose]
+    }
   }
 
   function setContentLength () {
@@ -823,6 +836,13 @@ Request.prototype.start = function () {
     self.aws(self._aws, true)
   }
 
+  if (self.verbose) {
+    self.verbose.request = {
+      method: self.method,
+      href: self.href
+    }
+  }
+
   // We have a method named auth, which is completely different from the http.request
   // auth option.  If we don't remove it, we're gonna have a bad time.
   var reqOptions = copy(self)
@@ -886,10 +906,78 @@ Request.prototype.start = function () {
 
         var onConnectTiming = function () {
           self.timings.connect = now() - self.startTimeNow
+
+          if (self.verbose) {
+            // local address
+            self.verbose.localAddress = socket.address()
+
+            // remote address
+            self.verbose.remoteAddress = {
+              address: socket.remoteAddress,
+              family: socket.remoteFamily,
+              port: socket.remotePort
+            }
+          }
         }
 
         var onSecureConnectTiming = function () {
           self.timings.secureConnect = now() - self.startTimeNow
+
+          if (self.verbose) {
+            // negotiated cipher name
+            self.verbose.tlsCipher = socket.getCipher()
+
+            // type, name, and size of parameter of an ephemeral key exchange
+            // @note Node >= v5.0.0
+            if (typeof socket.getEphemeralKeyInfo === 'function') {
+              self.verbose.ephemeralKeyInfo = socket.getEphemeralKeyInfo()
+            }
+
+            // negotiated SSL/TLS protocol version
+            // @note Node >= v5.7.0
+            if (typeof socket.getProtocol === 'function') {
+              self.verbose.tlsProtocol = socket.getProtocol()
+            }
+
+            // true if the session was reused
+            self.verbose.tlsSessionReused = socket.isSessionReused()
+
+            // true if the peer certificate was signed by one of the CAs specified
+            self.verbose.authorized = socket.authorized
+
+            // reason why the peer's certificate was not been verified
+            self.verbose.authorizationError = socket.authorizationError
+
+            // peer certificate information
+            var peerCert = socket.getPeerCertificate() || {}
+
+            !peerCert.subject && (peerCert.subject = {})
+            !peerCert.issuer && (peerCert.issuer = {})
+
+            self.verbose.peerCertificate = {
+              subject: {
+                country: peerCert.subject.C,
+                stateOrProvince: peerCert.subject.ST,
+                locality: peerCert.subject.L,
+                organization: peerCert.subject.O,
+                organizationalUnit: peerCert.subject.OU,
+                commonName: peerCert.subject.CN,
+                alternativeNames: peerCert.subjectaltname
+              },
+              issuer: {
+                country: peerCert.issuer.C,
+                stateOrProvince: peerCert.issuer.ST,
+                locality: peerCert.issuer.L,
+                organization: peerCert.issuer.O,
+                organizationalUnit: peerCert.issuer.OU,
+                commonName: peerCert.issuer.CN
+              },
+              validFrom: new Date(peerCert.valid_from),
+              validTo: new Date(peerCert.valid_to),
+              fingerprint: peerCert.fingerprint,
+              serialNumber: peerCert.serialNumber
+            }
+          }
         }
 
         socket.once('lookup', onLookupTiming)
@@ -1036,6 +1124,12 @@ Request.prototype.onRequestResponse = function (response) {
         response.timingPhases.firstByte = self.timings.response - self.timings.secureConnect
       }
     }
+
+    if (self.verbose && self._verbose) {
+      // sets array of verbose even without redirect
+      response.verbose = self._verbose
+    }
+
     debug('response end', self.uri.href, response.statusCode, response.headers)
   })
 
@@ -1043,6 +1137,16 @@ Request.prototype.onRequestResponse = function (response) {
     debug('aborted', self.uri.href)
     response.resume()
     return
+  }
+
+  if (self.verbose) {
+    self.verbose.response = {
+      statusCode: response.statusCode
+    }
+
+    self.verbose.timingStart = self.startTime
+    self.verbose.timingStartHRTime = self.startTimeNow
+    self.verbose.timings = self.timings
   }
 
   self.response = response
