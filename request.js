@@ -156,6 +156,7 @@ function Request (options) {
 
   self.readable = true
   self.writable = true
+  self._logs = []
   if (options.method) {
     self.explicitMethod = true
   }
@@ -190,6 +191,9 @@ Request.prototype.init = function (options) {
     options = {}
   }
   self.headers = self.headers ? copy(self.headers) : {}
+
+  self._log = {}
+  self._logs.push(self._log)
 
   // additional postman feature starts
   // bind default events sent via options
@@ -240,12 +244,12 @@ Request.prototype.init = function (options) {
   // Protect against double callback
   if (!self._callback && self.callback) {
     self._callback = self.callback
-    self.callback = function () {
+    self.callback = function (error, response, body) {
       if (self._callbackCalled) {
         return // Print a warning maybe?
       }
       self._callbackCalled = true
-      self._callback.apply(self, arguments)
+      self._callback(error, response, body, self._logs)
     }
     self.on('error', self.callback.bind())
     self.on('complete', self.callback.bind(self, null))
@@ -471,15 +475,7 @@ Request.prototype.init = function (options) {
   }
 
   if (options.verbose) {
-    self.verbose = {}
-
-    // to track redirects, store all the verbose in an array
-    if (Array.isArray(options._verbose)) {
-      self._verbose = options._verbose
-      self._verbose.push(self.verbose)
-    } else {
-      self._verbose = [self.verbose]
-    }
+    self.verbose = true
   }
 
   function setContentLength () {
@@ -836,11 +832,9 @@ Request.prototype.start = function () {
     self.aws(self._aws, true)
   }
 
-  if (self.verbose) {
-    self.verbose.request = {
-      method: self.method,
-      href: self.href
-    }
+  self._log.request = {
+    method: self.method,
+    href: self.href
   }
 
   // We have a method named auth, which is completely different from the http.request
@@ -909,10 +903,10 @@ Request.prototype.start = function () {
 
           if (self.verbose) {
             // local address
-            self.verbose.localAddress = socket.address()
+            self._log.localAddress = socket.address()
 
             // remote address
-            self.verbose.remoteAddress = {
+            self._log.remoteAddress = {
               address: socket.remoteAddress,
               family: socket.remoteFamily,
               port: socket.remotePort
@@ -925,37 +919,37 @@ Request.prototype.start = function () {
 
           if (self.verbose) {
             // negotiated cipher name
-            self.verbose.tlsCipher = socket.getCipher()
+            self._log.tlsCipher = socket.getCipher()
 
             // type, name, and size of parameter of an ephemeral key exchange
             // @note Node >= v5.0.0
             if (typeof socket.getEphemeralKeyInfo === 'function') {
-              self.verbose.ephemeralKeyInfo = socket.getEphemeralKeyInfo()
+              self._log.ephemeralKeyInfo = socket.getEphemeralKeyInfo()
             }
 
             // negotiated SSL/TLS protocol version
             // @note Node >= v5.7.0
             if (typeof socket.getProtocol === 'function') {
-              self.verbose.tlsProtocol = socket.getProtocol()
+              self._log.tlsProtocol = socket.getProtocol()
             }
 
             // true if the session was reused
-            self.verbose.tlsSessionReused = socket.isSessionReused()
+            self._log.tlsSessionReused = socket.isSessionReused()
 
             // true if the peer certificate was signed by one of the CAs specified
-            self.verbose.authorized = socket.authorized
+            self._log.authorized = socket.authorized
 
             // reason why the peer's certificate was not been verified
-            self.verbose.authorizationError = socket.authorizationError
+            self._log.authorizationError = socket.authorizationError
 
             // peer certificate information
+            // @note if session is reused, all certificate information is
+            // stripped from the socket.
+            // Refer: https://github.com/nodejs/node/issues/3940
             var peerCert = socket.getPeerCertificate() || {}
 
-            !peerCert.subject && (peerCert.subject = {})
-            !peerCert.issuer && (peerCert.issuer = {})
-
-            self.verbose.peerCertificate = {
-              subject: {
+            self._log.peerCertificate = {
+              subject: peerCert.subject && {
                 country: peerCert.subject.C,
                 stateOrProvince: peerCert.subject.ST,
                 locality: peerCert.subject.L,
@@ -964,7 +958,7 @@ Request.prototype.start = function () {
                 commonName: peerCert.subject.CN,
                 alternativeNames: peerCert.subjectaltname
               },
-              issuer: {
+              issuer: peerCert.issuer && {
                 country: peerCert.issuer.C,
                 stateOrProvince: peerCert.issuer.ST,
                 locality: peerCert.issuer.L,
@@ -972,8 +966,8 @@ Request.prototype.start = function () {
                 organizationalUnit: peerCert.issuer.OU,
                 commonName: peerCert.issuer.CN
               },
-              validFrom: new Date(peerCert.valid_from),
-              validTo: new Date(peerCert.valid_to),
+              validFrom: peerCert.valid_from && new Date(peerCert.valid_from),
+              validTo: peerCert.valid_to && new Date(peerCert.valid_to),
               fingerprint: peerCert.fingerprint,
               serialNumber: peerCert.serialNumber
             }
@@ -1125,11 +1119,6 @@ Request.prototype.onRequestResponse = function (response) {
       }
     }
 
-    if (self.verbose && self._verbose) {
-      // sets array of verbose even without redirect
-      response.verbose = self._verbose
-    }
-
     debug('response end', self.uri.href, response.statusCode, response.headers)
   })
 
@@ -1139,14 +1128,14 @@ Request.prototype.onRequestResponse = function (response) {
     return
   }
 
-  if (self.verbose) {
-    self.verbose.response = {
-      statusCode: response.statusCode
-    }
+  self._log.response = {
+    statusCode: response.statusCode
+  }
 
-    self.verbose.timingStart = self.startTime
-    self.verbose.timingStartHRTime = self.startTimeNow
-    self.verbose.timings = self.timings
+  if (self.timing) {
+    self._log.timingStart = self.startTime
+    self._log.timingStartHRTime = self.startTimeNow
+    self._log.timings = self.timings
   }
 
   self.response = response

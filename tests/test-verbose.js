@@ -41,10 +41,22 @@ tape('setup', function (t) {
 tape('verbose=false [default]', function (t) {
   var options = {}
 
-  request('http://localhost:' + plainServer.port + '/', options, function (err, res, body) {
+  request('http://localhost:' + plainServer.port + '/', options, function (err, res, body, logs) {
     t.equal(err, null)
     t.equal(body, 'plain')
-    t.equal(typeof res.verbose, 'undefined')
+    t.equal(Array.isArray(logs), true)
+    t.equal(logs.length, 1)
+
+    // validate there are no unexpected properties
+    var propName
+    var propNames = []
+    for (propName in logs[0]) {
+      if (logs[0].hasOwnProperty(propName)) {
+        propNames.push(propName)
+      }
+    }
+    t.deepEqual(propNames, ['request', 'response'])
+
     t.end()
   })
 })
@@ -52,18 +64,17 @@ tape('verbose=false [default]', function (t) {
 tape('HTTP: verbose=true', function (t) {
   var options = { verbose: true, time: false } // verbose overrides timing setting
 
-  request('http://localhost:' + plainServer.port + '/', options, function (err, res, body) {
+  request('http://localhost:' + plainServer.port + '/', options, function (err, res, body, logs) {
     t.equal(err, null)
     t.equal(body, 'plain')
-    t.equal(Array.isArray(res.verbose), true)
-    t.equal(res.verbose.length, 1)
+    t.equal(Array.isArray(logs), true)
+    t.equal(logs.length, 1)
 
     // validate there are no unexpected properties
     var propName
     var propNames = []
-    var verbose = res.verbose[0]
-    for (propName in verbose) {
-      if (verbose.hasOwnProperty(propName)) {
+    for (propName in logs[0]) {
+      if (logs[0].hasOwnProperty(propName)) {
         propNames.push(propName)
       }
     }
@@ -76,20 +87,22 @@ tape('HTTP: verbose=true', function (t) {
 })
 
 tape('HTTP: redirect(HTTPS) + verbose=true', function (t) {
-  var options = { verbose: true, strictSSL: false }
+  var options = {
+    verbose: true,
+    strictSSL: false
+  }
 
-  request('http://localhost:' + plainServer.port + '/redir', options, function (err, res, body) {
+  request('http://localhost:' + plainServer.port + '/redir', options, function (err, res, body, logs) {
     t.equal(err, null)
     t.equal(body, 'https')
-    t.equal(Array.isArray(res.verbose), true)
-    t.equal(res.verbose.length, 2)
+    t.equal(Array.isArray(logs), true)
+    t.equal(logs.length, 2)
 
     // validate there are no unexpected properties
     var propName
     var propNames = []
-    var verbose = res.verbose[0]
-    for (propName in verbose) {
-      if (verbose.hasOwnProperty(propName)) {
+    for (propName in logs[0]) {
+      if (logs[0].hasOwnProperty(propName)) {
         propNames.push(propName)
       }
     }
@@ -98,12 +111,12 @@ tape('HTTP: redirect(HTTPS) + verbose=true', function (t) {
     ])
 
     propNames = []
-    verbose = res.verbose[1]
-    for (propName in verbose) {
-      if (verbose.hasOwnProperty(propName)) {
+    for (propName in logs[1]) {
+      if (logs[1].hasOwnProperty(propName)) {
         propNames.push(propName)
       }
     }
+    t.equal(logs[1].tlsSessionReused, false)
     t.deepEqual(propNames, ['request', 'localAddress', 'remoteAddress', 'tlsCipher', 'ephemeralKeyInfo',
       'tlsProtocol', 'tlsSessionReused', 'authorized', 'authorizationError', 'peerCertificate',
       'response', 'timingStart', 'timingStartHRTime', 'timings'
@@ -114,23 +127,27 @@ tape('HTTP: redirect(HTTPS) + verbose=true', function (t) {
 })
 
 tape('HTTPS: verbose=true', function (t) {
-  var options = { verbose: true, strictSSL: false, time: false } // verbose overrides timing setting
+  var options = {
+    verbose: true,
+    strictSSL: false,
+    time: false // verbose overrides timing setting
+  }
 
-  request('https://localhost:' + httpsServer.port + '/', options, function (err, res, body) {
+  request('https://localhost:' + httpsServer.port + '/', options, function (err, res, body, logs) {
     t.equal(err, null)
     t.equal(body, 'https')
-    t.equal(Array.isArray(res.verbose), true)
-    t.equal(res.verbose.length, 1)
+    t.equal(Array.isArray(logs), true)
+    t.equal(logs.length, 1)
 
     // validate there are no unexpected properties
     var propName
     var propNames = []
-    var verbose = res.verbose[0]
-    for (propName in verbose) {
-      if (verbose.hasOwnProperty(propName)) {
+    for (propName in logs[0]) {
+      if (logs[0].hasOwnProperty(propName)) {
         propNames.push(propName)
       }
     }
+    t.equal(logs[0].tlsSessionReused, true)
     t.deepEqual(propNames, ['request', 'localAddress', 'remoteAddress', 'tlsCipher', 'ephemeralKeyInfo',
       'tlsProtocol', 'tlsSessionReused', 'authorized', 'authorizationError', 'peerCertificate',
       'response', 'timingStart', 'timingStartHRTime', 'timings'
@@ -141,32 +158,34 @@ tape('HTTPS: verbose=true', function (t) {
 })
 
 tape('HTTPS: redirect(HTTP) + verbose=true', function (t) {
-  var options = { verbose: true, strictSSL: false }
+  var options = {
+    verbose: true,
+    strictSSL: false
+  }
 
-  request('https://localhost:' + httpsServer.port + '/redir', options, function (err, res, body) {
+  request('https://localhost:' + httpsServer.port + '/redir', options, function (err, res, body, logs) {
     t.equal(err, null)
     t.equal(body, 'plain')
-    t.equal(Array.isArray(res.verbose), true)
-    t.equal(res.verbose.length, 2)
+    t.equal(Array.isArray(logs), true)
+    t.equal(logs.length, 2)
 
     // validate there are no unexpected properties
     var propName
     var propNames = []
-    var verbose = res.verbose[0]
-    for (propName in verbose) {
-      if (verbose.hasOwnProperty(propName)) {
+    for (propName in logs[0]) {
+      if (logs[0].hasOwnProperty(propName)) {
         propNames.push(propName)
       }
     }
+    t.equal(logs[0].tlsSessionReused, true)
     t.deepEqual(propNames, ['request', 'localAddress', 'remoteAddress', 'tlsCipher', 'ephemeralKeyInfo',
       'tlsProtocol', 'tlsSessionReused', 'authorized', 'authorizationError', 'peerCertificate',
       'response', 'timingStart', 'timingStartHRTime', 'timings'
     ])
 
     propNames = []
-    verbose = res.verbose[1]
-    for (propName in verbose) {
-      if (verbose.hasOwnProperty(propName)) {
+    for (propName in logs[1]) {
+      if (logs[1].hasOwnProperty(propName)) {
         propNames.push(propName)
       }
     }
