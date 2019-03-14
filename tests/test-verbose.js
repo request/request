@@ -55,7 +55,7 @@ tape('verbose=false [default]', function (t) {
         propNames.push(propName)
       }
     }
-    t.deepEqual(propNames, ['request', 'response'])
+    t.deepEqual(propNames, ['request', 'session', 'response'])
 
     t.end()
   })
@@ -78,9 +78,7 @@ tape('HTTP: verbose=true', function (t) {
         propNames.push(propName)
       }
     }
-    t.deepEqual(propNames, [ 'request', 'localAddress', 'remoteAddress', 'response', 'timingStart',
-      'timingStartHRTime', 'timings'
-    ])
+    t.deepEqual(propNames, ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
 
     t.end()
   })
@@ -106,9 +104,7 @@ tape('HTTP: redirect(HTTPS) + verbose=true', function (t) {
         propNames.push(propName)
       }
     }
-    t.deepEqual(propNames, [ 'request', 'localAddress', 'remoteAddress', 'response', 'timingStart',
-      'timingStartHRTime', 'timings'
-    ])
+    t.deepEqual(propNames, ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
 
     propNames = []
     for (propName in logs[1]) {
@@ -116,11 +112,7 @@ tape('HTTP: redirect(HTTPS) + verbose=true', function (t) {
         propNames.push(propName)
       }
     }
-    t.equal(logs[1].tlsSessionReused, false)
-    t.deepEqual(propNames, ['request', 'localAddress', 'remoteAddress', 'tlsCipher', 'ephemeralKeyInfo',
-      'tlsProtocol', 'tlsSessionReused', 'authorized', 'authorizationError', 'peerCertificate',
-      'response', 'timingStart', 'timingStartHRTime', 'timings'
-    ])
+    t.deepEqual(propNames, ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
 
     t.end()
   })
@@ -147,11 +139,7 @@ tape('HTTPS: verbose=true', function (t) {
         propNames.push(propName)
       }
     }
-    t.equal(logs[0].tlsSessionReused, true)
-    t.deepEqual(propNames, ['request', 'localAddress', 'remoteAddress', 'tlsCipher', 'ephemeralKeyInfo',
-      'tlsProtocol', 'tlsSessionReused', 'authorized', 'authorizationError', 'peerCertificate',
-      'response', 'timingStart', 'timingStartHRTime', 'timings'
-    ])
+    t.deepEqual(propNames, ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
 
     t.end()
   })
@@ -177,11 +165,7 @@ tape('HTTPS: redirect(HTTP) + verbose=true', function (t) {
         propNames.push(propName)
       }
     }
-    t.equal(logs[0].tlsSessionReused, true)
-    t.deepEqual(propNames, ['request', 'localAddress', 'remoteAddress', 'tlsCipher', 'ephemeralKeyInfo',
-      'tlsProtocol', 'tlsSessionReused', 'authorized', 'authorizationError', 'peerCertificate',
-      'response', 'timingStart', 'timingStartHRTime', 'timings'
-    ])
+    t.deepEqual(propNames, ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
 
     propNames = []
     for (propName in logs[1]) {
@@ -189,9 +173,7 @@ tape('HTTPS: redirect(HTTP) + verbose=true', function (t) {
         propNames.push(propName)
       }
     }
-    t.deepEqual(propNames, ['request', 'localAddress', 'remoteAddress', 'response', 'timingStart',
-      'timingStartHRTime', 'timings'
-    ])
+    t.deepEqual(propNames, ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
 
     t.end()
   })

@@ -9,6 +9,7 @@ var stream = require('stream')
 var zlib = require('zlib')
 var aws2 = require('aws-sign2')
 var aws4 = require('aws4')
+var uuid = require('uuid/v4')
 var httpSignature = require('http-signature')
 var mime = require('mime-types')
 var caseless = require('caseless')
@@ -156,7 +157,7 @@ function Request (options) {
 
   self.readable = true
   self.writable = true
-  self._logs = []
+  self._debug = []
   if (options.method) {
     self.explicitMethod = true
   }
@@ -193,7 +194,7 @@ Request.prototype.init = function (options) {
   self.headers = self.headers ? copy(self.headers) : {}
 
   self._log = {}
-  self._logs.push(self._log)
+  self._debug.push(self._log)
 
   // additional postman feature starts
   // bind default events sent via options
@@ -249,7 +250,7 @@ Request.prototype.init = function (options) {
         return // Print a warning maybe?
       }
       self._callbackCalled = true
-      self._callback(error, response, body, self._logs)
+      self._callback(error, response, body, self._debug)
     }
     self.on('error', self.callback.bind())
     self.on('complete', self.callback.bind(self, null))
@@ -834,7 +835,9 @@ Request.prototype.start = function () {
 
   self._log.request = {
     method: self.method,
-    href: self.href
+    href: self.uri.href,
+    proxy: (self.proxy && { href: self.proxy.href }) || undefined,
+    httpVersion: '1.1'
   }
 
   // We have a method named auth, which is completely different from the http.request
@@ -888,6 +891,11 @@ Request.prototype.start = function () {
   })
 
   self.req.on('socket', function (socket) {
+    self._log.session = {
+      reused: Boolean(socket.SESSION_ID),
+      id: (socket.SESSION_ID = socket.SESSION_ID || uuid())
+    }
+
     // `._connecting` was the old property which was made public in node v6.1.0
     var isConnecting = socket._connecting || socket.connecting
     if (self.timing) {
@@ -902,14 +910,18 @@ Request.prototype.start = function () {
           self.timings.connect = now() - self.startTimeNow
 
           if (self.verbose) {
-            // local address
-            self._log.localAddress = socket.address()
+            self._log.session.addresses = {
+              // local address
+              // @note there's no `socket.localFamily` but `.address` method
+              // returns same output as of remote.
+              local: socket.address(),
 
-            // remote address
-            self._log.remoteAddress = {
-              address: socket.remoteAddress,
-              family: socket.remoteFamily,
-              port: socket.remotePort
+              // remote address
+              remote: {
+                address: socket.remoteAddress,
+                family: socket.remoteFamily,
+                port: socket.remotePort
+              }
             }
           }
         }
@@ -918,37 +930,35 @@ Request.prototype.start = function () {
           self.timings.secureConnect = now() - self.startTimeNow
 
           if (self.verbose) {
-            // negotiated cipher name
-            self._log.tlsCipher = socket.getCipher()
+            self._log.session.tls = {
+              // true if the session was reused
+              reused: socket.isSessionReused(),
 
-            // type, name, and size of parameter of an ephemeral key exchange
-            // @note Node >= v5.0.0
-            if (typeof socket.getEphemeralKeyInfo === 'function') {
-              self._log.ephemeralKeyInfo = socket.getEphemeralKeyInfo()
+              // true if the peer certificate was signed by one of the CAs specified
+              authorized: socket.authorized,
+
+              // reason why the peer's certificate was not been verified
+              authorizationError: socket.authorizationError,
+
+              // negotiated cipher name
+              cipher: socket.getCipher(),
+
+              // negotiated SSL/TLS protocol version
+              // @note Node >= v5.7.0
+              protocol: (typeof socket.getProtocol === 'function') && socket.getProtocol(),
+
+              // type, name, and size of parameter of an ephemeral key exchange
+              // @note Node >= v5.0.0
+              ephemeralKeyInfo: (typeof socket.getEphemeralKeyInfo === 'function') && socket.getEphemeralKeyInfo()
             }
-
-            // negotiated SSL/TLS protocol version
-            // @note Node >= v5.7.0
-            if (typeof socket.getProtocol === 'function') {
-              self._log.tlsProtocol = socket.getProtocol()
-            }
-
-            // true if the session was reused
-            self._log.tlsSessionReused = socket.isSessionReused()
-
-            // true if the peer certificate was signed by one of the CAs specified
-            self._log.authorized = socket.authorized
-
-            // reason why the peer's certificate was not been verified
-            self._log.authorizationError = socket.authorizationError
 
             // peer certificate information
             // @note if session is reused, all certificate information is
-            // stripped from the socket.
+            // stripped from the socket (returns {}).
             // Refer: https://github.com/nodejs/node/issues/3940
-            var peerCert = socket.getPeerCertificate() || {}
+            var peerCert = socket.getPeerCertificate()
 
-            self._log.peerCertificate = {
+            self._log.session.tls.peerCertificate = {
               subject: peerCert.subject && {
                 country: peerCert.subject.C,
                 stateOrProvince: peerCert.subject.ST,
@@ -1071,7 +1081,7 @@ Request.prototype.onRequestResponse = function (response) {
     if (self.timing) {
       self.timings.end = now() - self.startTimeNow
       response.timingStart = self.startTime
-      response.timingStartHRTime = self.startTimeNow
+      response.timingStartTimer = self.startTimeNow
 
       // fill in the blanks for any periods that didn't trigger, such as
       // no lookup or connect due to keep alive
@@ -1129,12 +1139,13 @@ Request.prototype.onRequestResponse = function (response) {
   }
 
   self._log.response = {
-    statusCode: response.statusCode
+    statusCode: response.statusCode,
+    httpVersion: response.httpVersion
   }
 
   if (self.timing) {
     self._log.timingStart = self.startTime
-    self._log.timingStartHRTime = self.startTimeNow
+    self._log.timingStartTimer = self.startTimeNow
     self._log.timings = self.timings
   }
 
