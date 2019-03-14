@@ -936,6 +936,7 @@ Request.prototype.onRequestResponse = function (response) {
       }
       if (self.httpModule === https) {
         response.timingPhases.ssl = self.timings.secureConnect - self.timings.connect
+        response.timingPhases.firstByte = self.timings.response - self.timings.secureConnect
       }
     }
     debug('response end', self.uri.href, response.statusCode, response.headers)
