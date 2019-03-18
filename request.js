@@ -9,6 +9,7 @@ var stream = require('stream')
 var zlib = require('zlib')
 var aws2 = require('aws-sign2')
 var aws4 = require('aws4')
+var uuid = require('uuid/v4')
 var httpSignature = require('http-signature')
 var mime = require('mime-types')
 var caseless = require('caseless')
@@ -156,6 +157,7 @@ function Request (options) {
 
   self.readable = true
   self.writable = true
+  self._debug = []
   if (options.method) {
     self.explicitMethod = true
   }
@@ -190,6 +192,11 @@ Request.prototype.init = function (options) {
     options = {}
   }
   self.headers = self.headers ? copy(self.headers) : {}
+
+  // for this request (or redirect) store its debug logs in `_reqResInfo` and
+  // store its reference in `_debug` which holds debug logs of every request
+  self._reqResInfo = {}
+  self._debug.push(self._reqResInfo)
 
   // additional postman feature starts
   // bind default events sent via options
@@ -240,12 +247,12 @@ Request.prototype.init = function (options) {
   // Protect against double callback
   if (!self._callback && self.callback) {
     self._callback = self.callback
-    self.callback = function () {
+    self.callback = function (error, response, body) {
       if (self._callbackCalled) {
         return // Print a warning maybe?
       }
       self._callbackCalled = true
-      self._callback.apply(self, arguments)
+      self._callback(error, response, body, self._debug)
     }
     self.on('error', self.callback.bind())
     self.on('complete', self.callback.bind(self, null))
@@ -462,11 +469,16 @@ Request.prototype.init = function (options) {
     self.multipart(options.multipart)
   }
 
-  if (options.time) {
+  // enable timings if verbose is true
+  if (options.time || options.verbose) {
     self.timing = true
 
     // NOTE: elapsedTime is deprecated in favor of .timings
     self.elapsedTime = self.elapsedTime || 0
+  }
+
+  if (options.verbose) {
+    self.verbose = true
   }
 
   function setContentLength () {
@@ -823,6 +835,13 @@ Request.prototype.start = function () {
     self.aws(self._aws, true)
   }
 
+  self._reqResInfo.request = {
+    method: self.method,
+    href: self.uri.href,
+    proxy: (self.proxy && { href: self.proxy.href }) || undefined,
+    httpVersion: '1.1'
+  }
+
   // We have a method named auth, which is completely different from the http.request
   // auth option.  If we don't remove it, we're gonna have a bad time.
   var reqOptions = copy(self)
@@ -874,6 +893,26 @@ Request.prototype.start = function () {
   })
 
   self.req.on('socket', function (socket) {
+    if (self.verbose) {
+      // The reused socket holds all the session data which was injected in
+      // during the first connection. This is done because events like
+      // `lookup`, `connect` & `secureConnect` will not be triggered for a
+      // reused socket and debug information will be lost for that request.
+      var reusedSocket = Boolean(socket.__SESSION_ID && socket.__SESSION_DATA)
+
+      if (!reusedSocket) {
+        socket.__SESSION_ID = uuid()
+        socket.__SESSION_DATA = {}
+      }
+
+      // @note make sure you don't serialize this object to avoid memory leak
+      self._reqResInfo.session = {
+        id: socket.__SESSION_ID,
+        reused: reusedSocket,
+        data: socket.__SESSION_DATA
+      }
+    }
+
     // `._connecting` was the old property which was made public in node v6.1.0
     var isConnecting = socket._connecting || socket.connecting
     if (self.timing) {
@@ -886,10 +925,80 @@ Request.prototype.start = function () {
 
         var onConnectTiming = function () {
           self.timings.connect = now() - self.startTimeNow
+
+          if (self.verbose) {
+            socket.__SESSION_DATA.addresses = {
+              // local address
+              // @note there's no `socket.localFamily` but `.address` method
+              // returns same output as of remote.
+              local: (typeof socket.address === 'function') && socket.address(),
+
+              // remote address
+              remote: {
+                address: socket.remoteAddress,
+                family: socket.remoteFamily,
+                port: socket.remotePort
+              }
+            }
+          }
         }
 
         var onSecureConnectTiming = function () {
           self.timings.secureConnect = now() - self.startTimeNow
+
+          if (self.verbose) {
+            socket.__SESSION_DATA.tls = {
+              // true if the session was reused
+              reused: (typeof socket.isSessionReused === 'function') && socket.isSessionReused(),
+
+              // true if the peer certificate was signed by one of the CAs specified
+              authorized: socket.authorized,
+
+              // reason why the peer's certificate was not been verified
+              authorizationError: socket.authorizationError,
+
+              // negotiated cipher name
+              cipher: (typeof socket.getCipher === 'function') && socket.getCipher(),
+
+              // negotiated SSL/TLS protocol version
+              // @note Node >= v5.7.0
+              protocol: (typeof socket.getProtocol === 'function') && socket.getProtocol(),
+
+              // type, name, and size of parameter of an ephemeral key exchange
+              // @note Node >= v5.0.0
+              ephemeralKeyInfo: (typeof socket.getEphemeralKeyInfo === 'function') && socket.getEphemeralKeyInfo()
+            }
+
+            // peer certificate information
+            // @note if session is reused, all certificate information is
+            // stripped from the socket (returns {}).
+            // Refer: https://github.com/nodejs/node/issues/3940
+            var peerCert = (typeof socket.getPeerCertificate === 'function') && (socket.getPeerCertificate() || {})
+
+            socket.__SESSION_DATA.tls.peerCertificate = {
+              subject: peerCert.subject && {
+                country: peerCert.subject.C,
+                stateOrProvince: peerCert.subject.ST,
+                locality: peerCert.subject.L,
+                organization: peerCert.subject.O,
+                organizationalUnit: peerCert.subject.OU,
+                commonName: peerCert.subject.CN,
+                alternativeNames: peerCert.subjectaltname
+              },
+              issuer: peerCert.issuer && {
+                country: peerCert.issuer.C,
+                stateOrProvince: peerCert.issuer.ST,
+                locality: peerCert.issuer.L,
+                organization: peerCert.issuer.O,
+                organizationalUnit: peerCert.issuer.OU,
+                commonName: peerCert.issuer.CN
+              },
+              validFrom: peerCert.valid_from && new Date(peerCert.valid_from),
+              validTo: peerCert.valid_to && new Date(peerCert.valid_to),
+              fingerprint: peerCert.fingerprint,
+              serialNumber: peerCert.serialNumber
+            }
+          }
         }
 
         socket.once('lookup', onLookupTiming)
@@ -989,7 +1098,7 @@ Request.prototype.onRequestResponse = function (response) {
     if (self.timing) {
       self.timings.end = now() - self.startTimeNow
       response.timingStart = self.startTime
-      response.timingStartHRTime = self.startTimeNow
+      response.timingStartTimer = self.startTimeNow
 
       // fill in the blanks for any periods that didn't trigger, such as
       // no lookup or connect due to keep alive
@@ -1036,6 +1145,7 @@ Request.prototype.onRequestResponse = function (response) {
         response.timingPhases.firstByte = self.timings.response - self.timings.secureConnect
       }
     }
+
     debug('response end', self.uri.href, response.statusCode, response.headers)
   })
 
@@ -1043,6 +1153,17 @@ Request.prototype.onRequestResponse = function (response) {
     debug('aborted', self.uri.href)
     response.resume()
     return
+  }
+
+  self._reqResInfo.response = {
+    statusCode: response.statusCode,
+    httpVersion: response.httpVersion
+  }
+
+  if (self.timing) {
+    self._reqResInfo.timingStart = self.startTime
+    self._reqResInfo.timingStartTimer = self.startTimeNow
+    self._reqResInfo.timings = self.timings
   }
 
   self.response = response
