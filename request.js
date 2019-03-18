@@ -193,8 +193,10 @@ Request.prototype.init = function (options) {
   }
   self.headers = self.headers ? copy(self.headers) : {}
 
-  self._log = {}
-  self._debug.push(self._log)
+  // for this request (or redirect) store its debug logs in `_debugData` and
+  // store its reference in `_debug` which holds debug logs of every request
+  self._debugData = {}
+  self._debug.push(self._debugData)
 
   // additional postman feature starts
   // bind default events sent via options
@@ -833,7 +835,7 @@ Request.prototype.start = function () {
     self.aws(self._aws, true)
   }
 
-  self._log.request = {
+  self._debugData.request = {
     method: self.method,
     href: self.uri.href,
     proxy: (self.proxy && { href: self.proxy.href }) || undefined,
@@ -891,9 +893,28 @@ Request.prototype.start = function () {
   })
 
   self.req.on('socket', function (socket) {
-    self._log.session = {
-      reused: Boolean(socket.SESSION_ID),
-      id: (socket.SESSION_ID = socket.SESSION_ID || uuid())
+    // The reused socket holds all the session data which was injected in
+    // during the first connection. This is done because events like
+    // `lookup`, `connect` & `secureConnect` will not be triggered for a reused
+    // socket and debug information will be lost for that request.
+    if (socket.__SESSION_ID && socket.__SESSION_DATA) {
+      self._debugData.session = {
+        id: socket.__SESSION_ID,
+        reused: true,
+        data: socket.__SESSION_DATA
+      }
+    } else {
+      // inject session id and session data in a new socket which can be
+      // referred back if the socket is reused.
+      socket.__SESSION_ID = uuid()
+      socket.__SESSION_DATA = {}
+
+      // @note make sure you don't serialize this object to avoid memory leak
+      self._debugData.session = {
+        id: socket.__SESSION_ID,
+        reused: false,
+        data: socket.__SESSION_DATA
+      }
     }
 
     // `._connecting` was the old property which was made public in node v6.1.0
@@ -910,7 +931,7 @@ Request.prototype.start = function () {
           self.timings.connect = now() - self.startTimeNow
 
           if (self.verbose) {
-            self._log.session.addresses = {
+            socket.__SESSION_DATA.addresses = {
               // local address
               // @note there's no `socket.localFamily` but `.address` method
               // returns same output as of remote.
@@ -930,7 +951,7 @@ Request.prototype.start = function () {
           self.timings.secureConnect = now() - self.startTimeNow
 
           if (self.verbose) {
-            self._log.session.tls = {
+            socket.__SESSION_DATA.tls = {
               // true if the session was reused
               reused: socket.isSessionReused(),
 
@@ -958,7 +979,7 @@ Request.prototype.start = function () {
             // Refer: https://github.com/nodejs/node/issues/3940
             var peerCert = socket.getPeerCertificate()
 
-            self._log.session.tls.peerCertificate = {
+            socket.__SESSION_DATA.tls.peerCertificate = {
               subject: peerCert.subject && {
                 country: peerCert.subject.C,
                 stateOrProvince: peerCert.subject.ST,
@@ -1138,15 +1159,15 @@ Request.prototype.onRequestResponse = function (response) {
     return
   }
 
-  self._log.response = {
+  self._debugData.response = {
     statusCode: response.statusCode,
     httpVersion: response.httpVersion
   }
 
   if (self.timing) {
-    self._log.timingStart = self.startTime
-    self._log.timingStartTimer = self.startTimeNow
-    self._log.timings = self.timings
+    self._debugData.timingStart = self.startTime
+    self._debugData.timingStartTimer = self.startTimeNow
+    self._debugData.timings = self.timings
   }
 
   self.response = response
