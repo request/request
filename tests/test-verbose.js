@@ -41,21 +41,15 @@ tape('setup', function (t) {
 tape('verbose=false [default]', function (t) {
   var options = {}
 
-  request('http://localhost:' + plainServer.port + '/', options, function (err, res, body, logs) {
+  request('http://localhost:' + plainServer.port + '/', options, function (err, res, body, debug) {
     t.equal(err, null)
     t.equal(body, 'plain')
-    t.equal(Array.isArray(logs), true)
-    t.equal(logs.length, 1)
+    t.equal(Array.isArray(debug), true)
+    t.equal(debug.length, 1)
 
-    // validate there are no unexpected properties
-    var propName
-    var propNames = []
-    for (propName in logs[0]) {
-      if (logs[0].hasOwnProperty(propName)) {
-        propNames.push(propName)
-      }
-    }
-    t.deepEqual(propNames, ['request', 'session', 'response'])
+    t.equal(res.socket.__SESSION_ID, undefined)
+    t.equal(res.socket.__SESSION_DATA, undefined)
+    t.deepEqual(Object.keys(debug[0]), ['request', 'response'])
 
     t.end()
   })
@@ -64,21 +58,18 @@ tape('verbose=false [default]', function (t) {
 tape('HTTP: verbose=true', function (t) {
   var options = { verbose: true, time: false } // verbose overrides timing setting
 
-  request('http://localhost:' + plainServer.port + '/', options, function (err, res, body, logs) {
+  request('http://localhost:' + plainServer.port + '/', options, function (err, res, body, debug) {
     t.equal(err, null)
     t.equal(body, 'plain')
-    t.equal(Array.isArray(logs), true)
-    t.equal(logs.length, 1)
+    t.equal(Array.isArray(debug), true)
+    t.equal(debug.length, 1)
 
-    // validate there are no unexpected properties
-    var propName
-    var propNames = []
-    for (propName in logs[0]) {
-      if (logs[0].hasOwnProperty(propName)) {
-        propNames.push(propName)
-      }
-    }
-    t.deepEqual(propNames, ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
+    t.equal(typeof res.socket.__SESSION_ID, 'string')
+    t.equal(typeof res.socket.__SESSION_DATA, 'object')
+    t.deepEqual(Object.keys(debug[0]), ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
+    t.deepEqual(Object.keys(debug[0].session), ['id', 'reused', 'data'])
+    t.deepEqual(Object.keys(debug[0].session.data), ['addresses'])
+    t.equal(debug[0].session.reused, false)
 
     t.end()
   })
@@ -90,29 +81,25 @@ tape('HTTP: redirect(HTTPS) + verbose=true', function (t) {
     strictSSL: false
   }
 
-  request('http://localhost:' + plainServer.port + '/redir', options, function (err, res, body, logs) {
+  request('http://localhost:' + plainServer.port + '/redir', options, function (err, res, body, debug) {
     t.equal(err, null)
     t.equal(body, 'https')
-    t.equal(Array.isArray(logs), true)
-    t.equal(logs.length, 2)
+    t.equal(Array.isArray(debug), true)
+    t.equal(debug.length, 2)
 
-    // validate there are no unexpected properties
-    var propName
-    var propNames = []
-    for (propName in logs[0]) {
-      if (logs[0].hasOwnProperty(propName)) {
-        propNames.push(propName)
-      }
-    }
-    t.deepEqual(propNames, ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
+    t.equal(typeof res.socket.__SESSION_ID, 'string')
+    t.equal(typeof res.socket.__SESSION_DATA, 'object')
 
-    propNames = []
-    for (propName in logs[1]) {
-      if (logs[1].hasOwnProperty(propName)) {
-        propNames.push(propName)
-      }
-    }
-    t.deepEqual(propNames, ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
+    t.deepEqual(Object.keys(debug[0]), ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
+    t.deepEqual(Object.keys(debug[0].session), ['id', 'reused', 'data'])
+    t.deepEqual(Object.keys(debug[0].session.data), ['addresses'])
+    t.equal(debug[0].session.reused, false)
+
+    t.deepEqual(Object.keys(debug[1]), ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
+    t.deepEqual(Object.keys(debug[1].session), ['id', 'reused', 'data'])
+    t.deepEqual(Object.keys(debug[1].session.data), ['addresses', 'tls'])
+    t.deepEqual(Object.keys(debug[1].session.data.tls), ['reused', 'authorized', 'authorizationError', 'cipher', 'protocol', 'ephemeralKeyInfo', 'peerCertificate'])
+    t.equal(debug[1].session.reused, false)
 
     t.end()
   })
@@ -125,21 +112,19 @@ tape('HTTPS: verbose=true', function (t) {
     time: false // verbose overrides timing setting
   }
 
-  request('https://localhost:' + httpsServer.port + '/', options, function (err, res, body, logs) {
+  request('https://localhost:' + httpsServer.port + '/', options, function (err, res, body, debug) {
     t.equal(err, null)
     t.equal(body, 'https')
-    t.equal(Array.isArray(logs), true)
-    t.equal(logs.length, 1)
+    t.equal(Array.isArray(debug), true)
+    t.equal(debug.length, 1)
 
-    // validate there are no unexpected properties
-    var propName
-    var propNames = []
-    for (propName in logs[0]) {
-      if (logs[0].hasOwnProperty(propName)) {
-        propNames.push(propName)
-      }
-    }
-    t.deepEqual(propNames, ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
+    t.equal(typeof res.socket.__SESSION_ID, 'string')
+    t.equal(typeof res.socket.__SESSION_DATA, 'object')
+    t.deepEqual(Object.keys(debug[0]), ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
+    t.deepEqual(Object.keys(debug[0].session), ['id', 'reused', 'data'])
+    t.deepEqual(Object.keys(debug[0].session.data), ['addresses', 'tls'])
+    t.deepEqual(Object.keys(debug[0].session.data.tls), ['reused', 'authorized', 'authorizationError', 'cipher', 'protocol', 'ephemeralKeyInfo', 'peerCertificate'])
+    t.equal(debug[0].session.reused, false)
 
     t.end()
   })
@@ -151,29 +136,25 @@ tape('HTTPS: redirect(HTTP) + verbose=true', function (t) {
     strictSSL: false
   }
 
-  request('https://localhost:' + httpsServer.port + '/redir', options, function (err, res, body, logs) {
+  request('https://localhost:' + httpsServer.port + '/redir', options, function (err, res, body, debug) {
     t.equal(err, null)
     t.equal(body, 'plain')
-    t.equal(Array.isArray(logs), true)
-    t.equal(logs.length, 2)
+    t.equal(Array.isArray(debug), true)
+    t.equal(debug.length, 2)
 
-    // validate there are no unexpected properties
-    var propName
-    var propNames = []
-    for (propName in logs[0]) {
-      if (logs[0].hasOwnProperty(propName)) {
-        propNames.push(propName)
-      }
-    }
-    t.deepEqual(propNames, ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
+    t.equal(typeof res.socket.__SESSION_ID, 'string')
+    t.equal(typeof res.socket.__SESSION_DATA, 'object')
 
-    propNames = []
-    for (propName in logs[1]) {
-      if (logs[1].hasOwnProperty(propName)) {
-        propNames.push(propName)
-      }
-    }
-    t.deepEqual(propNames, ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
+    t.deepEqual(Object.keys(debug[0]), ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
+    t.deepEqual(Object.keys(debug[0].session), ['id', 'reused', 'data'])
+    t.deepEqual(Object.keys(debug[0].session.data), ['addresses', 'tls'])
+    t.deepEqual(Object.keys(debug[0].session.data.tls), ['reused', 'authorized', 'authorizationError', 'cipher', 'protocol', 'ephemeralKeyInfo', 'peerCertificate'])
+    t.equal(debug[0].session.reused, false)
+
+    t.deepEqual(Object.keys(debug[1]), ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
+    t.deepEqual(Object.keys(debug[1].session), ['id', 'reused', 'data'])
+    t.deepEqual(Object.keys(debug[1].session.data), ['addresses'])
+    t.equal(debug[1].session.reused, false)
 
     t.end()
   })

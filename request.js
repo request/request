@@ -893,26 +893,22 @@ Request.prototype.start = function () {
   })
 
   self.req.on('socket', function (socket) {
-    // The reused socket holds all the session data which was injected in
-    // during the first connection. This is done because events like
-    // `lookup`, `connect` & `secureConnect` will not be triggered for a reused
-    // socket and debug information will be lost for that request.
-    if (socket.__SESSION_ID && socket.__SESSION_DATA) {
-      self._debugData.session = {
-        id: socket.__SESSION_ID,
-        reused: true,
-        data: socket.__SESSION_DATA
+    if (self.verbose) {
+      // The reused socket holds all the session data which was injected in
+      // during the first connection. This is done because events like
+      // `lookup`, `connect` & `secureConnect` will not be triggered for a
+      // reused socket and debug information will be lost for that request.
+      var reusedSocket = Boolean(socket.__SESSION_ID && socket.__SESSION_DATA)
+
+      if (!reusedSocket) {
+        socket.__SESSION_ID = uuid()
+        socket.__SESSION_DATA = {}
       }
-    } else {
-      // inject session id and session data in a new socket which can be
-      // referred back if the socket is reused.
-      socket.__SESSION_ID = uuid()
-      socket.__SESSION_DATA = {}
 
       // @note make sure you don't serialize this object to avoid memory leak
       self._debugData.session = {
         id: socket.__SESSION_ID,
-        reused: false,
+        reused: reusedSocket,
         data: socket.__SESSION_DATA
       }
     }
