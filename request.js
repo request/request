@@ -193,10 +193,10 @@ Request.prototype.init = function (options) {
   }
   self.headers = self.headers ? copy(self.headers) : {}
 
-  // for this request (or redirect) store its debug logs in `_debugData` and
+  // for this request (or redirect) store its debug logs in `_reqResInfo` and
   // store its reference in `_debug` which holds debug logs of every request
-  self._debugData = {}
-  self._debug.push(self._debugData)
+  self._reqResInfo = {}
+  self._debug.push(self._reqResInfo)
 
   // additional postman feature starts
   // bind default events sent via options
@@ -835,7 +835,7 @@ Request.prototype.start = function () {
     self.aws(self._aws, true)
   }
 
-  self._debugData.request = {
+  self._reqResInfo.request = {
     method: self.method,
     href: self.uri.href,
     proxy: (self.proxy && { href: self.proxy.href }) || undefined,
@@ -906,7 +906,7 @@ Request.prototype.start = function () {
       }
 
       // @note make sure you don't serialize this object to avoid memory leak
-      self._debugData.session = {
+      self._reqResInfo.session = {
         id: socket.__SESSION_ID,
         reused: reusedSocket,
         data: socket.__SESSION_DATA
@@ -931,7 +931,7 @@ Request.prototype.start = function () {
               // local address
               // @note there's no `socket.localFamily` but `.address` method
               // returns same output as of remote.
-              local: socket.address(),
+              local: (typeof socket.address === 'function') && socket.address(),
 
               // remote address
               remote: {
@@ -949,7 +949,7 @@ Request.prototype.start = function () {
           if (self.verbose) {
             socket.__SESSION_DATA.tls = {
               // true if the session was reused
-              reused: socket.isSessionReused(),
+              reused: (typeof socket.isSessionReused === 'function') && socket.isSessionReused(),
 
               // true if the peer certificate was signed by one of the CAs specified
               authorized: socket.authorized,
@@ -958,7 +958,7 @@ Request.prototype.start = function () {
               authorizationError: socket.authorizationError,
 
               // negotiated cipher name
-              cipher: socket.getCipher(),
+              cipher: (typeof socket.getCipher === 'function') && socket.getCipher(),
 
               // negotiated SSL/TLS protocol version
               // @note Node >= v5.7.0
@@ -973,7 +973,7 @@ Request.prototype.start = function () {
             // @note if session is reused, all certificate information is
             // stripped from the socket (returns {}).
             // Refer: https://github.com/nodejs/node/issues/3940
-            var peerCert = socket.getPeerCertificate()
+            var peerCert = (typeof socket.getPeerCertificate === 'function') && (socket.getPeerCertificate() || {})
 
             socket.__SESSION_DATA.tls.peerCertificate = {
               subject: peerCert.subject && {
@@ -1155,15 +1155,15 @@ Request.prototype.onRequestResponse = function (response) {
     return
   }
 
-  self._debugData.response = {
+  self._reqResInfo.response = {
     statusCode: response.statusCode,
     httpVersion: response.httpVersion
   }
 
   if (self.timing) {
-    self._debugData.timingStart = self.startTime
-    self._debugData.timingStartTimer = self.startTimeNow
-    self._debugData.timings = self.timings
+    self._reqResInfo.timingStart = self.startTime
+    self._reqResInfo.timingStartTimer = self.startTimeNow
+    self._reqResInfo.timings = self.timings
   }
 
   self.response = response
