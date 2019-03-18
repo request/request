@@ -704,6 +704,94 @@ request.get({
 });
 ```
 
+### Using `options.verbose`
+
+Using this option the debug object holds low level request response information like remote address, negotiated ciphers etc. Example debug object:
+
+```js
+request({url: 'https://www.google.com', verbose: true}, function (error, response, body, debug) {
+  // debug:
+  /*
+  [
+    {
+      "request": {
+        "method": "GET",
+        "href": "https://www.google.com/",
+        "httpVersion": "1.1"
+      },
+      "session": {
+        "id": "9a1ac0d7-b757-48ad-861c-d59d6af5f43f",
+        "reused": false,
+        "data": {
+          "addresses": {
+            "local": {
+              "address": "8.8.4.4",
+              "family": "IPv4",
+              "port": 61632
+            },
+            "remote": {
+              "address": "172.217.31.196",
+              "family": "IPv4",
+              "port": 443
+            }
+          },
+          "tls": {
+            "reused": false,
+            "authorized": true,
+            "authorizationError": null,
+            "cipher": {
+              "name": "ECDHE-ECDSA-AES128-GCM-SHA256",
+              "version": "TLSv1/SSLv3"
+            },
+            "protocol": "TLSv1.2",
+            "ephemeralKeyInfo": {
+              "type": "ECDH",
+              "name": "X25519",
+              "size": 253
+            },
+            "peerCertificate": {
+              "subject": {
+                "country": "US",
+                "stateOrProvince": "California",
+                "locality": "Mountain View",
+                "organization": "Google LLC",
+                "commonName": "www.google.com",
+                "alternativeNames": "DNS:www.google.com"
+              },
+              "issuer": {
+                "country": "US",
+                "organization": "Google Trust Services",
+                "commonName": "Google Internet Authority G3"
+              },
+              "validFrom": "2019-03-01T09:46:35.000Z",
+              "validTo": "2019-05-24T09:25:00.000Z",
+              "fingerprint": "DF:6B:95:81:C6:03:EB:ED:48:EB:6C:CF:EE:FE:E6:1F:AD:01:78:34",
+              "serialNumber": "3A15F4C87FB4D33993D3EEB3BF4AE5E4"
+            }
+          }
+        }
+      },
+      "response": {
+        "statusCode": 200,
+        "httpVersion": "1.1"
+      },
+      "timingStart": 1552908287924,
+      "timingStartTimer": 805.690674,
+      "timings": {
+        "socket": 28.356426000000056,
+        "lookup": 210.3752320000001,
+        "connect": 224.57993499999998,
+        "secureConnect": 292.80315800000017,
+        "response": 380.61268100000007,
+        "end": 401.8332560000001
+      }
+    }
+  ]
+  */
+});
+```
+
+
 ### Extending root CAs
 
 When this feature is enabled, the root CAs can be extended using the `extraCA` option. The file should consist of one or more trusted certificates in PEM format.
