@@ -1,7 +1,9 @@
 'use strict'
 
+var stream = require('stream')
 var server = require('./server')
 var assert = require('assert')
+var url = require('url')
 var request = require('../index')
 var tape = require('tape')
 var http = require('http')
@@ -20,6 +22,30 @@ s.on('/ssl', function (req, res) {
     location: ss.url + '/'
   })
   res.end()
+})
+
+s.on('/loop', function (req, res) {
+  const u = new url.URL(req.url, 'http://localhost')
+  let count = 0;
+  let stopAfter = 100;
+  if (!u.searchParams.has('count')) {
+      u.searchParams.set('count', '1')
+  } else {
+      count = parseInt(u.searchParams.get('count'), 10)
+      u.searchParams.set('count', (count + 1).toString())
+  }
+  if (u.searchParams.has('stopAfter')) {
+      stopAfter = parseInt(u.searchParams.get('stopAfter'), 10)
+  }
+  if (count >= stopAfter) {
+      res.writeHead(200)
+      res.end(count.toString())
+      return
+  }
+  res.writeHead(302, {
+    location: s.url + u.pathname + '?' + u.searchParams.toString()
+  })
+  res.end(count.toString())
 })
 
 ss.on('/', function (req, res) {
@@ -82,6 +108,121 @@ tape('setup', function (t) {
       bouncer(307, 'fwd')
       t.end()
     })
+  })
+})
+
+tape('should receive an error if max redirects are exceeded', function (t) {
+  request({
+    uri: s.url + '/loop?key=exceed-max-redirects&stopAfter=7',
+    maxRedirects: 2,
+  }, function (err, res, body) {
+    t.equal(res, undefined)
+    t.equal(body, undefined)
+    t.ok(err.message, "Exceeded maxRedirects. Probably stuck in a redirect loop ")
+    t.ok(err.message, 'key=exceed-max-redirects&stopAfter=7&count=2')
+    t.end()
+  })
+})
+
+tape('should not receive an error if max redirects are not exceeded', function (t) {
+  request({
+    uri: s.url + '/loop?key=not-exceeded&stopAfter=3',
+    maxRedirects: 4,
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(body, '3')
+    t.end()
+  })
+})
+
+tape('stream should receive an error if max redirects are exceeded', function (t) {
+  let r = request({
+    uri: s.url + '/loop?stopAfter=12',
+    maxRedirects: 10,
+  })
+  r.on('error', function(err) {
+    t.ok(err.message, "Exceeded maxRedirects. Probably stuck in a redirect loop ")
+    t.end()
+  })
+})
+
+tape('stream should receive an error and the final response', function (t) {
+  let r = request({
+    uri: s.url + '/loop?stopAfter=12',
+    maxRedirects: 10,
+  })
+  t.plan(3)
+  r.on('error', function(err) {
+    t.ok(err.message, "Exceeded maxRedirects. Probably stuck in a redirect loop ")
+  })
+  r.on('response', function(resp) {
+    resp.on('data', function(data) {
+        t.equal(data.toString(), '10')
+    })
+    t.equal(resp.statusCode, 302)
+  })
+})
+
+tape('piped stream should receive an error and the final response', function (t) {
+  t.plan(2)
+  let r = request({
+    uri: s.url + '/loop?stopAfter=12',
+    maxRedirects: 10,
+  })
+  r.on('error', function(err) {
+    t.ok(err.message, "Exceeded maxRedirects. Probably stuck in a redirect loop ")
+  })
+  var bufs = []
+  var w = new stream.Writable()
+  w.on('pipe', function(src) {
+    src.on('data', function(data) {
+        bufs.push(data)
+    })
+    src.on('end', function(data) {
+      var buf = Buffer.concat(bufs)
+      t.equal(buf.toString(), '10')
+    })
+  })
+  r.pipe(w)
+})
+
+tape('piped request body with max redirects', function (t) {
+  // TODO: document or fix behavior where post body is only uploaded on first
+  // request, not subsequent redirects.
+  // https://github.com/request/request/issues/3138
+  t.plan(2)
+  var w = new stream.PassThrough()
+  w.write('test data')
+  let r = request({
+    uri: s.url + '/loop?key=piped-request-body&stopAfter=12',
+    method: 'POST',
+    maxRedirects: 10,
+    followAllRedirects: true,
+    followOriginalHttpMethod: true,
+  })
+  w.pipe(r)
+  r.on('error', function(err) {
+    t.ok(err.message, "Exceeded maxRedirects. Probably stuck in a redirect loop ")
+  })
+  r.on('response', function(response) {
+    t.equal(response.statusCode, 302)
+  })
+})
+
+tape('stream should receive no error if redirects not exceeded', function (t) {
+  let r = request({
+    uri: s.url + '/loop?stopAfter=3',
+    maxRedirects: 4,
+  })
+  t.plan(2)
+  r.on('error', function(err) {
+    t.fail('should not have received an error, got ' + err.message)
+  })
+  r.on('response', function(response) {
+      response.on('data', function(data) {
+          t.equal(data.toString(), '3')
+      })
+      t.equal(response.statusCode, 200)
   })
 })
 
