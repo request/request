@@ -388,12 +388,12 @@ Request.prototype.init = function (options) {
   }
 
   if (self.uri.auth && !self.hasHeader('authorization')) {
-    var uriAuthPieces = self.uri.auth.split(':').map(function (item) { return self._qs.unescape(item) })
+    var uriAuthPieces = self.uri.auth.split(':').map(function (item) { return decodeURI(item) })
     self.auth(uriAuthPieces[0], uriAuthPieces.slice(1).join(':'), true)
   }
 
   if (!self.tunnel && self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization')) {
-    var proxyAuthPieces = self.proxy.auth.split(':').map(function (item) { return self._qs.unescape(item) })
+    var proxyAuthPieces = self.proxy.auth.split(':').map(function (item) { return decodeURI(item) })
     var authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
     self.setHeader('proxy-authorization', authHeader)
   }
