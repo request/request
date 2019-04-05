@@ -969,6 +969,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 
 ---
 
+- `disablePostmanUrlEncoder` - if `true`, it will not use postman-url-encoder to encode URL. It means that if URL is given as object, it will be used as it is without doing any encoding. But if URL is given as string, it will be encoded by Node while converting it to object.
 - `time` - if `true`, the request-response cycle (including all redirects) is timed at millisecond resolution. When set, the following properties are added to the response object:
   - `elapsedTime` Duration of the entire request/response in milliseconds (*deprecated*).
   - `responseStartTime` Timestamp when the response began (in Unix Epoch milliseconds) (*deprecated*).
