@@ -1,4 +1,3 @@
-var url = require('url')
 var tape = require('tape')
 var server = require('./server')
 var request = require('../index')
@@ -126,7 +125,7 @@ tape('URL with character \'!\' in redirect with disablePostmanUrlEncoder=true op
 tape('UTF-8 URL with disablePostmanUrlEncoder=true option', function (t) {
   var requestUrl = 'http://localhost:' + plainServer.port + '/query?邮=差'
   var options = { disablePostmanUrlEncoder: true }
-  
+
   // this request should fail because encoding is off and URL contains UTF-8 characters
   request(requestUrl, options, function (err, res, body) {
     t.notEqual(err, null)
