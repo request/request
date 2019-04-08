@@ -848,7 +848,7 @@ Request.prototype.start = function () {
   delete reqOptions.auth
 
   // Workaround for a bug in Node: https://github.com/nodejs/node/issues/8321
-  if (!(self.disablePostmanUrlEncoder || self.proxy || self.uri.isUnix)) {
+  if (!(self.disableUrlEncoding || self.proxy || self.uri.isUnix)) {
     try {
       extend(reqOptions, urlParse(self.uri.href))
     } catch (e) { } // nothing to do if urlParse fails, "extend" never throws an error.

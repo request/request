@@ -32,7 +32,7 @@ tape('setup', function (t) {
   })
 })
 
-tape('UTF-8 URL without disablePostmanUrlEncoder option', function (t) {
+tape('UTF-8 URL without disableUrlEncoding option', function (t) {
   var requestUrl = 'http://localhost:' + plainServer.port + '/query?邮=差'
 
   request(requestUrl, function (err, res, body) {
@@ -42,7 +42,7 @@ tape('UTF-8 URL without disablePostmanUrlEncoder option', function (t) {
   })
 })
 
-tape('URL containing character \'!\' without disablePostmanUrlEncoder option', function (t) {
+tape('URL containing character \'!\' without disableUrlEncoding option', function (t) {
   var requestUrl = 'http://localhost:' + plainServer.port + '/query?!foo!=!bar!'
 
   request(requestUrl, function (err, res, body) {
@@ -52,7 +52,7 @@ tape('URL containing character \'!\' without disablePostmanUrlEncoder option', f
   })
 })
 
-tape('Encoded UTF-8 URL in redirect without disablePostmanUrlEncoder option', function (t) {
+tape('Encoded UTF-8 URL in redirect without disableUrlEncoding option', function (t) {
   var requestUrl = 'http://localhost:' + plainServer.port + '/redirect'
 
   request(requestUrl, function (err, res, body) {
@@ -62,7 +62,7 @@ tape('Encoded UTF-8 URL in redirect without disablePostmanUrlEncoder option', fu
   })
 })
 
-tape('URL containing character \'!\' in redirect without disablePostmanUrlEncoder option', function (t) {
+tape('URL containing character \'!\' in redirect without disableUrlEncoding option', function (t) {
   var requestUrl = 'http://localhost:' + plainServer.port + '/redirect2'
 
   request(requestUrl, function (err, res, body) {
@@ -72,11 +72,11 @@ tape('URL containing character \'!\' in redirect without disablePostmanUrlEncode
   })
 })
 
-tape('Encoded UTF-8 URL with disablePostmanUrlEncoder=true option', function (t) {
+tape('Encoded UTF-8 URL with disableUrlEncoding=true option', function (t) {
   // given URL should be pre-encoded because encoder is disabled. So the request will fail otherwise
   var requestUrl = 'http://localhost:' + plainServer.port + '/query?%E9%82%AE=%E5%B7%AE'
   var options = {
-    disablePostmanUrlEncoder: true
+    disableUrlEncoding: true
   }
 
   request(requestUrl, options, function (err, res, body) {
@@ -86,9 +86,9 @@ tape('Encoded UTF-8 URL with disablePostmanUrlEncoder=true option', function (t)
   })
 })
 
-tape('URL containing character \'!\' with disablePostmanUrlEncoder=true option', function (t) {
+tape('URL containing character \'!\' with disableUrlEncoding=true option', function (t) {
   var requestUrl = 'http://localhost:' + plainServer.port + '/query?!foo!=!bar!'
-  var options = { disablePostmanUrlEncoder: true }
+  var options = { disableUrlEncoding: true }
 
   request(requestUrl, options, function (err, res, body) {
     t.equal(err, null)
@@ -97,11 +97,11 @@ tape('URL containing character \'!\' with disablePostmanUrlEncoder=true option',
   })
 })
 
-tape('Encoded UTF-8 URL in redirect with disablePostmanUrlEncoder=true option', function (t) {
+tape('Encoded UTF-8 URL in redirect with disableUrlEncoding=true option', function (t) {
   // given URL should be pre-encoded because encoder is disabled. So the request will fail otherwise
   var requestUrl = 'http://localhost:' + plainServer.port + '/query?%E9%82%AE=%E5%B7%AE'
   var options = {
-    disablePostmanUrlEncoder: true
+    disableUrlEncoding: true
   }
 
   request(requestUrl, options, function (err, res, body) {
@@ -111,9 +111,9 @@ tape('Encoded UTF-8 URL in redirect with disablePostmanUrlEncoder=true option', 
   })
 })
 
-tape('URL with character \'!\' in redirect with disablePostmanUrlEncoder=true option', function (t) {
+tape('URL with character \'!\' in redirect with disableUrlEncoding=true option', function (t) {
   var requestUrl = 'http://localhost:' + plainServer.port + '/redirect2'
-  var options = { disablePostmanUrlEncoder: true }
+  var options = { disableUrlEncoding: true }
 
   request(requestUrl, options, function (err, res, body) {
     t.equal(err, null)
@@ -122,9 +122,9 @@ tape('URL with character \'!\' in redirect with disablePostmanUrlEncoder=true op
   })
 })
 
-tape('UTF-8 URL with disablePostmanUrlEncoder=true option', function (t) {
+tape('UTF-8 URL with disableUrlEncoding=true option', function (t) {
   var requestUrl = 'http://localhost:' + plainServer.port + '/query?邮=差'
-  var options = { disablePostmanUrlEncoder: true }
+  var options = { disableUrlEncoding: true }
 
   // this request should fail because encoding is off and URL contains UTF-8 characters
   request(requestUrl, options, function (err, res, body) {
