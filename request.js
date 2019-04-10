@@ -146,6 +146,16 @@ Request.prototype.init = function (options) {
   if (!options) {
     options = {}
   }
+
+  // no limit if nothing is provided
+  self.maxResponseSize = options.maxResponseSize
+  if (typeof self.maxResponseSize !== 'undefined') {
+    if (typeof self.maxResponseSize !== 'number' && !(self.maxResponseSize instanceof Number)) {
+      return self.emit('error', new Error('options.maxResponseSize must be a positive number'))
+    } else if (self.maxResponseSize < 1) {
+      return self.emit('error', new Error('options.maxResponseSize must be > 0'))
+    }
+  }
   self.headers = self.headers ? copy(self.headers) : {}
 
   // Delete headers with value undefined since they break
@@ -1101,8 +1111,24 @@ Request.prototype.readResponseBody = function (response) {
   var buffers = []
   var bufferLength = 0
   var strings = []
+  // depends on the encoding if it's bytes or UTF characters
+  if (self.maxResponseSize) {
+    var responseBytesOrCharsLeft = self.maxResponseSize
+  }
 
   self.on('data', function (chunk) {
+    // this check will only happen if self.maxResponseSize is set and > 0
+    if (self.maxResponseSize) {
+      if (chunk.length > responseBytesOrCharsLeft) {
+        var err = new Error('Response size is too big. Max allowed is  ' + self.maxResponseSize)
+        self.destroy(err)
+        self.emit('error', err)
+        self.abort()
+        return
+      } else {
+        responseBytesOrCharsLeft -= chunk.length
+      }
+    }
     if (!Buffer.isBuffer(chunk)) {
       strings.push(chunk)
     } else if (chunk.length) {

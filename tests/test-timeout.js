@@ -3,7 +3,7 @@
 function checkErrCode (t, err) {
   t.notEqual(err, null)
   t.ok(err.code === 'ETIMEDOUT' || err.code === 'ESOCKETTIMEDOUT',
-    'Error ETIMEDOUT or ESOCKETTIMEDOUT')
+  'Error ETIMEDOUT or ESOCKETTIMEDOUT')
 }
 
 function checkEventHandlers (t, socket) {
@@ -168,7 +168,7 @@ tape('connect timeout', function tryConnect (t) {
   var socket
   request(shouldConnectTimeout, function (err) {
     t.notEqual(err, null)
-    if (err.code === 'ENETUNREACH' && nrIndex < nonRoutable.length) {
+    if ((err.code === 'ENETUNREACH' || err.code === 'EHOSTUNREACH') && nrIndex < nonRoutable.length) {
       // With some network configurations, some addresses will be reported as
       // unreachable immediately (before the timeout occurs). In those cases,
       // try other non-routable addresses before giving up.

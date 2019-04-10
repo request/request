@@ -805,7 +805,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 - `removeRefererHeader` - removes the referer header when a redirect happens (default: `false`). **Note:** if true, referer header set in the initial request is preserved during redirect chain.
 
 ---
-
+<a id="request-encoding-section"></a>
 - `encoding` - encoding to be used on `setEncoding` of response data. If `null`, the `body` is returned as a `Buffer`. Anything else **(including the default value of `undefined`)** will be passed as the [encoding](http://nodejs.org/api/buffer.html#buffer_buffer) parameter to `toString()` (meaning this is effectively `utf8` by default). (**Note:** if you expect binary data, you should set `encoding: null`.)
 - `gzip` - if `true`, add an `Accept-Encoding` header to request compressed content encodings from the server (if not already present) and decode supported content encodings in the response. **Note:** Automatic decoding of the response content is performed on the body data returned through `request` (both through the `request` stream and passed to the callback function) but is not performed on the `response` stream (available from the `response` event) which is the unmodified `http.IncomingMessage` object which may contain compressed data. See example below.
 - `jar` - if `true`, remember cookies for future use (or define your custom cookie jar; see examples section)
@@ -828,7 +828,15 @@ The first argument can be either a `url` or an `options` object. The only requir
   - **Connection timeout**: Sets the socket to timeout after `timeout` milliseconds of inactivity. Note that increasing the timeout beyond the OS-wide TCP connection timeout will not have any effect ([the default in Linux can be anywhere from 20-120 seconds][linux-timeout])
 
 [linux-timeout]: http://www.sekuda.com/overriding_the_default_linux_kernel_20_second_tcp_socket_connect_timeout
-
+- `maxResponseSize` - The maximum response size that can be buffered. If you use any `encoding`, the callback will convert incoming chunks to strings, so this will be counted in UTF characters, otherwise if you use raw buffers(binary data), this will be counted in bytes. See `Buffer.length` and `String.length`. If this response size is exceeded, the request will be aborted and an error will be emitted.
+  - **Notes**
+    - **For more information on encoding:** See https://nodejs.org/api/stream.html `setEncoding` and also [documentation above](#request-encoding-section)
+    - **Usage:** This is only used when using a callback and not `on()`, ie. when you want to buffer the response and not process it as a stream.
+    - **Compression:** This is applied after the response chunks are decompressed, meaning that it's possible to receive a smaller compressed 
+    message and still emit an error if when decompressed it exceeds the `maxResponseSize`.
+    This can protect you from some kinds of decompression bombs.
+    - **Default behaviour:** For backwards compatibility, not specifying a maxResponseSize will mean that there is no enforced limit.
+    - **Example error message**: `Response size is too big. Max allowed is  1234`
 ---
 
 - `localAddress` - local interface to bind for network connections.
