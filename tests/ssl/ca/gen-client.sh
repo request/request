@@ -7,6 +7,7 @@ set -ex
 
 # Create a private key
 openssl genrsa -out client.key 2048
+openssl genrsa -out client_2.key 2048
 
 # Create a certificate signing request
 openssl req -new -sha256 -key client.key -out client.csr -config client.cnf -days 1095
