@@ -16,7 +16,7 @@ var caFile = path.resolve(__dirname, 'ssl/ca/ca.crt')
 var ca = fs.readFileSync(caFile)
 var clientCert = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.crt'))
 var clientKey = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client-enc.key'))
-var clientKey2 = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client_2.key'))
+var invalidClientKey = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/localhost.key'))
 var clientPassword = 'password'
 var sslOpts = {
   key: path.resolve(__dirname, 'ssl/ca/localhost.key'),
@@ -451,7 +451,7 @@ function addTests () {
     url: ss2.url,
     proxy: s.url,
     cert: clientCert,
-    key: clientKey2
+    key: invalidClientKey
   }, [
     'http connect to localhost:' + ss2.port,
     // it should bubble up the key mismatch error
