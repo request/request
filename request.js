@@ -274,13 +274,11 @@ Request.prototype.init = function (options) {
     return self.emit('error', new Error(message))
   }
 
-  if (self.hasOwnProperty('proxy')) {
-    // disable proxy in case of uri math to noProxy option
-    if (self.hasOwnProperty('noProxy') && (self.noProxy === '*' || uriInNoProxy(self.uri, self.noProxy))) {
-      self.proxy = null
-    }
-  } else {
-    self.proxy = getProxyFromURI(self.uri, self.noProxy)
+  if (!self.hasOwnProperty('proxy')) {
+    self.proxy = getProxyFromURI(self.uri)
+  } else if ((self.noProxy === '*' || uriInNoProxy(self.uri, self.noProxy))) {
+    // noProxy option only operate over the proxy option, not over env vars
+    self.proxy = null
   }
 
   self.tunnel = self._tunnel.isEnabled()
