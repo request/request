@@ -19,6 +19,7 @@ var isTypedArray = require('is-typedarray').strict
 var helpers = require('./lib/helpers')
 var cookies = require('./lib/cookies')
 var getProxyFromURI = require('./lib/getProxyFromURI')
+var uriInNoProxy = require('./lib/uriInNoProxy')
 var Querystring = require('./lib/querystring').Querystring
 var Har = require('./lib/har').Har
 var Auth = require('./lib/auth').Auth
@@ -273,8 +274,13 @@ Request.prototype.init = function (options) {
     return self.emit('error', new Error(message))
   }
 
-  if (!self.hasOwnProperty('proxy')) {
-    self.proxy = getProxyFromURI(self.uri)
+  if (self.hasOwnProperty('proxy')) {
+    // disable proxy in case of uri math to noProxy option
+    if (self.hasOwnProperty('noProxy') && uriInNoProxy(self.uri, self.noProxy)) {
+      self.proxy = null
+    }
+  } else {
+    self.proxy = getProxyFromURI(self.uri, self.noProxy)
   }
 
   self.tunnel = self._tunnel.isEnabled()

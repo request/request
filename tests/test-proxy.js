@@ -264,6 +264,11 @@ function addTests () {
       }
     }, true)
 
+    runTest('noProxy used with explicit proxy passed', {
+      proxy: s.url,
+      noProxy: '*'
+    }, false)
+
     // misc
 
     // this fails if the check 'isMatchedAt > -1' in lib/getProxyFromURI.js is
