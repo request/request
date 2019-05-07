@@ -276,7 +276,7 @@ Request.prototype.init = function (options) {
 
   if (self.hasOwnProperty('proxy')) {
     // disable proxy in case of uri math to noProxy option
-    if (self.hasOwnProperty('noProxy') && uriInNoProxy(self.uri, self.noProxy)) {
+    if (self.hasOwnProperty('noProxy') && (self.noProxy === '*' || uriInNoProxy(self.uri, self.noProxy))) {
       self.proxy = null
     }
   } else {
