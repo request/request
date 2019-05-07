@@ -276,7 +276,7 @@ Request.prototype.init = function (options) {
 
   if (!self.hasOwnProperty('proxy')) {
     self.proxy = getProxyFromURI(self.uri)
-  } else if ((self.noProxy === '*' || uriInNoProxy(self.uri, self.noProxy))) {
+  } else if (uriInNoProxy(self.uri, self.noProxy)) {
     // noProxy option only operate over the proxy option, not over env vars
     self.proxy = null
   }
