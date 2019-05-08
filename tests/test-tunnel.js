@@ -16,6 +16,7 @@ var caFile = path.resolve(__dirname, 'ssl/ca/ca.crt')
 var ca = fs.readFileSync(caFile)
 var clientCert = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.crt'))
 var clientKey = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client-enc.key'))
+var invalidClientKey = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/localhost.key'))
 var clientPassword = 'password'
 var sslOpts = {
   key: path.resolve(__dirname, 'ssl/ca/localhost.key'),
@@ -442,6 +443,19 @@ function addTests () {
     'http connect to localhost:' + ss2.port,
     'https response',
     '200 https ok'
+  ])
+
+  // Client key mismatch for HTTPS over HTTP
+
+  runTest('mutual https over http with client key mismatch, tunnel=default', {
+    url: ss2.url,
+    proxy: s.url,
+    cert: clientCert,
+    key: invalidClientKey
+  }, [
+    'http connect to localhost:' + ss2.port,
+    // it should bubble up the key mismatch error
+    'err error:0B080074:x509 certificate routines:X509_check_private_key:key values mismatch'
   ])
 }
 
