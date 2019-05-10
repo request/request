@@ -23,12 +23,12 @@ module.exports = function (config) {
 
     autoWatch: false,
 
-    browsers: ['PhantomJS_without_security'],
+    browsers: ['ChromeHeadless'],
 
     singleRun: true,
 
     plugins: [
-      'karma-phantomjs-launcher',
+      'karma-chrome-launcher',
       'karma-coverage',
       'karma-browserify',
       'karma-tap'
@@ -42,16 +42,6 @@ module.exports = function (config) {
     coverageReporter: {
       type: 'lcov',
       dir: 'coverage/'
-    },
-
-    // Custom launcher to allowe self signed certs.
-    customLaunchers: {
-      PhantomJS_without_security: {
-        base: 'PhantomJS',
-        flags: [
-          '--ignore-ssl-errors=true'
-        ]
-      }
     }
   })
 }
