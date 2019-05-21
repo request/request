@@ -710,6 +710,10 @@ Request.prototype.start = function () {
   // this is usually called on the first write(), end() or on nextTick()
   var self = this
 
+  if (self.logger) {
+    self.timing = true
+  }
+
   if (self.timing) {
     // All timings will be relative to this request's startTime.  In order to do this,
     // we need to capture the wall-clock start time (via Date), immediately followed
@@ -915,6 +919,10 @@ Request.prototype.onRequestResponse = function (response) {
 
       // timings is just for the final fetch
       response.timings = self.timings
+
+      if (self.logger) {
+        self.logger.info(`----> ${response.request.method} ${response.request.href} - ${response.statusCode} - ${response.timings.response.toFixed(2)}ms`)
+      }
 
       // pre-calculate phase timings as well
       response.timingPhases = {
