@@ -865,6 +865,7 @@ The first argument can be either a `url` or an `options` object. The only requir
     - `firstByte`: Duration of HTTP server response (`timings.response` - `timings.connect`)
     - `download`: Duration of HTTP download (`timings.end` - `timings.response`)
     - `total`: Duration entire HTTP round-trip (`timings.end`)
+- `logger` - All requests made from the server will be logget at `info` level, that supports the standard loggin API (like `console` or [Winston](https://github.com/winstonjs/winston))
 
 - `har` - a [HAR 1.2 Request Object](http://www.softwareishard.com/blog/har-12-spec/#request), will be processed from HAR format into options overwriting matching values *(see the [HAR 1.2 section](#support-for-har-12) for details)*
 - `callback` - alternatively pass the request's callback in the options object
@@ -898,9 +899,10 @@ instead, it **returns a wrapper** that has your default settings applied to it.
 
 For example:
 ```js
-//requests using baseRequest() will set the 'x-token' header
+//requests using baseRequest() will set the 'x-token' header and log its requests on console
 const baseRequest = request.defaults({
-  headers: {'x-token': 'my-token'}
+  headers: {'x-token': 'my-token'},
+  logger: console
 })
 
 //requests using specialRequest() will include the 'x-token' header set in
