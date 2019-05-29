@@ -3,3 +3,4 @@ coverage
 .idea
 npm-debug.log
 package-lock.json
+.nyc_output
