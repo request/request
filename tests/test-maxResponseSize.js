@@ -21,6 +21,7 @@ var server = http.createServer(function (req, res) {
       if (err) {
         res.writeHead(500)
         res.end()
+        return
       }
 
       res.setHeader('Content-Encoding', 'gzip')
