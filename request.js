@@ -1297,8 +1297,12 @@ Request.prototype.onRequestResponse = function (response) {
       self.pipeDest(dest)
     })
 
+    var responseThresholdEnabled = false
+    var responseBytesLeft
+
     if (typeof self.maxResponseSize === 'number') {
-      var responseBytesLeft = self.maxResponseSize
+      responseThresholdEnabled = true
+      responseBytesLeft = self.maxResponseSize
     }
 
     responseContent.on('data', function (chunk) {
@@ -1308,12 +1312,15 @@ Request.prototype.onRequestResponse = function (response) {
         // NOTE: responseStartTime is deprecated in favor of .timings
         response.responseStartTime = self.responseStartTime
       }
-      if (typeof responseBytesLeft !== 'undefined') {
+      // if response threshold is set, update the response bytes left to hit
+      // threshold. If exceeds, abort the request.
+      if (responseThresholdEnabled) {
         responseBytesLeft -= chunk.length
         if (responseBytesLeft < 0) {
           self.emit('error', new Error('Maximum response size reached'))
           self.destroy()
           self.abort()
+          return
         }
       }
       self._destdata = true
