@@ -950,6 +950,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 
 [linux-timeout]: http://www.sekuda.com/overriding_the_default_linux_kernel_20_second_tcp_socket_connect_timeout
 
+- `maxResponseSize` - Abort request if the response size exceeds this threshold (bytes).
 ---
 
 - `localAddress` - local interface to bind for network connections.

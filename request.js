@@ -481,6 +481,10 @@ Request.prototype.init = function (options) {
     self.verbose = true
   }
 
+  if (typeof options.maxResponseSize === 'number') {
+    self.maxResponseSize = options.maxResponseSize
+  }
+
   function setContentLength () {
     if (isTypedArray(self.body)) {
       self.body = Buffer.from(self.body)
@@ -1293,12 +1297,31 @@ Request.prototype.onRequestResponse = function (response) {
       self.pipeDest(dest)
     })
 
+    var responseThresholdEnabled = false
+    var responseBytesLeft
+
+    if (typeof self.maxResponseSize === 'number') {
+      responseThresholdEnabled = true
+      responseBytesLeft = self.maxResponseSize
+    }
+
     responseContent.on('data', function (chunk) {
       if (self.timing && !self.responseStarted) {
         self.responseStartTime = (new Date()).getTime()
 
         // NOTE: responseStartTime is deprecated in favor of .timings
         response.responseStartTime = self.responseStartTime
+      }
+      // if response threshold is set, update the response bytes left to hit
+      // threshold. If exceeds, abort the request.
+      if (responseThresholdEnabled) {
+        responseBytesLeft -= chunk.length
+        if (responseBytesLeft < 0) {
+          self.emit('error', new Error('Maximum response size reached'))
+          self.destroy()
+          self.abort()
+          return
+        }
       }
       self._destdata = true
       self.emit('data', chunk)
