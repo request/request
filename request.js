@@ -1492,8 +1492,9 @@ Request.prototype.qs = function (q, clobber) {
 }
 Request.prototype.form = function (form) {
   var self = this
+  var contentType = self.getHeader('content-type')
   if (form) {
-    if (!/^application\/x-www-form-urlencoded\b/.test(self.getHeader('content-type'))) {
+    if (!/^application\/x-www-form-urlencoded\b/.test(contentType)) {
       self.setHeader('content-type', 'application/x-www-form-urlencoded')
     }
     self.body = (typeof form === 'string')
@@ -1501,8 +1502,13 @@ Request.prototype.form = function (form) {
       : self._qs.stringify(form).toString('utf8')
     return self
   }
+  var boundary = contentType && contentType.match &&
+    contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/)
   // create form-data object
-  self._form = new FormData()
+  self._form = new FormData({
+    // set boundary if present in content-type
+    _boundary: boundary && (boundary[1] || boundary[2])
+  })
   self._form.on('error', function (err) {
     err.message = 'form-data: ' + err.message
     self.emit('error', err)
