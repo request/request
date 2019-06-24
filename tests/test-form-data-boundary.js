@@ -1,9 +1,7 @@
 'use strict'
 
 var http = require('http')
-var path = require('path')
 var request = require('../')
-var fs = require('fs')
 var tape = require('tape')
 var destroyable = require('server-destroy')
 
@@ -46,7 +44,7 @@ tape('default boundary', function (t) {
     t.ok(/multipart\/form-data; boundary=--------------------------\d+/
       .test(req.headers['content-type']))
 
-    boundary = req.headers['content-type'].split('boundary=')[1];
+    boundary = req.headers['content-type'].split('boundary=')[1]
     t.ok(/--------------------------\d+/.test(boundary))
     t.ok(req.body.startsWith('--' + boundary))
     t.ok(req.body.indexOf('name="formKey"') !== -1)
