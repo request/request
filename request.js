@@ -1362,6 +1362,9 @@ Request.prototype.aws = function (opts, now) {
     if (opts.service) {
       options.service = opts.service
     }
+    if (opts.region) {
+      options.region = opts.region
+    }
     var signRes = aws4.sign(options, {
       accessKeyId: opts.key,
       secretAccessKey: opts.secret,
