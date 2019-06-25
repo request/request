@@ -429,7 +429,7 @@ tape('should have referer header by default when following redirect', function (
     t.end()
   })
   .on('redirect', function () {
-    t.equal(this.headers.referer, s.url + '/temp')
+    t.equal(this.headers.Referer, s.url + '/temp')
   })
 })
 
@@ -446,7 +446,7 @@ tape('should not have referer header when removeRefererHeader is true', function
     t.end()
   })
   .on('redirect', function () {
-    t.equal(this.headers.referer, undefined)
+    t.equal(this.headers.Referer, undefined)
   })
 })
 
