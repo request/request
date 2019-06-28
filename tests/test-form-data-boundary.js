@@ -91,7 +91,7 @@ tape('custom boundary within quotes', function (t) {
     var req = JSON.parse(body)
     t.equal(err, null)
     t.equal(res.statusCode, 200)
-    t.equal(req.headers['content-type'], 'multipart/form-data; boundary=' + boundary)
+    t.equal(req.headers['content-type'], 'multipart/form-data; boundary="' + boundary + '"')
     t.ok(req.body.startsWith('--' + boundary))
     t.ok(req.body.indexOf('name="formKey"') !== -1)
     t.ok(req.body.indexOf('formValue') !== -1)
@@ -105,8 +105,6 @@ tape('custom boundary with content-length', function (t) {
   request.post({
     url: server.url,
     headers: {
-      // @note `content-type` header is not re-calculated if `content-length`
-      // is present for formData body
       'content-type': 'multipart/anything; boundary=' + boundary,
       'content-length': '111'
     },
@@ -119,6 +117,29 @@ tape('custom boundary with content-length', function (t) {
     t.equal(res.statusCode, 200)
     t.equal(req.headers['content-type'], 'multipart/anything; boundary=' + boundary)
     t.equal(req.headers['content-length'], '111')
+    t.ok(req.body.startsWith('--' + boundary))
+    t.ok(req.body.indexOf('name="formKey"') !== -1)
+    t.ok(req.body.indexOf('formValue') !== -1)
+    t.ok(req.body.endsWith(boundary + '--\r\n'))
+    t.end()
+  })
+})
+
+tape('custom boundary and charset', function (t) {
+  var boundary = '----WebKitFormBoundary7MA4YWxkTrZu0gW'
+  request.post({
+    url: server.url,
+    headers: {
+      'content-type': 'multipart/form-data; charset=UTF-8; boundary=' + boundary
+    },
+    formData: {
+      formKey: 'formValue'
+    }
+  }, function (err, res, body) {
+    var req = JSON.parse(body)
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(req.headers['content-type'], 'multipart/form-data; charset=UTF-8; boundary=' + boundary)
     t.ok(req.body.startsWith('--' + boundary))
     t.ok(req.body.indexOf('name="formKey"') !== -1)
     t.ok(req.body.indexOf('formValue') !== -1)

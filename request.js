@@ -648,11 +648,12 @@ Request.prototype.init = function (options) {
       }
     }
 
-    // @todo what if Content-Length is present but Content-Type is not set?
+    if (self._form && !self.hasHeader('content-type')) {
+      self.setHeader('Content-Type', 'multipart/form-data; boundary=' + self._form.getBoundary())
+    }
+
     if (self._form && !self.hasHeader('content-length')) {
       // Before ending the request, we had to compute the length of the whole form, asyncly
-      // @todo don't override Content-Type if already set
-      self.setHeader('Content-Type', 'multipart/form-data; boundary=' + self._form.getBoundary())
       self._form.getLength(function (err, length) {
         if (!err && !isNaN(length)) {
           self.setHeader('Content-Length', length)
