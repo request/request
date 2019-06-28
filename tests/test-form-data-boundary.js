@@ -118,6 +118,8 @@ tape('content-length without content-type', function (t) {
     boundary = req.headers['content-type'].split('boundary=')[1]
     t.equal(req.headers['content-type'], 'multipart/form-data; boundary=' + boundary)
     t.equal(req.headers['content-length'], '171')
+    t.ok(req.body.startsWith('--' + boundary))
+    t.ok(req.body.endsWith(boundary + '--\r\n'))
     t.ok(req.body.indexOf('name="formKey"') !== -1)
     t.ok(req.body.indexOf('formValue') !== -1)
     t.end()
