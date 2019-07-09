@@ -368,8 +368,6 @@ Request.prototype.init = function (options) {
     self.setHost = true
   }
 
-  self.jar(self._jar || options.jar)
-
   if (!self.uri.port) {
     if (self.uri.protocol === 'http:') { self.uri.port = 80 } else if (self.uri.protocol === 'https:') { self.uri.port = 443 }
   }
@@ -652,17 +650,19 @@ Request.prototype.init = function (options) {
       self.setHeader('Content-Type', 'multipart/form-data; boundary=' + self._form.getBoundary())
     }
 
-    if (self._form && !self.hasHeader('content-length')) {
-      // Before ending the request, we had to compute the length of the whole form, asyncly
-      self._form.getLength(function (err, length) {
-        if (!err && !isNaN(length)) {
-          self.setHeader('Content-Length', length)
-        }
+    self.jar(self._jar || options.jar, function () {
+      if (self._form && !self.hasHeader('content-length')) {
+        // Before ending the request, we had to compute the length of the whole form, asyncly
+        self._form.getLength(function (err, length) {
+          if (!err && !isNaN(length)) {
+            self.setHeader('Content-Length', length)
+          }
+          end()
+        })
+      } else {
         end()
-      })
-    } else {
-      end()
-    }
+      }
+    })
 
     self.ntick = true
   })
@@ -1200,30 +1200,11 @@ Request.prototype.onRequestResponse = function (response) {
   }
   self.clearTimeout()
 
-  var targetCookieJar = (self._jar && self._jar.setCookie) ? self._jar : globalCookieJar
-  var addCookie = function (cookie) {
-    // set the cookie if it's domain in the href's domain.
-    try {
-      targetCookieJar.setCookie(cookie, self.uri.href, {ignoreError: true})
-    } catch (e) {
-      self.emit('error', e)
+  function responseHandler () {
+    if (self._redirect.onResponse(response)) {
+      return // Ignore the rest of the response
     }
-  }
 
-  response.caseless = caseless(response.headers)
-
-  if (response.caseless.has('set-cookie') && (!self._disableCookies)) {
-    var headerName = response.caseless.has('set-cookie')
-    if (Array.isArray(response.headers[headerName])) {
-      response.headers[headerName].forEach(addCookie)
-    } else {
-      addCookie(response.headers[headerName])
-    }
-  }
-
-  if (self._redirect.onResponse(response)) {
-    return // Ignore the rest of the response
-  } else {
     // Be a good stream and emit end when the response is finished.
     // Hack to emit end on close because of a core bug that never fires end
     response.on('close', function () {
@@ -1349,6 +1330,53 @@ Request.prototype.onRequestResponse = function (response) {
       })
     }
   }
+
+  function forEachAsync (items, fn, cb) {
+    if (!(Array.isArray(items) && fn)) { return }
+    !cb && (cb = function () { /* (ಠ_ಠ) */ })
+
+    var index = 0
+    var totalItems = items.length
+    function next (err) {
+      if (err || index >= totalItems) {
+        return cb(err)
+      }
+
+      fn.call(items, items[index++], next)
+    }
+
+    if (!totalItems) {
+      return cb()
+    }
+
+    next()
+  }
+
+  var targetCookieJar = (self._jar && self._jar.setCookie) ? self._jar : globalCookieJar
+  var addCookie = function (cookie, cb) {
+    // set the cookie if it's domain in the href's domain.
+    targetCookieJar.setCookie(cookie, self.uri.href, {ignoreError: true}, cb)
+  }
+
+  response.caseless = caseless(response.headers)
+
+  if (response.caseless.has('set-cookie') && (!self._disableCookies)) {
+    var headerName = response.caseless.has('set-cookie')
+    if (Array.isArray(response.headers[headerName])) {
+      forEachAsync(response.headers[headerName], addCookie, function (err) {
+        if (err) {
+          return self.emit('error', err)
+        }
+
+        responseHandler()
+      })
+    } else {
+      addCookie(response.headers[headerName], responseHandler)
+    }
+  } else {
+    responseHandler()
+  }
+
   debug('finish init function', self.uri.href)
 }
 
@@ -1692,38 +1720,40 @@ Request.prototype.oauth = function (_oauth) {
   return self
 }
 
-Request.prototype.jar = function (jar) {
+Request.prototype.jar = function (jar, cb) {
   var self = this
-  var cookies
+  self._jar = jar
+
+  if (!jar) {
+    // disable cookies
+    self._disableCookies = true
+    return cb()
+  }
 
   if (self._redirect.redirectsFollowed === 0) {
     self.originalCookieHeader = self.getHeader('cookie')
   }
 
-  if (!jar) {
-    // disable cookies
-    cookies = false
-    self._disableCookies = true
-  } else {
-    var targetCookieJar = jar.getCookieString ? jar : globalCookieJar
-    var urihref = self.uri.href
-    // fetch cookie in the Specified host
-    if (targetCookieJar) {
-      cookies = targetCookieJar.getCookieString(urihref)
+  var targetCookieJar = jar.getCookieString ? jar : globalCookieJar
+  var urihref = self.uri.href
+  // fetch cookie in the Specified host
+  targetCookieJar.getCookieString(urihref, function (err, cookies) {
+    if (err) {
+      return cb()
     }
-  }
 
-  // if need cookie and cookie is not empty
-  if (cookies && cookies.length) {
-    if (self.originalCookieHeader) {
-      // Don't overwrite existing Cookie header
-      self.setHeader('Cookie', self.originalCookieHeader + '; ' + cookies)
-    } else {
-      self.setHeader('Cookie', cookies)
+    // if need cookie and cookie is not empty
+    if (cookies && cookies.length) {
+      if (self.originalCookieHeader) {
+        // Don't overwrite existing Cookie header
+        self.setHeader('Cookie', self.originalCookieHeader + '; ' + cookies)
+      } else {
+        self.setHeader('Cookie', cookies)
+      }
     }
-  }
-  self._jar = jar
-  return self
+
+    cb()
+  })
 }
 
 // Stream API
