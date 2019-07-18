@@ -1332,8 +1332,9 @@ Request.prototype.onRequestResponse = function (response) {
   }
 
   function forEachAsync (items, fn, cb) {
-    if (!(Array.isArray(items) && fn)) { return }
     !cb && (cb = function () { /* (ಠ_ಠ) */ })
+
+    if (!(Array.isArray(items) && fn)) { return cb() }
 
     var index = 0
     var totalItems = items.length
@@ -1342,12 +1343,14 @@ Request.prototype.onRequestResponse = function (response) {
         return cb(err)
       }
 
-      fn.call(items, items[index++], next)
+      try {
+        fn.call(items, items[index++], next)
+      } catch (error) {
+        return cb(error)
+      }
     }
 
-    if (!totalItems) {
-      return cb()
-    }
+    if (!totalItems) { return cb() }
 
     next()
   }
@@ -1364,9 +1367,7 @@ Request.prototype.onRequestResponse = function (response) {
     var headerName = response.caseless.has('set-cookie')
     if (Array.isArray(response.headers[headerName])) {
       forEachAsync(response.headers[headerName], addCookie, function (err) {
-        if (err) {
-          return self.emit('error', err)
-        }
+        if (err) { return self.emit('error', err) }
 
         responseHandler()
       })
@@ -1738,9 +1739,7 @@ Request.prototype.jar = function (jar, cb) {
   var urihref = self.uri.href
   // fetch cookie in the Specified host
   targetCookieJar.getCookieString(urihref, function (err, cookies) {
-    if (err) {
-      return cb()
-    }
+    if (err) { return cb() }
 
     // if need cookie and cookie is not empty
     if (cookies && cookies.length) {
