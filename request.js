@@ -1207,7 +1207,7 @@ Request.prototype.onRequestResponse = function (response) {
 
     // Be a good stream and emit end when the response is finished.
     // Hack to emit end on close because of a core bug that never fires end
-    response.on('close', function () {
+    response.once('close', function () {
       if (!self._ended) {
         self.response.emit('end')
       }
