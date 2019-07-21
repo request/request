@@ -1358,7 +1358,10 @@ Request.prototype.onRequestResponse = function (response) {
   var targetCookieJar = (self._jar && self._jar.setCookie) ? self._jar : globalCookieJar
   var addCookie = function (cookie, cb) {
     // set the cookie if it's domain in the href's domain.
-    targetCookieJar.setCookie(cookie, self.uri.href, {ignoreError: true}, cb)
+    targetCookieJar.setCookie(cookie, self.uri.href, {ignoreError: true}, function () {
+      // swallow the error, don't fail the request because of cookie jar failure
+      cb()
+    })
   }
 
   response.caseless = caseless(response.headers)
