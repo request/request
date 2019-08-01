@@ -1,10 +1,10 @@
 'use strict'
 var spawn = require('child_process').spawn
-var https = require('https')
+var http = require('http')
 var fs = require('fs')
 var path = require('path')
 
-var server = https.createServer({
+var server = http.createServer({
   key: fs.readFileSync(path.join(__dirname, '/ssl/server.key')),
   cert: fs.readFileSync(path.join(__dirname, '/ssl/server.crt')),
   ca: fs.readFileSync(path.join(__dirname, '/ssl/ca.crt')),
@@ -18,12 +18,12 @@ var server = https.createServer({
 })
 server.listen(0, function () {
   var port = this.address().port
-  console.log('Started https server for karma tests on port ' + port)
+  console.log('Started http server for karma tests on port ' + port)
   // Spawn process for karma.
   var c = spawn('karma', [
     'start',
     path.join(__dirname, '/karma.conf.js'),
-    'https://localhost:' + port
+    'http://localhost:' + port
   ])
   c.stdout.pipe(process.stdout)
   c.stderr.pipe(process.stderr)
