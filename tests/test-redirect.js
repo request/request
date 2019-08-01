@@ -86,7 +86,7 @@ tape('setup', function (t) {
 })
 
 tape('permanent bounce', function (t) {
-  jar.setCookie('quux=baz', s.url)
+  jar.setCookieSync('quux=baz', s.url)
   hits = {}
   request({
     uri: s.url + '/perm',
@@ -103,7 +103,7 @@ tape('permanent bounce', function (t) {
 })
 
 tape('preserve HEAD method when using followAllRedirects', function (t) {
-  jar.setCookie('quux=baz', s.url)
+  jar.setCookieSync('quux=baz', s.url)
   hits = {}
   request({
     method: 'HEAD',

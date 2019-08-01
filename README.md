@@ -1234,7 +1234,7 @@ request('http://www.google.com', function() {
 
 The cookie store must be a
 [`tough-cookie`](https://github.com/SalesforceEng/tough-cookie)
-store and it must support synchronous operations; see the
+store and it must support asynchronous operations; see the
 [`CookieStore` API docs](https://github.com/SalesforceEng/tough-cookie#api)
 for details.
 
@@ -1243,8 +1243,8 @@ To inspect your cookie jar after a request:
 ```js
 const j = request.jar()
 request({url: 'http://www.google.com', jar: j}, function () {
-  const cookie_string = j.getCookieString(url); // "key1=value1; key2=value2; ..."
-  const cookies = j.getCookies(url);
+  const cookie_string = j.getCookieStringSync(url); // "key1=value1; key2=value2; ..."
+  const cookies = j.getCookiesSync(url);
   // [{key: 'key1', value: 'value1', domain: "www.google.com", ...}, ...]
 })
 ```

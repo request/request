@@ -62,7 +62,7 @@ function addTests () {
     })
 
   var jar = request.jar()
-  jar.setCookie('quux=baz', s.url)
+  jar.setCookieSync('quux=baz', s.url)
   runTest(
     '#125: headers.cookie + cookie jar',
     'header-and-jar',
@@ -72,7 +72,7 @@ function addTests () {
     })
 
   var jar2 = request.jar()
-  jar2.setCookie('quux=baz; Domain=foo.bar.com', s.url, {ignoreError: true})
+  jar2.setCookieSync('quux=baz; Domain=foo.bar.com', s.url, {ignoreError: true})
   runTest(
     '#794: ignore cookie parsing and domain errors',
     'ignore-errors',

@@ -52,10 +52,10 @@ tape('after server sends a cookie', function (t) {
   },
     function (error, response, body) {
       t.equal(error, null)
-      t.equal(jar1.getCookieString(validUrl), 'foo=bar')
+      t.equal(jar1.getCookieStringSync(validUrl), 'foo=bar')
       t.equal(body, 'okay')
 
-      var cookies = jar1.getCookies(validUrl)
+      var cookies = jar1.getCookiesSync(validUrl)
       t.equal(cookies.length, 1)
       t.equal(cookies[0].key, 'foo')
       t.equal(cookies[0].value, 'bar')
@@ -72,10 +72,10 @@ tape('after server sends a malformed cookie', function (t) {
   },
     function (error, response, body) {
       t.equal(error, null)
-      t.equal(jar.getCookieString(malformedUrl), 'foo')
+      t.equal(jar.getCookieStringSync(malformedUrl), 'foo')
       t.equal(body, 'okay')
 
-      var cookies = jar.getCookies(malformedUrl)
+      var cookies = jar.getCookiesSync(malformedUrl)
       t.equal(cookies.length, 1)
       t.equal(cookies[0].key, '')
       t.equal(cookies[0].value, 'foo')
@@ -92,8 +92,8 @@ tape('after server sends a cookie for a different domain', function (t) {
   },
     function (error, response, body) {
       t.equal(error, null)
-      t.equal(jar2.getCookieString(validUrl), '')
-      t.deepEqual(jar2.getCookies(validUrl), [])
+      t.equal(jar2.getCookieStringSync(validUrl), '')
+      t.deepEqual(jar2.getCookiesSync(validUrl), [])
       t.equal(body, 'okay')
       t.end()
     })
@@ -103,12 +103,12 @@ tape('make sure setCookie works', function (t) {
   var jar3 = request.jar()
   var err = null
   try {
-    jar3.setCookie(request.cookie('foo=bar'), validUrl)
+    jar3.setCookieSync(request.cookie('foo=bar'), validUrl)
   } catch (e) {
     err = e
   }
   t.equal(err, null)
-  var cookies = jar3.getCookies(validUrl)
+  var cookies = jar3.getCookiesSync(validUrl)
   t.equal(cookies.length, 1)
   t.equal(cookies[0].key, 'foo')
   t.equal(cookies[0].value, 'bar')
@@ -119,7 +119,7 @@ tape('custom store', function (t) {
   var Store = function () {}
   var store = new Store()
   var jar = request.jar(store)
-  t.equals(store, jar._jar.store)
+  t.equals(store, jar.store)
   t.end()
 })
 
