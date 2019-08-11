@@ -19,15 +19,20 @@ function md5 (str) {
 
 var digestServer = http.createServer(function (req, res) {
   var ok,
-    testHeader
+    testHeader,
+    realm = 'Private'
 
-  if (req.url === '/test/') {
+  if (req.url === '/test/' || req.url === '/test/no-realm') {
+    if (req.url === '/test/no-realm') {
+      realm = ''
+    }
+
     if (req.headers.authorization) {
       testHeader = makeHeaderRegex(
         'Digest username="test"',
-        'realm="Private"',
+        'realm="' + realm + '"',
         'nonce="WpcHS2/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93"',
-        'uri="/test/"',
+        'uri="' + req.url + '"',
         'qop=auth',
         'response="[a-f0-9]{32}"',
         'nc=00000001',
@@ -45,7 +50,7 @@ var digestServer = http.createServer(function (req, res) {
       // No auth header, send back WWW-Authenticate header
       ok = false
       res.setHeader('www-authenticate', makeHeader(
-        'Digest realm="Private"',
+        'Digest realm="' + realm + '"',
         'nonce="WpcHS2/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93"',
         'algorithm=MD5',
         'qop="auth"',
@@ -54,7 +59,7 @@ var digestServer = http.createServer(function (req, res) {
     }
   } else if (req.url === '/test/md5-sess') { // RFC 2716 MD5-sess w/ qop=auth
     var user = 'test'
-    var realm = 'Private'
+    realm = 'Private'
     var pass = 'testing'
     var nonce = 'WpcHS2/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93'
     var nonceCount = '00000001'
@@ -134,6 +139,28 @@ tape('setup', function (t) {
   digestServer.listen(0, function () {
     digestServer.url = 'http://localhost:' + this.address().port
     t.end()
+  })
+})
+
+tape('with sendImmediately = false and no realm', function (t) {
+  var numRedirects = 0
+
+  request({
+    method: 'GET',
+    uri: digestServer.url + '/test/no-realm',
+    auth: {
+      user: 'test',
+      pass: 'testing',
+      sendImmediately: false
+    }
+  }, function (error, response, body) {
+    t.equal(error, null)
+    t.equal(response.statusCode, 200)
+    t.equal(numRedirects, 1)
+    t.end()
+  }).on('redirect', function () {
+    t.equal(this.response.statusCode, 401)
+    numRedirects++
   })
 })
 
