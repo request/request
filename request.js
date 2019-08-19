@@ -646,10 +646,6 @@ Request.prototype.init = function (options) {
       }
     }
 
-    if (self._form && !self.hasHeader('content-type')) {
-      self.setHeader('Content-Type', 'multipart/form-data; boundary=' + self._form.getBoundary())
-    }
-
     self.jar(self._jar || options.jar, function () {
       if (self._form && !self.hasHeader('content-length')) {
         // Before ending the request, we had to compute the length of the whole form, asyncly
@@ -1537,18 +1533,22 @@ Request.prototype.form = function (form) {
       : self._qs.stringify(form).toString('utf8')
     return self
   }
-  var boundary = contentType && contentType.match &&
-    contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/)
+  // form-data
+  var contentTypeMatch = contentType && contentType.match &&
+    contentType.match(/^multipart\/form-data;.*boundary=(?:"([^"]+)"|([^;]+))/)
+  var boundary = contentTypeMatch && (contentTypeMatch[1] || contentTypeMatch[2])
   // create form-data object
-  self._form = new FormData({
-    // set boundary if present in content-type
-    _boundary: boundary && (boundary[1] || boundary[2])
-  })
+  // set custom boundary if present in content-type else auto-generate
+  self._form = new FormData({ _boundary: boundary })
   self._form.on('error', function (err) {
     err.message = 'form-data: ' + err.message
     self.emit('error', err)
     self.abort()
   })
+  if (!contentTypeMatch) {
+    // overrides invalid or missing content-type
+    self.setHeader('Content-Type', 'multipart/form-data; boundary=' + self._form.getBoundary())
+  }
   return self._form
 }
 Request.prototype.multipart = function (multipart) {
