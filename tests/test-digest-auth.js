@@ -18,9 +18,9 @@ function md5 (str) {
 }
 
 var digestServer = http.createServer(function (req, res) {
-  var ok,
-    testHeader,
-    realm = 'Private'
+  var ok
+  var testHeader
+  var realm = 'Private'
 
   if (req.url === '/test/' || req.url === '/test/no-realm') {
     if (req.url === '/test/no-realm') {
