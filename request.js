@@ -18,6 +18,7 @@ var isstream = require('isstream')
 var isTypedArray = require('is-typedarray').strict
 var helpers = require('./lib/helpers')
 var cookies = require('./lib/cookies')
+var filterForNonReserved = require('./lib/filterForNonReserved')
 var getProxyFromURI = require('./lib/getProxyFromURI')
 var Querystring = require('./lib/querystring').Querystring
 var Har = require('./lib/har').Har
@@ -30,7 +31,6 @@ var Tunnel = require('./lib/tunnel').Tunnel
 var now = require('performance-now')
 var Buffer = require('safe-buffer').Buffer
 
-var filterForNonReserved = helpers.filterForNonReserved
 var safeStringify = helpers.safeStringify
 var isReadStream = helpers.isReadStream
 var toBase64 = helpers.toBase64

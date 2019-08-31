@@ -1,7 +1,7 @@
 'use strict'
 
 var assert = require('assert')
-var filterForNonReserved = require('../lib/helpers').filterForNonReserved
+var filterForNonReserved = require('../lib/filterForNonReserved')
 var tape = require('tape')
 
 tape('setup', function (t) {
