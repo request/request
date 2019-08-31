@@ -30,6 +30,7 @@ var Tunnel = require('./lib/tunnel').Tunnel
 var now = require('performance-now')
 var Buffer = require('safe-buffer').Buffer
 
+var filterForNonReserved = helpers.filterForNonReserved
 var safeStringify = helpers.safeStringify
 var isReadStream = helpers.isReadStream
 var toBase64 = helpers.toBase64
@@ -39,20 +40,6 @@ var version = helpers.version
 var globalCookieJar = cookies.jar()
 
 var globalPool = {}
-
-function filterForNonReserved (reserved, options) {
-  // Filter out properties that are not reserved.
-  // Reserved values are passed in at call site.
-
-  var object = {}
-  for (var i in options) {
-    var notReserved = (reserved.indexOf(i) === -1)
-    if (notReserved) {
-      object[i] = options[i]
-    }
-  }
-  return object
-}
 
 function filterOutReservedFunctions (reserved, options) {
   // Filter out properties that are functions and are reserved.
