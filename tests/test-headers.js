@@ -62,13 +62,14 @@ function addTests () {
     })
 
   var jar = request.jar()
-  jar.setCookieSync('quux=baz', s.url)
+  jar.setCookieSync('c1=v1', s.url)
+  jar.setCookieSync('c2=v2', s.url)
   runTest(
     '#125: headers.cookie + cookie jar',
     'header-and-jar',
-    {jar: jar, headers: {cookie: 'foo=bar'}},
+    {jar: jar, headers: {cookie: ['c3=v3', 'c4=v4']}},
     function (t, req, res) {
-      t.equal(req.headers.cookie, 'foo=bar; quux=baz')
+      t.equal(req.headers.cookie, 'c3=v3; c4=v4; c1=v1; c2=v2')
     })
 
   var jar2 = request.jar()

@@ -1747,6 +1747,9 @@ Request.prototype.jar = function (jar, cb) {
     // if need cookie and cookie is not empty
     if (cookies && cookies.length) {
       if (self.originalCookieHeader) {
+        if (Array.isArray(self.originalCookieHeader)) {
+          self.originalCookieHeader = self.originalCookieHeader.join('; ')
+        }
         // Don't overwrite existing Cookie header
         self.setHeader('Cookie', self.originalCookieHeader + '; ' + cookies)
       } else {
