@@ -772,7 +772,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 ---
 
 - `body` - entity body for PATCH, POST and PUT requests. Must be a `Buffer`, `String` or `ReadStream`. If `json` is `true`, then `body` must be a JSON-serializable object.
-- `form` - when passed an object or a querystring, this sets `body` to a querystring representation of value, and adds `Content-type: application/x-www-form-urlencoded` header. When passed no options, a `FormData` instance is returned (and is piped to request). See "Forms" section above.
+- `form` - when passed an object or a querystring, this sets `body` to a querystring representation of value, and adds `Content-type: application/x-www-form-urlencoded` header. When passed no options, a `FormData` instance is returned (and is piped to request). See [Forms](#forms) section above.
 - `formData` - data to pass for a `multipart/form-data` request. See
   [Forms](#forms) section above.
 - `multipart` - array of objects which contain their own headers and `body`
