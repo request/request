@@ -215,6 +215,7 @@ request.post({url:'http://service.com/upload', formData: formData}, function opt
   console.log('Upload successful!  Server responded with:', body);
 });
 ```
+`qsStringifyOptions` option can be used to customize the representation of objects being sent in form.
 
 For advanced cases, you can access the form-data object itself via `r.form()`. This can be modified until the request is fired on the next cycle of the event-loop. (Note that this calling `form()` will clear the currently set form data for that request.)
 
