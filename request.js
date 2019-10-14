@@ -866,8 +866,8 @@ Request.prototype.onRequestError = function (error) {
   if (self._aborted) {
     return
   }
-  if (self.req && self.req._reusedSocket && error.code === 'ECONNRESET' &&
-    self.agent.addRequestNoreuse) {
+  if (self.req && (self.req._reusedSocket || self.req.reusedSocket) &&
+    error.code === 'ECONNRESET' && self.agent.addRequestNoreuse) {
     self.agent = { addRequest: self.agent.addRequestNoreuse.bind(self.agent) }
     self.start()
     self.req.end()
