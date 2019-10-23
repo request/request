@@ -208,7 +208,10 @@ const formData = {
     }
   }
 };
-request.post({url:'http://service.com/upload', formData: formData}, function optionalCallback(err, httpResponse, body) {
+request.post({
+  url:'http://service.com/upload', 
+  formData
+}, function optionalCallback(err, httpResponse, body) {
   if (err) {
     return console.error('upload failed:', err);
   }
