@@ -43,7 +43,7 @@
     "safe-buffer": "^5.1.2",
     "stream-length": "^1.0.2",
     "tough-cookie": "~2.5.0",
-    "@postman/tunnel-agent": "^0.6.2",
+    "@postman/tunnel-agent": "^0.6.3",
     "uuid": "^3.3.2"
   },
   "scripts": {
