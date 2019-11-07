@@ -36,12 +36,6 @@ var mutualSSLOpts = {
   rejectUnauthorized: true
 }
 
-// this is needed for 'https over http, tunnel=false' test
-// from https://github.com/coolaj86/node-ssl-root-cas/blob/v1.1.9-beta/ssl-root-cas.js#L4267-L4281
-var httpsOpts = https.globalAgent.options
-httpsOpts.ca = httpsOpts.ca || []
-httpsOpts.ca.push(ca)
-
 var s = server.createServer()
 var ss = server.createSSLServer(sslOpts)
 var ss2 = server.createSSLServer(mutualSSLOpts)
@@ -151,16 +145,6 @@ function addTests () {
     '200 http ok'
   ])
 
-  runTest('http over http, tunnel=false, with proxy response', {
-    url: s.url,
-    proxy: s.url,
-    tunnel: false
-  }, [
-    'http proxy to http',
-    'http response',
-    '200 http ok'
-  ])
-
   runTest('http over http, tunnel=default, with proxy response', {
     url: s.url,
     proxy: s.url
@@ -178,16 +162,6 @@ function addTests () {
     tunnel: true
   }, [
     'https connect to localhost:' + s.port,
-    'http response',
-    '200 http ok'
-  ])
-
-  runTest('http over https, tunnel=false, with proxy response', {
-    url: s.url,
-    proxy: ss.url,
-    tunnel: false
-  }, [
-    'https proxy to http',
     'http response',
     '200 http ok'
   ])
@@ -213,16 +187,6 @@ function addTests () {
     '200 https ok'
   ])
 
-  runTest('https over http, tunnel=false, with proxy response', {
-    url: ss.url,
-    proxy: s.url,
-    tunnel: false
-  }, [
-    'http proxy to https',
-    'https response',
-    '200 https ok'
-  ])
-
   runTest('https over http, tunnel=default, with proxy response', {
     url: ss.url,
     proxy: s.url
@@ -240,17 +204,6 @@ function addTests () {
     tunnel: true
   }, [
     'https connect to localhost:' + ss.port,
-    'https response',
-    '200 https ok'
-  ])
-
-  runTest('https over https, tunnel=false, with proxy response', {
-    url: ss.url,
-    proxy: ss.url,
-    tunnel: false,
-    pool: false // must disable pooling here or Node.js hangs
-  }, [
-    'https proxy to https',
     'https response',
     '200 https ok'
   ])
@@ -274,18 +227,6 @@ function addTests () {
     'http connect to localhost:' + s.port,
     'http redirect to http',
     'http connect to localhost:' + s.port,
-    'http response',
-    '200 http ok'
-  ])
-
-  runTest('http->http over http, tunnel=false, with proxy response', {
-    url: s.url + '/redirect/http',
-    proxy: s.url,
-    tunnel: false
-  }, [
-    'http proxy to http->http',
-    'http redirect to http',
-    'http proxy to http',
     'http response',
     '200 http ok'
   ])
@@ -315,18 +256,6 @@ function addTests () {
     '200 https ok'
   ])
 
-  runTest('http->https over http, tunnel=false, with proxy response', {
-    url: s.url + '/redirect/https',
-    proxy: s.url,
-    tunnel: false
-  }, [
-    'http proxy to http->https',
-    'http redirect to https',
-    'http proxy to https',
-    'https response',
-    '200 https ok'
-  ])
-
   runTest('http->https over http, tunnel=default, with proxy response', {
     url: s.url + '/redirect/https',
     proxy: s.url
@@ -348,18 +277,6 @@ function addTests () {
     'http connect to localhost:' + ss.port,
     'https redirect to http',
     'http connect to localhost:' + s.port,
-    'http response',
-    '200 http ok'
-  ])
-
-  runTest('https->http over http, tunnel=false, with proxy response', {
-    url: ss.url + '/redirect/http',
-    proxy: s.url,
-    tunnel: false
-  }, [
-    'http proxy to https->http',
-    'https redirect to http',
-    'http proxy to http',
     'http response',
     '200 http ok'
   ])
@@ -389,18 +306,6 @@ function addTests () {
     '200 https ok'
   ])
 
-  runTest('https->https over http, tunnel=false, with proxy response', {
-    url: ss.url + '/redirect/https',
-    proxy: s.url,
-    tunnel: false
-  }, [
-    'http proxy to https->https',
-    'https redirect to https',
-    'http proxy to https',
-    'https response',
-    '200 https ok'
-  ])
-
   runTest('https->https over http, tunnel=default, with proxy response', {
     url: ss.url + '/redirect/https',
     proxy: s.url
@@ -426,20 +331,6 @@ function addTests () {
     'https response',
     '200 https ok'
   ])
-
-  // XXX causes 'Error: socket hang up'
-  // runTest('mutual https over http, tunnel=false, with proxy response', {
-  //   url        : ss2.url,
-  //   proxy      : s.url,
-  //   tunnel     : false,
-  //   cert       : clientCert,
-  //   key        : clientKey,
-  //   passphrase : clientPassword
-  // }, [
-  //   'http connect to localhost:' + ss2.port,
-  //   'https response',
-  //   '200 https ok'
-  // ])
 
   runTest('mutual https over http, tunnel=default, with proxy response', {
     url: ss2.url,
