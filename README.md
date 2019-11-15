@@ -1,7 +1,7 @@
 
-# Request - Simplified HTTP client
+# @cypress/request - Simplified HTTP client
 
-[![npm package](https://nodei.co/npm/request.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/request/)
+[![npm package](https://nodei.co/npm/@cypress/request.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/@cypress/request/)
 
 [![Build status](https://img.shields.io/travis/cypress-io/request/master.svg?style=flat-square)](https://travis-ci.org/cypress-io/request)
 [![Coverage](https://img.shields.io/codecov/c/github/cypress-io/request.svg?style=flat-square)](https://codecov.io/github/cypress-io/request?branch=master)
@@ -10,13 +10,14 @@
 [![Known Vulnerabilities](https://snyk.io/test/npm/request/badge.svg?style=flat-square)](https://snyk.io/test/npm/request)
 [![Gitter](https://img.shields.io/badge/gitter-join_chat-blue.svg?style=flat-square)](https://gitter.im/cypress-io/request?utm_source=badge)
 
+**This is a fork of [`request`](https://github.com/request/request) for use in [Cypress](https://github.com/cypress-io/cypress).**
 
 ## Super simple to use
 
 Request is designed to be the simplest way possible to make http calls. It supports HTTPS and follows redirects by default.
 
 ```js
-const request = require('request');
+const request = require('@cypress/request');
 request('http://www.google.com', function (error, response, body) {
   console.error('error:', error); // Print the error if one occurred
   console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
