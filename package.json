@@ -1,5 +1,5 @@
 {
-  "name": "@cypress/request",
+  "name": "request",
   "description": "Cypress's fork of a simplified HTTP request client.",
   "keywords": [
     "http",
