@@ -10,7 +10,7 @@ These are just guidelines, not rules, use your best judgment and feel free to pr
 ## Submitting an Issue
 
 1. Provide a small self **sufficient** code example to **reproduce** the issue.
-2. Run your test code using [request-debug](https://github.com/request/request-debug) and copy/paste the results inside the issue.
+2. Run your test code using [request-debug](https://github.com/cypress-io/request-debug) and copy/paste the results inside the issue.
 3. You should **always** use fenced code blocks when submitting code examples or any other formatted output:
   <pre>
   ```js

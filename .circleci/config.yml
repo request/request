@@ -1,0 +1,44 @@
+version: 2
+jobs:
+  test:
+    docker:
+      - image: circleci/node:latest
+    working_directory: ~/repo
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - run: yarn install
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run: yarn test
+
+  release:
+    docker:
+      - image: circleci/node:latest
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - run: yarn install
+      - run: npx semantic-release
+
+workflows:
+  version: 2
+  test_and_release:
+    jobs:
+      - test
+      - release:
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - master

@@ -3,12 +3,12 @@
 
 [![npm package](https://nodei.co/npm/request.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/request/)
 
-[![Build status](https://img.shields.io/travis/request/request/master.svg?style=flat-square)](https://travis-ci.org/request/request)
-[![Coverage](https://img.shields.io/codecov/c/github/request/request.svg?style=flat-square)](https://codecov.io/github/request/request?branch=master)
-[![Coverage](https://img.shields.io/coveralls/request/request.svg?style=flat-square)](https://coveralls.io/r/request/request)
-[![Dependency Status](https://img.shields.io/david/request/request.svg?style=flat-square)](https://david-dm.org/request/request)
+[![Build status](https://img.shields.io/travis/cypress-io/request/master.svg?style=flat-square)](https://travis-ci.org/cypress-io/request)
+[![Coverage](https://img.shields.io/codecov/c/github/cypress-io/request.svg?style=flat-square)](https://codecov.io/github/cypress-io/request?branch=master)
+[![Coverage](https://img.shields.io/coveralls/cypress-io/request.svg?style=flat-square)](https://coveralls.io/r/cypress-io/request)
+[![Dependency Status](https://img.shields.io/david/cypress-io/request.svg?style=flat-square)](https://david-dm.org/cypress-io/request)
 [![Known Vulnerabilities](https://snyk.io/test/npm/request/badge.svg?style=flat-square)](https://snyk.io/test/npm/request)
-[![Gitter](https://img.shields.io/badge/gitter-join_chat-blue.svg?style=flat-square)](https://gitter.im/request/request?utm_source=badge)
+[![Gitter](https://img.shields.io/badge/gitter-join_chat-blue.svg?style=flat-square)](https://gitter.im/cypress-io/request?utm_source=badge)
 
 
 ## Super simple to use
@@ -148,9 +148,9 @@ You can still use intermediate proxies, the requests will still follow HTTP forw
 `request` supports both streaming and callback interfaces natively. If you'd like `request` to return a Promise instead, you can use an alternative interface wrapper for `request`. These wrappers can be useful if you prefer to work with Promises, or if you'd like to use `async`/`await` in ES2017.
 
 Several alternative interfaces are provided by the request team, including:
-- [`request-promise`](https://github.com/request/request-promise) (uses [Bluebird](https://github.com/petkaantonov/bluebird) Promises)
-- [`request-promise-native`](https://github.com/request/request-promise-native) (uses native Promises)
-- [`request-promise-any`](https://github.com/request/request-promise-any) (uses [any-promise](https://www.npmjs.com/package/any-promise) Promises)
+- [`request-promise`](https://github.com/cypress-io/request-promise) (uses [Bluebird](https://github.com/petkaantonov/bluebird) Promises)
+- [`request-promise-native`](https://github.com/cypress-io/request-promise-native) (uses native Promises)
+- [`request-promise-any`](https://github.com/cypress-io/request-promise-any) (uses [any-promise](https://www.npmjs.com/package/any-promise) Promises)
 
 Also, [`util.promisify`](https://nodejs.org/api/util.html#util_util_promisify_original), which is available from Node.js v8.0 can be used to convert a regular function that takes a callback to return a promise instead.
 
@@ -352,7 +352,7 @@ custom `User-Agent` header as well as https.
 const request = require('request');
 
 const options = {
-  url: 'https://api.github.com/repos/request/request',
+  url: 'https://api.github.com/repos/cypress-io/request',
   headers: {
     'User-Agent': 'request'
   }
@@ -679,7 +679,7 @@ request.get({
 
 The `ca` value can be an array of certificates, in the event you have a private or internal corporate public-key infrastructure hierarchy. For example, if you want to connect to https://api.some-server.com which presents a key chain consisting of:
 1. its own public key, which is signed by:
-2. an intermediate "Corp Issuing Server", that is in turn signed by: 
+2. an intermediate "Corp Issuing Server", that is in turn signed by:
 3. a root CA "Corp Root CA";
 
 you can configure your request as follows:
@@ -947,7 +947,7 @@ Function that returns the specified response header field using a [case-insensit
 ```js
 request('http://www.google.com', function (error, response, body) {
   // print the Content-Type header even if the server returned it as 'content-type' (lowercase)
-  console.log('Content-Type is:', response.caseless.get('Content-Type')); 
+  console.log('Content-Type is:', response.caseless.get('Content-Type'));
 });
 ```
 
@@ -967,7 +967,7 @@ There are at least three ways to debug the operation of `request`:
 2. Set `require('request').debug = true` at any time (this does the same thing
    as #1).
 
-3. Use the [request-debug module](https://github.com/request/request-debug) to
+3. Use the [request-debug module](https://github.com/cypress-io/request-debug) to
    view request and response headers and bodies.
 
 [back to top](#table-of-contents)

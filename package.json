@@ -1,6 +1,6 @@
 {
-  "name": "request",
-  "description": "Simplified HTTP request client.",
+  "name": "@cypress/request",
+  "description": "Cypress's fork of a simplified HTTP request client.",
   "keywords": [
     "http",
     "simple",
@@ -11,10 +11,10 @@
   "author": "Mikeal Rogers <mikeal.rogers@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/request/request.git"
+    "url": "https://github.com/cypress-io/request.git"
   },
   "bugs": {
-    "url": "http://github.com/request/request/issues"
+    "url": "http://github.com/cypress-io/request/issues"
   },
   "license": "Apache-2.0",
   "engines": {
