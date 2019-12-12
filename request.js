@@ -33,6 +33,7 @@ var Tunnel = require('./lib/tunnel').Tunnel
 var now = require('performance-now')
 var Buffer = require('safe-buffer').Buffer
 var inflate = require('./lib/inflate')
+var iltorb = require('iltorb')
 var urlParse = require('./lib/url-parse')
 var safeStringify = helpers.safeStringify
 var isReadStream = helpers.isReadStream
@@ -1244,6 +1245,14 @@ Request.prototype.onRequestResponse = function (response) {
         response.pipe(responseContent)
       } else if (contentEncoding === 'deflate') {
         responseContent = inflate.createInflate(zlibOptions)
+        response.pipe(responseContent)
+      } else if (contentEncoding === 'br') {
+        // support faster and native brotli else fallback to userland module
+        if (typeof zlib.createBrotliDecompress === 'function') {
+          responseContent = zlib.createBrotliDecompress()
+        } else {
+          responseContent = iltorb.decompressStream()
+        }
         response.pipe(responseContent)
       } else {
         // Since previous versions didn't check for Content-Encoding header,
