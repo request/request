@@ -33,7 +33,7 @@ var Tunnel = require('./lib/tunnel').Tunnel
 var now = require('performance-now')
 var Buffer = require('safe-buffer').Buffer
 var inflate = require('./lib/inflate')
-var brotliDecompressBuffer = require('brotli/decompress')
+var brotli = require('./lib/brotli')
 var urlParse = require('./lib/url-parse')
 var safeStringify = helpers.safeStringify
 var isReadStream = helpers.isReadStream
@@ -44,23 +44,6 @@ var version = helpers.version
 var globalCookieJar = cookies.jar()
 
 var globalPool = {}
-
-function BrotliDecompress (options) {
-  if (!(this instanceof BrotliDecompress)) {
-    return new BrotliDecompress(options)
-  }
-
-  stream.Transform.call(this, options)
-}
-util.inherits(BrotliDecompress, stream.Transform)
-
-BrotliDecompress.prototype._transform = function (chunk, encoding, callback) {
-  try {
-    callback(null, Buffer.from(brotliDecompressBuffer(chunk), encoding))
-  } catch (err) {
-    callback(err)
-  }
-}
 
 function filterForNonReserved (reserved, options) {
   // Filter out properties that are not reserved.
@@ -1268,7 +1251,7 @@ Request.prototype.onRequestResponse = function (response) {
         if (typeof zlib.createBrotliDecompress === 'function') {
           responseContent = zlib.createBrotliDecompress()
         } else {
-          responseContent = BrotliDecompress()
+          responseContent = brotli.createBrotliDecompress()
         }
         response.pipe(responseContent)
       } else {
