@@ -1247,12 +1247,7 @@ Request.prototype.onRequestResponse = function (response) {
         responseContent = inflate.createInflate(zlibOptions)
         response.pipe(responseContent)
       } else if (contentEncoding === 'br') {
-        // support faster and native brotli else fallback to userland module
-        if (typeof zlib.createBrotliDecompress === 'function') {
-          responseContent = zlib.createBrotliDecompress()
-        } else {
-          responseContent = brotli.createBrotliDecompress()
-        }
+        responseContent = brotli.createBrotliDecompress()
         response.pipe(responseContent)
       } else {
         // Since previous versions didn't check for Content-Encoding header,
