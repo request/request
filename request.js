@@ -442,8 +442,17 @@ Request.prototype.init = function (options) {
     )
   }
 
-  if (self.gzip && !self.hasHeader('accept-encoding')) {
-    self.setHeader('Accept-Encoding', 'gzip, deflate')
+  if (!self.hasHeader('accept-encoding')) {
+    var acceptEncoding = ''
+
+    self.gzip && (acceptEncoding += 'gzip, deflate')
+
+    if (self.brotli) {
+      acceptEncoding && (acceptEncoding += ', ')
+      acceptEncoding += 'br'
+    }
+
+    acceptEncoding && self.setHeader('Accept-Encoding', acceptEncoding)
   }
 
   if (self.uri.auth && !self.hasHeader('authorization')) {
@@ -1227,7 +1236,7 @@ Request.prototype.onRequestResponse = function (response) {
     }
 
     var responseContent
-    if (self.gzip && !noBody(response.statusCode)) {
+    if ((self.gzip || self.brotli) && !noBody(response.statusCode)) {
       var contentEncoding = response.headers['content-encoding'] || 'identity'
       contentEncoding = contentEncoding.trim().toLowerCase()
 
@@ -1239,15 +1248,19 @@ Request.prototype.onRequestResponse = function (response) {
         flush: zlib.Z_SYNC_FLUSH,
         finishFlush: zlib.Z_SYNC_FLUSH
       }
+      var brotliOptions = {
+        flush: zlib.BROTLI_OPERATION_FLUSH,
+        finishFlush: zlib.BROTLI_OPERATION_FLUSH
+      }
 
-      if (contentEncoding === 'gzip') {
+      if (self.gzip && contentEncoding === 'gzip') {
         responseContent = zlib.createGunzip(zlibOptions)
         response.pipe(responseContent)
-      } else if (contentEncoding === 'deflate') {
+      } else if (self.gzip && contentEncoding === 'deflate') {
         responseContent = inflate.createInflate(zlibOptions)
         response.pipe(responseContent)
-      } else if (contentEncoding === 'br') {
-        responseContent = brotli.createBrotliDecompress()
+      } else if (self.brotli && contentEncoding === 'br') {
+        responseContent = brotli.createBrotliDecompress(brotliOptions)
         response.pipe(responseContent)
       } else {
         // Since previous versions didn't check for Content-Encoding header,
