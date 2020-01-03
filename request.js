@@ -1124,7 +1124,8 @@ Request.prototype.readResponseBody = function (response) {
     if (bufferLength) {
       debug('has body', self.uri.href, bufferLength)
       response.body = Buffer.concat(buffers, bufferLength)
-      if (self.encoding !== null) {
+      //This can ignore both undefined and null  
+      if (self.encoding != null) {
         response.body = response.body.toString(self.encoding)
       }
       // `buffer` is defined in the parent scope and used in a closure it exists for the life of the Request.
