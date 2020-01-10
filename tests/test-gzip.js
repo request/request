@@ -143,6 +143,17 @@ tape('does not request gzip if user specifies Accepted-Encodings', function (t) 
   })
 })
 
+tape('does not decode gzip encoding when "brotli" option is set', function (t) {
+  var headers = { 'Accept-Encoding': 'gzip' }
+  var options = { url: server.url + '/foo', headers: headers, brotli: true }
+  request.get(options, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.headers['content-encoding'], 'gzip')
+    t.equal(body, testContentGzip.toString())
+    t.end()
+  })
+})
+
 tape('does not decode user-requested encoding by default', function (t) {
   var headers = { 'Accept-Encoding': 'gzip' }
   var options = { url: server.url + '/foo', headers: headers }

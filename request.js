@@ -33,6 +33,7 @@ var Tunnel = require('./lib/tunnel').Tunnel
 var now = require('performance-now')
 var Buffer = require('safe-buffer').Buffer
 var inflate = require('./lib/inflate')
+var brotli = require('./lib/brotli')
 var urlParse = require('./lib/url-parse')
 var safeStringify = helpers.safeStringify
 var isReadStream = helpers.isReadStream
@@ -441,8 +442,17 @@ Request.prototype.init = function (options) {
     )
   }
 
-  if (self.gzip && !self.hasHeader('accept-encoding')) {
-    self.setHeader('Accept-Encoding', 'gzip, deflate')
+  if (!self.hasHeader('accept-encoding')) {
+    var acceptEncoding = ''
+
+    self.gzip && (acceptEncoding += 'gzip, deflate')
+
+    if (self.brotli) {
+      acceptEncoding && (acceptEncoding += ', ')
+      acceptEncoding += 'br'
+    }
+
+    acceptEncoding && self.setHeader('Accept-Encoding', acceptEncoding)
   }
 
   if (self.uri.auth && !self.hasHeader('authorization')) {
@@ -1226,7 +1236,7 @@ Request.prototype.onRequestResponse = function (response) {
     }
 
     var responseContent
-    if (self.gzip && !noBody(response.statusCode)) {
+    if ((self.gzip || self.brotli) && !noBody(response.statusCode)) {
       var contentEncoding = response.headers['content-encoding'] || 'identity'
       contentEncoding = contentEncoding.trim().toLowerCase()
 
@@ -1239,11 +1249,14 @@ Request.prototype.onRequestResponse = function (response) {
         finishFlush: zlib.Z_SYNC_FLUSH
       }
 
-      if (contentEncoding === 'gzip') {
+      if (self.gzip && contentEncoding === 'gzip') {
         responseContent = zlib.createGunzip(zlibOptions)
         response.pipe(responseContent)
-      } else if (contentEncoding === 'deflate') {
+      } else if (self.gzip && contentEncoding === 'deflate') {
         responseContent = inflate.createInflate(zlibOptions)
+        response.pipe(responseContent)
+      } else if (self.brotli && contentEncoding === 'br') {
+        responseContent = brotli.createBrotliDecompress()
         response.pipe(responseContent)
       } else {
         // Since previous versions didn't check for Content-Encoding header,
