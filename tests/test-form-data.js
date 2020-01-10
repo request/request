@@ -134,11 +134,3 @@ tape('multipart formData + JSON', function (t) {
 tape('multipart formData + basic auth', function (t) {
   runTest(t, {json: false, auth: true})
 })
-
-tape('form-data library version', function (t) {
-  // bumping form-data library?
-  // make sure this is fixed: https://github.com/form-data/form-data/issues/422
-  // @note remove this test once the issue is fixed in form-data.
-  t.equal(require('../package.json').dependencies['form-data'], '~2.3.2')
-  t.end()
-})
