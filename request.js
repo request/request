@@ -1248,10 +1248,6 @@ Request.prototype.onRequestResponse = function (response) {
         flush: zlib.Z_SYNC_FLUSH,
         finishFlush: zlib.Z_SYNC_FLUSH
       }
-      var brotliOptions = {
-        flush: zlib.BROTLI_OPERATION_FLUSH,
-        finishFlush: zlib.BROTLI_OPERATION_FLUSH
-      }
 
       if (self.gzip && contentEncoding === 'gzip') {
         responseContent = zlib.createGunzip(zlibOptions)
@@ -1260,7 +1256,7 @@ Request.prototype.onRequestResponse = function (response) {
         responseContent = inflate.createInflate(zlibOptions)
         response.pipe(responseContent)
       } else if (self.brotli && contentEncoding === 'br') {
-        responseContent = brotli.createBrotliDecompress(brotliOptions)
+        responseContent = brotli.createBrotliDecompress()
         response.pipe(responseContent)
       } else {
         // Since previous versions didn't check for Content-Encoding header,
