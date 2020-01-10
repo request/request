@@ -72,6 +72,10 @@ function runTest (t, options) {
       t.ok(data.indexOf('form-data; name="batch"') !== -1)
       t.ok(data.match(/form-data; name="batch"/g).length === 2)
 
+      // 7th field : empty file name
+      t.ok(data.indexOf('form-data; name="noFile"') !== -1)
+      t.ok(data.indexOf('Content-Disposition: form-data; name="noFile"; filename=""') !== -1)
+
       // check for http://localhost:nnnn/file traces
       t.ok(data.indexOf('Photoshop ICC') !== -1)
       t.ok(data.indexOf('Content-Type: ' + mime.lookup(remoteFile)) !== -1)
@@ -101,6 +105,12 @@ function runTest (t, options) {
       fs.createReadStream(localFile),
       fs.createReadStream(localFile)
     ]
+    multipartFormData.noFile = {
+      value: null,
+      options: {
+        filename: ''
+      }
+    }
 
     var reqOptions = {
       url: url + '/upload',
