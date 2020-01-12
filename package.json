@@ -56,7 +56,7 @@
     "lint": "standard"
   },
   "devDependencies": {
-    "bluebird": "^3.2.1",
+    "bluebird": "^3.7.2",
     "browserify": "^13.0.1",
     "browserify-istanbul": "^2.0.0",
     "buffer-equal": "^1.0.0",
