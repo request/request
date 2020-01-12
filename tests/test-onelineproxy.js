@@ -8,26 +8,26 @@ const tape = require('tape')
 const server = http.createServer((req, resp) => {
   resp.statusCode = 200
   if (req.url === '/get') {
-    assert.equal(req.method, 'GET')
+    assert.strictEqual(req.method, 'GET')
     resp.write('content')
     resp.end()
     return
   }
   if (req.url === '/put') {
     let x = ''
-    assert.equal(req.method, 'PUT')
+    assert.strictEqual(req.method, 'PUT')
     req.on('data', (chunk) => {
       x += chunk
     })
     req.on('end', () => {
-      assert.equal(x, 'content')
+      assert.strictEqual(x, 'content')
       resp.write('success')
       resp.end()
     })
     return
   }
   if (req.url === '/proxy') {
-    assert.equal(req.method, 'PUT')
+    assert.strictEqual(req.method, 'PUT')
     req.pipe(request(server.url + '/put')).pipe(resp)
     return
   }

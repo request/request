@@ -30,11 +30,11 @@ tape('setup', (t) => {
     if (req.url === '/post/') {
       const expectedContent = 'data_key=data_value'
       req.on('data', (data) => {
-        assert.equal(data, expectedContent)
+        assert.strictEqual(Buffer.from(data).toString(), expectedContent)
       })
-      assert.equal(req.method, 'POST')
-      assert.equal(req.headers['content-length'], '' + expectedContent.length)
-      assert.equal(req.headers['content-type'], 'application/x-www-form-urlencoded')
+      assert.strictEqual(req.method, 'POST')
+      assert.strictEqual(req.headers['content-length'], '' + expectedContent.length)
+      assert.strictEqual(req.headers['content-type'], 'application/x-www-form-urlencoded')
     }
 
     if (ok) {

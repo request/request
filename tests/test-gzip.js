@@ -41,20 +41,20 @@ const server = http.createServer((req, res) => {
       setTimeout(() => { res.end(testContentBigGzip.slice(4096)) }, 10)
     } else if (req.url === '/just-slightly-truncated') {
       zlib.gzip(testContent, (err, data) => {
-        assert.equal(err, null)
+        assert.strictEqual(err, null)
         // truncate the CRC checksum and size check at the end of the stream
         res.end(data.slice(0, data.length - 8))
       })
     } else {
       zlib.gzip(testContent, (err, data) => {
-        assert.equal(err, null)
+        assert.strictEqual(err, null)
         res.end(data)
       })
     }
   } else if (/\bdeflate\b/i.test(req.headers['accept-encoding'])) {
     res.setHeader('Content-Encoding', 'deflate')
     zlib.deflate(testContent, (err, data) => {
-      assert.equal(err, null)
+      assert.strictEqual(err, null)
       res.end(data)
     })
   } else {

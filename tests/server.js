@@ -90,7 +90,7 @@ exports.createPostValidator = (text, reqContentType) => {
         const boundary = req.headers['content-type'].split('boundary=')[1]
         text = text.replace(/__BOUNDARY__/g, boundary)
       }
-      assert.equal(r, text)
+      assert.strictEqual(r, text)
       if (reqContentType) {
         assert.ok(req.headers['content-type'])
         assert.ok(~req.headers['content-type'].indexOf(reqContentType))
@@ -107,7 +107,7 @@ exports.createPostJSONValidator = (value, reqContentType) => {
     req.on('data', (chunk) => { r += chunk })
     req.on('end', () => {
       const parsedValue = JSON.parse(r)
-      assert.deepEqual(parsedValue, value)
+      assert.deepStrictEqual(parsedValue, value)
       if (reqContentType) {
         assert.ok(req.headers['content-type'])
         assert.ok(~req.headers['content-type'].indexOf(reqContentType))

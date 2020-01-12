@@ -21,12 +21,12 @@ const s = http.createServer((req, res) => {
   const incomingUrl = url.parse(req.url)
   switch (incomingUrl.pathname) {
     case rawPath:
-      assert.equal(incomingUrl.pathname, rawPath, 'requested path is sent to server')
+      assert.strictEqual(incomingUrl.pathname, rawPath, 'requested path is sent to server')
       break
 
     case queryPath:
-      assert.equal(incomingUrl.pathname, queryPath, 'requested path is sent to server')
-      assert.equal(incomingUrl.search, searchString, 'query string is sent to server')
+      assert.strictEqual(incomingUrl.pathname, queryPath, 'requested path is sent to server')
+      assert.strictEqual(incomingUrl.search, searchString, 'query string is sent to server')
       break
 
     default:

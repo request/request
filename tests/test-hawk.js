@@ -154,7 +154,7 @@ function authenticate (req) {
   }
 
   const headerParts = req.headers.authorization.match(/^(\w+)(?:\s+(.*))?$/)
-  assert.equal(headerParts[1], 'Hawk')
+  assert.strictEqual(headerParts[1], 'Hawk')
   const attributes = {}
   headerParts[2].replace(/(\w+)="([^"\\]*)"\s*(?:,\s*|$)/g, ($0, $1, $2) => { attributes[$1] = $2 })
   const hostParts = req.headers.host.split(':')
@@ -174,7 +174,7 @@ function authenticate (req) {
     id: attributes.id
   }
 
-  assert.equal(attributes.id, 'dh37fgj492je')
+  assert.strictEqual(attributes.id, 'dh37fgj492je')
   const credentials = {
     key: 'werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn',
     algorithm: 'sha256',
@@ -182,6 +182,6 @@ function authenticate (req) {
   }
 
   const mac = hawk.calculateMac(credentials, artifacts)
-  assert.equal(mac, attributes.mac)
+  assert.strictEqual(mac, attributes.mac)
   return 'OK'
 }

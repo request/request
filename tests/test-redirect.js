@@ -42,7 +42,7 @@ function createLandingEndpoint (landing) {
   s.on('/' + landing, (req, res) => {
     // Make sure the cookie doesn't get included twice, see #139:
     // Make sure cookies are set properly after redirect
-    assert.equal(req.headers.cookie, 'foo=bar; quux=baz; ham=eggs')
+    assert.strictEqual(req.headers.cookie, 'foo=bar; quux=baz; ham=eggs')
     hits[landing] = true
     res.writeHead(200, {'x-response': req.method.toUpperCase() + ' ' + landing})
     res.end(req.method.toUpperCase() + ' ' + landing)
