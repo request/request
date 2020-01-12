@@ -2,8 +2,10 @@
 
 var fs = require('fs')
 var https = require('https')
-var options = { key: fs.readFileSync('./localhost.key'),
-  cert: fs.readFileSync('./localhost.crt') }
+var options = {
+  key: fs.readFileSync('./localhost.key'),
+  cert: fs.readFileSync('./localhost.crt')
+}
 
 var server = https.createServer(options, function (req, res) {
   res.writeHead(200)
@@ -18,12 +20,14 @@ server.listen(0, function () {
     ca: ca
   })
 
-  https.request({ host: 'localhost',
+  https.request({
+    host: 'localhost',
     method: 'HEAD',
     port: this.address().port,
     agent: agent,
-    ca: [ ca ],
-    path: '/' }, function (res) {
+    ca: [ca],
+    path: '/'
+  }, function (res) {
     if (res.socket.authorized) {
       console.log('node test: OK')
     } else {

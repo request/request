@@ -31,7 +31,7 @@ function createRedirectEndpoint (code, label, landing) {
   s.on('/' + label, (req, res) => {
     hits[label] = true
     res.writeHead(code, {
-      'location': s.url + '/' + landing,
+      location: s.url + '/' + landing,
       'set-cookie': 'ham=eggs'
     })
     res.end()
@@ -44,7 +44,7 @@ function createLandingEndpoint (landing) {
     // Make sure cookies are set properly after redirect
     assert.strictEqual(req.headers.cookie, 'foo=bar; quux=baz; ham=eggs')
     hits[landing] = true
-    res.writeHead(200, {'x-response': req.method.toUpperCase() + ' ' + landing})
+    res.writeHead(200, { 'x-response': req.method.toUpperCase() + ' ' + landing })
     res.end(req.method.toUpperCase() + ' ' + landing)
   })
 }
@@ -365,9 +365,9 @@ tape('should have referer header by default when following redirect', (t) => {
     t.equal(res.statusCode, 200)
     t.end()
   })
-  .on('redirect', function () {
-    t.equal(this.headers.referer, s.url + '/temp')
-  })
+    .on('redirect', function () {
+      t.equal(this.headers.referer, s.url + '/temp')
+    })
 })
 
 tape('should not have referer header when removeRefererHeader is true', (t) => {
@@ -382,9 +382,9 @@ tape('should not have referer header when removeRefererHeader is true', (t) => {
     t.equal(res.statusCode, 200)
     t.end()
   })
-  .on('redirect', function () {
-    t.equal(this.headers.referer, undefined)
-  })
+    .on('redirect', function () {
+      t.equal(this.headers.referer, undefined)
+    })
 })
 
 tape('should preserve referer header set in the initial request when removeRefererHeader is true', (t) => {
@@ -399,9 +399,9 @@ tape('should preserve referer header set in the initial request when removeRefer
     t.equal(res.statusCode, 200)
     t.end()
   })
-  .on('redirect', function () {
-    t.equal(this.headers.referer, 'http://awesome.com')
-  })
+    .on('redirect', function () {
+      t.equal(this.headers.referer, 'http://awesome.com')
+    })
 })
 
 tape('should use same agent class on redirect', (t) => {
@@ -410,10 +410,8 @@ tape('should use same agent class on redirect', (t) => {
   const agentOptions = {}
 
   function FakeAgent (agentOptions) {
-    let createConnection
-
     agent = new http.Agent(agentOptions)
-    createConnection = agent.createConnection
+    const createConnection = agent.createConnection
     agent.createConnection = function () {
       calls++
       return createConnection.apply(agent, arguments)

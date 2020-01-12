@@ -11,74 +11,74 @@ const cases = {
   // based on body type
   '+array -stream': {
     options: {
-      multipart: [{name: 'field', body: 'value'}]
+      multipart: [{ name: 'field', body: 'value' }]
     },
-    expected: {chunked: false}
+    expected: { chunked: false }
   },
   '+array +stream': {
     options: {
-      multipart: [{name: 'file', body: null}]
+      multipart: [{ name: 'file', body: null }]
     },
-    expected: {chunked: true}
+    expected: { chunked: true }
   },
   // encoding overrides body value
   '+array +encoding': {
     options: {
-      headers: {'transfer-encoding': 'chunked'},
-      multipart: [{name: 'field', body: 'value'}]
+      headers: { 'transfer-encoding': 'chunked' },
+      multipart: [{ name: 'field', body: 'value' }]
     },
-    expected: {chunked: true}
+    expected: { chunked: true }
   },
 
   // based on body type
   '+object -stream': {
     options: {
-      multipart: {data: [{name: 'field', body: 'value'}]}
+      multipart: { data: [{ name: 'field', body: 'value' }] }
     },
-    expected: {chunked: false}
+    expected: { chunked: false }
   },
   '+object +stream': {
     options: {
-      multipart: {data: [{name: 'file', body: null}]}
+      multipart: { data: [{ name: 'file', body: null }] }
     },
-    expected: {chunked: true}
+    expected: { chunked: true }
   },
   // encoding overrides body value
   '+object +encoding': {
     options: {
-      headers: {'transfer-encoding': 'chunked'},
-      multipart: {data: [{name: 'field', body: 'value'}]}
+      headers: { 'transfer-encoding': 'chunked' },
+      multipart: { data: [{ name: 'field', body: 'value' }] }
     },
-    expected: {chunked: true}
+    expected: { chunked: true }
   },
 
   // based on body type
   '+object -chunked -stream': {
     options: {
-      multipart: {chunked: false, data: [{name: 'field', body: 'value'}]}
+      multipart: { chunked: false, data: [{ name: 'field', body: 'value' }] }
     },
-    expected: {chunked: false}
+    expected: { chunked: false }
   },
   '+object -chunked +stream': {
     options: {
-      multipart: {chunked: false, data: [{name: 'file', body: null}]}
+      multipart: { chunked: false, data: [{ name: 'file', body: null }] }
     },
-    expected: {chunked: true}
+    expected: { chunked: true }
   },
   // chunked overrides body value
   '+object +chunked -stream': {
     options: {
-      multipart: {chunked: true, data: [{name: 'field', body: 'value'}]}
+      multipart: { chunked: true, data: [{ name: 'field', body: 'value' }] }
     },
-    expected: {chunked: true}
+    expected: { chunked: true }
   },
   // encoding overrides chunked
   '+object +encoding -chunked': {
     options: {
-      headers: {'transfer-encoding': 'chunked'},
-      multipart: {chunked: false, data: [{name: 'field', body: 'value'}]}
+      headers: { 'transfer-encoding': 'chunked' },
+      multipart: { chunked: false, data: [{ name: 'field', body: 'value' }] }
     },
-    expected: {chunked: true}
+    expected: { chunked: true }
   }
 }
 

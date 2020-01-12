@@ -15,7 +15,7 @@ tape('multipart form append', (t) => {
 
   const server = http.createServer((req, res) => {
     if (req.url === '/file') {
-      res.writeHead(200, {'content-type': 'image/jpg', 'content-length': 7187})
+      res.writeHead(200, { 'content-type': 'image/jpg', 'content-length': 7187 })
       res.end(fs.readFileSync(remoteFile), 'binary')
       return
     }

@@ -40,10 +40,10 @@ tape('proxy', (t) => {
     proxy: s.url,
     headers: {
       'Proxy-Authorization': 'Basic dXNlcjpwYXNz',
-      'authorization': 'Token deadbeef',
+      authorization: 'Token deadbeef',
       'dont-send-to-proxy': 'ok',
       'dont-send-to-dest': 'ok',
-      'accept': 'yo',
+      accept: 'yo',
       'user-agent': 'just another foobar'
     },
     proxyHeaderExclusiveList: ['Dont-send-to-dest']

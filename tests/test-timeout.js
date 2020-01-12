@@ -28,7 +28,7 @@ const s = server.createServer()
 // Request that waits for 200ms
 s.on('/timeout', (req, res) => {
   setTimeout(() => {
-    res.writeHead(200, {'content-type': 'text/plain'})
+    res.writeHead(200, { 'content-type': 'text/plain' })
     res.write('waited')
     res.end()
   }, 200)

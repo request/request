@@ -47,7 +47,7 @@ tape('setup', (t) => {
       res.end('plain')
     })
     plainServer.on('/to_https', (req, res) => {
-      res.writeHead(301, { 'location': 'https://localhost:' + httpsServer.port + '/https' })
+      res.writeHead(301, { location: 'https://localhost:' + httpsServer.port + '/https' })
       res.end()
     })
 
@@ -57,7 +57,7 @@ tape('setup', (t) => {
         res.end('https')
       })
       httpsServer.on('/to_plain', (req, res) => {
-        res.writeHead(302, { 'location': 'http://localhost:' + plainServer.port + '/plain' })
+        res.writeHead(302, { location: 'http://localhost:' + plainServer.port + '/plain' })
         res.end()
       })
 

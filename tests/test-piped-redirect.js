@@ -10,7 +10,7 @@ let port2
 const s1 = http.createServer((req, resp) => {
   if (req.url === '/original') {
     resp.writeHeader(302, {
-      'location': '/redirected'
+      location: '/redirected'
     })
     resp.end()
   } else if (req.url === '/redirected') {

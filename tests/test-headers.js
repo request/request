@@ -56,7 +56,7 @@ function addTests () {
   runTest(
     '#125: headers.cookie with no cookie jar',
     'no-jar',
-    {headers: {cookie: 'foo=bar'}},
+    { headers: { cookie: 'foo=bar' } },
     (t, req, res) => {
       t.equal(req.headers.cookie, 'foo=bar')
     })
@@ -66,17 +66,17 @@ function addTests () {
   runTest(
     '#125: headers.cookie + cookie jar',
     'header-and-jar',
-    {jar: jar, headers: {cookie: 'foo=bar'}},
+    { jar: jar, headers: { cookie: 'foo=bar' } },
     (t, req, res) => {
       t.equal(req.headers.cookie, 'foo=bar; quux=baz')
     })
 
   const jar2 = request.jar()
-  jar2.setCookie('quux=baz; Domain=foo.bar.com', s.url, {ignoreError: true})
+  jar2.setCookie('quux=baz; Domain=foo.bar.com', s.url, { ignoreError: true })
   runTest(
     '#794: ignore cookie parsing and domain errors',
     'ignore-errors',
-    {jar: jar2, headers: {cookie: 'foo=bar'}},
+    { jar: jar2, headers: { cookie: 'foo=bar' } },
     (t, req, res) => {
       t.equal(req.headers.cookie, 'foo=bar')
     })
@@ -88,7 +88,8 @@ function addTests () {
       json: true,
       method: 'POST',
       headers: { 'content-type': 'application/json; charset=UTF-8' },
-      body: { hello: 'my friend' }},
+      body: { hello: 'my friend' }
+    },
     (t, req, res) => {
       t.equal(req.headers['content-type'], 'application/json; charset=UTF-8')
     }
@@ -236,15 +237,15 @@ tape('catch invalid characters error - GET', (t) => {
   request({
     url: s.url + '/headers.json',
     headers: {
-      'test': 'אבגד'
+      test: 'אבגד'
     }
   }, (err, res, body) => {
     t.true(isExpectedHeaderCharacterError('test', err))
   })
-  .on('error', (err) => {
-    t.true(isExpectedHeaderCharacterError('test', err))
-    t.end()
-  })
+    .on('error', (err) => {
+      t.true(isExpectedHeaderCharacterError('test', err))
+      t.end()
+    })
 })
 
 tape('catch invalid characters error - POST', (t) => {
@@ -252,16 +253,16 @@ tape('catch invalid characters error - POST', (t) => {
     method: 'POST',
     url: s.url + '/headers.json',
     headers: {
-      'test': 'אבגד'
+      test: 'אבגד'
     },
     body: 'beep'
   }, (err, res, body) => {
     t.true(isExpectedHeaderCharacterError('test', err))
   })
-  .on('error', (err) => {
-    t.true(isExpectedHeaderCharacterError('test', err))
-    t.end()
-  })
+    .on('error', (err) => {
+      t.true(isExpectedHeaderCharacterError('test', err))
+      t.end()
+    })
 })
 
 if (hasIPv6interface) {

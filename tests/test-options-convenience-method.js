@@ -14,7 +14,7 @@ tape('setup', (t) => {
     s.on('/options', (req, res) => {
       res.writeHead(200, {
         'x-original-method': req.method,
-        'allow': 'OPTIONS, GET, HEAD'
+        allow: 'OPTIONS, GET, HEAD'
       })
 
       res.end()

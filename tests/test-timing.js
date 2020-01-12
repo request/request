@@ -17,7 +17,7 @@ tape('setup', (t) => {
     plainServer.on('/redir', (req, res) => {
       // fake redirect delay to ensure strong signal for rollup check
       setTimeout(() => {
-        res.writeHead(301, { 'location': 'http://localhost:' + plainServer.port + '/' })
+        res.writeHead(301, { location: 'http://localhost:' + plainServer.port + '/' })
         res.end()
       }, redirectMockTime)
     })
@@ -27,7 +27,7 @@ tape('setup', (t) => {
 })
 
 tape('non-redirected request is timed', (t) => {
-  const options = {time: true}
+  const options = { time: true }
 
   const start = new Date().getTime()
   const r = request('http://localhost:' + plainServer.port + '/', options, (err, res, body) => {
@@ -78,7 +78,7 @@ tape('non-redirected request is timed', (t) => {
 })
 
 tape('redirected request is timed with rollup', (t) => {
-  const options = {time: true}
+  const options = { time: true }
   const r = request('http://localhost:' + plainServer.port + '/redir', options, (err, res, body) => {
     t.equal(err, null)
     t.equal(typeof res.elapsedTime, 'number')

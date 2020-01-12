@@ -16,19 +16,19 @@ const FormData = require('form-data')
 const extend = require('extend')
 const isstream = require('isstream')
 const isTypedArray = require('is-typedarray').strict
-const {safeStringify, isReadStream, toBase64, defer, copy, version} = require('./lib/helpers')
+const { safeStringify, isReadStream, toBase64, defer, copy, version } = require('./lib/helpers')
 const cookies = require('./lib/cookies')
 const getProxyFromURI = require('./lib/getProxyFromURI')
-const {Querystring} = require('./lib/querystring')
-const {Har} = require('./lib/har')
-const {Auth} = require('./lib/auth')
-const {OAuth} = require('./lib/oauth')
+const { Querystring } = require('./lib/querystring')
+const { Har } = require('./lib/har')
+const { Auth } = require('./lib/auth')
+const { OAuth } = require('./lib/oauth')
 const hawk = require('./lib/hawk')
-const {Multipart} = require('./lib/multipart')
-const {Redirect} = require('./lib/redirect')
-const {Tunnel} = require('./lib/tunnel')
+const { Multipart } = require('./lib/multipart')
+const { Redirect } = require('./lib/redirect')
+const { Tunnel } = require('./lib/tunnel')
 const now = require('performance-now')
-const {Buffer} = require('safe-buffer')
+const { Buffer } = require('safe-buffer')
 
 const globalCookieJar = cookies.jar()
 
@@ -855,7 +855,7 @@ class Request extends stream.Stream {
     }
 
     const protocol = this.proxy && !this.tunnel ? this.proxy.protocol : this.uri.protocol
-    const defaultModules = {'http:': http, 'https:': https}
+    const defaultModules = { 'http:': http, 'https:': https }
     const httpModules = this.httpModules || {}
 
     this.httpModule = httpModules[protocol] || defaultModules[protocol]

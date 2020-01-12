@@ -35,7 +35,7 @@ tape('forever', (t) => {
   const r = request({
     url: s.url,
     forever: true,
-    pool: {maxSockets: 1024}
+    pool: { maxSockets: 1024 }
   }, (err, res, body) => {
     // explicitly shut down the agent
     if (typeof r.agent.destroy === 'function') {
@@ -80,7 +80,7 @@ tape('forever, should use same agent in sequential requests', (t) => {
 tape('forever, should use same agent in sequential requests(with pool.maxSockets)', (t) => {
   const r = request.defaults({
     forever: true,
-    pool: {maxSockets: 1024}
+    pool: { maxSockets: 1024 }
   })
   const req1 = r(s.url)
   const req2 = r(s.url + '/somepath')
@@ -100,7 +100,7 @@ tape('forever, should use same agent in sequential requests(with pool.maxSockets
 tape('forever, should use same agent in request() and request.verb', (t) => {
   const r = request.defaults({
     forever: true,
-    pool: {maxSockets: 1024}
+    pool: { maxSockets: 1024 }
   })
   const req1 = r(s.url)
   const req2 = r.get(s.url)
@@ -120,12 +120,12 @@ tape('forever, should use same agent in request() and request.verb', (t) => {
 tape('should use different agent if pool option specified', (t) => {
   const r = request.defaults({
     forever: true,
-    pool: {maxSockets: 1024}
+    pool: { maxSockets: 1024 }
   })
   const req1 = r(s.url)
   const req2 = r.get({
     url: s.url,
-    pool: {maxSockets: 20}
+    pool: { maxSockets: 20 }
   })
   req1.abort()
   req2.abort()

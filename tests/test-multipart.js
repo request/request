@@ -13,7 +13,7 @@ function runTest (t, a) {
 
   const server = http.createServer((req, res) => {
     if (req.url === '/file') {
-      res.writeHead(200, {'content-type': 'image/jpg'})
+      res.writeHead(200, { 'content-type': 'image/jpg' })
       res.end(fs.readFileSync(remoteFile), 'binary')
       return
     }
@@ -67,7 +67,7 @@ function runTest (t, a) {
       }
 
       res.writeHead(200)
-      res.end(a.json ? JSON.stringify({status: 'done'}) : 'done')
+      res.end(a.json ? JSON.stringify({ status: 'done' }) : 'done')
     })
   })
 
@@ -75,11 +75,11 @@ function runTest (t, a) {
     const url = 'http://localhost:' + this.address().port
     // @NOTE: multipartData properties must be set here so that my_file read stream does not leak in node v0.8
     multipartData = [
-      {name: 'my_field', body: 'my_value'},
-      {name: 'my_number', body: 1000},
-      {name: 'my_buffer', body: Buffer.from([1, 2, 3])},
-      {name: 'my_file', body: fs.createReadStream(localFile)},
-      {name: 'remote_file', body: request(url + '/file')}
+      { name: 'my_field', body: 'my_value' },
+      { name: 'my_number', body: 1000 },
+      { name: 'my_buffer', body: Buffer.from([1, 2, 3]) },
+      { name: 'my_file', body: fs.createReadStream(localFile) },
+      { name: 'remote_file', body: request(url + '/file') }
     ]
 
     const reqOptions = {
@@ -97,7 +97,7 @@ function runTest (t, a) {
     request[a.method](reqOptions, (err, res, body) => {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
-      t.deepEqual(body, a.json ? {status: 'done'} : 'done')
+      t.deepEqual(body, a.json ? { status: 'done' } : 'done')
       server.close(() => {
         t.end()
       })
@@ -122,7 +122,7 @@ methods.forEach((method) => {
       ].join(' ')
 
       tape(name, (t) => {
-        runTest(t, {method: method, header: header, json: json})
+        runTest(t, { method: method, header: header, json: json })
       })
     })
   })

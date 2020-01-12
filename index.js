@@ -16,7 +16,7 @@
 
 const extend = require('extend')
 const cookies = require('./lib/cookies')
-const {paramsHaveRequestBody} = require('./lib/helpers')
+const { paramsHaveRequestBody } = require('./lib/helpers')
 
 // organize params for patch, post, put, head, del
 function initParams (uri, options, callback) {
@@ -26,9 +26,9 @@ function initParams (uri, options, callback) {
 
   const params = {}
   if (options !== null && typeof options === 'object') {
-    extend(params, options, {uri: uri})
+    extend(params, options, { uri: uri })
   } else if (typeof uri === 'string') {
-    extend(params, {uri: uri})
+    extend(params, { uri: uri })
   } else {
     extend(params, uri)
   }
@@ -68,7 +68,7 @@ request.post = verbFunc('post')
 request.put = verbFunc('put')
 request.patch = verbFunc('patch')
 request.del = verbFunc('delete')
-request['delete'] = verbFunc('delete')
+request.delete = verbFunc('delete')
 
 request.jar = store => cookies.jar(store)
 

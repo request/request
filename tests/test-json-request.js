@@ -96,16 +96,16 @@ testJSONValueReplacer('jsonReplacer', -48269.592, (k, v) => {
   return v * -1
 }, 48269.592)
 testJSONValueReplacer('jsonReplacerInvalid', -48269.592, 'invalid replacer', -48269.592)
-testJSONValueReplacer('jsonReplacerObject', {foo: 'bar'}, (k, v) => {
+testJSONValueReplacer('jsonReplacerObject', { foo: 'bar' }, (k, v) => {
   return v.toUpperCase ? v.toUpperCase() : v
-}, {foo: 'BAR'})
+}, { foo: 'BAR' })
 
 tape('missing body', (t) => {
   s.on('/missing-body', (req, res) => {
     t.equal(req.headers['content-type'], undefined)
     res.end()
   })
-  request({url: s.url + '/missing-body', json: true}, () => {
+  request({ url: s.url + '/missing-body', json: true }, () => {
     t.end()
   })
 })

@@ -10,7 +10,7 @@ const s = server.createServer()
 tape('setup', (t) => {
   s.listen(0, () => {
     s.on('/', (req, res) => {
-      res.writeHead(200, {'content-type': 'application/json'})
+      res.writeHead(200, { 'content-type': 'application/json' })
       res.end(JSON.stringify({
         method: req.method,
         headers: req.headers,
@@ -19,7 +19,7 @@ tape('setup', (t) => {
     })
 
     s.on('/head', (req, res) => {
-      res.writeHead(200, {'x-data': JSON.stringify({method: req.method, headers: req.headers})})
+      res.writeHead(200, { 'x-data': JSON.stringify({ method: req.method, headers: req.headers }) })
       res.end()
     })
 
@@ -29,7 +29,7 @@ tape('setup', (t) => {
         data += d
       })
       req.on('end', () => {
-        res.writeHead(200, {'Content-Type': 'application/json'})
+        res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({
           method: req.method, headers: req.headers, data: JSON.parse(data)
         }))
@@ -130,7 +130,7 @@ tape('post(string, object, function) with body', (t) => {
 
 tape('del(string, function)', (t) => {
   request.defaults({
-    headers: {foo: 'bar'},
+    headers: { foo: 'bar' },
     json: true
   }).del(s.url + '/', (e, r, b) => {
     t.equal(b.method, 'DELETE')
@@ -141,7 +141,7 @@ tape('del(string, function)', (t) => {
 
 tape('delete(string, function)', (t) => {
   request.defaults({
-    headers: {foo: 'bar'},
+    headers: { foo: 'bar' },
     json: true
   }).delete(s.url + '/', (e, r, b) => {
     t.equal(b.method, 'DELETE')
@@ -173,25 +173,25 @@ tape('recursive defaults', (t) => {
     defaultsTwo(options, callback)
   })
 
-  defaultsOne(s.url + '/', {json: true}, (e, r, b) => {
+  defaultsOne(s.url + '/', { json: true }, (e, r, b) => {
     t.equal(b.method, 'GET')
     t.equal(b.headers.foo, 'bar1')
   })
 
-  defaultsTwo(s.url + '/', {json: true}, (e, r, b) => {
+  defaultsTwo(s.url + '/', { json: true }, (e, r, b) => {
     t.equal(b.method, 'GET')
     t.equal(b.headers.foo, 'bar1')
     t.equal(b.headers.baz, 'bar2')
   })
 
   // requester function on recursive defaults
-  defaultsThree(s.url + '/', {json: true}, (e, r, b) => {
+  defaultsThree(s.url + '/', { json: true }, (e, r, b) => {
     t.equal(b.method, 'GET')
     t.equal(b.headers.foo, 'bar3')
     t.equal(b.headers.baz, 'bar2')
   })
 
-  defaultsTwo.get(s.url + '/', {json: true}, (e, r, b) => {
+  defaultsTwo.get(s.url + '/', { json: true }, (e, r, b) => {
     t.equal(b.method, 'GET')
     t.equal(b.headers.foo, 'bar1')
     t.equal(b.headers.baz, 'bar2')
@@ -217,12 +217,12 @@ tape('recursive defaults requester', (t) => {
     defaultsOne(options, callback)
   })
 
-  defaultsOne.get(s.url + '/', {json: true}, (e, r, b) => {
+  defaultsOne.get(s.url + '/', { json: true }, (e, r, b) => {
     t.equal(b.method, 'GET')
     t.equal(b.headers.foo, 'bar1')
   })
 
-  defaultsTwo.get(s.url + '/', {json: true}, (e, r, b) => {
+  defaultsTwo.get(s.url + '/', { json: true }, (e, r, b) => {
     t.equal(b.method, 'GET')
     t.equal(b.headers.foo, 'bar1')
     t.equal(b.headers.baz, 'bar2')
@@ -280,8 +280,8 @@ tape('test only setting undefined properties', (t) => {
     headers: { 'x-foo': 'bar' }
   })({
     uri: s.url + '/set-undefined',
-    json: {foo: 'bar'},
-    headers: {'x-foo': 'baz'}
+    json: { foo: 'bar' },
+    headers: { 'x-foo': 'baz' }
   }, (e, r, b) => {
     t.equal(b.method, 'POST')
     t.equal(b.headers['content-type'], 'application/json')
@@ -306,7 +306,7 @@ tape('invoke defaults', (t) => {
     uri: s.url + '/',
     headers: { foo: 'bar' }
   })
-  d({json: true}, (e, r, b) => {
+  d({ json: true }, (e, r, b) => {
     t.equal(b.method, 'GET')
     t.equal(b.headers.foo, 'bar')
     t.end()
@@ -318,7 +318,7 @@ tape('invoke convenience method from defaults', (t) => {
     uri: s.url + '/',
     headers: { foo: 'bar' }
   })
-  d.get({json: true}, (e, r, b) => {
+  d.get({ json: true }, (e, r, b) => {
     t.equal(b.method, 'GET')
     t.equal(b.headers.foo, 'bar')
     t.end()
@@ -327,7 +327,7 @@ tape('invoke convenience method from defaults', (t) => {
 
 tape('defaults without options', (t) => {
   const d = request.defaults()
-  d.get(s.url + '/', {json: true}, (e, r, b) => {
+  d.get(s.url + '/', { json: true }, (e, r, b) => {
     t.equal(r.statusCode, 200)
     t.end()
   })

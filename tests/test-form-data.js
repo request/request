@@ -14,14 +14,14 @@ function runTest (t, options) {
 
   const server = http.createServer((req, res) => {
     if (req.url === '/file') {
-      res.writeHead(200, {'content-type': 'image/jpg', 'content-length': 7187})
+      res.writeHead(200, { 'content-type': 'image/jpg', 'content-length': 7187 })
       res.end(fs.readFileSync(remoteFile), 'binary')
       return
     }
 
     if (options.auth) {
       if (!req.headers.authorization) {
-        res.writeHead(401, {'www-authenticate': 'Basic realm="Private"'})
+        res.writeHead(401, { 'www-authenticate': 'Basic realm="Private"' })
         res.end()
         return
       } else {
@@ -76,7 +76,7 @@ function runTest (t, options) {
       t.ok(data.indexOf('Content-Type: ' + mime.lookup(remoteFile)) !== -1)
 
       res.writeHead(200)
-      res.end(options.json ? JSON.stringify({status: 'done'}) : 'done')
+      res.end(options.json ? JSON.stringify({ status: 'done' }) : 'done')
     })
   })
 
@@ -107,12 +107,12 @@ function runTest (t, options) {
       reqOptions.json = true
     }
     if (options.auth) {
-      reqOptions.auth = {user: 'user', pass: 'pass', sendImmediately: false}
+      reqOptions.auth = { user: 'user', pass: 'pass', sendImmediately: false }
     }
     request.post(reqOptions, (err, res, body) => {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
-      t.deepEqual(body, options.json ? {status: 'done'} : 'done')
+      t.deepEqual(body, options.json ? { status: 'done' } : 'done')
       server.close(() => {
         t.end()
       })
@@ -121,13 +121,13 @@ function runTest (t, options) {
 }
 
 tape('multipart formData', (t) => {
-  runTest(t, {json: false})
+  runTest(t, { json: false })
 })
 
 tape('multipart formData + JSON', (t) => {
-  runTest(t, {json: true})
+  runTest(t, { json: true })
 })
 
 tape('multipart formData + basic auth', (t) => {
-  runTest(t, {json: false, auth: true})
+  runTest(t, { json: false, auth: true })
 })

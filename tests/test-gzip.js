@@ -279,7 +279,7 @@ tape('do not try to pipe responses with no body', (t) => {
       t.end()
       return
     }
-    options.headers = {code: statusCodes[index]}
+    options.headers = { code: statusCodes[index] }
     request.post(options, (err, res, body) => {
       t.equal(err, null)
       t.equal(res.headers.code, statusCodes[index].toString())

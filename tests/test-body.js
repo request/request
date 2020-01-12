@@ -35,7 +35,7 @@ addTest('testGet', {
 
 addTest('testGetChunkBreak', {
   resp: server.createChunkResponse(
-    [ Buffer.from([239]),
+    [Buffer.from([239]),
       Buffer.from([163]),
       Buffer.from([191]),
       Buffer.from([206]),
@@ -60,7 +60,7 @@ addTest('testGetUTF', {
 })
 
 addTest('testGetJSON', {
-  resp: server.createGetResponse('{"test":true}', 'application/json'), json: true, expectBody: {'test': true}
+  resp: server.createGetResponse('{"test":true}', 'application/json'), json: true, expectBody: { test: true }
 })
 
 addTest('testPutString', {
@@ -72,7 +72,7 @@ addTest('testPutBuffer', {
 })
 
 addTest('testPutJSON', {
-  resp: server.createPostValidator(JSON.stringify({foo: 'bar'})), method: 'PUT', json: {foo: 'bar'}
+  resp: server.createPostValidator(JSON.stringify({ foo: 'bar' })), method: 'PUT', json: { foo: 'bar' }
 })
 
 addTest('testPutMultipart', {
@@ -86,8 +86,8 @@ addTest('testPutMultipart', {
     '\r\n--__BOUNDARY__--'
   ),
   method: 'PUT',
-  multipart: [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'},
-    {'body': 'Oh hi.'}
+  multipart: [{ 'content-type': 'text/html', body: '<html><body>Oh hi.</body></html>' },
+    { body: 'Oh hi.' }
   ]
 })
 
@@ -103,8 +103,8 @@ addTest('testPutMultipartPreambleCRLF', {
   ),
   method: 'PUT',
   preambleCRLF: true,
-  multipart: [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'},
-    {'body': 'Oh hi.'}
+  multipart: [{ 'content-type': 'text/html', body: '<html><body>Oh hi.</body></html>' },
+    { body: 'Oh hi.' }
   ]
 })
 
@@ -122,8 +122,8 @@ addTest('testPutMultipartPostambleCRLF', {
   method: 'PUT',
   preambleCRLF: true,
   postambleCRLF: true,
-  multipart: [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'},
-    {'body': 'Oh hi.'}
+  multipart: [{ 'content-type': 'text/html', body: '<html><body>Oh hi.</body></html>' },
+    { body: 'Oh hi.' }
   ]
 })
 

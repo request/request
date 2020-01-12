@@ -55,7 +55,7 @@ function runAllTests (strict, s) {
 
   runTest('testGetChunkBreak', {
     resp: server.createChunkResponse(
-      [ Buffer.from([239]),
+      [Buffer.from([239]),
         Buffer.from([163]),
         Buffer.from([191]),
         Buffer.from([206]),
@@ -68,7 +68,7 @@ function runAllTests (strict, s) {
   })
 
   runTest('testGetJSON', {
-    resp: server.createGetResponse('{"test":true}', 'application/json'), json: true, expectBody: {'test': true}
+    resp: server.createGetResponse('{"test":true}', 'application/json'), json: true, expectBody: { test: true }
   })
 
   runTest('testPutString', {
@@ -80,7 +80,7 @@ function runAllTests (strict, s) {
   })
 
   runTest('testPutJSON', {
-    resp: server.createPostValidator(JSON.stringify({foo: 'bar'})), method: 'PUT', json: {foo: 'bar'}
+    resp: server.createPostValidator(JSON.stringify({ foo: 'bar' })), method: 'PUT', json: { foo: 'bar' }
   })
 
   runTest('testPutMultipart', {
@@ -94,8 +94,8 @@ function runAllTests (strict, s) {
       '\r\n--__BOUNDARY__--'
     ),
     method: 'PUT',
-    multipart: [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'},
-      {'body': 'Oh hi.'}
+    multipart: [{ 'content-type': 'text/html', body: '<html><body>Oh hi.</body></html>' },
+      { body: 'Oh hi.' }
     ]
   })
 

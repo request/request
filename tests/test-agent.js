@@ -26,7 +26,7 @@ function httpAgent (t, options, req) {
     t.equal(Object.keys(r.agent.sockets).length, 1, '1 socket name')
 
     const name = (typeof r.agent.getName === 'function')
-      ? r.agent.getName({port: s.port})
+      ? r.agent.getName({ port: s.port })
       : 'localhost:' + s.port // node 0.10-
     t.equal(r.agent.sockets[name].length, 1, '1 open socket')
 
@@ -61,7 +61,7 @@ function foreverAgent (t, options, req) {
 tape('options.agent', (t) => {
   httpAgent(t, {
     uri: s.url,
-    agent: new http.Agent({keepAlive: true})
+    agent: new http.Agent({ keepAlive: true })
   })
 })
 
@@ -69,7 +69,7 @@ tape('options.agentClass + options.agentOptions', (t) => {
   httpAgent(t, {
     uri: s.url,
     agentClass: http.Agent,
-    agentOptions: {keepAlive: true}
+    agentOptions: { keepAlive: true }
   })
 })
 
@@ -90,7 +90,7 @@ tape('forever() method', (t) => {
   const options = {
     uri: s.url
   }
-  const r = request.forever({maxSockets: 1})
+  const r = request.forever({ maxSockets: 1 })
 
   if (v.major === 0 && v.minor <= 10) { foreverAgent(t, options, r) } else { httpAgent(t, options, r) }
 })

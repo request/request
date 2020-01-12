@@ -51,11 +51,11 @@ tape('setup', (t) => {
 
 tape('bearer auth', (t) => {
   request({
-    'method': 'GET',
-    'uri': bearerServer.url + '/test/',
-    'auth': {
-      'bearer': 'theToken',
-      'sendImmediately': false
+    method: 'GET',
+    uri: bearerServer.url + '/test/',
+    auth: {
+      bearer: 'theToken',
+      sendImmediately: false
     }
   }, (error, res, body) => {
     t.error(error)
@@ -68,10 +68,10 @@ tape('bearer auth', (t) => {
 tape('bearer auth with default sendImmediately', (t) => {
   // If we don't set sendImmediately = false, request will send bearer auth
   request({
-    'method': 'GET',
-    'uri': bearerServer.url + '/test2/',
-    'auth': {
-      'bearer': 'theToken'
+    method: 'GET',
+    uri: bearerServer.url + '/test2/',
+    auth: {
+      bearer: 'theToken'
     }
   }, (error, res, body) => {
     t.error(error)
@@ -83,12 +83,12 @@ tape('bearer auth with default sendImmediately', (t) => {
 
 tape('', (t) => {
   request({
-    'method': 'POST',
-    'form': { 'data_key': 'data_value' },
-    'uri': bearerServer.url + '/post/',
-    'auth': {
-      'bearer': 'theToken',
-      'sendImmediately': false
+    method: 'POST',
+    form: { data_key: 'data_value' },
+    uri: bearerServer.url + '/post/',
+    auth: {
+      bearer: 'theToken',
+      sendImmediately: false
     }
   }, (error, res, body) => {
     t.error(error)
@@ -122,11 +122,11 @@ tape('using .auth, sendImmediately = true', (t) => {
 
 tape('bearer is a function', (t) => {
   request({
-    'method': 'GET',
-    'uri': bearerServer.url + '/test/',
-    'auth': {
-      'bearer': () => { return 'theToken' },
-      'sendImmediately': false
+    method: 'GET',
+    uri: bearerServer.url + '/test/',
+    auth: {
+      bearer: () => { return 'theToken' },
+      sendImmediately: false
     }
   }, (error, res, body) => {
     t.error(error)
@@ -139,10 +139,10 @@ tape('bearer is a function', (t) => {
 tape('bearer is a function, path = test2', (t) => {
   // If we don't set sendImmediately = false, request will send bearer auth
   request({
-    'method': 'GET',
-    'uri': bearerServer.url + '/test2/',
-    'auth': {
-      'bearer': () => { return 'theToken' }
+    method: 'GET',
+    uri: bearerServer.url + '/test2/',
+    auth: {
+      bearer: () => { return 'theToken' }
     }
   }, (error, res, body) => {
     t.error(error)
@@ -154,10 +154,10 @@ tape('bearer is a function, path = test2', (t) => {
 
 tape('no auth method', (t) => {
   request({
-    'method': 'GET',
-    'uri': bearerServer.url + '/test2/',
-    'auth': {
-      'bearer': undefined
+    method: 'GET',
+    uri: bearerServer.url + '/test2/',
+    auth: {
+      bearer: undefined
     }
   }, (error, res, body) => {
     t.equal(error.message, 'no auth mechanism defined')
@@ -167,10 +167,10 @@ tape('no auth method', (t) => {
 
 tape('null bearer', (t) => {
   request({
-    'method': 'GET',
-    'uri': bearerServer.url + '/test2/',
-    'auth': {
-      'bearer': null
+    method: 'GET',
+    uri: bearerServer.url + '/test2/',
+    auth: {
+      bearer: null
     }
   }, (error, res, body) => {
     t.error(error)

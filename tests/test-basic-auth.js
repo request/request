@@ -58,12 +58,12 @@ tape('setup', (t) => {
 
 tape('sendImmediately - false', (t) => {
   const r = request({
-    'method': 'GET',
-    'uri': basicServer.url + '/test/',
-    'auth': {
-      'user': 'user',
-      'pass': 'pass',
-      'sendImmediately': false
+    method: 'GET',
+    uri: basicServer.url + '/test/',
+    auth: {
+      user: 'user',
+      pass: 'pass',
+      sendImmediately: false
     }
   }, (error, res, body) => {
     t.error(error)
@@ -77,11 +77,11 @@ tape('sendImmediately - false', (t) => {
 tape('sendImmediately - true', (t) => {
   // If we don't set sendImmediately = false, request will send basic auth
   const r = request({
-    'method': 'GET',
-    'uri': basicServer.url + '/test2/',
-    'auth': {
-      'user': 'user',
-      'pass': 'pass'
+    method: 'GET',
+    uri: basicServer.url + '/test2/',
+    auth: {
+      user: 'user',
+      pass: 'pass'
     }
   }, (error, res, body) => {
     t.error(error)
@@ -94,8 +94,8 @@ tape('sendImmediately - true', (t) => {
 
 tape('credentials in url', (t) => {
   const r = request({
-    'method': 'GET',
-    'uri': basicServer.url.replace(/:\/\//, '$&user:pass@') + '/test2/'
+    method: 'GET',
+    uri: basicServer.url.replace(/:\/\//, '$&user:pass@') + '/test2/'
   }, (error, res, body) => {
     t.error(error)
     t.equal(r._auth.user, 'user')
@@ -107,13 +107,13 @@ tape('credentials in url', (t) => {
 
 tape('POST request', (t) => {
   const r = request({
-    'method': 'POST',
-    'form': { 'key': 'value' },
-    'uri': basicServer.url + '/post/',
-    'auth': {
-      'user': 'user',
-      'pass': 'pass',
-      'sendImmediately': false
+    method: 'POST',
+    form: { key: 'value' },
+    uri: basicServer.url + '/post/',
+    auth: {
+      user: 'user',
+      pass: 'pass',
+      sendImmediately: false
     }
   }, (error, res, body) => {
     t.error(error)
@@ -127,12 +127,12 @@ tape('POST request', (t) => {
 tape('user - empty string', (t) => {
   t.doesNotThrow(() => {
     const r = request({
-      'method': 'GET',
-      'uri': basicServer.url + '/allow_empty_user/',
-      'auth': {
-        'user': '',
-        'pass': 'pass',
-        'sendImmediately': false
+      method: 'GET',
+      uri: basicServer.url + '/allow_empty_user/',
+      auth: {
+        user: '',
+        pass: 'pass',
+        sendImmediately: false
       }
     }, (error, res, body) => {
       t.error(error)
@@ -147,12 +147,12 @@ tape('user - empty string', (t) => {
 tape('pass - undefined', (t) => {
   t.doesNotThrow(() => {
     const r = request({
-      'method': 'GET',
-      'uri': basicServer.url + '/allow_undefined_password/',
-      'auth': {
-        'user': 'user',
-        'pass': undefined,
-        'sendImmediately': false
+      method: 'GET',
+      uri: basicServer.url + '/allow_undefined_password/',
+      auth: {
+        user: 'user',
+        pass: undefined,
+        sendImmediately: false
       }
     }, (error, res, body) => {
       t.error(error)
@@ -167,12 +167,12 @@ tape('pass - undefined', (t) => {
 tape('pass - utf8', (t) => {
   t.doesNotThrow(() => {
     const r = request({
-      'method': 'GET',
-      'uri': basicServer.url + '/allow_undefined_password/',
-      'auth': {
-        'user': 'user',
-        'pass': 'pâss',
-        'sendImmediately': false
+      method: 'GET',
+      uri: basicServer.url + '/allow_undefined_password/',
+      auth: {
+        user: 'user',
+        pass: 'pâss',
+        sendImmediately: false
       }
     }, (error, res, body) => {
       t.error(error)

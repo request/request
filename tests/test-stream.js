@@ -18,7 +18,7 @@ tape('before', (t) => {
 
 tape('request body stream', (t) => {
   const fpath = path.join(__dirname, 'unicycle.jpg')
-  const input = fs.createReadStream(fpath, {highWaterMark: 1000})
+  const input = fs.createReadStream(fpath, { highWaterMark: 1000 })
   request({
     uri: server.url,
     method: 'POST',

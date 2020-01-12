@@ -41,55 +41,55 @@ const bodyJson = '{"rfc3986":"!*()\'"}'
 const cases = [
   {
     _name: 'qs',
-    qs: {rfc3986: "!*()'"},
+    qs: { rfc3986: "!*()'" },
     _expectBody: ''
   },
   {
     _name: 'qs + json',
-    qs: {rfc3986: "!*()'"},
+    qs: { rfc3986: "!*()'" },
     json: true,
     _expectBody: ''
   },
   {
     _name: 'form',
-    form: {rfc3986: "!*()'"},
+    form: { rfc3986: "!*()'" },
     _expectBody: bodyEscaped
   },
   {
     _name: 'form + json',
-    form: {rfc3986: "!*()'"},
+    form: { rfc3986: "!*()'" },
     json: true,
     _expectBody: bodyEscaped
   },
   {
     _name: 'qs + form',
-    qs: {rfc3986: "!*()'"},
-    form: {rfc3986: "!*()'"},
+    qs: { rfc3986: "!*()'" },
+    form: { rfc3986: "!*()'" },
     _expectBody: bodyEscaped
   },
   {
     _name: 'qs + form + json',
-    qs: {rfc3986: "!*()'"},
-    form: {rfc3986: "!*()'"},
+    qs: { rfc3986: "!*()'" },
+    form: { rfc3986: "!*()'" },
     json: true,
     _expectBody: bodyEscaped
   },
   {
     _name: 'body + header + json',
-    headers: {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+    headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
     body: "rfc3986=!*()'",
     json: true,
     _expectBody: bodyEscaped
   },
   {
     _name: 'body + json',
-    body: {rfc3986: "!*()'"},
+    body: { rfc3986: "!*()'" },
     json: true,
     _expectBody: bodyJson
   },
   {
     _name: 'json object',
-    json: {rfc3986: "!*()'"},
+    json: { rfc3986: "!*()'" },
     _expectBody: bodyJson
   }
 ]

@@ -73,7 +73,7 @@ tape('multipart without body 1', (t) => {
   t.throws(() => {
     request({
       uri: local,
-      multipart: [ {} ]
+      multipart: [{}]
     })
   }, /^Error: Body attribute missing in multipart\.$/)
   t.end()
@@ -82,7 +82,7 @@ tape('multipart without body 1', (t) => {
 tape('multipart without body 2', (t) => {
   t.throws(() => {
     request(local, {
-      multipart: [ {} ]
+      multipart: [{}]
     })
   }, /^Error: Body attribute missing in multipart\.$/)
   t.end()

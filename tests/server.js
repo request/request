@@ -25,7 +25,7 @@ exports.createEchoServer = () => {
     let b = ''
     req.on('data', (chunk) => { b += chunk })
     req.on('end', () => {
-      resp.writeHead(200, {'content-type': 'application/json'})
+      resp.writeHead(200, { 'content-type': 'application/json' })
       resp.write(JSON.stringify({
         url: req.url,
         method: req.method,
@@ -46,7 +46,7 @@ exports.createEchoServer = () => {
 
 exports.createSSLServer = (opts) => {
   let i
-  const options = { 'key': path.join(__dirname, 'ssl', 'test.key'), 'cert': path.join(__dirname, 'ssl', 'test.crt') }
+  const options = { key: path.join(__dirname, 'ssl', 'test.key'), cert: path.join(__dirname, 'ssl', 'test.crt') }
   if (opts) {
     for (i in opts) {
       options[i] = opts[i]
@@ -95,7 +95,7 @@ exports.createPostValidator = (text, reqContentType) => {
         assert.ok(req.headers['content-type'])
         assert.ok(~req.headers['content-type'].indexOf(reqContentType))
       }
-      resp.writeHead(200, {'content-type': 'text/plain'})
+      resp.writeHead(200, { 'content-type': 'text/plain' })
       resp.write(r)
       resp.end()
     })
@@ -112,7 +112,7 @@ exports.createPostJSONValidator = (value, reqContentType) => {
         assert.ok(req.headers['content-type'])
         assert.ok(~req.headers['content-type'].indexOf(reqContentType))
       }
-      resp.writeHead(200, {'content-type': 'application/json'})
+      resp.writeHead(200, { 'content-type': 'application/json' })
       resp.write(r)
       resp.end()
     })
@@ -121,7 +121,7 @@ exports.createPostJSONValidator = (value, reqContentType) => {
 exports.createGetResponse = (text, contentType) => {
   return (req, resp) => {
     contentType = contentType || 'text/plain'
-    resp.writeHead(200, {'content-type': contentType})
+    resp.writeHead(200, { 'content-type': contentType })
     resp.write(text)
     resp.end()
   }
@@ -129,7 +129,7 @@ exports.createGetResponse = (text, contentType) => {
 exports.createChunkResponse = (chunks, contentType) => {
   return (req, resp) => {
     contentType = contentType || 'text/plain'
-    resp.writeHead(200, {'content-type': contentType})
+    resp.writeHead(200, { 'content-type': contentType })
     chunks.forEach((chunk) => {
       resp.write(chunk)
     })

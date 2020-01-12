@@ -40,23 +40,23 @@ function runTest (t, options, index) {
       })
     })
     if (!options.form && !options.body) {
-      r.form({some: 'url', encoded: 'data'})
+      r.form({ some: 'url', encoded: 'data' })
     }
   })
 }
 
 const cases = [
   {
-    form: {some: 'url', encoded: 'data'},
+    form: { some: 'url', encoded: 'data' },
     json: true
   },
   {
-    headers: {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'},
-    form: {some: 'url', encoded: 'data'},
+    headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+    form: { some: 'url', encoded: 'data' },
     json: true
   },
   {
-    headers: {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+    headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
     body: 'some=url&encoded=data',
     json: true
   },

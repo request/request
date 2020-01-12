@@ -50,17 +50,17 @@ tape('after server sends a cookie', (t) => {
     url: validUrl,
     jar: jar1
   },
-    (error, response, body) => {
-      t.equal(error, null)
-      t.equal(jar1.getCookieString(validUrl), 'foo=bar')
-      t.equal(body, 'okay')
+  (error, response, body) => {
+    t.equal(error, null)
+    t.equal(jar1.getCookieString(validUrl), 'foo=bar')
+    t.equal(body, 'okay')
 
-      const cookies = jar1.getCookies(validUrl)
-      t.equal(cookies.length, 1)
-      t.equal(cookies[0].key, 'foo')
-      t.equal(cookies[0].value, 'bar')
-      t.end()
-    })
+    const cookies = jar1.getCookies(validUrl)
+    t.equal(cookies.length, 1)
+    t.equal(cookies[0].key, 'foo')
+    t.equal(cookies[0].value, 'bar')
+    t.end()
+  })
 })
 
 tape('after server sends a malformed cookie', (t) => {
@@ -70,17 +70,17 @@ tape('after server sends a malformed cookie', (t) => {
     url: malformedUrl,
     jar: jar
   },
-    (error, response, body) => {
-      t.equal(error, null)
-      t.equal(jar.getCookieString(malformedUrl), 'foo')
-      t.equal(body, 'okay')
+  (error, response, body) => {
+    t.equal(error, null)
+    t.equal(jar.getCookieString(malformedUrl), 'foo')
+    t.equal(body, 'okay')
 
-      const cookies = jar.getCookies(malformedUrl)
-      t.equal(cookies.length, 1)
-      t.equal(cookies[0].key, '')
-      t.equal(cookies[0].value, 'foo')
-      t.end()
-    })
+    const cookies = jar.getCookies(malformedUrl)
+    t.equal(cookies.length, 1)
+    t.equal(cookies[0].key, '')
+    t.equal(cookies[0].value, 'foo')
+    t.end()
+  })
 })
 
 tape('after server sends a cookie for a different domain', (t) => {
@@ -90,13 +90,13 @@ tape('after server sends a cookie for a different domain', (t) => {
     url: invalidUrl,
     jar: jar2
   },
-    (error, response, body) => {
-      t.equal(error, null)
-      t.equal(jar2.getCookieString(validUrl), '')
-      t.deepEqual(jar2.getCookies(validUrl), [])
-      t.equal(body, 'okay')
-      t.end()
-    })
+  (error, response, body) => {
+    t.equal(error, null)
+    t.equal(jar2.getCookieString(validUrl), '')
+    t.deepEqual(jar2.getCookies(validUrl), [])
+    t.equal(body, 'okay')
+    t.end()
+  })
 })
 
 tape('make sure setCookie works', (t) => {

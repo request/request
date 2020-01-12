@@ -107,7 +107,7 @@ tape('piping to a request object with invalid uri', (t) => {
 })
 
 tape('piping to a request object with a json body', (t) => {
-  const obj = {foo: 'bar'}
+  const obj = { foo: 'bar' }
   const json = JSON.stringify(obj)
   s.once('/push-json', server.createPostValidator(json, 'application/json'))
   const mybodydata = new stream.Stream()
