@@ -1,28 +1,28 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
 
-var s = server.createServer()
+const s = server.createServer()
 
-tape('setup', function (t) {
-  s.listen(0, function () {
+tape('setup', (t) => {
+  s.listen(0, () => {
     t.end()
   })
 })
 
 function testJSONValue (testId, value) {
-  tape('test ' + testId, function (t) {
-    var testUrl = '/' + testId
+  tape('test ' + testId, (t) => {
+    const testUrl = '/' + testId
     s.on(testUrl, server.createPostJSONValidator(value, 'application/json'))
-    var opts = {
+    const opts = {
       method: 'PUT',
       uri: s.url + testUrl,
       json: true,
       body: value
     }
-    request(opts, function (err, resp, body) {
+    request(opts, (err, resp, body) => {
       t.equal(err, null)
       t.equal(resp.statusCode, 200)
       t.deepEqual(body, value)
@@ -32,17 +32,17 @@ function testJSONValue (testId, value) {
 }
 
 function testJSONValueReviver (testId, value, reviver, revivedValue) {
-  tape('test ' + testId, function (t) {
-    var testUrl = '/' + testId
+  tape('test ' + testId, (t) => {
+    const testUrl = '/' + testId
     s.on(testUrl, server.createPostJSONValidator(value, 'application/json'))
-    var opts = {
+    const opts = {
       method: 'PUT',
       uri: s.url + testUrl,
       json: true,
       jsonReviver: reviver,
       body: value
     }
-    request(opts, function (err, resp, body) {
+    request(opts, (err, resp, body) => {
       t.equal(err, null)
       t.equal(resp.statusCode, 200)
       t.deepEqual(body, revivedValue)
@@ -52,17 +52,17 @@ function testJSONValueReviver (testId, value, reviver, revivedValue) {
 }
 
 function testJSONValueReplacer (testId, value, replacer, replacedValue) {
-  tape('test ' + testId, function (t) {
-    var testUrl = '/' + testId
+  tape('test ' + testId, (t) => {
+    const testUrl = '/' + testId
     s.on(testUrl, server.createPostJSONValidator(replacedValue, 'application/json'))
-    var opts = {
+    const opts = {
       method: 'PUT',
       uri: s.url + testUrl,
       json: true,
       jsonReplacer: replacer,
       body: value
     }
-    request(opts, function (err, resp, body) {
+    request(opts, (err, resp, body) => {
       t.equal(err, null)
       t.equal(resp.statusCode, 200)
       t.deepEqual(body, replacedValue)
@@ -87,31 +87,31 @@ testJSONValue('jsonObject', {
   objectProperty: { object: 'property' }
 })
 
-testJSONValueReviver('jsonReviver', -48269.592, function (k, v) {
+testJSONValueReviver('jsonReviver', -48269.592, (k, v) => {
   return v * -1
 }, 48269.592)
 testJSONValueReviver('jsonReviverInvalid', -48269.592, 'invalid reviver', -48269.592)
 
-testJSONValueReplacer('jsonReplacer', -48269.592, function (k, v) {
+testJSONValueReplacer('jsonReplacer', -48269.592, (k, v) => {
   return v * -1
 }, 48269.592)
 testJSONValueReplacer('jsonReplacerInvalid', -48269.592, 'invalid replacer', -48269.592)
-testJSONValueReplacer('jsonReplacerObject', {foo: 'bar'}, function (k, v) {
+testJSONValueReplacer('jsonReplacerObject', {foo: 'bar'}, (k, v) => {
   return v.toUpperCase ? v.toUpperCase() : v
 }, {foo: 'BAR'})
 
-tape('missing body', function (t) {
-  s.on('/missing-body', function (req, res) {
+tape('missing body', (t) => {
+  s.on('/missing-body', (req, res) => {
     t.equal(req.headers['content-type'], undefined)
     res.end()
   })
-  request({url: s.url + '/missing-body', json: true}, function () {
+  request({url: s.url + '/missing-body', json: true}, () => {
     t.end()
   })
 })
 
-tape('cleanup', function (t) {
-  s.close(function () {
+tape('cleanup', (t) => {
+  s.close(() => {
     t.end()
   })
 })

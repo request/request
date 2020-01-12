@@ -1,33 +1,33 @@
 'use strict'
 
-var request = require('../index')
-var server = require('./server')
-var tape = require('tape')
+const request = require('../index')
+const server = require('./server')
+const tape = require('tape')
 
-var s = server.createServer()
+const s = server.createServer()
 
-tape('setup', function (t) {
-  s.listen(0, function () {
+tape('setup', (t) => {
+  s.listen(0, () => {
     t.end()
   })
 })
 
-tape('re-emit formData errors', function (t) {
-  s.on('/', function (req, res) {
+tape('re-emit formData errors', (t) => {
+  s.on('/', (req, res) => {
     res.writeHead(400)
     res.end()
     t.fail('The form-data error did not abort the request.')
   })
 
-  request.post(s.url, function (err, res, body) {
+  request.post(s.url, (err, res, body) => {
     t.equal(err.message, 'form-data: Arrays are not supported.')
-    setTimeout(function () {
+    setTimeout(() => {
       t.end()
     }, 10)
   }).form().append('field', ['value1', 'value2'])
 })
 
-tape('omit content-length header if the value is set to NaN', function (t) {
+tape('omit content-length header if the value is set to NaN', (t) => {
   // returns chunked HTTP response which is streamed to the 2nd HTTP request in the form data
   s.on('/chunky', server.createChunkResponse(
     ['some string',
@@ -35,23 +35,23 @@ tape('omit content-length header if the value is set to NaN', function (t) {
     ]))
 
   // accepts form data request
-  s.on('/stream', function (req, resp) {
-    req.on('data', function (chunk) {
+  s.on('/stream', (req, resp) => {
+    req.on('data', (chunk) => {
       // consume the request body
     })
-    req.on('end', function () {
+    req.on('end', () => {
       resp.writeHead(200)
       resp.end()
     })
   })
 
-  var sendStreamRequest = function (stream) {
+  const sendStreamRequest = (stream) => {
     request.post({
       uri: s.url + '/stream',
       formData: {
         param: stream
       }
-    }, function (err, res) {
+    }, (err, res) => {
       t.error(err, 'request failed')
       t.end()
     })
@@ -59,14 +59,14 @@ tape('omit content-length header if the value is set to NaN', function (t) {
 
   request.get({
     uri: s.url + '/chunky'
-  }).on('response', function (res) {
+  }).on('response', (res) => {
     sendStreamRequest(res)
   })
 })
 
 // TODO: remove this test after form-data@2.0 starts stringifying null values
-tape('form-data should throw on null value', function (t) {
-  t.throws(function () {
+tape('form-data should throw on null value', (t) => {
+  t.throws(() => {
     request({
       method: 'POST',
       url: s.url,
@@ -78,8 +78,8 @@ tape('form-data should throw on null value', function (t) {
   t.end()
 })
 
-tape('cleanup', function (t) {
-  s.close(function () {
+tape('cleanup', (t) => {
+  s.close(() => {
     t.end()
   })
 })

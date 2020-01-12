@@ -1,13 +1,13 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var util = require('util')
-var tape = require('tape')
-var destroyable = require('server-destroy')
+const server = require('./server')
+let request = require('../index')
+const util = require('util')
+const tape = require('tape')
+const destroyable = require('server-destroy')
 
-var s = server.createServer()
-var ss = server.createSSLServer()
+const s = server.createServer()
+const ss = server.createSSLServer()
 
 destroyable(s)
 destroyable(ss)
@@ -24,12 +24,12 @@ request = request.defaults({
 // redirect.from(proto, host).to(proto, host) returns an object with keys:
 //   src : source URL
 //   dst : destination URL
-var redirect = {
-  from: function (fromProto, fromHost) {
+const redirect = {
+  from: (fromProto, fromHost) => {
     return {
-      to: function (toProto, toHost) {
-        var fromPort = (fromProto === 'http' ? s.port : ss.port)
-        var toPort = (toProto === 'http' ? s.port : ss.port)
+      to: (toProto, toHost) => {
+        const fromPort = (fromProto === 'http' ? s.port : ss.port)
+        const toPort = (toProto === 'http' ? s.port : ss.port)
         return {
           src: util.format(
             '%s://%s:%d/to/%s/%s',
@@ -44,10 +44,10 @@ var redirect = {
 }
 
 function handleRequests (srv) {
-  ['http', 'https'].forEach(function (proto) {
-    ['localhost', '127.0.0.1'].forEach(function (host) {
-      srv.on(util.format('/to/%s/%s', proto, host), function (req, res) {
-        var r = redirect
+  ['http', 'https'].forEach((proto) => {
+    ['localhost', '127.0.0.1'].forEach((host) => {
+      srv.on(util.format('/to/%s/%s', proto, host), (req, res) => {
+        const r = redirect
           .from(srv.protocol, req.headers.host.split(':')[0])
           .to(proto, host)
         res.writeHead(301, {
@@ -56,7 +56,7 @@ function handleRequests (srv) {
         res.end()
       })
 
-      srv.on(util.format('/from/%s/%s', proto, host), function (req, res) {
+      srv.on(util.format('/from/%s/%s', proto, host), (req, res) => {
         res.end('auth: ' + (req.headers.authorization || '(nothing)'))
       })
     })
@@ -67,8 +67,8 @@ handleRequests(s)
 handleRequests(ss)
 
 function runTest (name, redir, expectAuth) {
-  tape('redirect to ' + name, function (t) {
-    request(redir.src, function (err, res, body) {
+  tape('redirect to ' + name, (t) => {
+    request(redir.src, (err, res, body) => {
       t.equal(err, null)
       t.equal(res.request.uri.href, redir.dst)
       t.equal(res.statusCode, 200)
@@ -98,13 +98,13 @@ function addTests () {
     false)
 }
 
-tape('setup', function (t) {
-  s.listen(0, function () {
-    ss.listen(0, function () {
+tape('setup', (t) => {
+  s.listen(0, () => {
+    ss.listen(0, () => {
       addTests()
-      tape('cleanup', function (t) {
-        s.destroy(function () {
-          ss.destroy(function () {
+      tape('cleanup', (t) => {
+        s.destroy(() => {
+          ss.destroy(() => {
             t.end()
           })
         })
@@ -114,7 +114,7 @@ tape('setup', function (t) {
   })
 })
 
-tape('redirect URL helper', function (t) {
+tape('redirect URL helper', (t) => {
   t.deepEqual(
     redirect.from('http', 'localhost').to('https', '127.0.0.1'),
     {

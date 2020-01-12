@@ -1,11 +1,11 @@
 'use strict'
 
-var http = require('http')
-var request = require('../index')
-var tape = require('tape')
-var url = require('url')
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
+const url = require('url')
 
-var s = http.createServer(function (req, res) {
+const s = http.createServer((req, res) => {
   if (req.url === '/redirect/') {
     res.writeHead(302, {
       location: '/'
@@ -18,8 +18,8 @@ var s = http.createServer(function (req, res) {
 })
 
 function addTest (baseUrl, uri, expected) {
-  tape('test baseurl="' + baseUrl + '" uri="' + uri + '"', function (t) {
-    request(uri, { baseUrl: baseUrl }, function (err, resp, body) {
+  tape('test baseurl="' + baseUrl + '" uri="' + uri + '"', (t) => {
+    request(uri, { baseUrl: baseUrl }, (err, resp, body) => {
       t.equal(err, null)
       t.equal(body, 'ok')
       t.equal(resp.headers['x-path'], expected)
@@ -47,12 +47,12 @@ function addTests () {
   addTest(s.url + '/api/', '/resource/', '/api/resource/')
 }
 
-tape('setup', function (t) {
+tape('setup', (t) => {
   s.listen(0, function () {
     s.url = 'http://localhost:' + this.address().port
     addTests()
-    tape('cleanup', function (t) {
-      s.close(function () {
+    tape('cleanup', (t) => {
+      s.close(() => {
         t.end()
       })
     })
@@ -60,31 +60,31 @@ tape('setup', function (t) {
   })
 })
 
-tape('baseUrl', function (t) {
+tape('baseUrl', (t) => {
   request('resource', {
     baseUrl: s.url
-  }, function (err, resp, body) {
+  }, (err, resp, body) => {
     t.equal(err, null)
     t.equal(body, 'ok')
     t.end()
   })
 })
 
-tape('baseUrl defaults', function (t) {
-  var withDefaults = request.defaults({
+tape('baseUrl defaults', (t) => {
+  const withDefaults = request.defaults({
     baseUrl: s.url
   })
-  withDefaults('resource', function (err, resp, body) {
+  withDefaults('resource', (err, resp, body) => {
     t.equal(err, null)
     t.equal(body, 'ok')
     t.end()
   })
 })
 
-tape('baseUrl and redirects', function (t) {
+tape('baseUrl and redirects', (t) => {
   request('/', {
     baseUrl: s.url + '/redirect'
-  }, function (err, resp, body) {
+  }, (err, resp, body) => {
     t.equal(err, null)
     t.equal(body, 'ok')
     t.equal(resp.headers['x-path'], '/')
@@ -92,40 +92,40 @@ tape('baseUrl and redirects', function (t) {
   })
 })
 
-tape('error when baseUrl is not a String', function (t) {
+tape('error when baseUrl is not a String', (t) => {
   request('resource', {
     baseUrl: url.parse(s.url + '/path')
-  }, function (err, resp, body) {
+  }, (err, resp, body) => {
     t.notEqual(err, null)
     t.equal(err.message, 'options.baseUrl must be a string')
     t.end()
   })
 })
 
-tape('error when uri is not a String', function (t) {
+tape('error when uri is not a String', (t) => {
   request(url.parse('resource'), {
     baseUrl: s.url + '/path'
-  }, function (err, resp, body) {
+  }, (err, resp, body) => {
     t.notEqual(err, null)
     t.equal(err.message, 'options.uri must be a string when using options.baseUrl')
     t.end()
   })
 })
 
-tape('error on baseUrl and uri with scheme', function (t) {
+tape('error on baseUrl and uri with scheme', (t) => {
   request(s.url + '/path/ignoring/baseUrl', {
     baseUrl: s.url + '/path/'
-  }, function (err, resp, body) {
+  }, (err, resp, body) => {
     t.notEqual(err, null)
     t.equal(err.message, 'options.uri must be a path when using options.baseUrl')
     t.end()
   })
 })
 
-tape('error on baseUrl and uri with scheme-relative url', function (t) {
+tape('error on baseUrl and uri with scheme-relative url', (t) => {
   request(s.url.slice('http:'.length) + '/path/ignoring/baseUrl', {
     baseUrl: s.url + '/path/'
-  }, function (err, resp, body) {
+  }, (err, resp, body) => {
     t.notEqual(err, null)
     t.equal(err.message, 'options.uri must be a path when using options.baseUrl')
     t.end()

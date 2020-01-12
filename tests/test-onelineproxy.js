@@ -1,11 +1,11 @@
 'use strict'
 
-var http = require('http')
-var assert = require('assert')
-var request = require('../index')
-var tape = require('tape')
+const http = require('http')
+const assert = require('assert')
+const request = require('../index')
+const tape = require('tape')
 
-var server = http.createServer(function (req, resp) {
+const server = http.createServer((req, resp) => {
   resp.statusCode = 200
   if (req.url === '/get') {
     assert.equal(req.method, 'GET')
@@ -14,12 +14,12 @@ var server = http.createServer(function (req, resp) {
     return
   }
   if (req.url === '/put') {
-    var x = ''
+    let x = ''
     assert.equal(req.method, 'PUT')
-    req.on('data', function (chunk) {
+    req.on('data', (chunk) => {
       x += chunk
     })
-    req.on('end', function () {
+    req.on('end', () => {
       assert.equal(x, 'content')
       resp.write('success')
       resp.end()
@@ -38,15 +38,15 @@ var server = http.createServer(function (req, resp) {
   throw new Error('Unknown url', req.url)
 })
 
-tape('setup', function (t) {
+tape('setup', (t) => {
   server.listen(0, function () {
     server.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('chained one-line proxying', function (t) {
-  request(server.url + '/test', function (err, res, body) {
+tape('chained one-line proxying', (t) => {
+  request(server.url + '/test', (err, res, body) => {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, 'success')
@@ -54,8 +54,8 @@ tape('chained one-line proxying', function (t) {
   })
 })
 
-tape('cleanup', function (t) {
-  server.close(function () {
+tape('cleanup', (t) => {
+  server.close(() => {
     t.end()
   })
 })

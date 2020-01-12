@@ -1,13 +1,13 @@
 'use strict'
 
-var http = require('http')
-var path = require('path')
-var request = require('../index')
-var fs = require('fs')
-var tape = require('tape')
+const http = require('http')
+const path = require('path')
+const request = require('../index')
+const fs = require('fs')
+const tape = require('tape')
 
-var localFile = path.join(__dirname, 'unicycle.jpg')
-var cases = {
+const localFile = path.join(__dirname, 'unicycle.jpg')
+const cases = {
   // based on body type
   '+array -stream': {
     options: {
@@ -83,7 +83,7 @@ var cases = {
 }
 
 function runTest (t, test) {
-  var server = http.createServer(function (req, res) {
+  const server = http.createServer((req, res) => {
     t.ok(req.headers['content-type'].match(/^multipart\/related; boundary=[^\s;]+$/))
 
     if (test.expected.chunked) {
@@ -95,14 +95,14 @@ function runTest (t, test) {
     }
 
     // temp workaround
-    var data = ''
+    let data = ''
     req.setEncoding('utf8')
 
-    req.on('data', function (d) {
+    req.on('data', (d) => {
       data += d
     })
 
-    req.on('end', function () {
+    req.on('end', () => {
       // check for the fields traces
       if (test.expected.chunked && data.indexOf('name: file') !== -1) {
         // file
@@ -112,7 +112,7 @@ function runTest (t, test) {
       } else {
         // field
         t.ok(data.indexOf('name: field') !== -1)
-        var parts = test.options.multipart.data || test.options.multipart
+        const parts = test.options.multipart.data || test.options.multipart
         t.ok(data.indexOf(parts[0].body) !== -1)
       }
 
@@ -122,26 +122,26 @@ function runTest (t, test) {
   })
 
   server.listen(0, function () {
-    var url = 'http://localhost:' + this.address().port
+    const url = 'http://localhost:' + this.address().port
     // @NOTE: multipartData properties must be set here
     // so that file read stream does not leak in node v0.8
-    var parts = test.options.multipart.data || test.options.multipart
+    const parts = test.options.multipart.data || test.options.multipart
     if (parts[0].name === 'file') {
       parts[0].body = fs.createReadStream(localFile)
     }
 
-    request.post(url, test.options, function (err, res, body) {
+    request.post(url, test.options, (err, res, body) => {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
-      server.close(function () {
+      server.close(() => {
         t.end()
       })
     })
   })
 }
 
-Object.keys(cases).forEach(function (name) {
-  tape('multipart-encoding ' + name, function (t) {
+Object.keys(cases).forEach((name) => {
+  tape('multipart-encoding ' + name, (t) => {
     runTest(t, cases[name])
   })
 })

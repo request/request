@@ -1,13 +1,13 @@
 'use strict'
 
-var http = require('http')
-var request = require('../index')
-var tape = require('tape')
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
 
-var port1
-var port2
+let port1
+let port2
 
-var s1 = http.createServer(function (req, resp) {
+const s1 = http.createServer((req, resp) => {
   if (req.url === '/original') {
     resp.writeHeader(302, {
       'location': '/redirected'
@@ -22,13 +22,13 @@ var s1 = http.createServer(function (req, resp) {
   }
 })
 
-var s2 = http.createServer(function (req, resp) {
-  var x = request('http://localhost:' + port1 + '/original')
+const s2 = http.createServer((req, resp) => {
+  const x = request('http://localhost:' + port1 + '/original')
   req.pipe(x)
   x.pipe(resp)
 })
 
-tape('setup', function (t) {
+tape('setup', (t) => {
   s1.listen(0, function () {
     port1 = this.address().port
     s2.listen(0, function () {
@@ -38,17 +38,17 @@ tape('setup', function (t) {
   })
 })
 
-tape('piped redirect', function (t) {
-  request('http://localhost:' + port2 + '/original', function (err, res, body) {
+tape('piped redirect', (t) => {
+  request('http://localhost:' + port2 + '/original', (err, res, body) => {
     t.equal(err, null)
     t.equal(body, 'OK')
     t.end()
   })
 })
 
-tape('cleanup', function (t) {
-  s1.close(function () {
-    s2.close(function () {
+tape('cleanup', (t) => {
+  s1.close(() => {
+    s2.close(() => {
       t.end()
     })
   })

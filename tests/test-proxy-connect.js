@@ -1,20 +1,20 @@
 'use strict'
 
-var request = require('../index')
-var tape = require('tape')
+const request = require('../index')
+const tape = require('tape')
 
-var called = false
-var proxiedHost = 'google.com'
-var data = ''
+let called = false
+const proxiedHost = 'google.com'
+let data = ''
 
-var s = require('net').createServer(function (sock) {
+const s = require('net').createServer((sock) => {
   called = true
-  sock.once('data', function (c) {
+  sock.once('data', (c) => {
     data += c
 
     sock.write('HTTP/1.1 200 OK\r\n\r\n')
 
-    sock.once('data', function (c) {
+    sock.once('data', (c) => {
       data += c
 
       sock.write('HTTP/1.1 200 OK\r\n')
@@ -26,14 +26,14 @@ var s = require('net').createServer(function (sock) {
   })
 })
 
-tape('setup', function (t) {
+tape('setup', (t) => {
   s.listen(0, function () {
     s.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('proxy', function (t) {
+tape('proxy', (t) => {
   request({
     tunnel: true,
     url: 'http://' + proxiedHost,
@@ -47,11 +47,11 @@ tape('proxy', function (t) {
       'user-agent': 'just another foobar'
     },
     proxyHeaderExclusiveList: ['Dont-send-to-dest']
-  }, function (err, res, body) {
+  }, (err, res, body) => {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, 'derp\n')
-    var re = new RegExp([
+    const re = new RegExp([
       'CONNECT google.com:80 HTTP/1.1',
       'Proxy-Authorization: Basic dXNlcjpwYXNz',
       'dont-send-to-dest: ok',
@@ -73,8 +73,8 @@ tape('proxy', function (t) {
   })
 })
 
-tape('cleanup', function (t) {
-  s.close(function () {
+tape('cleanup', (t) => {
+  s.close(() => {
     t.end()
   })
 })

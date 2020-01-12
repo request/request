@@ -1,14 +1,14 @@
 'use strict'
 
-var fs = require('fs')
-var http = require('http')
-var path = require('path')
-var https = require('https')
-var stream = require('stream')
-var assert = require('assert')
+const fs = require('fs')
+const http = require('http')
+const path = require('path')
+const https = require('https')
+const stream = require('stream')
+const assert = require('assert')
 
-exports.createServer = function () {
-  var s = http.createServer(function (req, resp) {
+exports.createServer = () => {
+  const s = http.createServer((req, resp) => {
     s.emit(req.url.replace(/(\?.*)/, ''), req, resp)
   })
   s.on('listening', function () {
@@ -20,11 +20,11 @@ exports.createServer = function () {
   return s
 }
 
-exports.createEchoServer = function () {
-  var s = http.createServer(function (req, resp) {
-    var b = ''
-    req.on('data', function (chunk) { b += chunk })
-    req.on('end', function () {
+exports.createEchoServer = () => {
+  const s = http.createServer((req, resp) => {
+    let b = ''
+    req.on('data', (chunk) => { b += chunk })
+    req.on('end', () => {
       resp.writeHead(200, {'content-type': 'application/json'})
       resp.write(JSON.stringify({
         url: req.url,
@@ -44,9 +44,9 @@ exports.createEchoServer = function () {
   return s
 }
 
-exports.createSSLServer = function (opts) {
-  var i
-  var options = { 'key': path.join(__dirname, 'ssl', 'test.key'), 'cert': path.join(__dirname, 'ssl', 'test.crt') }
+exports.createSSLServer = (opts) => {
+  let i
+  const options = { 'key': path.join(__dirname, 'ssl', 'test.key'), 'cert': path.join(__dirname, 'ssl', 'test.crt') }
   if (opts) {
     for (i in opts) {
       options[i] = opts[i]
@@ -59,7 +59,7 @@ exports.createSSLServer = function (opts) {
     }
   }
 
-  var s = https.createServer(options, function (req, resp) {
+  const s = https.createServer(options, (req, resp) => {
     s.emit(req.url, req, resp)
   })
   s.on('listening', function () {
@@ -71,23 +71,23 @@ exports.createSSLServer = function (opts) {
   return s
 }
 
-exports.createPostStream = function (text) {
-  var postStream = new stream.Stream()
+exports.createPostStream = text => {
+  const postStream = new stream.Stream()
   postStream.writeable = true
   postStream.readable = true
-  setTimeout(function () {
+  setTimeout(() => {
     postStream.emit('data', Buffer.from(text))
     postStream.emit('end')
   }, 0)
   return postStream
 }
-exports.createPostValidator = function (text, reqContentType) {
-  var l = function (req, resp) {
-    var r = ''
-    req.on('data', function (chunk) { r += chunk })
-    req.on('end', function () {
+exports.createPostValidator = (text, reqContentType) => {
+  return (req, resp) => {
+    let r = ''
+    req.on('data', (chunk) => { r += chunk })
+    req.on('end', () => {
       if (req.headers['content-type'] && req.headers['content-type'].indexOf('boundary=') >= 0) {
-        var boundary = req.headers['content-type'].split('boundary=')[1]
+        const boundary = req.headers['content-type'].split('boundary=')[1]
         text = text.replace(/__BOUNDARY__/g, boundary)
       }
       assert.equal(r, text)
@@ -100,14 +100,13 @@ exports.createPostValidator = function (text, reqContentType) {
       resp.end()
     })
   }
-  return l
 }
-exports.createPostJSONValidator = function (value, reqContentType) {
-  var l = function (req, resp) {
-    var r = ''
-    req.on('data', function (chunk) { r += chunk })
-    req.on('end', function () {
-      var parsedValue = JSON.parse(r)
+exports.createPostJSONValidator = (value, reqContentType) => {
+  return (req, resp) => {
+    let r = ''
+    req.on('data', (chunk) => { r += chunk })
+    req.on('end', () => {
+      const parsedValue = JSON.parse(r)
       assert.deepEqual(parsedValue, value)
       if (reqContentType) {
         assert.ok(req.headers['content-type'])
@@ -118,25 +117,22 @@ exports.createPostJSONValidator = function (value, reqContentType) {
       resp.end()
     })
   }
-  return l
 }
-exports.createGetResponse = function (text, contentType) {
-  var l = function (req, resp) {
+exports.createGetResponse = (text, contentType) => {
+  return (req, resp) => {
     contentType = contentType || 'text/plain'
     resp.writeHead(200, {'content-type': contentType})
     resp.write(text)
     resp.end()
   }
-  return l
 }
-exports.createChunkResponse = function (chunks, contentType) {
-  var l = function (req, resp) {
+exports.createChunkResponse = (chunks, contentType) => {
+  return (req, resp) => {
     contentType = contentType || 'text/plain'
     resp.writeHead(200, {'content-type': contentType})
-    chunks.forEach(function (chunk) {
+    chunks.forEach((chunk) => {
       resp.write(chunk)
     })
     resp.end()
   }
-  return l
 }

@@ -1,16 +1,16 @@
 'use strict'
 
-var oauth = require('oauth-sign')
-var qs = require('querystring')
-var fs = require('fs')
-var path = require('path')
-var request = require('../index')
-var tape = require('tape')
-var http = require('http')
+const oauth = require('oauth-sign')
+const qs = require('querystring')
+const fs = require('fs')
+const path = require('path')
+const request = require('../index')
+const tape = require('tape')
+const http = require('http')
 
 function getSignature (r) {
-  var sign
-  r.headers.Authorization.slice('OAuth '.length).replace(/, /g, ',').split(',').forEach(function (v) {
+  let sign
+  r.headers.Authorization.slice('OAuth '.length).replace(/, /g, ',').split(',').forEach((v) => {
     if (v.slice(0, 'oauth_signature="'.length) === 'oauth_signature="') {
       sign = v.slice('oauth_signature="'.length, -1)
     }
@@ -20,21 +20,21 @@ function getSignature (r) {
 
 // Tests from Twitter documentation https://dev.twitter.com/docs/auth/oauth
 
-var hmacsign = oauth.hmacsign
-var hmacsign256 = oauth.hmacsign256
-var rsasign = oauth.rsasign
-var rsaPrivatePEM = fs.readFileSync(path.join(__dirname, 'ssl', 'test.key'))
-var reqsign
-var reqsign256
-var reqsignRSA
-var accsign
-var accsign256
-var accsignRSA
-var upsign
-var upsign256
-var upsignRSA
+const hmacsign = oauth.hmacsign
+const hmacsign256 = oauth.hmacsign256
+const rsasign = oauth.rsasign
+const rsaPrivatePEM = fs.readFileSync(path.join(__dirname, 'ssl', 'test.key'))
+let reqsign
+let reqsign256
+let reqsignRSA
+let accsign
+let accsign256
+let accsignRSA
+let upsign
+let upsign256
+let upsignRSA
 
-tape('reqsign', function (t) {
+tape('reqsign', (t) => {
   reqsign = hmacsign('POST', 'https://api.twitter.com/oauth/request_token',
     { oauth_callback: 'http://localhost:3005/the_dance/process_callback?service_provider_id=11',
       oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
@@ -48,7 +48,7 @@ tape('reqsign', function (t) {
   t.end()
 })
 
-tape('reqsign256', function (t) {
+tape('reqsign256', (t) => {
   reqsign256 = hmacsign256('POST', 'https://api.twitter.com/oauth/request_token',
     { oauth_callback: 'http://localhost:3005/the_dance/process_callback?service_provider_id=11',
       oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
@@ -62,7 +62,7 @@ tape('reqsign256', function (t) {
   t.end()
 })
 
-tape('reqsignRSA', function (t) {
+tape('reqsignRSA', (t) => {
   reqsignRSA = rsasign('POST', 'https://api.twitter.com/oauth/request_token',
     { oauth_callback: 'http://localhost:3005/the_dance/process_callback?service_provider_id=11',
       oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
@@ -76,7 +76,7 @@ tape('reqsignRSA', function (t) {
   t.end()
 })
 
-tape('accsign', function (t) {
+tape('accsign', (t) => {
   accsign = hmacsign('POST', 'https://api.twitter.com/oauth/access_token',
     { oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
       oauth_nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
@@ -91,7 +91,7 @@ tape('accsign', function (t) {
   t.end()
 })
 
-tape('accsign256', function (t) {
+tape('accsign256', (t) => {
   accsign256 = hmacsign256('POST', 'https://api.twitter.com/oauth/access_token',
     { oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
       oauth_nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
@@ -106,7 +106,7 @@ tape('accsign256', function (t) {
   t.end()
 })
 
-tape('accsignRSA', function (t) {
+tape('accsignRSA', (t) => {
   accsignRSA = rsasign('POST', 'https://api.twitter.com/oauth/access_token',
     { oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
       oauth_nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
@@ -121,7 +121,7 @@ tape('accsignRSA', function (t) {
   t.end()
 })
 
-tape('upsign', function (t) {
+tape('upsign', (t) => {
   upsign = hmacsign('POST', 'http://api.twitter.com/1/statuses/update.json',
     { oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
       oauth_nonce: 'oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y',
@@ -136,7 +136,7 @@ tape('upsign', function (t) {
   t.end()
 })
 
-tape('upsign256', function (t) {
+tape('upsign256', (t) => {
   upsign256 = hmacsign256('POST', 'http://api.twitter.com/1/statuses/update.json',
     { oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
       oauth_nonce: 'oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y',
@@ -151,7 +151,7 @@ tape('upsign256', function (t) {
   t.end()
 })
 
-tape('upsignRSA', function (t) {
+tape('upsignRSA', (t) => {
   upsignRSA = rsasign('POST', 'http://api.twitter.com/1/statuses/update.json',
     { oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
       oauth_nonce: 'oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y',
@@ -166,8 +166,8 @@ tape('upsignRSA', function (t) {
   t.end()
 })
 
-tape('rsign', function (t) {
-  var rsign = request.post(
+tape('rsign', (t) => {
+  const rsign = request.post(
     { url: 'https://api.twitter.com/oauth/request_token',
       oauth: { callback: 'http://localhost:3005/the_dance/process_callback?service_provider_id=11',
         consumer_key: 'GDdmIQH6jhtmLUypg82g',
@@ -178,15 +178,15 @@ tape('rsign', function (t) {
       }
     })
 
-  process.nextTick(function () {
+  process.nextTick(() => {
     t.equal(reqsign, getSignature(rsign))
     rsign.abort()
     t.end()
   })
 })
 
-tape('rsign_rsa', function (t) {
-  var rsignRSA = request.post(
+tape('rsign_rsa', (t) => {
+  const rsignRSA = request.post(
     { url: 'https://api.twitter.com/oauth/request_token',
       oauth: { callback: 'http://localhost:3005/the_dance/process_callback?service_provider_id=11',
         consumer_key: 'GDdmIQH6jhtmLUypg82g',
@@ -198,15 +198,15 @@ tape('rsign_rsa', function (t) {
       }
     })
 
-  process.nextTick(function () {
+  process.nextTick(() => {
     t.equal(reqsignRSA, getSignature(rsignRSA))
     rsignRSA.abort()
     t.end()
   })
 })
 
-tape('raccsign', function (t) {
-  var raccsign = request.post(
+tape('raccsign', (t) => {
+  const raccsign = request.post(
     { url: 'https://api.twitter.com/oauth/access_token',
       oauth: { consumer_key: 'GDdmIQH6jhtmLUypg82g',
         nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
@@ -220,15 +220,15 @@ tape('raccsign', function (t) {
       }
     })
 
-  process.nextTick(function () {
+  process.nextTick(() => {
     t.equal(accsign, getSignature(raccsign))
     raccsign.abort()
     t.end()
   })
 })
 
-tape('raccsignRSA', function (t) {
-  var raccsignRSA = request.post(
+tape('raccsignRSA', (t) => {
+  const raccsignRSA = request.post(
     { url: 'https://api.twitter.com/oauth/access_token',
       oauth: { consumer_key: 'GDdmIQH6jhtmLUypg82g',
         nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
@@ -242,15 +242,15 @@ tape('raccsignRSA', function (t) {
       }
     })
 
-  process.nextTick(function () {
+  process.nextTick(() => {
     t.equal(accsignRSA, getSignature(raccsignRSA))
     raccsignRSA.abort()
     t.end()
   })
 })
 
-tape('rupsign', function (t) {
-  var rupsign = request.post(
+tape('rupsign', (t) => {
+  const rupsign = request.post(
     { url: 'http://api.twitter.com/1/statuses/update.json',
       oauth: { consumer_key: 'GDdmIQH6jhtmLUypg82g',
         nonce: 'oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y',
@@ -263,15 +263,15 @@ tape('rupsign', function (t) {
       },
       form: {status: 'setting up my twitter 私のさえずりを設定する'}
     })
-  process.nextTick(function () {
+  process.nextTick(() => {
     t.equal(upsign, getSignature(rupsign))
     rupsign.abort()
     t.end()
   })
 })
 
-tape('rupsignRSA', function (t) {
-  var rupsignRSA = request.post(
+tape('rupsignRSA', (t) => {
+  const rupsignRSA = request.post(
     { url: 'http://api.twitter.com/1/statuses/update.json',
       oauth: { consumer_key: 'GDdmIQH6jhtmLUypg82g',
         nonce: 'oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y',
@@ -284,15 +284,15 @@ tape('rupsignRSA', function (t) {
       },
       form: {status: 'setting up my twitter 私のさえずりを設定する'}
     })
-  process.nextTick(function () {
+  process.nextTick(() => {
     t.equal(upsignRSA, getSignature(rupsignRSA))
     rupsignRSA.abort()
     t.end()
   })
 })
 
-tape('rfc5849 example', function (t) {
-  var rfc5849 = request.post(
+tape('rfc5849 example', (t) => {
+  const rfc5849 = request.post(
     { url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b',
       oauth: { consumer_key: '9djdj82h48djs9d2',
         nonce: '7d8f3e4a',
@@ -309,7 +309,7 @@ tape('rfc5849 example', function (t) {
       }
     })
 
-  process.nextTick(function () {
+  process.nextTick(() => {
     // different signature in rfc5849 because request sets oauth_version by default
     t.equal('OB33pYjWAnf+xtOHN4Gmbdil168=', getSignature(rfc5849))
     rfc5849.abort()
@@ -317,8 +317,8 @@ tape('rfc5849 example', function (t) {
   })
 })
 
-tape('rfc5849 RSA example', function (t) {
-  var rfc5849RSA = request.post(
+tape('rfc5849 RSA example', (t) => {
+  const rfc5849RSA = request.post(
     { url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b',
       oauth: { consumer_key: '9djdj82h48djs9d2',
         nonce: '7d8f3e4a',
@@ -335,7 +335,7 @@ tape('rfc5849 RSA example', function (t) {
       }
     })
 
-  process.nextTick(function () {
+  process.nextTick(() => {
     // different signature in rfc5849 because request sets oauth_version by default
     t.equal('ThNYfZhYogcAU6rWgI3ZFlPEhoIXHMZcuMzl+jykJZW/ab+AxyefS03dyd64CclIZ0u8JEW64TQ5SHthoQS8aM8qir4t+t88lRF3LDkD2KtS1krgCZTUQxkDL5BO5pxsqAQ2Zfdcrzaxb6VMGD1Hf+Pno+fsHQo/UUKjq4V3RMo=', getSignature(rfc5849RSA))
     rfc5849RSA.abort()
@@ -343,8 +343,8 @@ tape('rfc5849 RSA example', function (t) {
   })
 })
 
-tape('plaintext signature method', function (t) {
-  var plaintext = request.post(
+tape('plaintext signature method', (t) => {
+  const plaintext = request.post(
     { url: 'https://dummy.com',
       oauth: { consumer_secret: 'consumer_secret',
         token_secret: 'token_secret',
@@ -352,16 +352,16 @@ tape('plaintext signature method', function (t) {
       }
     })
 
-  process.nextTick(function () {
+  process.nextTick(() => {
     t.equal('consumer_secret&token_secret', getSignature(plaintext))
     plaintext.abort()
     t.end()
   })
 })
 
-tape('invalid transport_method', function (t) {
+tape('invalid transport_method', (t) => {
   t.throws(
-    function () {
+    () => {
       request.post(
         { url: 'http://example.com/',
           oauth: { transport_method: 'headerquery'
@@ -371,9 +371,9 @@ tape('invalid transport_method', function (t) {
   t.end()
 })
 
-tape("invalid method while using transport_method 'body'", function (t) {
+tape("invalid method while using transport_method 'body'", (t) => {
   t.throws(
-    function () {
+    () => {
       request.get(
         { url: 'http://example.com/',
           headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
@@ -384,9 +384,9 @@ tape("invalid method while using transport_method 'body'", function (t) {
   t.end()
 })
 
-tape("invalid content-type while using transport_method 'body'", function (t) {
+tape("invalid content-type while using transport_method 'body'", (t) => {
   t.throws(
-    function () {
+    () => {
       request.post(
         { url: 'http://example.com/',
           headers: { 'content-type': 'application/json; charset=UTF-8' },
@@ -397,8 +397,8 @@ tape("invalid content-type while using transport_method 'body'", function (t) {
   t.end()
 })
 
-tape('query transport_method', function (t) {
-  var r = request.post(
+tape('query transport_method', (t) => {
+  const r = request.post(
     { url: 'https://api.twitter.com/oauth/access_token',
       oauth: { consumer_key: 'GDdmIQH6jhtmLUypg82g',
         nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
@@ -413,7 +413,7 @@ tape('query transport_method', function (t) {
       }
     })
 
-  process.nextTick(function () {
+  process.nextTick(() => {
     t.notOk(r.headers.Authorization, "oauth Authorization header should not be present with transport_method 'query'")
     t.equal(r.uri.path, r.path, 'r.uri.path should equal r.path')
     t.ok(r.path.match(/^\/oauth\/access_token\?/), 'path should contain path + query')
@@ -431,8 +431,8 @@ tape('query transport_method', function (t) {
   })
 })
 
-tape('query transport_method + form option + url params', function (t) {
-  var r = request.post(
+tape('query transport_method + form option + url params', (t) => {
+  const r = request.post(
     { url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b',
       oauth: { consumer_key: '9djdj82h48djs9d2',
         nonce: '7d8f3e4a',
@@ -450,7 +450,7 @@ tape('query transport_method + form option + url params', function (t) {
       }
     })
 
-  process.nextTick(function () {
+  process.nextTick(() => {
     t.notOk(r.headers.Authorization, "oauth Authorization header should not be present with transport_method 'query'")
     t.equal(r.uri.path, r.path, 'r.uri.path should equal r.path')
     t.ok(r.path.match(/^\/request\?/), 'path should contain path + query')
@@ -472,8 +472,8 @@ tape('query transport_method + form option + url params', function (t) {
   })
 })
 
-tape('query transport_method + qs option + url params', function (t) {
-  var r = request.post(
+tape('query transport_method + qs option + url params', (t) => {
+  const r = request.post(
     { url: 'http://example.com/request?a2=r%20b',
       oauth: { consumer_key: '9djdj82h48djs9d2',
         nonce: '7d8f3e4a',
@@ -493,7 +493,7 @@ tape('query transport_method + qs option + url params', function (t) {
       }
     })
 
-  process.nextTick(function () {
+  process.nextTick(() => {
     t.notOk(r.headers.Authorization, "oauth Authorization header should not be present with transport_method 'query'")
     t.equal(r.uri.path, r.path, 'r.uri.path should equal r.path')
     t.ok(r.path.match(/^\/request\?/), 'path should contain path + query')
@@ -517,8 +517,8 @@ tape('query transport_method + qs option + url params', function (t) {
   })
 })
 
-tape('body transport_method', function (t) {
-  var r = request.post(
+tape('body transport_method', (t) => {
+  const r = request.post(
     { url: 'https://api.twitter.com/oauth/access_token',
       headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
       oauth: { consumer_key: 'GDdmIQH6jhtmLUypg82g',
@@ -534,7 +534,7 @@ tape('body transport_method', function (t) {
       }
     })
 
-  process.nextTick(function () {
+  process.nextTick(() => {
     t.notOk(r.headers.Authorization, "oauth Authorization header should not be present with transport_method 'body'")
     t.deepEqual(qs.parse(r.body),
       { oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
@@ -550,8 +550,8 @@ tape('body transport_method', function (t) {
   })
 })
 
-tape('body transport_method + form option + url params', function (t) {
-  var r = request.post(
+tape('body transport_method + form option + url params', (t) => {
+  const r = request.post(
     { url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b',
       oauth: { consumer_key: '9djdj82h48djs9d2',
         nonce: '7d8f3e4a',
@@ -569,7 +569,7 @@ tape('body transport_method + form option + url params', function (t) {
       }
     })
 
-  process.nextTick(function () {
+  process.nextTick(() => {
     t.notOk(r.headers.Authorization, "oauth Authorization header should not be present with transport_method 'body'")
     t.deepEqual(qs.parse(r.body),
       { c2: '',
@@ -587,8 +587,8 @@ tape('body transport_method + form option + url params', function (t) {
   })
 })
 
-tape('body_hash manually set', function (t) {
-  var r = request.post(
+tape('body_hash manually set', (t) => {
+  const r = request.post(
     { url: 'http://example.com',
       oauth: { consumer_secret: 'consumer_secret',
         body_hash: 'ManuallySetHash'
@@ -596,16 +596,16 @@ tape('body_hash manually set', function (t) {
       json: {foo: 'bar'}
     })
 
-  process.nextTick(function () {
-    var hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
+  process.nextTick(() => {
+    const hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
     t.equal('ManuallySetHash', hash)
     r.abort()
     t.end()
   })
 })
 
-tape('body_hash automatically built for string', function (t) {
-  var r = request.post(
+tape('body_hash automatically built for string', (t) => {
+  const r = request.post(
     { url: 'http://example.com',
       oauth: { consumer_secret: 'consumer_secret',
         body_hash: true
@@ -613,8 +613,8 @@ tape('body_hash automatically built for string', function (t) {
       body: 'Hello World!'
     })
 
-  process.nextTick(function () {
-    var hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
+  process.nextTick(() => {
+    const hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
     // from https://tools.ietf.org/id/draft-eaton-oauth-bodyhash-00.html#anchor15
     t.equal('Lve95gjOVATpfV8EL5X4nxwjKHE%3D', hash)
     r.abort()
@@ -622,8 +622,8 @@ tape('body_hash automatically built for string', function (t) {
   })
 })
 
-tape('body_hash automatically built for JSON', function (t) {
-  var r = request.post(
+tape('body_hash automatically built for JSON', (t) => {
+  const r = request.post(
     { url: 'http://example.com',
       oauth: { consumer_secret: 'consumer_secret',
         body_hash: true
@@ -631,16 +631,16 @@ tape('body_hash automatically built for JSON', function (t) {
       json: {foo: 'bar'}
     })
 
-  process.nextTick(function () {
-    var hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
+  process.nextTick(() => {
+    const hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
     t.equal('pedE0BZFQNM7HX6mFsKPL6l%2BdUo%3D', hash)
     r.abort()
     t.end()
   })
 })
 
-tape('body_hash PLAINTEXT signature_method', function (t) {
-  t.throws(function () {
+tape('body_hash PLAINTEXT signature_method', (t) => {
+  t.throws(() => {
     request.post(
       { url: 'http://example.com',
         oauth: { consumer_secret: 'consumer_secret',
@@ -653,11 +653,11 @@ tape('body_hash PLAINTEXT signature_method', function (t) {
   t.end()
 })
 
-tape('refresh oauth_nonce on redirect', function (t) {
-  var oauthNonce1
-  var oauthNonce2
-  var url
-  var s = http.createServer(function (req, res) {
+tape('refresh oauth_nonce on redirect', (t) => {
+  let oauthNonce1
+  let oauthNonce2
+  let url
+  const s = http.createServer((req, res) => {
     if (req.url === '/redirect') {
       oauthNonce1 = req.headers.authorization.replace(/.*oauth_nonce="([^"]+)".*/, '$1')
       res.writeHead(302, {location: url + '/response'})
@@ -677,22 +677,22 @@ tape('refresh oauth_nonce on redirect', function (t) {
           token: 'token',
           token_secret: 'token_secret'
         }
-      }, function (err, res, body) {
+      }, (err, res, body) => {
       t.equal(err, null)
       t.notEqual(oauthNonce1, oauthNonce2)
-      s.close(function () {
+      s.close(() => {
         t.end()
       })
     })
   })
 })
 
-tape('no credentials on external redirect', function (t) {
-  var s2 = http.createServer(function (req, res) {
+tape('no credentials on external redirect', (t) => {
+  const s2 = http.createServer((req, res) => {
     res.writeHead(200, {'content-type': 'text/plain'})
     res.end()
   })
-  var s1 = http.createServer(function (req, res) {
+  const s1 = http.createServer((req, res) => {
     res.writeHead(302, {location: s2.url})
     res.end()
   })
@@ -707,11 +707,11 @@ tape('no credentials on external redirect', function (t) {
             token: 'token',
             token_secret: 'token_secret'
           }
-        }, function (err, res, body) {
+        }, (err, res, body) => {
         t.equal(err, null)
         t.equal(res.request.headers.Authorization, undefined)
-        s1.close(function () {
-          s2.close(function () {
+        s1.close(() => {
+          s2.close(() => {
             t.end()
           })
         })

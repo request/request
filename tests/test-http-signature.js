@@ -1,11 +1,11 @@
 'use strict'
 
-var http = require('http')
-var request = require('../index')
-var httpSignature = require('http-signature')
-var tape = require('tape')
+const http = require('http')
+const request = require('../index')
+const httpSignature = require('http-signature')
+const tape = require('tape')
 
-var privateKeyPEMs = {}
+const privateKeyPEMs = {}
 
 privateKeyPEMs['key-1'] =
   '-----BEGIN RSA PRIVATE KEY-----\n' +
@@ -36,7 +36,7 @@ privateKeyPEMs['key-1'] =
   '9FV1axotRN2XWlwrhixZLEaagkREXhgQc540FS5O8IaI2Vpa80Atzg==\n' +
   '-----END RSA PRIVATE KEY-----'
 
-var publicKeyPEMs = {}
+const publicKeyPEMs = {}
 
 publicKeyPEMs['key-1'] =
   '-----BEGIN PUBLIC KEY-----\n' +
@@ -60,51 +60,51 @@ publicKeyPEMs['key-2'] =
   'dQIDAQAB\n' +
   '-----END PUBLIC KEY-----'
 
-var server = http.createServer(function (req, res) {
-  var parsed = httpSignature.parseRequest(req)
-  var publicKeyPEM = publicKeyPEMs[parsed.keyId]
-  var verified = httpSignature.verifySignature(parsed, publicKeyPEM)
+const server = http.createServer((req, res) => {
+  const parsed = httpSignature.parseRequest(req)
+  const publicKeyPEM = publicKeyPEMs[parsed.keyId]
+  const verified = httpSignature.verifySignature(parsed, publicKeyPEM)
   res.writeHead(verified ? 200 : 400)
   res.end()
 })
 
-tape('setup', function (t) {
+tape('setup', (t) => {
   server.listen(0, function () {
     server.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('correct key', function (t) {
-  var options = {
+tape('correct key', (t) => {
+  const options = {
     httpSignature: {
       keyId: 'key-1',
       key: privateKeyPEMs['key-1']
     }
   }
-  request(server.url, options, function (err, res, body) {
+  request(server.url, options, (err, res, body) => {
     t.equal(err, null)
     t.equal(200, res.statusCode)
     t.end()
   })
 })
 
-tape('incorrect key', function (t) {
-  var options = {
+tape('incorrect key', (t) => {
+  const options = {
     httpSignature: {
       keyId: 'key-2',
       key: privateKeyPEMs['key-1']
     }
   }
-  request(server.url, options, function (err, res, body) {
+  request(server.url, options, (err, res, body) => {
     t.equal(err, null)
     t.equal(400, res.statusCode)
     t.end()
   })
 })
 
-tape('cleanup', function (t) {
-  server.close(function () {
+tape('cleanup', (t) => {
+  server.close(() => {
     t.end()
   })
 })

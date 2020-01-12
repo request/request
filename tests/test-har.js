@@ -1,27 +1,27 @@
 'use strict'
 
-var path = require('path')
-var request = require('..')
-var tape = require('tape')
-var fixture = require('./fixtures/har.json')
-var server = require('./server')
+const path = require('path')
+const request = require('..')
+const tape = require('tape')
+const fixture = require('./fixtures/har.json')
+const server = require('./server')
 
-var s = server.createEchoServer()
+const s = server.createEchoServer()
 
-tape('setup', function (t) {
-  s.listen(0, function () {
+tape('setup', (t) => {
+  s.listen(0, () => {
     t.end()
   })
 })
 
-tape('application-form-encoded', function (t) {
-  var options = {
+tape('application-form-encoded', (t) => {
+  const options = {
     url: s.url,
     har: fixture['application-form-encoded']
   }
 
-  request(options, function (err, res, body) {
-    var json = JSON.parse(body)
+  request(options, (err, res, body) => {
+    const json = JSON.parse(body)
 
     t.equal(err, null)
     t.equal(json.body, 'foo=bar&hello=world')
@@ -29,27 +29,27 @@ tape('application-form-encoded', function (t) {
   })
 })
 
-tape('application-json', function (t) {
-  var options = {
+tape('application-json', (t) => {
+  const options = {
     url: s.url,
     har: fixture['application-json']
   }
 
-  request(options, function (err, res, body) {
+  request(options, (err, res, body) => {
     t.equal(err, null)
     t.equal(body.body, fixture['application-json'].postData.text)
     t.end()
   })
 })
 
-tape('cookies', function (t) {
-  var options = {
+tape('cookies', (t) => {
+  const options = {
     url: s.url,
     har: fixture.cookies
   }
 
-  request(options, function (err, res, body) {
-    var json = JSON.parse(body)
+  request(options, (err, res, body) => {
+    const json = JSON.parse(body)
 
     t.equal(err, null)
     t.equal(json.headers.cookie, 'foo=bar; bar=baz')
@@ -57,14 +57,14 @@ tape('cookies', function (t) {
   })
 })
 
-tape('custom-method', function (t) {
-  var options = {
+tape('custom-method', (t) => {
+  const options = {
     url: s.url,
     har: fixture['custom-method']
   }
 
-  request(options, function (err, res, body) {
-    var json = JSON.parse(body)
+  request(options, (err, res, body) => {
+    const json = JSON.parse(body)
 
     t.equal(err, null)
     t.equal(json.method, fixture['custom-method'].method)
@@ -72,14 +72,14 @@ tape('custom-method', function (t) {
   })
 })
 
-tape('headers', function (t) {
-  var options = {
+tape('headers', (t) => {
+  const options = {
     url: s.url,
     har: fixture.headers
   }
 
-  request(options, function (err, res, body) {
-    var json = JSON.parse(body)
+  request(options, (err, res, body) => {
+    const json = JSON.parse(body)
 
     t.equal(err, null)
     t.equal(json.headers['x-foo'], 'Bar')
@@ -87,14 +87,14 @@ tape('headers', function (t) {
   })
 })
 
-tape('multipart-data', function (t) {
-  var options = {
+tape('multipart-data', (t) => {
+  const options = {
     url: s.url,
     har: fixture['multipart-data']
   }
 
-  request(options, function (err, res, body) {
-    var json = JSON.parse(body)
+  request(options, (err, res, body) => {
+    const json = JSON.parse(body)
 
     t.equal(err, null)
     t.ok(~json.headers['content-type'].indexOf('multipart/form-data'))
@@ -103,16 +103,16 @@ tape('multipart-data', function (t) {
   })
 })
 
-tape('multipart-file', function (t) {
-  var options = {
+tape('multipart-file', (t) => {
+  const options = {
     url: s.url,
     har: fixture['multipart-file']
   }
-  var absolutePath = path.resolve(__dirname, options.har.postData.params[0].fileName)
+  const absolutePath = path.resolve(__dirname, options.har.postData.params[0].fileName)
   options.har.postData.params[0].fileName = absolutePath
 
-  request(options, function (err, res, body) {
-    var json = JSON.parse(body)
+  request(options, (err, res, body) => {
+    const json = JSON.parse(body)
 
     t.equal(err, null)
     t.ok(~json.headers['content-type'].indexOf('multipart/form-data'))
@@ -121,14 +121,14 @@ tape('multipart-file', function (t) {
   })
 })
 
-tape('multipart-form-data', function (t) {
-  var options = {
+tape('multipart-form-data', (t) => {
+  const options = {
     url: s.url,
     har: fixture['multipart-form-data']
   }
 
-  request(options, function (err, res, body) {
-    var json = JSON.parse(body)
+  request(options, (err, res, body) => {
+    const json = JSON.parse(body)
 
     t.equal(err, null)
     t.ok(~json.headers['content-type'].indexOf('multipart/form-data'))
@@ -137,14 +137,14 @@ tape('multipart-form-data', function (t) {
   })
 })
 
-tape('query', function (t) {
-  var options = {
+tape('query', (t) => {
+  const options = {
     url: s.url + '/?fff=sss',
     har: fixture.query
   }
 
-  request(options, function (err, res, body) {
-    var json = JSON.parse(body)
+  request(options, (err, res, body) => {
+    const json = JSON.parse(body)
 
     t.equal(err, null)
     t.equal(json.url, '/?fff=sss&foo%5B0%5D=bar&foo%5B1%5D=baz&baz=abc')
@@ -152,14 +152,14 @@ tape('query', function (t) {
   })
 })
 
-tape('text/plain', function (t) {
-  var options = {
+tape('text/plain', (t) => {
+  const options = {
     url: s.url,
     har: fixture['text-plain']
   }
 
-  request(options, function (err, res, body) {
-    var json = JSON.parse(body)
+  request(options, (err, res, body) => {
+    const json = JSON.parse(body)
 
     t.equal(err, null)
     t.equal(json.headers['content-type'], 'text/plain')
@@ -168,8 +168,8 @@ tape('text/plain', function (t) {
   })
 })
 
-tape('cleanup', function (t) {
-  s.close(function () {
+tape('cleanup', (t) => {
+  s.close(() => {
     t.end()
   })
 })

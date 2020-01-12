@@ -3,33 +3,33 @@
 // a test where we validate the siguature of the keys
 // otherwise exactly the same as the ssl test
 
-var server = require('./server')
-var request = require('../index')
-var fs = require('fs')
-var path = require('path')
-var tape = require('tape')
+const server = require('./server')
+const request = require('../index')
+const fs = require('fs')
+const path = require('path')
+const tape = require('tape')
 
-var s = server.createSSLServer()
-var caFile = path.resolve(__dirname, 'ssl/ca/ca.crt')
-var ca = fs.readFileSync(caFile)
-var opts = {
+const s = server.createSSLServer()
+const caFile = path.resolve(__dirname, 'ssl/ca/ca.crt')
+const ca = fs.readFileSync(caFile)
+const opts = {
   ciphers: 'AES256-SHA',
   key: path.resolve(__dirname, 'ssl/ca/server.key'),
   cert: path.resolve(__dirname, 'ssl/ca/server.crt')
 }
-var sStrict = server.createSSLServer(opts)
+const sStrict = server.createSSLServer(opts)
 
 function runAllTests (strict, s) {
-  var strictMsg = (strict ? 'strict ' : 'relaxed ')
+  const strictMsg = (strict ? 'strict ' : 'relaxed ')
 
-  tape(strictMsg + 'setup', function (t) {
-    s.listen(0, function () {
+  tape(strictMsg + 'setup', (t) => {
+    s.listen(0, () => {
       t.end()
     })
   })
 
   function runTest (name, test) {
-    tape(strictMsg + name, function (t) {
+    tape(strictMsg + name, (t) => {
       s.on('/' + name, test.resp)
       test.uri = s.url + '/' + name
       if (strict) {
@@ -39,7 +39,7 @@ function runAllTests (strict, s) {
       } else {
         test.rejectUnauthorized = false
       }
-      request(test, function (err, resp, body) {
+      request(test, (err, resp, body) => {
         t.equal(err, null)
         if (test.expectBody) {
           t.deepEqual(test.expectBody, body)
@@ -99,8 +99,8 @@ function runAllTests (strict, s) {
     ]
   })
 
-  tape(strictMsg + 'cleanup', function (t) {
-    s.close(function () {
+  tape(strictMsg + 'cleanup', (t) => {
+    s.close(() => {
       t.end()
     })
   })

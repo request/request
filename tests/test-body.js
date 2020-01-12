@@ -1,23 +1,23 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
-var http = require('http')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
+const http = require('http')
 
-var s = server.createServer()
+const s = server.createServer()
 
-tape('setup', function (t) {
-  s.listen(0, function () {
+tape('setup', (t) => {
+  s.listen(0, () => {
     t.end()
   })
 })
 
 function addTest (name, data) {
-  tape('test ' + name, function (t) {
+  tape('test ' + name, (t) => {
     s.on('/' + name, data.resp)
     data.uri = s.url + '/' + name
-    request(data, function (err, resp, body) {
+    request(data, (err, resp, body) => {
       t.equal(err, null)
       if (data.expectBody && Buffer.isBuffer(data.expectBody)) {
         t.deepEqual(data.expectBody.toString(), body.toString())
@@ -127,19 +127,19 @@ addTest('testPutMultipartPostambleCRLF', {
   ]
 })
 
-tape('typed array', function (t) {
-  var server = http.createServer()
-  server.on('request', function (req, res) {
+tape('typed array', (t) => {
+  const server = http.createServer()
+  server.on('request', (req, res) => {
     req.pipe(res)
   })
   server.listen(0, function () {
-    var data = new Uint8Array([1, 2, 3])
+    const data = new Uint8Array([1, 2, 3])
     request({
       uri: 'http://localhost:' + this.address().port,
       method: 'POST',
       body: data,
       encoding: null
-    }, function (err, res, body) {
+    }, (err, res, body) => {
       t.error(err)
       t.deepEqual(Buffer.from(data), body)
       server.close(t.end)
@@ -147,8 +147,8 @@ tape('typed array', function (t) {
   })
 })
 
-tape('cleanup', function (t) {
-  s.close(function () {
+tape('cleanup', (t) => {
+  s.close(() => {
     t.end()
   })
 })

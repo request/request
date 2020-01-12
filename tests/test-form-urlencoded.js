@@ -1,11 +1,11 @@
 'use strict'
 
-var http = require('http')
-var request = require('../index')
-var tape = require('tape')
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
 
 function runTest (t, options, index) {
-  var server = http.createServer(function (req, res) {
+  const server = http.createServer((req, res) => {
     if (index === 0 || index === 3) {
       t.equal(req.headers['content-type'], 'application/x-www-form-urlencoded')
     } else {
@@ -14,14 +14,14 @@ function runTest (t, options, index) {
     t.equal(req.headers['content-length'], '21')
     t.equal(req.headers.accept, 'application/json')
 
-    var data = ''
+    let data = ''
     req.setEncoding('utf8')
 
-    req.on('data', function (d) {
+    req.on('data', (d) => {
       data += d
     })
 
-    req.on('end', function () {
+    req.on('end', () => {
       t.equal(data, 'some=url&encoded=data')
 
       res.writeHead(200)
@@ -30,12 +30,12 @@ function runTest (t, options, index) {
   })
 
   server.listen(0, function () {
-    var url = 'http://localhost:' + this.address().port
-    var r = request.post(url, options, function (err, res, body) {
+    const url = 'http://localhost:' + this.address().port
+    const r = request.post(url, options, (err, res, body) => {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.equal(body, 'done')
-      server.close(function () {
+      server.close(() => {
         t.end()
       })
     })
@@ -45,7 +45,7 @@ function runTest (t, options, index) {
   })
 }
 
-var cases = [
+const cases = [
   {
     form: {some: 'url', encoded: 'data'},
     json: true
@@ -66,8 +66,8 @@ var cases = [
   }
 ]
 
-cases.forEach(function (options, index) {
-  tape('application/x-www-form-urlencoded ' + index, function (t) {
+cases.forEach((options, index) => {
+  tape('application/x-www-form-urlencoded ' + index, (t) => {
     runTest(t, options, index)
   })
 })

@@ -1,21 +1,21 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
 
-var s = server.createServer()
-var currResponseHandler
+const s = server.createServer()
+let currResponseHandler
 
-['http://google.com/', 'https://google.com/'].forEach(function (url) {
-  s.on(url, function (req, res) {
+['http://google.com/', 'https://google.com/'].forEach((url) => {
+  s.on(url, (req, res) => {
     currResponseHandler(req, res)
     res.writeHeader(200)
     res.end('ok')
   })
 })
 
-var proxyEnvVars = [
+const proxyEnvVars = [
   'http_proxy',
   'HTTP_PROXY',
   'https_proxy',
@@ -35,19 +35,19 @@ var proxyEnvVars = [
 // for this request, or falsy to indicate that the proxy should not be used for
 // this request.
 function runTest (name, options, responseHandler) {
-  tape(name, function (t) {
-    proxyEnvVars.forEach(function (v) {
+  tape(name, (t) => {
+    proxyEnvVars.forEach((v) => {
       delete process.env[v]
     })
     if (options.env) {
-      for (var v in options.env) {
+      for (const v in options.env) {
         process.env[v] = options.env[v]
       }
       delete options.env
     }
 
-    var called = false
-    currResponseHandler = function (req, res) {
+    let called = false
+    currResponseHandler = (req, res) => {
       if (responseHandler) {
         called = true
         t.equal(req.headers.host, 'google.com')
@@ -60,7 +60,7 @@ function runTest (name, options, responseHandler) {
     }
 
     options.url = options.url || 'http://google.com'
-    request(options, function (err, res, body) {
+    request(options, (err, res, body) => {
       if (responseHandler && !called) {
         t.fail('proxy response should be called')
       }
@@ -101,13 +101,13 @@ function addTests () {
       headers: {
         'proxy-authorization': 'Token Fooblez'
       }
-    }, function (t, req, res) {
+    }, (t, req, res) => {
       t.equal(req.headers['proxy-authorization'], 'Token Fooblez')
     })
 
     runTest('proxy auth without uri auth', {
       proxy: 'http://user:pass@localhost:' + s.port
-    }, function (t, req, res) {
+    }, (t, req, res) => {
       t.equal(req.headers['proxy-authorization'], 'Basic dXNlcjpwYXNz')
     })
 
@@ -284,18 +284,18 @@ function addTests () {
     runTest('uri auth without proxy auth', {
       url: 'http://user:pass@google.com',
       proxy: s.url
-    }, function (t, req, res) {
+    }, (t, req, res) => {
       t.equal(req.headers['proxy-authorization'], undefined)
       t.equal(req.headers.authorization, 'Basic dXNlcjpwYXNz')
     })
   }
 }
 
-tape('setup', function (t) {
-  s.listen(0, function () {
+tape('setup', (t) => {
+  s.listen(0, () => {
     addTests()
-    tape('cleanup', function (t) {
-      s.close(function () {
+    tape('cleanup', (t) => {
+      s.close(() => {
         t.end()
       })
     })

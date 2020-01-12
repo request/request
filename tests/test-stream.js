@@ -1,13 +1,13 @@
-var fs = require('fs')
-var path = require('path')
-var http = require('http')
-var tape = require('tape')
-var request = require('../')
-var server
+const fs = require('fs')
+const path = require('path')
+const http = require('http')
+const tape = require('tape')
+const request = require('../')
+let server
 
-tape('before', function (t) {
+tape('before', (t) => {
   server = http.createServer()
-  server.on('request', function (req, res) {
+  server.on('request', (req, res) => {
     req.pipe(res)
   })
   server.listen(0, function () {
@@ -16,21 +16,21 @@ tape('before', function (t) {
   })
 })
 
-tape('request body stream', function (t) {
-  var fpath = path.join(__dirname, 'unicycle.jpg')
-  var input = fs.createReadStream(fpath, {highWaterMark: 1000})
+tape('request body stream', (t) => {
+  const fpath = path.join(__dirname, 'unicycle.jpg')
+  const input = fs.createReadStream(fpath, {highWaterMark: 1000})
   request({
     uri: server.url,
     method: 'POST',
     body: input,
     encoding: null
-  }, function (err, res, body) {
+  }, (err, res, body) => {
     t.error(err)
     t.equal(body.length, fs.statSync(fpath).size)
     t.end()
   })
 })
 
-tape('after', function (t) {
+tape('after', (t) => {
   server.close(t.end)
 })

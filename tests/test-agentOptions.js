@@ -3,26 +3,26 @@
 // test-agent.js modifies the process state
 // causing these tests to fail when running under single process via tape
 if (!process.env.running_under_istanbul) {
-  var request = require('../index')
-  var http = require('http')
-  var server = require('./server')
-  var tape = require('tape')
+  const request = require('../index')
+  const http = require('http')
+  const server = require('./server')
+  const tape = require('tape')
 
-  var s = server.createServer()
+  const s = server.createServer()
 
-  s.on('/', function (req, resp) {
+  s.on('/', (req, resp) => {
     resp.statusCode = 200
     resp.end('')
   })
 
-  tape('setup', function (t) {
-    s.listen(0, function () {
+  tape('setup', (t) => {
+    s.listen(0, () => {
       t.end()
     })
   })
 
-  tape('without agentOptions should use global agent', function (t) {
-    var r = request(s.url, function (err, res, body) {
+  tape('without agentOptions should use global agent', (t) => {
+    const r = request(s.url, (err, res, body) => {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.deepEqual(r.agent, http.globalAgent)
@@ -31,10 +31,10 @@ if (!process.env.running_under_istanbul) {
     })
   })
 
-  tape('with agentOptions should apply to new agent in pool', function (t) {
-    var r = request(s.url, {
+  tape('with agentOptions should apply to new agent in pool', (t) => {
+    const r = request(s.url, {
       agentOptions: { foo: 'bar' }
-    }, function (err, res, body) {
+    }, (err, res, body) => {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.equal(r.agent.options.foo, 'bar')
@@ -43,8 +43,8 @@ if (!process.env.running_under_istanbul) {
     })
   })
 
-  tape('cleanup', function (t) {
-    s.close(function () {
+  tape('cleanup', (t) => {
+    s.close(() => {
       t.end()
     })
   })

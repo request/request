@@ -1,19 +1,19 @@
 'use strict'
 
-var http = require('http')
-var path = require('path')
-var mime = require('mime-types')
-var request = require('../index')
-var fs = require('fs')
-var tape = require('tape')
+const http = require('http')
+const path = require('path')
+const mime = require('mime-types')
+const request = require('../index')
+const fs = require('fs')
+const tape = require('tape')
 
-tape('multipart form append', function (t) {
-  var remoteFile = path.join(__dirname, 'googledoodle.jpg')
-  var localFile = path.join(__dirname, 'unicycle.jpg')
-  var totalLength = null
-  var FIELDS = []
+tape('multipart form append', (t) => {
+  const remoteFile = path.join(__dirname, 'googledoodle.jpg')
+  const localFile = path.join(__dirname, 'unicycle.jpg')
+  let totalLength = null
+  let FIELDS = []
 
-  var server = http.createServer(function (req, res) {
+  const server = http.createServer((req, res) => {
     if (req.url === '/file') {
       res.writeHead(200, {'content-type': 'image/jpg', 'content-length': 7187})
       res.end(fs.readFileSync(remoteFile), 'binary')
@@ -24,15 +24,15 @@ tape('multipart form append', function (t) {
       .test(req.headers['content-type']))
 
     // temp workaround
-    var data = ''
+    let data = ''
     req.setEncoding('utf8')
 
-    req.on('data', function (d) {
+    req.on('data', (d) => {
       data += d
     })
 
-    req.on('end', function () {
-      var field
+    req.on('end', () => {
+      let field
       // check for the fields' traces
 
       // 1st field : my_field
@@ -71,7 +71,7 @@ tape('multipart form append', function (t) {
   })
 
   server.listen(0, function () {
-    var url = 'http://localhost:' + this.address().port
+    const url = 'http://localhost:' + this.address().port
     FIELDS = [
       { name: 'my_field', value: 'my_value' },
       { name: 'my_buffer', value: Buffer.from([1, 2, 3]) },
@@ -79,21 +79,21 @@ tape('multipart form append', function (t) {
       { name: 'remote_file', value: request(url + '/file') }
     ]
 
-    var req = request.post(url + '/upload', function (err, res, body) {
+    const req = request.post(url + '/upload', (err, res, body) => {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.equal(body, 'done')
-      server.close(function () {
+      server.close(() => {
         t.end()
       })
     })
-    var form = req.form()
+    const form = req.form()
 
-    FIELDS.forEach(function (field) {
+    FIELDS.forEach((field) => {
       form.append(field.name, field.value)
     })
 
-    form.getLength(function (err, length) {
+    form.getLength((err, length) => {
       t.equal(err, null)
       totalLength = length
     })

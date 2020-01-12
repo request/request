@@ -1,22 +1,22 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
-var http = require('http')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
+const http = require('http')
 
-var plainServer = server.createServer()
-var redirectMockTime = 10
+const plainServer = server.createServer()
+const redirectMockTime = 10
 
-tape('setup', function (t) {
-  plainServer.listen(0, function () {
-    plainServer.on('/', function (req, res) {
+tape('setup', (t) => {
+  plainServer.listen(0, () => {
+    plainServer.on('/', (req, res) => {
       res.writeHead(200)
       res.end('plain')
     })
-    plainServer.on('/redir', function (req, res) {
+    plainServer.on('/redir', (req, res) => {
       // fake redirect delay to ensure strong signal for rollup check
-      setTimeout(function () {
+      setTimeout(() => {
         res.writeHead(301, { 'location': 'http://localhost:' + plainServer.port + '/' })
         res.end()
       }, redirectMockTime)
@@ -26,12 +26,12 @@ tape('setup', function (t) {
   })
 })
 
-tape('non-redirected request is timed', function (t) {
-  var options = {time: true}
+tape('non-redirected request is timed', (t) => {
+  const options = {time: true}
 
-  var start = new Date().getTime()
-  var r = request('http://localhost:' + plainServer.port + '/', options, function (err, res, body) {
-    var end = new Date().getTime()
+  const start = new Date().getTime()
+  const r = request('http://localhost:' + plainServer.port + '/', options, (err, res, body) => {
+    const end = new Date().getTime()
 
     t.equal(err, null)
     t.equal(typeof res.elapsedTime, 'number')
@@ -57,8 +57,8 @@ tape('non-redirected request is timed', function (t) {
     t.equal((res.timingPhases.total <= (end - start)), true)
 
     // validate there are no unexpected properties
-    var propNames = []
-    for (var propName in res.timings) {
+    let propNames = []
+    for (const propName in res.timings) {
       if (res.timings.hasOwnProperty(propName)) {
         propNames.push(propName)
       }
@@ -66,7 +66,7 @@ tape('non-redirected request is timed', function (t) {
     t.deepEqual(propNames, ['socket', 'lookup', 'connect', 'response', 'end'])
 
     propNames = []
-    for (propName in res.timingPhases) {
+    for (const propName in res.timingPhases) {
       if (res.timingPhases.hasOwnProperty(propName)) {
         propNames.push(propName)
       }
@@ -77,9 +77,9 @@ tape('non-redirected request is timed', function (t) {
   })
 })
 
-tape('redirected request is timed with rollup', function (t) {
-  var options = {time: true}
-  var r = request('http://localhost:' + plainServer.port + '/redir', options, function (err, res, body) {
+tape('redirected request is timed with rollup', (t) => {
+  const options = {time: true}
+  const r = request('http://localhost:' + plainServer.port + '/redir', options, (err, res, body) => {
     t.equal(err, null)
     t.equal(typeof res.elapsedTime, 'number')
     t.equal(typeof res.responseStartTime, 'number')
@@ -91,13 +91,13 @@ tape('redirected request is timed with rollup', function (t) {
   })
 })
 
-tape('keepAlive is timed', function (t) {
-  var agent = new http.Agent({ keepAlive: true })
-  var options = { time: true, agent: agent }
-  var start1 = new Date().getTime()
+tape('keepAlive is timed', (t) => {
+  const agent = new http.Agent({ keepAlive: true })
+  const options = { time: true, agent: agent }
+  const start1 = new Date().getTime()
 
-  request('http://localhost:' + plainServer.port + '/', options, function (err1, res1, body1) {
-    var end1 = new Date().getTime()
+  request('http://localhost:' + plainServer.port + '/', options, (err1, res1, body1) => {
+    const end1 = new Date().getTime()
 
     // ensure the first request's timestamps look ok
     t.equal((res1.timingStart >= start1), true)
@@ -109,9 +109,9 @@ tape('keepAlive is timed', function (t) {
     t.equal((res1.timings.response >= res1.timings.connect), true)
 
     // open a second request with the same agent so we re-use the same connection
-    var start2 = new Date().getTime()
-    request('http://localhost:' + plainServer.port + '/', options, function (err2, res2, body2) {
-      var end2 = new Date().getTime()
+    const start2 = new Date().getTime()
+    request('http://localhost:' + plainServer.port + '/', options, (err2, res2, body2) => {
+      const end2 = new Date().getTime()
 
       // ensure the second request's timestamps look ok
       t.equal((res2.timingStart >= start2), true)
@@ -128,8 +128,8 @@ tape('keepAlive is timed', function (t) {
         agent.destroy()
       } else {
         // node < 0.12
-        Object.keys(agent.sockets).forEach(function (name) {
-          agent.sockets[name].forEach(function (socket) {
+        Object.keys(agent.sockets).forEach((name) => {
+          agent.sockets[name].forEach((socket) => {
             socket.end()
           })
         })
@@ -140,8 +140,8 @@ tape('keepAlive is timed', function (t) {
   })
 })
 
-tape('cleanup', function (t) {
-  plainServer.close(function () {
+tape('cleanup', (t) => {
+  plainServer.close(() => {
     t.end()
   })
 })

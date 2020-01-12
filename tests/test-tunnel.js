@@ -1,28 +1,28 @@
 'use strict'
 
-var server = require('./server')
-var tape = require('tape')
-var request = require('../index')
-var https = require('https')
-var net = require('net')
-var fs = require('fs')
-var path = require('path')
-var util = require('util')
-var url = require('url')
-var destroyable = require('server-destroy')
+const server = require('./server')
+const tape = require('tape')
+const request = require('../index')
+const https = require('https')
+const net = require('net')
+const fs = require('fs')
+const path = require('path')
+const util = require('util')
+const url = require('url')
+const destroyable = require('server-destroy')
 
-var events = []
-var caFile = path.resolve(__dirname, 'ssl/ca/ca.crt')
-var ca = fs.readFileSync(caFile)
-var clientCert = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.crt'))
-var clientKey = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client-enc.key'))
-var clientPassword = 'password'
-var sslOpts = {
+let events = []
+const caFile = path.resolve(__dirname, 'ssl/ca/ca.crt')
+const ca = fs.readFileSync(caFile)
+const clientCert = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.crt'))
+const clientKey = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client-enc.key'))
+const clientPassword = 'password'
+const sslOpts = {
   key: path.resolve(__dirname, 'ssl/ca/localhost.key'),
   cert: path.resolve(__dirname, 'ssl/ca/localhost.crt')
 }
 
-var mutualSSLOpts = {
+const mutualSSLOpts = {
   key: path.resolve(__dirname, 'ssl/ca/localhost.key'),
   cert: path.resolve(__dirname, 'ssl/ca/localhost.crt'),
   ca: caFile,
@@ -32,13 +32,13 @@ var mutualSSLOpts = {
 
 // this is needed for 'https over http, tunnel=false' test
 // from https://github.com/coolaj86/node-ssl-root-cas/blob/v1.1.9-beta/ssl-root-cas.js#L4267-L4281
-var httpsOpts = https.globalAgent.options
+const httpsOpts = https.globalAgent.options
 httpsOpts.ca = httpsOpts.ca || []
 httpsOpts.ca.push(ca)
 
-var s = server.createServer()
-var ss = server.createSSLServer(sslOpts)
-var ss2 = server.createSSLServer(mutualSSLOpts)
+const s = server.createServer()
+const ss = server.createSSLServer(sslOpts)
+const ss2 = server.createSSLServer(mutualSSLOpts)
 
 // XXX when tunneling https over https, connections get left open so the server
 // doesn't want to close normally (and same issue with http server on v0.8.x)
@@ -51,17 +51,17 @@ function event () {
 }
 
 function setListeners (server, type) {
-  server.on('/', function (req, res) {
+  server.on('/', (req, res) => {
     event('%s response', type)
     res.end(type + ' ok')
   })
 
-  server.on('request', function (req, res) {
+  server.on('request', (req, res) => {
     if (/^https?:/.test(req.url)) {
       // This is a proxy request
-      var dest = req.url.split(':')[0]
+      let dest = req.url.split(':')[0]
       // Is it a redirect?
-      var match = req.url.match(/\/redirect\/(https?)$/)
+      const match = req.url.match(/\/redirect\/(https?)$/)
       if (match) {
         dest += '->' + match[1]
       }
@@ -70,7 +70,7 @@ function setListeners (server, type) {
     }
   })
 
-  server.on('/redirect/http', function (req, res) {
+  server.on('/redirect/http', (req, res) => {
     event('%s redirect to http', type)
     res.writeHead(301, {
       location: s.url
@@ -78,7 +78,7 @@ function setListeners (server, type) {
     res.end()
   })
 
-  server.on('/redirect/https', function (req, res) {
+  server.on('/redirect/https', (req, res) => {
     event('%s redirect to https', type)
     res.writeHead(301, {
       location: ss.url
@@ -86,9 +86,9 @@ function setListeners (server, type) {
     res.end()
   })
 
-  server.on('connect', function (req, client, head) {
-    var u = url.parse(req.url)
-    var server = net.connect(u.host, u.port, function () {
+  server.on('connect', (req, client, head) => {
+    const u = url.parse(req.url)
+    const server = net.connect(u.host, u.port, () => {
       event('%s connect to %s', type, req.url)
       client.write('HTTP/1.1 200 Connection established\r\n\r\n')
       client.pipe(server)
@@ -104,8 +104,8 @@ setListeners(ss2, 'https')
 
 // monkey-patch since you can't set a custom certificate authority for the
 // proxy in tunnel-agent (this is necessary for "* over https" tests)
-var customCaCount = 0
-var httpsRequestOld = https.request
+let customCaCount = 0
+const httpsRequestOld = https.request
 https.request = function (options) {
   if (customCaCount) {
     options.ca = ca
@@ -115,12 +115,12 @@ https.request = function (options) {
 }
 
 function runTest (name, opts, expected) {
-  tape(name, function (t) {
+  tape(name, (t) => {
     opts.ca = ca
     if (opts.proxy === ss.url) {
       customCaCount = (opts.url === ss.url ? 2 : 1)
     }
-    request(opts, function (err, res, body) {
+    request(opts, (err, res, body) => {
       event(err ? 'err ' + err.message : res.statusCode + ' ' + body)
       t.deepEqual(events, expected)
       events = []
@@ -445,15 +445,15 @@ function addTests () {
   ])
 }
 
-tape('setup', function (t) {
-  s.listen(0, function () {
-    ss.listen(0, function () {
-      ss2.listen(0, 'localhost', function () {
+tape('setup', (t) => {
+  s.listen(0, () => {
+    ss.listen(0, () => {
+      ss2.listen(0, 'localhost', () => {
         addTests()
-        tape('cleanup', function (t) {
-          s.destroy(function () {
-            ss.destroy(function () {
-              ss2.destroy(function () {
+        tape('cleanup', (t) => {
+          s.destroy(() => {
+            ss.destroy(() => {
+              ss2.destroy(() => {
                 t.end()
               })
             })

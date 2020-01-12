@@ -1,39 +1,39 @@
 'use strict'
 
-var request = require('../index')
-var http = require('http')
-var tape = require('tape')
+const request = require('../index')
+const http = require('http')
+const tape = require('tape')
 
-var methodsSeen = {
+const methodsSeen = {
   head: 0,
   get: 0
 }
 
-var s = http.createServer(function (req, res) {
+const s = http.createServer((req, res) => {
   res.statusCode = 200
   res.end('ok')
 
   methodsSeen[req.method.toLowerCase()]++
 })
 
-tape('setup', function (t) {
+tape('setup', (t) => {
   s.listen(0, function () {
     s.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('options object is not mutated', function (t) {
-  var url = s.url
-  var options = { url: url }
+tape('options object is not mutated', (t) => {
+  const url = s.url
+  const options = { url: url }
 
-  request.head(options, function (err, resp, body) {
+  request.head(options, (err, resp, body) => {
     t.equal(err, null)
     t.equal(body, '')
     t.equal(Object.keys(options).length, 1)
     t.equal(options.url, url)
 
-    request.get(options, function (err, resp, body) {
+    request.get(options, (err, resp, body) => {
       t.equal(err, null)
       t.equal(body, 'ok')
       t.equal(Object.keys(options).length, 1)
@@ -47,8 +47,8 @@ tape('options object is not mutated', function (t) {
   })
 })
 
-tape('cleanup', function (t) {
-  s.close(function () {
+tape('cleanup', (t) => {
+  s.close(() => {
     t.end()
   })
 })

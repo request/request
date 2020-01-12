@@ -1,15 +1,15 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
 
-var s = server.createServer()
+const s = server.createServer()
 
 function runTest (name, test) {
-  tape(name, function (t) {
+  tape(name, (t) => {
     s.on('/' + name, test.resp)
-    request(s.url + '/' + name, test, function (err, resp, body) {
+    request(s.url + '/' + name, test, (err, resp, body) => {
       t.equal(err, null)
       if (test.expectBody) {
         if (Buffer.isBuffer(test.expectBody)) {
@@ -23,8 +23,8 @@ function runTest (name, test) {
   })
 }
 
-tape('setup', function (t) {
-  s.listen(0, function () {
+tape('setup', (t) => {
+  s.listen(0, () => {
     t.end()
   })
 })
@@ -94,8 +94,8 @@ runTest('testPutMultipart', {
   ]
 })
 
-tape('cleanup', function (t) {
-  s.close(function () {
+tape('cleanup', (t) => {
+  s.close(() => {
     t.end()
   })
 })

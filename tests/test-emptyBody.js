@@ -1,23 +1,23 @@
 'use strict'
 
-var request = require('../index')
-var http = require('http')
-var tape = require('tape')
+const request = require('../index')
+const http = require('http')
+const tape = require('tape')
 
-var s = http.createServer(function (req, resp) {
+const s = http.createServer((req, resp) => {
   resp.statusCode = 200
   resp.end('')
 })
 
-tape('setup', function (t) {
+tape('setup', (t) => {
   s.listen(0, function () {
     s.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('empty body with encoding', function (t) {
-  request(s.url, function (err, res, body) {
+tape('empty body with encoding', (t) => {
+  request(s.url, (err, res, body) => {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, '')
@@ -25,11 +25,11 @@ tape('empty body with encoding', function (t) {
   })
 })
 
-tape('empty body without encoding', function (t) {
+tape('empty body without encoding', (t) => {
   request({
     url: s.url,
     encoding: null
-  }, function (err, res, body) {
+  }, (err, res, body) => {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.same(body, Buffer.alloc(0))
@@ -37,11 +37,11 @@ tape('empty body without encoding', function (t) {
   })
 })
 
-tape('empty JSON body', function (t) {
+tape('empty JSON body', (t) => {
   request({
     url: s.url,
     json: {}
-  }, function (err, res, body) {
+  }, (err, res, body) => {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, undefined)
@@ -49,8 +49,8 @@ tape('empty JSON body', function (t) {
   })
 })
 
-tape('cleanup', function (t) {
-  s.close(function () {
+tape('cleanup', (t) => {
+  s.close(() => {
     t.end()
   })
 })

@@ -1,18 +1,18 @@
 'use strict'
 
-var assert = require('assert')
-var http = require('http')
-var request = require('../index')
-var tape = require('tape')
+const assert = require('assert')
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
 
-var numBasicRequests = 0
-var basicServer
+let numBasicRequests = 0
+let basicServer
 
-tape('setup', function (t) {
-  basicServer = http.createServer(function (req, res) {
+tape('setup', (t) => {
+  basicServer = http.createServer((req, res) => {
     numBasicRequests++
 
-    var ok
+    let ok
 
     if (req.headers.authorization) {
       if (req.headers.authorization === 'Basic ' + Buffer.from('user:pass').toString('base64')) {
@@ -34,8 +34,8 @@ tape('setup', function (t) {
     }
 
     if (req.url === '/post/') {
-      var expectedContent = 'key=value'
-      req.on('data', function (data) {
+      const expectedContent = 'key=value'
+      req.on('data', (data) => {
         assert.equal(data, expectedContent)
       })
       assert.equal(req.method, 'POST')
@@ -56,8 +56,8 @@ tape('setup', function (t) {
   })
 })
 
-tape('sendImmediately - false', function (t) {
-  var r = request({
+tape('sendImmediately - false', (t) => {
+  const r = request({
     'method': 'GET',
     'uri': basicServer.url + '/test/',
     'auth': {
@@ -65,7 +65,7 @@ tape('sendImmediately - false', function (t) {
       'pass': 'pass',
       'sendImmediately': false
     }
-  }, function (error, res, body) {
+  }, (error, res, body) => {
     t.error(error)
     t.equal(r._auth.user, 'user')
     t.equal(res.statusCode, 200)
@@ -74,16 +74,16 @@ tape('sendImmediately - false', function (t) {
   })
 })
 
-tape('sendImmediately - true', function (t) {
+tape('sendImmediately - true', (t) => {
   // If we don't set sendImmediately = false, request will send basic auth
-  var r = request({
+  const r = request({
     'method': 'GET',
     'uri': basicServer.url + '/test2/',
     'auth': {
       'user': 'user',
       'pass': 'pass'
     }
-  }, function (error, res, body) {
+  }, (error, res, body) => {
     t.error(error)
     t.equal(r._auth.user, 'user')
     t.equal(res.statusCode, 200)
@@ -92,11 +92,11 @@ tape('sendImmediately - true', function (t) {
   })
 })
 
-tape('credentials in url', function (t) {
-  var r = request({
+tape('credentials in url', (t) => {
+  const r = request({
     'method': 'GET',
     'uri': basicServer.url.replace(/:\/\//, '$&user:pass@') + '/test2/'
-  }, function (error, res, body) {
+  }, (error, res, body) => {
     t.error(error)
     t.equal(r._auth.user, 'user')
     t.equal(res.statusCode, 200)
@@ -105,8 +105,8 @@ tape('credentials in url', function (t) {
   })
 })
 
-tape('POST request', function (t) {
-  var r = request({
+tape('POST request', (t) => {
+  const r = request({
     'method': 'POST',
     'form': { 'key': 'value' },
     'uri': basicServer.url + '/post/',
@@ -115,7 +115,7 @@ tape('POST request', function (t) {
       'pass': 'pass',
       'sendImmediately': false
     }
-  }, function (error, res, body) {
+  }, (error, res, body) => {
     t.error(error)
     t.equal(r._auth.user, 'user')
     t.equal(res.statusCode, 200)
@@ -124,9 +124,9 @@ tape('POST request', function (t) {
   })
 })
 
-tape('user - empty string', function (t) {
-  t.doesNotThrow(function () {
-    var r = request({
+tape('user - empty string', (t) => {
+  t.doesNotThrow(() => {
+    const r = request({
       'method': 'GET',
       'uri': basicServer.url + '/allow_empty_user/',
       'auth': {
@@ -134,7 +134,7 @@ tape('user - empty string', function (t) {
         'pass': 'pass',
         'sendImmediately': false
       }
-    }, function (error, res, body) {
+    }, (error, res, body) => {
       t.error(error)
       t.equal(r._auth.user, '')
       t.equal(res.statusCode, 200)
@@ -144,9 +144,9 @@ tape('user - empty string', function (t) {
   })
 })
 
-tape('pass - undefined', function (t) {
-  t.doesNotThrow(function () {
-    var r = request({
+tape('pass - undefined', (t) => {
+  t.doesNotThrow(() => {
+    const r = request({
       'method': 'GET',
       'uri': basicServer.url + '/allow_undefined_password/',
       'auth': {
@@ -154,7 +154,7 @@ tape('pass - undefined', function (t) {
         'pass': undefined,
         'sendImmediately': false
       }
-    }, function (error, res, body) {
+    }, (error, res, body) => {
       t.error(error)
       t.equal(r._auth.user, 'user')
       t.equal(res.statusCode, 200)
@@ -164,9 +164,9 @@ tape('pass - undefined', function (t) {
   })
 })
 
-tape('pass - utf8', function (t) {
-  t.doesNotThrow(function () {
-    var r = request({
+tape('pass - utf8', (t) => {
+  t.doesNotThrow(() => {
+    const r = request({
       'method': 'GET',
       'uri': basicServer.url + '/allow_undefined_password/',
       'auth': {
@@ -174,7 +174,7 @@ tape('pass - utf8', function (t) {
         'pass': 'pâss',
         'sendImmediately': false
       }
-    }, function (error, res, body) {
+    }, (error, res, body) => {
       t.error(error)
       t.equal(r._auth.user, 'user')
       t.equal(r._auth.pass, 'pâss')
@@ -185,11 +185,11 @@ tape('pass - utf8', function (t) {
   })
 })
 
-tape('auth method', function (t) {
-  var r = request
+tape('auth method', (t) => {
+  const r = request
     .get(basicServer.url + '/test/')
     .auth('user', '', false)
-    .on('response', function (res) {
+    .on('response', (res) => {
       t.equal(r._auth.user, 'user')
       t.equal(res.statusCode, 200)
       t.equal(numBasicRequests, 14)
@@ -197,15 +197,15 @@ tape('auth method', function (t) {
     })
 })
 
-tape('get method', function (t) {
-  var r = request.get(basicServer.url + '/test/',
+tape('get method', (t) => {
+  const r = request.get(basicServer.url + '/test/',
     {
       auth: {
         user: 'user',
         pass: '',
         sendImmediately: false
       }
-    }, function (err, res) {
+    }, (err, res) => {
       t.equal(r._auth.user, 'user')
       t.equal(err, null)
       t.equal(res.statusCode, 200)
@@ -214,8 +214,8 @@ tape('get method', function (t) {
     })
 })
 
-tape('cleanup', function (t) {
-  basicServer.close(function () {
+tape('cleanup', (t) => {
+  basicServer.close(() => {
     t.end()
   })
 })

@@ -1,19 +1,19 @@
 'use strict'
 
-var http = require('http')
-var request = require('../index')
-var tape = require('tape')
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
 
 function runTest (t, options) {
-  var server = http.createServer(function (req, res) {
-    var data = ''
+  const server = http.createServer((req, res) => {
+    let data = ''
     req.setEncoding('utf8')
 
-    req.on('data', function (d) {
+    req.on('data', (d) => {
       data += d
     })
 
-    req.on('end', function () {
+    req.on('end', () => {
       if (options.qs) {
         t.equal(req.url, '/?rfc3986=%21%2A%28%29%27')
       }
@@ -25,20 +25,20 @@ function runTest (t, options) {
   })
 
   server.listen(0, function () {
-    var port = this.address().port
-    request.post('http://localhost:' + port, options, function (err, res, body) {
+    const port = this.address().port
+    request.post('http://localhost:' + port, options, (err, res, body) => {
       t.equal(err, null)
-      server.close(function () {
+      server.close(() => {
         t.end()
       })
     })
   })
 }
 
-var bodyEscaped = 'rfc3986=%21%2A%28%29%27'
-var bodyJson = '{"rfc3986":"!*()\'"}'
+const bodyEscaped = 'rfc3986=%21%2A%28%29%27'
+const bodyJson = '{"rfc3986":"!*()\'"}'
 
-var cases = [
+const cases = [
   {
     _name: 'qs',
     qs: {rfc3986: "!*()'"},
@@ -94,12 +94,12 @@ var cases = [
   }
 ]
 
-var libs = ['qs', 'querystring']
+const libs = ['qs', 'querystring']
 
-libs.forEach(function (lib) {
-  cases.forEach(function (options) {
+libs.forEach((lib) => {
+  cases.forEach((options) => {
     options.useQuerystring = (lib === 'querystring')
-    tape(lib + ' rfc3986 ' + options._name, function (t) {
+    tape(lib + ' rfc3986 ' + options._name, (t) => {
       runTest(t, options)
     })
   })

@@ -1,34 +1,34 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var util = require('util')
-var tape = require('tape')
-var url = require('url')
-var os = require('os')
+const server = require('./server')
+const request = require('../index')
+const util = require('util')
+const tape = require('tape')
+const url = require('url')
+const os = require('os')
 
-var interfaces = os.networkInterfaces()
-var loopbackKeyTest = os.platform() === 'win32' ? /Loopback Pseudo-Interface/ : /lo/
-var hasIPv6interface = Object.keys(interfaces).some(function (name) {
-  return loopbackKeyTest.test(name) && interfaces[name].some(function (info) {
+const interfaces = os.networkInterfaces()
+const loopbackKeyTest = os.platform() === 'win32' ? /Loopback Pseudo-Interface/ : /lo/
+const hasIPv6interface = Object.keys(interfaces).some((name) => {
+  return loopbackKeyTest.test(name) && interfaces[name].some((info) => {
     return info.family === 'IPv6'
   })
 })
 
-var s = server.createServer()
+const s = server.createServer()
 
-s.on('/redirect/from', function (req, res) {
+s.on('/redirect/from', (req, res) => {
   res.writeHead(301, {
     location: '/redirect/to'
   })
   res.end()
 })
 
-s.on('/redirect/to', function (req, res) {
+s.on('/redirect/to', (req, res) => {
   res.end('ok')
 })
 
-s.on('/headers.json', function (req, res) {
+s.on('/headers.json', (req, res) => {
   res.writeHead(200, {
     'Content-Type': 'application/json'
   })
@@ -37,14 +37,14 @@ s.on('/headers.json', function (req, res) {
 })
 
 function runTest (name, path, requestObj, serverAssertFn) {
-  tape(name, function (t) {
-    s.on('/' + path, function (req, res) {
+  tape(name, (t) => {
+    s.on('/' + path, (req, res) => {
       serverAssertFn(t, req, res)
       res.writeHead(200)
       res.end()
     })
     requestObj.url = s.url + '/' + path
-    request(requestObj, function (err, res, body) {
+    request(requestObj, (err, res, body) => {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       t.end()
@@ -57,27 +57,27 @@ function addTests () {
     '#125: headers.cookie with no cookie jar',
     'no-jar',
     {headers: {cookie: 'foo=bar'}},
-    function (t, req, res) {
+    (t, req, res) => {
       t.equal(req.headers.cookie, 'foo=bar')
     })
 
-  var jar = request.jar()
+  const jar = request.jar()
   jar.setCookie('quux=baz', s.url)
   runTest(
     '#125: headers.cookie + cookie jar',
     'header-and-jar',
     {jar: jar, headers: {cookie: 'foo=bar'}},
-    function (t, req, res) {
+    (t, req, res) => {
       t.equal(req.headers.cookie, 'foo=bar; quux=baz')
     })
 
-  var jar2 = request.jar()
+  const jar2 = request.jar()
   jar2.setCookie('quux=baz; Domain=foo.bar.com', s.url, {ignoreError: true})
   runTest(
     '#794: ignore cookie parsing and domain errors',
     'ignore-errors',
     {jar: jar2, headers: {cookie: 'foo=bar'}},
-    function (t, req, res) {
+    (t, req, res) => {
       t.equal(req.headers.cookie, 'foo=bar')
     })
 
@@ -89,7 +89,7 @@ function addTests () {
       method: 'POST',
       headers: { 'content-type': 'application/json; charset=UTF-8' },
       body: { hello: 'my friend' }},
-    function (t, req, res) {
+    (t, req, res) => {
       t.equal(req.headers['content-type'], 'application/json; charset=UTF-8')
     }
   )
@@ -98,16 +98,16 @@ function addTests () {
     'neither headers.cookie nor a cookie jar is specified',
     'no-cookie',
     {},
-    function (t, req, res) {
+    (t, req, res) => {
       t.equal(req.headers.cookie, undefined)
     })
 }
 
-tape('setup', function (t) {
-  s.listen(0, function () {
+tape('setup', (t) => {
+  s.listen(0, () => {
     addTests()
-    tape('cleanup', function (t) {
-      s.close(function () {
+    tape('cleanup', (t) => {
+      s.close(() => {
         t.end()
       })
     })
@@ -115,14 +115,15 @@ tape('setup', function (t) {
   })
 })
 
-tape('upper-case Host header and redirect', function (t) {
+tape('upper-case Host header and redirect', (t) => {
   // Horrible hack to observe the raw data coming to the server (before Node
   // core lower-cases the headers)
-  var rawData = ''
+  let rawData = ''
+  let ondata
 
-  s.on('connection', function (socket) {
+  s.on('connection', (socket) => {
     if (socket.ondata) {
-      var ondata = socket.ondata
+      ondata = socket.ondata
     }
     function handledata (d, start, end) {
       if (ondata) {
@@ -145,11 +146,11 @@ tape('upper-case Host header and redirect', function (t) {
     rawData = ''
   }
 
-  var redirects = 0
+  let redirects = 0
   request({
     url: s.url + '/redirect/from',
     headers: { Host: '127.0.0.1' }
-  }, function (err, res, body) {
+  }, (err, res, body) => {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, 'ok')
@@ -164,7 +165,7 @@ tape('upper-case Host header and redirect', function (t) {
   })
 })
 
-tape('undefined headers', function (t) {
+tape('undefined headers', (t) => {
   request({
     url: s.url + '/headers.json',
     headers: {
@@ -172,7 +173,7 @@ tape('undefined headers', function (t) {
       'X-TEST-2': undefined
     },
     json: true
-  }, function (err, res, body) {
+  }, (err, res, body) => {
     t.equal(err, null)
     t.equal(body['x-test-1'], 'test1')
     t.equal(typeof body['x-test-2'], 'undefined')
@@ -180,73 +181,73 @@ tape('undefined headers', function (t) {
   })
 })
 
-tape('preserve port in host header if non-standard port', function (t) {
-  var r = request({
+tape('preserve port in host header if non-standard port', (t) => {
+  const r = request({
     url: s.url + '/headers.json'
-  }, function (err, res, body) {
+  }, (err, res, body) => {
     t.equal(err, null)
     t.equal(r.originalHost, 'localhost:' + s.port)
     t.end()
   })
 })
 
-tape('strip port in host header if explicit standard port (:80) & protocol (HTTP)', function (t) {
-  var r = request({
+tape('strip port in host header if explicit standard port (:80) & protocol (HTTP)', (t) => {
+  const r = request({
     url: 'http://localhost:80/headers.json'
-  }, function (_err, res, body) {
+  }, (_err, res, body) => {
     t.equal(r.req.socket._host, 'localhost')
     t.end()
   })
 })
 
-tape('strip port in host header if explicit standard port (:443) & protocol (HTTPS)', function (t) {
-  var r = request({
+tape('strip port in host header if explicit standard port (:443) & protocol (HTTPS)', (t) => {
+  const r = request({
     url: 'https://localhost:443/headers.json'
-  }, function (_err, res, body) {
+  }, (_err, res, body) => {
     t.equal(r.req.socket._host, 'localhost')
     t.end()
   })
 })
 
-tape('strip port in host header if implicit standard port & protocol (HTTP)', function (t) {
-  var r = request({
+tape('strip port in host header if implicit standard port & protocol (HTTP)', (t) => {
+  const r = request({
     url: 'http://localhost/headers.json'
-  }, function (_err, res, body) {
+  }, (_err, res, body) => {
     t.equal(r.req.socket._host, 'localhost')
     t.end()
   })
 })
 
-tape('strip port in host header if implicit standard port & protocol (HTTPS)', function (t) {
-  var r = request({
+tape('strip port in host header if implicit standard port & protocol (HTTPS)', (t) => {
+  const r = request({
     url: 'https://localhost/headers.json'
-  }, function (_err, res, body) {
+  }, (_err, res, body) => {
     t.equal(r.req.socket._host, 'localhost')
     t.end()
   })
 })
 
-var isExpectedHeaderCharacterError = function (headerName, err) {
+const isExpectedHeaderCharacterError = (headerName, err) => {
   return err.message === 'The header content contains invalid characters' ||
     err.message === ('Invalid character in header content ["' + headerName + '"]')
 }
 
-tape('catch invalid characters error - GET', function (t) {
+tape('catch invalid characters error - GET', (t) => {
   request({
     url: s.url + '/headers.json',
     headers: {
       'test': 'אבגד'
     }
-  }, function (err, res, body) {
+  }, (err, res, body) => {
     t.true(isExpectedHeaderCharacterError('test', err))
   })
-  .on('error', function (err) {
+  .on('error', (err) => {
     t.true(isExpectedHeaderCharacterError('test', err))
     t.end()
   })
 })
 
-tape('catch invalid characters error - POST', function (t) {
+tape('catch invalid characters error - POST', (t) => {
   request({
     method: 'POST',
     url: s.url + '/headers.json',
@@ -254,23 +255,24 @@ tape('catch invalid characters error - POST', function (t) {
       'test': 'אבגד'
     },
     body: 'beep'
-  }, function (err, res, body) {
+  }, (err, res, body) => {
     t.true(isExpectedHeaderCharacterError('test', err))
   })
-  .on('error', function (err) {
+  .on('error', (err) => {
     t.true(isExpectedHeaderCharacterError('test', err))
     t.end()
   })
 })
 
 if (hasIPv6interface) {
-  tape('IPv6 Host header', function (t) {
+  tape('IPv6 Host header', (t) => {
     // Horrible hack to observe the raw data coming to the server
-    var rawData = ''
+    let rawData = ''
+    let ondata
 
-    s.on('connection', function (socket) {
+    s.on('connection', (socket) => {
       if (socket.ondata) {
-        var ondata = socket.ondata
+        ondata = socket.ondata
       }
       function handledata (d, start, end) {
         if (ondata) {
@@ -295,7 +297,7 @@ if (hasIPv6interface) {
 
     request({
       url: s.url.replace(url.parse(s.url).hostname, '[::1]') + '/headers.json'
-    }, function (err, res, body) {
+    }, (err, res, body) => {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
       checkHostHeader('\\[::1\\]:' + s.port)

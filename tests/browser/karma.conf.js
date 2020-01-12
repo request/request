@@ -1,7 +1,7 @@
 'use strict'
-var istanbul = require('browserify-istanbul')
+const istanbul = require('browserify-istanbul')
 
-module.exports = function (config) {
+module.exports = (config) => {
   config.set({
     client: { requestTestUrl: process.argv[4] },
     basePath: '../..',

@@ -1,12 +1,12 @@
 'use strict'
 
-var http = require('http')
-var request = require('../index')
-var tape = require('tape')
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
 
-var server = http.createServer(function (req, res) {
+const server = http.createServer((req, res) => {
   // redirect everything 3 times, no matter what.
-  var c = req.headers.cookie
+  let c = req.headers.cookie
 
   if (!c) {
     c = 0
@@ -25,33 +25,33 @@ var server = http.createServer(function (req, res) {
   res.end('try again')
 })
 
-tape('setup', function (t) {
+tape('setup', (t) => {
   server.listen(0, function () {
     server.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('followAllRedirects', function (t) {
-  var redirects = 0
+tape('followAllRedirects', (t) => {
+  let redirects = 0
 
   request.post({
     url: server.url + '/foo',
     followAllRedirects: true,
     jar: true,
     form: { foo: 'bar' }
-  }, function (err, res, body) {
+  }, (err, res, body) => {
     t.equal(err, null)
     t.equal(body, 'ok')
     t.equal(redirects, 4)
     t.end()
-  }).on('redirect', function () {
+  }).on('redirect', () => {
     redirects++
   })
 })
 
-tape('cleanup', function (t) {
-  server.close(function () {
+tape('cleanup', (t) => {
+  server.close(() => {
     t.end()
   })
 })

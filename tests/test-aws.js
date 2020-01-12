@@ -1,28 +1,28 @@
 'use strict'
 
-var request = require('../index')
-var server = require('./server')
-var tape = require('tape')
+const request = require('../index')
+const server = require('./server')
+const tape = require('tape')
 
-var s = server.createServer()
+const s = server.createServer()
 
-var path = '/aws.json'
+const path = '/aws.json'
 
-s.on(path, function (req, res) {
+s.on(path, (req, res) => {
   res.writeHead(200, {
     'Content-Type': 'application/json'
   })
   res.end(JSON.stringify(req.headers))
 })
 
-tape('setup', function (t) {
-  s.listen(0, function () {
+tape('setup', (t) => {
+  s.listen(0, () => {
     t.end()
   })
 })
 
-tape('default behaviour: aws-sign2 without sign_version key', function (t) {
-  var options = {
+tape('default behaviour: aws-sign2 without sign_version key', (t) => {
+  const options = {
     url: s.url + path,
     aws: {
       key: 'my_key',
@@ -30,7 +30,7 @@ tape('default behaviour: aws-sign2 without sign_version key', function (t) {
     },
     json: true
   }
-  request(options, function (err, res, body) {
+  request(options, (err, res, body) => {
     t.error(err)
     t.ok(body.authorization)
     t.notOk(body['x-amz-date'])
@@ -38,8 +38,8 @@ tape('default behaviour: aws-sign2 without sign_version key', function (t) {
   })
 })
 
-tape('aws-sign4 options', function (t) {
-  var options = {
+tape('aws-sign4 options', (t) => {
+  const options = {
     url: s.url + path,
     aws: {
       key: 'my_key',
@@ -48,7 +48,7 @@ tape('aws-sign4 options', function (t) {
     },
     json: true
   }
-  request(options, function (err, res, body) {
+  request(options, (err, res, body) => {
     t.error(err)
     t.ok(body.authorization)
     t.ok(body['x-amz-date'])
@@ -57,8 +57,8 @@ tape('aws-sign4 options', function (t) {
   })
 })
 
-tape('aws-sign4 options with session token', function (t) {
-  var options = {
+tape('aws-sign4 options with session token', (t) => {
+  const options = {
     url: s.url + path,
     aws: {
       key: 'my_key',
@@ -68,7 +68,7 @@ tape('aws-sign4 options with session token', function (t) {
     },
     json: true
   }
-  request(options, function (err, res, body) {
+  request(options, (err, res, body) => {
     t.error(err)
     t.ok(body.authorization)
     t.ok(body['x-amz-date'])
@@ -77,9 +77,9 @@ tape('aws-sign4 options with session token', function (t) {
   })
 })
 
-tape('aws-sign4 options with service', function (t) {
-  var serviceName = 'UNIQUE_SERVICE_NAME'
-  var options = {
+tape('aws-sign4 options with service', (t) => {
+  const serviceName = 'UNIQUE_SERVICE_NAME'
+  const options = {
     url: s.url + path,
     aws: {
       key: 'my_key',
@@ -89,15 +89,15 @@ tape('aws-sign4 options with service', function (t) {
     },
     json: true
   }
-  request(options, function (err, res, body) {
+  request(options, (err, res, body) => {
     t.error(err)
     t.ok(body.authorization.includes(serviceName))
     t.end()
   })
 })
 
-tape('aws-sign4 with additional headers', function (t) {
-  var options = {
+tape('aws-sign4 with additional headers', (t) => {
+  const options = {
     url: s.url + path,
     headers: {
       'X-Custom-Header': 'custom'
@@ -109,15 +109,15 @@ tape('aws-sign4 with additional headers', function (t) {
     },
     json: true
   }
-  request(options, function (err, res, body) {
+  request(options, (err, res, body) => {
     t.error(err)
     t.ok(body.authorization.includes('x-custom-header'))
     t.end()
   })
 })
 
-tape('cleanup', function (t) {
-  s.close(function () {
+tape('cleanup', (t) => {
+  s.close(() => {
     t.end()
   })
 })

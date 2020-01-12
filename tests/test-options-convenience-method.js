@@ -1,17 +1,17 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
-var destroyable = require('server-destroy')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
+const destroyable = require('server-destroy')
 
-var s = server.createServer()
+const s = server.createServer()
 
 destroyable(s)
 
-tape('setup', function (t) {
-  s.listen(0, function () {
-    s.on('/options', function (req, res) {
+tape('setup', (t) => {
+  s.listen(0, () => {
+    s.on('/options', (req, res) => {
       res.writeHead(200, {
         'x-original-method': req.method,
         'allow': 'OPTIONS, GET, HEAD'
@@ -24,8 +24,8 @@ tape('setup', function (t) {
   })
 })
 
-tape('options(string, function)', function (t) {
-  request.options(s.url + '/options', function (err, res) {
+tape('options(string, function)', (t) => {
+  request.options(s.url + '/options', (err, res) => {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(res.headers['x-original-method'], 'OPTIONS')
@@ -33,11 +33,11 @@ tape('options(string, function)', function (t) {
   })
 })
 
-tape('options(object, function)', function (t) {
+tape('options(object, function)', (t) => {
   request.options({
     url: s.url + '/options',
     headers: { foo: 'bar' }
-  }, function (err, res) {
+  }, (err, res) => {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(res.headers['x-original-method'], 'OPTIONS')
@@ -45,8 +45,8 @@ tape('options(object, function)', function (t) {
   })
 })
 
-tape('cleanup', function (t) {
-  s.destroy(function () {
+tape('cleanup', (t) => {
+  s.destroy(() => {
     t.end()
   })
 })

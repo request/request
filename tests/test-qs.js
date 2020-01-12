@@ -1,7 +1,7 @@
 'use strict'
 
-var request = require('../index')
-var tape = require('tape')
+const request = require('../index')
+const tape = require('tape')
 
 // Run a querystring test.  `options` can have the following keys:
 //   - suffix              : a string to be added to the URL
@@ -12,8 +12,8 @@ var tape = require('tape')
 //   - expected            : the expected path of the request
 //   - expectedQuerystring : expected path when using the querystring library
 function runTest (name, options) {
-  var uri = 'http://www.google.com' + (options.suffix || '')
-  var opts = {
+  const uri = 'http://www.google.com' + (options.suffix || '')
+  const opts = {
     uri: uri,
     qsParseOptions: options.qsParseOptions,
     qsStringifyOptions: options.qsStringifyOptions
@@ -23,25 +23,25 @@ function runTest (name, options) {
     opts.qs = options.qs
   }
 
-  tape(name + ' - using qs', function (t) {
-    var r = request.get(opts)
+  tape(name + ' - using qs', (t) => {
+    const r = request.get(opts)
     if (typeof options.afterRequest === 'function') {
       options.afterRequest(r)
     }
-    process.nextTick(function () {
+    process.nextTick(() => {
       t.equal(r.path, options.expected)
       r.abort()
       t.end()
     })
   })
 
-  tape(name + ' - using querystring', function (t) {
+  tape(name + ' - using querystring', (t) => {
     opts.useQuerystring = true
-    var r = request.get(opts)
+    const r = request.get(opts)
     if (typeof options.afterRequest === 'function') {
       options.afterRequest(r)
     }
-    process.nextTick(function () {
+    process.nextTick(() => {
       t.equal(r.path, options.expectedQuerystring || options.expected)
       r.abort()
       t.end()
@@ -84,7 +84,7 @@ runTest('giving empty qs property', {
 
 runTest('modifying the qs after creating the request', {
   qs: {},
-  afterRequest: function (r) {
+  afterRequest: (r) => {
     r.qs({ q: 'test' })
   },
   expected: '/?q=test'
