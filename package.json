@@ -74,7 +74,7 @@
     "rimraf": "^2.2.8",
     "server-destroy": "^1.0.1",
     "standard": "^9.0.0",
-    "tape": "^4.6.0",
+    "tape": "^4.13.0",
     "taper": "^0.5.0"
   },
   "greenkeeper": {
