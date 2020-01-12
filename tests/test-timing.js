@@ -59,7 +59,7 @@ tape('non-redirected request is timed', (t) => {
     // validate there are no unexpected properties
     let propNames = []
     for (const propName in res.timings) {
-      if (res.timings.hasOwnProperty(propName)) {
+      if (Object.prototype.hasOwnProperty.call(res.timings, propName)) {
         propNames.push(propName)
       }
     }
@@ -67,7 +67,7 @@ tape('non-redirected request is timed', (t) => {
 
     propNames = []
     for (const propName in res.timingPhases) {
-      if (res.timingPhases.hasOwnProperty(propName)) {
+      if (Object.prototype.hasOwnProperty.call(res.timingPhases, propName)) {
         propNames.push(propName)
       }
     }

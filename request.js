@@ -679,7 +679,7 @@ class Request extends stream.Stream {
       return this.emit('error', new Error(message))
     }
 
-    if (!this.hasOwnProperty('proxy')) {
+    if (!Object.prototype.hasOwnProperty.call(this, 'proxy')) {
       this.proxy = getProxyFromURI(this.uri)
     }
 
@@ -726,14 +726,14 @@ class Request extends stream.Stream {
       const formData = options.formData
       const requestForm = this.form()
       const appendFormValue = (key, value) => {
-        if (value && value.hasOwnProperty('value') && value.hasOwnProperty('options')) {
+        if (value && Object.prototype.hasOwnProperty.call(value, 'value') && Object.prototype.hasOwnProperty.call(value, 'options')) {
           requestForm.append(key, value.value, value.options)
         } else {
           requestForm.append(key, value)
         }
       }
       for (const formKey in formData) {
-        if (formData.hasOwnProperty(formKey)) {
+        if (Object.prototype.hasOwnProperty.call(formData, formKey)) {
           const formValue = formData[formKey]
           if (formValue instanceof Array) {
             for (let j = 0; j < formValue.length; j++) {
