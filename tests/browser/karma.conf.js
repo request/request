@@ -1,7 +1,7 @@
 'use strict'
 const istanbul = require('browserify-istanbul')
 
-module.exports = (config) => {
+module.exports = config => {
   config.set({
     client: { requestTestUrl: process.argv[4] },
     basePath: '../..',
@@ -10,9 +10,7 @@ module.exports = (config) => {
       'tests/browser/test.js': ['browserify'],
       '*.js,!(tests)/**/*.js': ['coverage']
     },
-    files: [
-      'tests/browser/test.js'
-    ],
+    files: ['tests/browser/test.js'],
     port: 9876,
 
     reporters: ['dots', 'coverage'],
@@ -35,9 +33,11 @@ module.exports = (config) => {
     ],
     browserify: {
       debug: true,
-      transform: [istanbul({
-        ignore: ['**/node_modules/**', '**/tests/**']
-      })]
+      transform: [
+        istanbul({
+          ignore: ['**/node_modules/**', '**/tests/**']
+        })
+      ]
     },
     coverageReporter: {
       type: 'lcov',
@@ -48,9 +48,7 @@ module.exports = (config) => {
     customLaunchers: {
       PhantomJS_without_security: {
         base: 'PhantomJS',
-        flags: [
-          '--ignore-ssl-errors=true'
-        ]
+        flags: ['--ignore-ssl-errors=true']
       }
     }
   })

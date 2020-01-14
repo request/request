@@ -10,11 +10,14 @@ const http = require('http')
 
 function getSignature (r) {
   let sign
-  r.headers.Authorization.slice('OAuth '.length).replace(/, /g, ',').split(',').forEach((v) => {
-    if (v.slice(0, 'oauth_signature="'.length) === 'oauth_signature="') {
-      sign = v.slice('oauth_signature="'.length, -1)
-    }
-  })
+  r.headers.Authorization.slice('OAuth '.length)
+    .replace(/, /g, ',')
+    .split(',')
+    .forEach(v => {
+      if (v.slice(0, 'oauth_signature="'.length) === 'oauth_signature="') {
+        sign = v.slice('oauth_signature="'.length, -1)
+      }
+    })
   return decodeURIComponent(sign)
 }
 
@@ -34,53 +37,74 @@ let upsign
 let upsign256
 let upsignRSA
 
-tape('reqsign', (t) => {
-  reqsign = hmacsign('POST', 'https://api.twitter.com/oauth/request_token',
+tape('reqsign', t => {
+  reqsign = hmacsign(
+    'POST',
+    'https://api.twitter.com/oauth/request_token',
     {
-      oauth_callback: 'http://localhost:3005/the_dance/process_callback?service_provider_id=11',
+      oauth_callback:
+        'http://localhost:3005/the_dance/process_callback?service_provider_id=11',
       oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
       oauth_nonce: 'QP70eNmVz8jvdPevU3oJD2AfF7R7odC2XJcn4XlZJqk',
       oauth_signature_method: 'HMAC-SHA1',
       oauth_timestamp: '1272323042',
       oauth_version: '1.0'
-    }, 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98')
+    },
+    'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98'
+  )
 
   t.equal(reqsign, '8wUi7m5HFQy76nowoCThusfgB+Q=')
   t.end()
 })
 
-tape('reqsign256', (t) => {
-  reqsign256 = hmacsign256('POST', 'https://api.twitter.com/oauth/request_token',
+tape('reqsign256', t => {
+  reqsign256 = hmacsign256(
+    'POST',
+    'https://api.twitter.com/oauth/request_token',
     {
-      oauth_callback: 'http://localhost:3005/the_dance/process_callback?service_provider_id=11',
+      oauth_callback:
+        'http://localhost:3005/the_dance/process_callback?service_provider_id=11',
       oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
       oauth_nonce: 'QP70eNmVz8jvdPevU3oJD2AfF7R7odC2XJcn4XlZJqk',
       oauth_signature_method: 'HMAC-SHA256',
       oauth_timestamp: '1272323042',
       oauth_version: '1.0'
-    }, 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98')
+    },
+    'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98'
+  )
 
   t.equal(reqsign256, 'N0KBpiPbuPIMx2B77eIg7tNfGNF81iq3bcO9RO6lH+k=')
   t.end()
 })
 
-tape('reqsignRSA', (t) => {
-  reqsignRSA = rsasign('POST', 'https://api.twitter.com/oauth/request_token',
+tape('reqsignRSA', t => {
+  reqsignRSA = rsasign(
+    'POST',
+    'https://api.twitter.com/oauth/request_token',
     {
-      oauth_callback: 'http://localhost:3005/the_dance/process_callback?service_provider_id=11',
+      oauth_callback:
+        'http://localhost:3005/the_dance/process_callback?service_provider_id=11',
       oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
       oauth_nonce: 'QP70eNmVz8jvdPevU3oJD2AfF7R7odC2XJcn4XlZJqk',
       oauth_signature_method: 'RSA-SHA1',
       oauth_timestamp: '1272323042',
       oauth_version: '1.0'
-    }, rsaPrivatePEM, 'this parameter is not used for RSA signing')
+    },
+    rsaPrivatePEM,
+    'this parameter is not used for RSA signing'
+  )
 
-  t.equal(reqsignRSA, 'MXdzEnIrQco3ACPoVWxCwv5pxYrm5MFRXbsP3LfRV+zfcRr+WMp/dOPS/3r+Wcb+17Z2IK3uJ8dMHfzb5LiDNCTUIj7SWBrbxOpy3Y6SA6z3vcrtjSekkTHLek1j+mzxOi3r3fkbYaNwjHx3PyoFSazbEstnkQQotbITeFt5FBE=')
+  t.equal(
+    reqsignRSA,
+    'MXdzEnIrQco3ACPoVWxCwv5pxYrm5MFRXbsP3LfRV+zfcRr+WMp/dOPS/3r+Wcb+17Z2IK3uJ8dMHfzb5LiDNCTUIj7SWBrbxOpy3Y6SA6z3vcrtjSekkTHLek1j+mzxOi3r3fkbYaNwjHx3PyoFSazbEstnkQQotbITeFt5FBE='
+  )
   t.end()
 })
 
-tape('accsign', (t) => {
-  accsign = hmacsign('POST', 'https://api.twitter.com/oauth/access_token',
+tape('accsign', t => {
+  accsign = hmacsign(
+    'POST',
+    'https://api.twitter.com/oauth/access_token',
     {
       oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
       oauth_nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
@@ -89,14 +113,19 @@ tape('accsign', (t) => {
       oauth_timestamp: '1272323047',
       oauth_verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY',
       oauth_version: '1.0'
-    }, 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98', 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA')
+    },
+    'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98',
+    'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA'
+  )
 
   t.equal(accsign, 'PUw/dHA4fnlJYM6RhXk5IU/0fCc=')
   t.end()
 })
 
-tape('accsign256', (t) => {
-  accsign256 = hmacsign256('POST', 'https://api.twitter.com/oauth/access_token',
+tape('accsign256', t => {
+  accsign256 = hmacsign256(
+    'POST',
+    'https://api.twitter.com/oauth/access_token',
     {
       oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
       oauth_nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
@@ -105,14 +134,19 @@ tape('accsign256', (t) => {
       oauth_timestamp: '1272323047',
       oauth_verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY',
       oauth_version: '1.0'
-    }, 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98', 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA')
+    },
+    'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98',
+    'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA'
+  )
 
   t.equal(accsign256, 'y7S9eUhA0tC9/YfRzCPqkg3/bUdYRDpZ93Xi51AvhjQ=')
   t.end()
 })
 
-tape('accsignRSA', (t) => {
-  accsignRSA = rsasign('POST', 'https://api.twitter.com/oauth/access_token',
+tape('accsignRSA', t => {
+  accsignRSA = rsasign(
+    'POST',
+    'https://api.twitter.com/oauth/access_token',
     {
       oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
       oauth_nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
@@ -121,14 +155,21 @@ tape('accsignRSA', (t) => {
       oauth_timestamp: '1272323047',
       oauth_verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY',
       oauth_version: '1.0'
-    }, rsaPrivatePEM)
+    },
+    rsaPrivatePEM
+  )
 
-  t.equal(accsignRSA, 'gZrMPexdgGMVUl9H6RxK0MbR6Db8tzf2kIIj52kOrDFcMgh4BunMBgUZAO1msUwz6oqZIvkVqyfyDAOP2wIrpYem0mBg3vqwPIroSE1AlUWo+TtQxOTuqrU+3kDcXpdvJe7CAX5hUx9Np/iGRqaCcgByqb9DaCcQ9ViQ+0wJiXI=')
+  t.equal(
+    accsignRSA,
+    'gZrMPexdgGMVUl9H6RxK0MbR6Db8tzf2kIIj52kOrDFcMgh4BunMBgUZAO1msUwz6oqZIvkVqyfyDAOP2wIrpYem0mBg3vqwPIroSE1AlUWo+TtQxOTuqrU+3kDcXpdvJe7CAX5hUx9Np/iGRqaCcgByqb9DaCcQ9ViQ+0wJiXI='
+  )
   t.end()
 })
 
-tape('upsign', (t) => {
-  upsign = hmacsign('POST', 'http://api.twitter.com/1/statuses/update.json',
+tape('upsign', t => {
+  upsign = hmacsign(
+    'POST',
+    'http://api.twitter.com/1/statuses/update.json',
     {
       oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
       oauth_nonce: 'oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y',
@@ -137,14 +178,19 @@ tape('upsign', (t) => {
       oauth_timestamp: '1272325550',
       oauth_version: '1.0',
       status: 'setting up my twitter 私のさえずりを設定する'
-    }, 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98', 'J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA')
+    },
+    'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98',
+    'J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA'
+  )
 
   t.equal(upsign, 'yOahq5m0YjDDjfjxHaXEsW9D+X0=')
   t.end()
 })
 
-tape('upsign256', (t) => {
-  upsign256 = hmacsign256('POST', 'http://api.twitter.com/1/statuses/update.json',
+tape('upsign256', t => {
+  upsign256 = hmacsign256(
+    'POST',
+    'http://api.twitter.com/1/statuses/update.json',
     {
       oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
       oauth_nonce: 'oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y',
@@ -153,14 +199,19 @@ tape('upsign256', (t) => {
       oauth_timestamp: '1272325550',
       oauth_version: '1.0',
       status: 'setting up my twitter 私のさえずりを設定する'
-    }, 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98', 'J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA')
+    },
+    'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98',
+    'J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA'
+  )
 
   t.equal(upsign256, 'xYhKjozxc3NYef7C26WU+gORdhEURdZRxSDzRttEKH0=')
   t.end()
 })
 
-tape('upsignRSA', (t) => {
-  upsignRSA = rsasign('POST', 'http://api.twitter.com/1/statuses/update.json',
+tape('upsignRSA', t => {
+  upsignRSA = rsasign(
+    'POST',
+    'http://api.twitter.com/1/statuses/update.json',
     {
       oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
       oauth_nonce: 'oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y',
@@ -169,25 +220,30 @@ tape('upsignRSA', (t) => {
       oauth_timestamp: '1272325550',
       oauth_version: '1.0',
       status: 'setting up my twitter 私のさえずりを設定する'
-    }, rsaPrivatePEM)
+    },
+    rsaPrivatePEM
+  )
 
-  t.equal(upsignRSA, 'fF4G9BNzDxPu/htctzh9CWzGhtXo9DYYl+ZyRO1/QNOhOZPqnWVUOT+CGUKxmAeJSzLKMAH8y/MFSHI0lzihqwgfZr7nUhTx6kH7lUChcVasr+TZ4qPqvGGEhfJ8Av8D5dF5fytfCSzct62uONU0iHYVqainP+zefk1K7Ptb6hI=')
+  t.equal(
+    upsignRSA,
+    'fF4G9BNzDxPu/htctzh9CWzGhtXo9DYYl+ZyRO1/QNOhOZPqnWVUOT+CGUKxmAeJSzLKMAH8y/MFSHI0lzihqwgfZr7nUhTx6kH7lUChcVasr+TZ4qPqvGGEhfJ8Av8D5dF5fytfCSzct62uONU0iHYVqainP+zefk1K7Ptb6hI='
+  )
   t.end()
 })
 
-tape('rsign', (t) => {
-  const rsign = request.post(
-    {
-      url: 'https://api.twitter.com/oauth/request_token',
-      oauth: {
-        callback: 'http://localhost:3005/the_dance/process_callback?service_provider_id=11',
-        consumer_key: 'GDdmIQH6jhtmLUypg82g',
-        nonce: 'QP70eNmVz8jvdPevU3oJD2AfF7R7odC2XJcn4XlZJqk',
-        timestamp: '1272323042',
-        version: '1.0',
-        consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98'
-      }
-    })
+tape('rsign', t => {
+  const rsign = request.post({
+    url: 'https://api.twitter.com/oauth/request_token',
+    oauth: {
+      callback:
+        'http://localhost:3005/the_dance/process_callback?service_provider_id=11',
+      consumer_key: 'GDdmIQH6jhtmLUypg82g',
+      nonce: 'QP70eNmVz8jvdPevU3oJD2AfF7R7odC2XJcn4XlZJqk',
+      timestamp: '1272323042',
+      version: '1.0',
+      consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98'
+    }
+  })
 
   process.nextTick(() => {
     t.equal(reqsign, getSignature(rsign))
@@ -196,20 +252,20 @@ tape('rsign', (t) => {
   })
 })
 
-tape('rsign_rsa', (t) => {
-  const rsignRSA = request.post(
-    {
-      url: 'https://api.twitter.com/oauth/request_token',
-      oauth: {
-        callback: 'http://localhost:3005/the_dance/process_callback?service_provider_id=11',
-        consumer_key: 'GDdmIQH6jhtmLUypg82g',
-        nonce: 'QP70eNmVz8jvdPevU3oJD2AfF7R7odC2XJcn4XlZJqk',
-        timestamp: '1272323042',
-        version: '1.0',
-        private_key: rsaPrivatePEM,
-        signature_method: 'RSA-SHA1'
-      }
-    })
+tape('rsign_rsa', t => {
+  const rsignRSA = request.post({
+    url: 'https://api.twitter.com/oauth/request_token',
+    oauth: {
+      callback:
+        'http://localhost:3005/the_dance/process_callback?service_provider_id=11',
+      consumer_key: 'GDdmIQH6jhtmLUypg82g',
+      nonce: 'QP70eNmVz8jvdPevU3oJD2AfF7R7odC2XJcn4XlZJqk',
+      timestamp: '1272323042',
+      version: '1.0',
+      private_key: rsaPrivatePEM,
+      signature_method: 'RSA-SHA1'
+    }
+  })
 
   process.nextTick(() => {
     t.equal(reqsignRSA, getSignature(rsignRSA))
@@ -218,22 +274,21 @@ tape('rsign_rsa', (t) => {
   })
 })
 
-tape('raccsign', (t) => {
-  const raccsign = request.post(
-    {
-      url: 'https://api.twitter.com/oauth/access_token',
-      oauth: {
-        consumer_key: 'GDdmIQH6jhtmLUypg82g',
-        nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
-        signature_method: 'HMAC-SHA1',
-        token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc',
-        timestamp: '1272323047',
-        verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY',
-        version: '1.0',
-        consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98',
-        token_secret: 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA'
-      }
-    })
+tape('raccsign', t => {
+  const raccsign = request.post({
+    url: 'https://api.twitter.com/oauth/access_token',
+    oauth: {
+      consumer_key: 'GDdmIQH6jhtmLUypg82g',
+      nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
+      signature_method: 'HMAC-SHA1',
+      token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc',
+      timestamp: '1272323047',
+      verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY',
+      version: '1.0',
+      consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98',
+      token_secret: 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA'
+    }
+  })
 
   process.nextTick(() => {
     t.equal(accsign, getSignature(raccsign))
@@ -242,22 +297,21 @@ tape('raccsign', (t) => {
   })
 })
 
-tape('raccsignRSA', (t) => {
-  const raccsignRSA = request.post(
-    {
-      url: 'https://api.twitter.com/oauth/access_token',
-      oauth: {
-        consumer_key: 'GDdmIQH6jhtmLUypg82g',
-        nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
-        signature_method: 'RSA-SHA1',
-        token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc',
-        timestamp: '1272323047',
-        verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY',
-        version: '1.0',
-        private_key: rsaPrivatePEM,
-        token_secret: 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA'
-      }
-    })
+tape('raccsignRSA', t => {
+  const raccsignRSA = request.post({
+    url: 'https://api.twitter.com/oauth/access_token',
+    oauth: {
+      consumer_key: 'GDdmIQH6jhtmLUypg82g',
+      nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
+      signature_method: 'RSA-SHA1',
+      token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc',
+      timestamp: '1272323047',
+      verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY',
+      version: '1.0',
+      private_key: rsaPrivatePEM,
+      token_secret: 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA'
+    }
+  })
 
   process.nextTick(() => {
     t.equal(accsignRSA, getSignature(raccsignRSA))
@@ -266,22 +320,21 @@ tape('raccsignRSA', (t) => {
   })
 })
 
-tape('rupsign', (t) => {
-  const rupsign = request.post(
-    {
-      url: 'http://api.twitter.com/1/statuses/update.json',
-      oauth: {
-        consumer_key: 'GDdmIQH6jhtmLUypg82g',
-        nonce: 'oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y',
-        signature_method: 'HMAC-SHA1',
-        token: '819797-Jxq8aYUDRmykzVKrgoLhXSq67TEa5ruc4GJC2rWimw',
-        timestamp: '1272325550',
-        version: '1.0',
-        consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98',
-        token_secret: 'J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA'
-      },
-      form: { status: 'setting up my twitter 私のさえずりを設定する' }
-    })
+tape('rupsign', t => {
+  const rupsign = request.post({
+    url: 'http://api.twitter.com/1/statuses/update.json',
+    oauth: {
+      consumer_key: 'GDdmIQH6jhtmLUypg82g',
+      nonce: 'oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y',
+      signature_method: 'HMAC-SHA1',
+      token: '819797-Jxq8aYUDRmykzVKrgoLhXSq67TEa5ruc4GJC2rWimw',
+      timestamp: '1272325550',
+      version: '1.0',
+      consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98',
+      token_secret: 'J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA'
+    },
+    form: { status: 'setting up my twitter 私のさえずりを設定する' }
+  })
   process.nextTick(() => {
     t.equal(upsign, getSignature(rupsign))
     rupsign.abort()
@@ -289,22 +342,21 @@ tape('rupsign', (t) => {
   })
 })
 
-tape('rupsignRSA', (t) => {
-  const rupsignRSA = request.post(
-    {
-      url: 'http://api.twitter.com/1/statuses/update.json',
-      oauth: {
-        consumer_key: 'GDdmIQH6jhtmLUypg82g',
-        nonce: 'oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y',
-        signature_method: 'RSA-SHA1',
-        token: '819797-Jxq8aYUDRmykzVKrgoLhXSq67TEa5ruc4GJC2rWimw',
-        timestamp: '1272325550',
-        version: '1.0',
-        private_key: rsaPrivatePEM,
-        token_secret: 'J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA'
-      },
-      form: { status: 'setting up my twitter 私のさえずりを設定する' }
-    })
+tape('rupsignRSA', t => {
+  const rupsignRSA = request.post({
+    url: 'http://api.twitter.com/1/statuses/update.json',
+    oauth: {
+      consumer_key: 'GDdmIQH6jhtmLUypg82g',
+      nonce: 'oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y',
+      signature_method: 'RSA-SHA1',
+      token: '819797-Jxq8aYUDRmykzVKrgoLhXSq67TEa5ruc4GJC2rWimw',
+      timestamp: '1272325550',
+      version: '1.0',
+      private_key: rsaPrivatePEM,
+      token_secret: 'J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA'
+    },
+    form: { status: 'setting up my twitter 私のさえずりを設定する' }
+  })
   process.nextTick(() => {
     t.equal(upsignRSA, getSignature(rupsignRSA))
     rupsignRSA.abort()
@@ -312,25 +364,24 @@ tape('rupsignRSA', (t) => {
   })
 })
 
-tape('rfc5849 example', (t) => {
-  const rfc5849 = request.post(
-    {
-      url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b',
-      oauth: {
-        consumer_key: '9djdj82h48djs9d2',
-        nonce: '7d8f3e4a',
-        signature_method: 'HMAC-SHA1',
-        token: 'kkk9d7dh3k39sjv7',
-        timestamp: '137131201',
-        consumer_secret: 'j49sk3j29djd',
-        token_secret: 'dh893hdasih9',
-        realm: 'Example'
-      },
-      form: {
-        c2: '',
-        a3: '2 q'
-      }
-    })
+tape('rfc5849 example', t => {
+  const rfc5849 = request.post({
+    url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b',
+    oauth: {
+      consumer_key: '9djdj82h48djs9d2',
+      nonce: '7d8f3e4a',
+      signature_method: 'HMAC-SHA1',
+      token: 'kkk9d7dh3k39sjv7',
+      timestamp: '137131201',
+      consumer_secret: 'j49sk3j29djd',
+      token_secret: 'dh893hdasih9',
+      realm: 'Example'
+    },
+    form: {
+      c2: '',
+      a3: '2 q'
+    }
+  })
 
   process.nextTick(() => {
     // different signature in rfc5849 because request sets oauth_version by default
@@ -340,44 +391,45 @@ tape('rfc5849 example', (t) => {
   })
 })
 
-tape('rfc5849 RSA example', (t) => {
-  const rfc5849RSA = request.post(
-    {
-      url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b',
-      oauth: {
-        consumer_key: '9djdj82h48djs9d2',
-        nonce: '7d8f3e4a',
-        signature_method: 'RSA-SHA1',
-        token: 'kkk9d7dh3k39sjv7',
-        timestamp: '137131201',
-        private_key: rsaPrivatePEM,
-        token_secret: 'dh893hdasih9',
-        realm: 'Example'
-      },
-      form: {
-        c2: '',
-        a3: '2 q'
-      }
-    })
+tape('rfc5849 RSA example', t => {
+  const rfc5849RSA = request.post({
+    url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b',
+    oauth: {
+      consumer_key: '9djdj82h48djs9d2',
+      nonce: '7d8f3e4a',
+      signature_method: 'RSA-SHA1',
+      token: 'kkk9d7dh3k39sjv7',
+      timestamp: '137131201',
+      private_key: rsaPrivatePEM,
+      token_secret: 'dh893hdasih9',
+      realm: 'Example'
+    },
+    form: {
+      c2: '',
+      a3: '2 q'
+    }
+  })
 
   process.nextTick(() => {
     // different signature in rfc5849 because request sets oauth_version by default
-    t.equal('ThNYfZhYogcAU6rWgI3ZFlPEhoIXHMZcuMzl+jykJZW/ab+AxyefS03dyd64CclIZ0u8JEW64TQ5SHthoQS8aM8qir4t+t88lRF3LDkD2KtS1krgCZTUQxkDL5BO5pxsqAQ2Zfdcrzaxb6VMGD1Hf+Pno+fsHQo/UUKjq4V3RMo=', getSignature(rfc5849RSA))
+    t.equal(
+      'ThNYfZhYogcAU6rWgI3ZFlPEhoIXHMZcuMzl+jykJZW/ab+AxyefS03dyd64CclIZ0u8JEW64TQ5SHthoQS8aM8qir4t+t88lRF3LDkD2KtS1krgCZTUQxkDL5BO5pxsqAQ2Zfdcrzaxb6VMGD1Hf+Pno+fsHQo/UUKjq4V3RMo=',
+      getSignature(rfc5849RSA)
+    )
     rfc5849RSA.abort()
     t.end()
   })
 })
 
-tape('plaintext signature method', (t) => {
-  const plaintext = request.post(
-    {
-      url: 'https://dummy.com',
-      oauth: {
-        consumer_secret: 'consumer_secret',
-        token_secret: 'token_secret',
-        signature_method: 'PLAINTEXT'
-      }
-    })
+tape('plaintext signature method', t => {
+  const plaintext = request.post({
+    url: 'https://dummy.com',
+    oauth: {
+      consumer_secret: 'consumer_secret',
+      token_secret: 'token_secret',
+      signature_method: 'PLAINTEXT'
+    }
+  })
 
   process.nextTick(() => {
     t.equal('consumer_secret&token_secret', getSignature(plaintext))
@@ -386,286 +438,308 @@ tape('plaintext signature method', (t) => {
   })
 })
 
-tape('invalid transport_method', (t) => {
-  t.throws(
-    () => {
-      request.post(
-        {
-          url: 'http://example.com/',
-          oauth: { transport_method: 'headerquery' }
-        })
-    }, /transport_method invalid/)
-  t.end()
-})
-
-tape("invalid method while using transport_method 'body'", (t) => {
-  t.throws(
-    () => {
-      request.get(
-        {
-          url: 'http://example.com/',
-          headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-          oauth: { transport_method: 'body' }
-        })
-    }, /requires POST/)
-  t.end()
-})
-
-tape("invalid content-type while using transport_method 'body'", (t) => {
-  t.throws(
-    () => {
-      request.post(
-        {
-          url: 'http://example.com/',
-          headers: { 'content-type': 'application/json; charset=UTF-8' },
-          oauth: { transport_method: 'body' }
-        })
-    }, /requires POST/)
-  t.end()
-})
-
-tape('query transport_method', (t) => {
-  const r = request.post(
-    {
-      url: 'https://api.twitter.com/oauth/access_token',
-      oauth: {
-        consumer_key: 'GDdmIQH6jhtmLUypg82g',
-        nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
-        signature_method: 'HMAC-SHA1',
-        token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc',
-        timestamp: '1272323047',
-        verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY',
-        version: '1.0',
-        consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98',
-        token_secret: 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA',
-        transport_method: 'query'
-      }
+tape('invalid transport_method', t => {
+  t.throws(() => {
+    request.post({
+      url: 'http://example.com/',
+      oauth: { transport_method: 'headerquery' }
     })
+  }, /transport_method invalid/)
+  t.end()
+})
+
+tape("invalid method while using transport_method 'body'", t => {
+  t.throws(() => {
+    request.get({
+      url: 'http://example.com/',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
+      },
+      oauth: { transport_method: 'body' }
+    })
+  }, /requires POST/)
+  t.end()
+})
+
+tape("invalid content-type while using transport_method 'body'", t => {
+  t.throws(() => {
+    request.post({
+      url: 'http://example.com/',
+      headers: { 'content-type': 'application/json; charset=UTF-8' },
+      oauth: { transport_method: 'body' }
+    })
+  }, /requires POST/)
+  t.end()
+})
+
+tape('query transport_method', t => {
+  const r = request.post({
+    url: 'https://api.twitter.com/oauth/access_token',
+    oauth: {
+      consumer_key: 'GDdmIQH6jhtmLUypg82g',
+      nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
+      signature_method: 'HMAC-SHA1',
+      token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc',
+      timestamp: '1272323047',
+      verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY',
+      version: '1.0',
+      consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98',
+      token_secret: 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA',
+      transport_method: 'query'
+    }
+  })
 
   process.nextTick(() => {
-    t.notOk(r.headers.Authorization, "oauth Authorization header should not be present with transport_method 'query'")
-    t.equal(r.uri.pathname + r.uri.search, r.path, 'r.uri.pathname + r.uri.search should equal r.path')
-    t.ok(r.path.match(/^\/oauth\/access_token\?/), 'path should contain path + query')
-    t.deepEqual(qs.parse(r.uri.searchParams.toString()),
-      {
-        oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
-        oauth_nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
-        oauth_signature_method: 'HMAC-SHA1',
-        oauth_timestamp: '1272323047',
-        oauth_token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc',
-        oauth_verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY',
-        oauth_version: '1.0',
-        oauth_signature: accsign
-      })
+    t.notOk(
+      r.headers.Authorization,
+      "oauth Authorization header should not be present with transport_method 'query'"
+    )
+    t.equal(
+      r.uri.pathname + r.uri.search,
+      r.path,
+      'r.uri.pathname + r.uri.search should equal r.path'
+    )
+    t.ok(
+      r.path.match(/^\/oauth\/access_token\?/),
+      'path should contain path + query'
+    )
+    t.deepEqual(qs.parse(r.uri.searchParams.toString()), {
+      oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
+      oauth_nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
+      oauth_signature_method: 'HMAC-SHA1',
+      oauth_timestamp: '1272323047',
+      oauth_token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc',
+      oauth_verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY',
+      oauth_version: '1.0',
+      oauth_signature: accsign
+    })
     r.abort()
     t.end()
   })
 })
 
-tape('query transport_method + form option + url params', (t) => {
-  const r = request.post(
-    {
-      url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b',
-      oauth: {
-        consumer_key: '9djdj82h48djs9d2',
-        nonce: '7d8f3e4a',
-        signature_method: 'HMAC-SHA1',
-        token: 'kkk9d7dh3k39sjv7',
-        timestamp: '137131201',
-        consumer_secret: 'j49sk3j29djd',
-        token_secret: 'dh893hdasih9',
-        realm: 'Example',
-        transport_method: 'query'
-      },
-      form: {
-        c2: '',
-        a3: '2 q'
-      }
-    })
+tape('query transport_method + form option + url params', t => {
+  const r = request.post({
+    url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b',
+    oauth: {
+      consumer_key: '9djdj82h48djs9d2',
+      nonce: '7d8f3e4a',
+      signature_method: 'HMAC-SHA1',
+      token: 'kkk9d7dh3k39sjv7',
+      timestamp: '137131201',
+      consumer_secret: 'j49sk3j29djd',
+      token_secret: 'dh893hdasih9',
+      realm: 'Example',
+      transport_method: 'query'
+    },
+    form: {
+      c2: '',
+      a3: '2 q'
+    }
+  })
 
   process.nextTick(() => {
-    t.notOk(r.headers.Authorization, "oauth Authorization header should not be present with transport_method 'query'")
-    t.equal(r.uri.pathname + r.uri.search, r.path, 'r.uri.pathname + r.uri.search should equal r.path')
+    t.notOk(
+      r.headers.Authorization,
+      "oauth Authorization header should not be present with transport_method 'query'"
+    )
+    t.equal(
+      r.uri.pathname + r.uri.search,
+      r.path,
+      'r.uri.pathname + r.uri.search should equal r.path'
+    )
     t.ok(r.path.match(/^\/request\?/), 'path should contain path + query')
-    t.deepEqual(qs.parse(r.uri.searchParams.toString()),
-      {
-        b5: '=%3D',
-        a3: 'a',
-        'c@': '',
-        a2: 'r b',
-        realm: 'Example',
-        oauth_consumer_key: '9djdj82h48djs9d2',
-        oauth_nonce: '7d8f3e4a',
-        oauth_signature_method: 'HMAC-SHA1',
-        oauth_timestamp: '137131201',
-        oauth_token: 'kkk9d7dh3k39sjv7',
-        oauth_version: '1.0',
-        oauth_signature: 'OB33pYjWAnf+xtOHN4Gmbdil168='
-      })
+    t.deepEqual(qs.parse(r.uri.searchParams.toString()), {
+      b5: '=%3D',
+      a3: 'a',
+      'c@': '',
+      a2: 'r b',
+      realm: 'Example',
+      oauth_consumer_key: '9djdj82h48djs9d2',
+      oauth_nonce: '7d8f3e4a',
+      oauth_signature_method: 'HMAC-SHA1',
+      oauth_timestamp: '137131201',
+      oauth_token: 'kkk9d7dh3k39sjv7',
+      oauth_version: '1.0',
+      oauth_signature: 'OB33pYjWAnf+xtOHN4Gmbdil168='
+    })
     r.abort()
     t.end()
   })
 })
 
-tape('query transport_method + qs option + url params', (t) => {
-  const r = request.post(
-    {
-      url: 'http://example.com/request?a2=r%20b',
-      oauth: {
-        consumer_key: '9djdj82h48djs9d2',
-        nonce: '7d8f3e4a',
-        signature_method: 'HMAC-SHA1',
-        token: 'kkk9d7dh3k39sjv7',
-        timestamp: '137131201',
-        consumer_secret: 'j49sk3j29djd',
-        token_secret: 'dh893hdasih9',
-        realm: 'Example',
-        transport_method: 'query'
-      },
-      qs: {
-        b5: '=%3D',
-        a3: ['a', '2 q'],
-        'c@': '',
-        c2: ''
-      }
-    })
+tape('query transport_method + qs option + url params', t => {
+  const r = request.post({
+    url: 'http://example.com/request?a2=r%20b',
+    oauth: {
+      consumer_key: '9djdj82h48djs9d2',
+      nonce: '7d8f3e4a',
+      signature_method: 'HMAC-SHA1',
+      token: 'kkk9d7dh3k39sjv7',
+      timestamp: '137131201',
+      consumer_secret: 'j49sk3j29djd',
+      token_secret: 'dh893hdasih9',
+      realm: 'Example',
+      transport_method: 'query'
+    },
+    qs: {
+      b5: '=%3D',
+      a3: ['a', '2 q'],
+      'c@': '',
+      c2: ''
+    }
+  })
 
   process.nextTick(() => {
-    t.notOk(r.headers.Authorization, "oauth Authorization header should not be present with transport_method 'query'")
-    t.equal(r.uri.pathname + r.uri.search, r.path, 'r.uri.pathname + r.uri.search should equal r.path')
+    t.notOk(
+      r.headers.Authorization,
+      "oauth Authorization header should not be present with transport_method 'query'"
+    )
+    t.equal(
+      r.uri.pathname + r.uri.search,
+      r.path,
+      'r.uri.pathname + r.uri.search should equal r.path'
+    )
     t.ok(r.path.match(/^\/request\?/), 'path should contain path + query')
-    t.deepEqual(qs.parse(r.uri.searchParams.toString()),
-      {
-        a2: 'r b',
-        b5: '=%3D',
-        'a3[0]': 'a',
-        'a3[1]': '2 q',
-        'c@': '',
-        c2: '',
-        realm: 'Example',
-        oauth_consumer_key: '9djdj82h48djs9d2',
-        oauth_nonce: '7d8f3e4a',
-        oauth_signature_method: 'HMAC-SHA1',
-        oauth_timestamp: '137131201',
-        oauth_token: 'kkk9d7dh3k39sjv7',
-        oauth_version: '1.0',
-        oauth_signature: 'OB33pYjWAnf+xtOHN4Gmbdil168='
-      })
+    t.deepEqual(qs.parse(r.uri.searchParams.toString()), {
+      a2: 'r b',
+      b5: '=%3D',
+      'a3[0]': 'a',
+      'a3[1]': '2 q',
+      'c@': '',
+      c2: '',
+      realm: 'Example',
+      oauth_consumer_key: '9djdj82h48djs9d2',
+      oauth_nonce: '7d8f3e4a',
+      oauth_signature_method: 'HMAC-SHA1',
+      oauth_timestamp: '137131201',
+      oauth_token: 'kkk9d7dh3k39sjv7',
+      oauth_version: '1.0',
+      oauth_signature: 'OB33pYjWAnf+xtOHN4Gmbdil168='
+    })
     r.abort()
     t.end()
   })
 })
 
-tape('body transport_method', (t) => {
-  const r = request.post(
-    {
-      url: 'https://api.twitter.com/oauth/access_token',
-      headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-      oauth: {
-        consumer_key: 'GDdmIQH6jhtmLUypg82g',
-        nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
-        signature_method: 'HMAC-SHA1',
-        token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc',
-        timestamp: '1272323047',
-        verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY',
-        version: '1.0',
-        consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98',
-        token_secret: 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA',
-        transport_method: 'body'
-      }
-    })
+tape('body transport_method', t => {
+  const r = request.post({
+    url: 'https://api.twitter.com/oauth/access_token',
+    headers: {
+      'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
+    },
+    oauth: {
+      consumer_key: 'GDdmIQH6jhtmLUypg82g',
+      nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
+      signature_method: 'HMAC-SHA1',
+      token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc',
+      timestamp: '1272323047',
+      verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY',
+      version: '1.0',
+      consumer_secret: 'MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98',
+      token_secret: 'x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA',
+      transport_method: 'body'
+    }
+  })
 
   process.nextTick(() => {
-    t.notOk(r.headers.Authorization, "oauth Authorization header should not be present with transport_method 'body'")
-    t.deepEqual(qs.parse(r.body),
-      {
-        oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
-        oauth_nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
-        oauth_signature_method: 'HMAC-SHA1',
-        oauth_timestamp: '1272323047',
-        oauth_token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc',
-        oauth_verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY',
-        oauth_version: '1.0',
-        oauth_signature: accsign
-      })
+    t.notOk(
+      r.headers.Authorization,
+      "oauth Authorization header should not be present with transport_method 'body'"
+    )
+    t.deepEqual(qs.parse(r.body), {
+      oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
+      oauth_nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
+      oauth_signature_method: 'HMAC-SHA1',
+      oauth_timestamp: '1272323047',
+      oauth_token: '8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc',
+      oauth_verifier: 'pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY',
+      oauth_version: '1.0',
+      oauth_signature: accsign
+    })
     r.abort()
     t.end()
   })
 })
 
-tape('body transport_method + form option + url params', (t) => {
-  const r = request.post(
-    {
-      url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b',
-      oauth: {
-        consumer_key: '9djdj82h48djs9d2',
-        nonce: '7d8f3e4a',
-        signature_method: 'HMAC-SHA1',
-        token: 'kkk9d7dh3k39sjv7',
-        timestamp: '137131201',
-        consumer_secret: 'j49sk3j29djd',
-        token_secret: 'dh893hdasih9',
-        realm: 'Example',
-        transport_method: 'body'
-      },
-      form: {
-        c2: '',
-        a3: '2 q'
-      }
-    })
+tape('body transport_method + form option + url params', t => {
+  const r = request.post({
+    url: 'http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b',
+    oauth: {
+      consumer_key: '9djdj82h48djs9d2',
+      nonce: '7d8f3e4a',
+      signature_method: 'HMAC-SHA1',
+      token: 'kkk9d7dh3k39sjv7',
+      timestamp: '137131201',
+      consumer_secret: 'j49sk3j29djd',
+      token_secret: 'dh893hdasih9',
+      realm: 'Example',
+      transport_method: 'body'
+    },
+    form: {
+      c2: '',
+      a3: '2 q'
+    }
+  })
 
   process.nextTick(() => {
-    t.notOk(r.headers.Authorization, "oauth Authorization header should not be present with transport_method 'body'")
-    t.deepEqual(qs.parse(r.body),
-      {
-        c2: '',
-        a3: '2 q',
-        realm: 'Example',
-        oauth_consumer_key: '9djdj82h48djs9d2',
-        oauth_nonce: '7d8f3e4a',
-        oauth_signature_method: 'HMAC-SHA1',
-        oauth_timestamp: '137131201',
-        oauth_token: 'kkk9d7dh3k39sjv7',
-        oauth_version: '1.0',
-        oauth_signature: 'OB33pYjWAnf+xtOHN4Gmbdil168='
-      })
+    t.notOk(
+      r.headers.Authorization,
+      "oauth Authorization header should not be present with transport_method 'body'"
+    )
+    t.deepEqual(qs.parse(r.body), {
+      c2: '',
+      a3: '2 q',
+      realm: 'Example',
+      oauth_consumer_key: '9djdj82h48djs9d2',
+      oauth_nonce: '7d8f3e4a',
+      oauth_signature_method: 'HMAC-SHA1',
+      oauth_timestamp: '137131201',
+      oauth_token: 'kkk9d7dh3k39sjv7',
+      oauth_version: '1.0',
+      oauth_signature: 'OB33pYjWAnf+xtOHN4Gmbdil168='
+    })
     r.abort()
     t.end()
   })
 })
 
-tape('body_hash manually set', (t) => {
-  const r = request.post(
-    {
-      url: 'http://example.com',
-      oauth: {
-        consumer_secret: 'consumer_secret',
-        body_hash: 'ManuallySetHash'
-      },
-      json: { foo: 'bar' }
-    })
+tape('body_hash manually set', t => {
+  const r = request.post({
+    url: 'http://example.com',
+    oauth: {
+      consumer_secret: 'consumer_secret',
+      body_hash: 'ManuallySetHash'
+    },
+    json: { foo: 'bar' }
+  })
 
   process.nextTick(() => {
-    const hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
+    const hash = r.headers.Authorization.replace(
+      /.*oauth_body_hash="([^"]+)".*/,
+      '$1'
+    )
     t.equal('ManuallySetHash', hash)
     r.abort()
     t.end()
   })
 })
 
-tape('body_hash automatically built for string', (t) => {
-  const r = request.post(
-    {
-      url: 'http://example.com',
-      oauth: {
-        consumer_secret: 'consumer_secret',
-        body_hash: true
-      },
-      body: 'Hello World!'
-    })
+tape('body_hash automatically built for string', t => {
+  const r = request.post({
+    url: 'http://example.com',
+    oauth: {
+      consumer_secret: 'consumer_secret',
+      body_hash: true
+    },
+    body: 'Hello World!'
+  })
 
   process.nextTick(() => {
-    const hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
+    const hash = r.headers.Authorization.replace(
+      /.*oauth_body_hash="([^"]+)".*/,
+      '$1'
+    )
     // from https://tools.ietf.org/id/draft-eaton-oauth-bodyhash-00.html#anchor15
     t.equal('Lve95gjOVATpfV8EL5X4nxwjKHE%3D', hash)
     r.abort()
@@ -673,52 +747,59 @@ tape('body_hash automatically built for string', (t) => {
   })
 })
 
-tape('body_hash automatically built for JSON', (t) => {
-  const r = request.post(
-    {
-      url: 'http://example.com',
-      oauth: {
-        consumer_secret: 'consumer_secret',
-        body_hash: true
-      },
-      json: { foo: 'bar' }
-    })
+tape('body_hash automatically built for JSON', t => {
+  const r = request.post({
+    url: 'http://example.com',
+    oauth: {
+      consumer_secret: 'consumer_secret',
+      body_hash: true
+    },
+    json: { foo: 'bar' }
+  })
 
   process.nextTick(() => {
-    const hash = r.headers.Authorization.replace(/.*oauth_body_hash="([^"]+)".*/, '$1')
+    const hash = r.headers.Authorization.replace(
+      /.*oauth_body_hash="([^"]+)".*/,
+      '$1'
+    )
     t.equal('pedE0BZFQNM7HX6mFsKPL6l%2BdUo%3D', hash)
     r.abort()
     t.end()
   })
 })
 
-tape('body_hash PLAINTEXT signature_method', (t) => {
+tape('body_hash PLAINTEXT signature_method', t => {
   t.throws(() => {
-    request.post(
-      {
-        url: 'http://example.com',
-        oauth: {
-          consumer_secret: 'consumer_secret',
-          body_hash: true,
-          signature_method: 'PLAINTEXT'
-        },
-        json: { foo: 'bar' }
-      })
+    request.post({
+      url: 'http://example.com',
+      oauth: {
+        consumer_secret: 'consumer_secret',
+        body_hash: true,
+        signature_method: 'PLAINTEXT'
+      },
+      json: { foo: 'bar' }
+    })
   }, /oauth: PLAINTEXT signature_method not supported with body_hash signing/)
   t.end()
 })
 
-tape('refresh oauth_nonce on redirect', (t) => {
+tape('refresh oauth_nonce on redirect', t => {
   let oauthNonce1
   let oauthNonce2
   let url
   const s = http.createServer((req, res) => {
     if (req.url === '/redirect') {
-      oauthNonce1 = req.headers.authorization.replace(/.*oauth_nonce="([^"]+)".*/, '$1')
+      oauthNonce1 = req.headers.authorization.replace(
+        /.*oauth_nonce="([^"]+)".*/,
+        '$1'
+      )
       res.writeHead(302, { location: url + '/response' })
       res.end()
     } else if (req.url === '/response') {
-      oauthNonce2 = req.headers.authorization.replace(/.*oauth_nonce="([^"]+)".*/, '$1')
+      oauthNonce2 = req.headers.authorization.replace(
+        /.*oauth_nonce="([^"]+)".*/,
+        '$1'
+      )
       res.writeHead(200, { 'content-type': 'text/plain' })
       res.end()
     }
@@ -734,17 +815,19 @@ tape('refresh oauth_nonce on redirect', (t) => {
           token: 'token',
           token_secret: 'token_secret'
         }
-      }, (err, res, body) => {
+      },
+      (err, res, body) => {
         t.equal(err, null)
         t.notEqual(oauthNonce1, oauthNonce2)
         s.close(() => {
           t.end()
         })
-      })
+      }
+    )
   })
 })
 
-tape('no credentials on external redirect', (t) => {
+tape('no credentials on external redirect', t => {
   const s2 = http.createServer((req, res) => {
     res.writeHead(200, { 'content-type': 'text/plain' })
     res.end()
@@ -766,7 +849,8 @@ tape('no credentials on external redirect', (t) => {
             token: 'token',
             token_secret: 'token_secret'
           }
-        }, (err, res, body) => {
+        },
+        (err, res, body) => {
           t.equal(err, null)
           t.equal(res.request.headers.Authorization, undefined)
           s1.close(() => {
@@ -774,7 +858,8 @@ tape('no credentials on external redirect', (t) => {
               t.end()
             })
           })
-        })
+        }
+      )
     })
   })
 })

@@ -15,13 +15,13 @@ s.on(path, (req, res) => {
   res.end(JSON.stringify(req.headers))
 })
 
-tape('setup', (t) => {
+tape('setup', t => {
   s.listen(0, () => {
     t.end()
   })
 })
 
-tape('default behaviour: aws-sign2 without sign_version key', (t) => {
+tape('default behaviour: aws-sign2 without sign_version key', t => {
   const options = {
     url: s.url + path,
     aws: {
@@ -38,7 +38,7 @@ tape('default behaviour: aws-sign2 without sign_version key', (t) => {
   })
 })
 
-tape('aws-sign4 options', (t) => {
+tape('aws-sign4 options', t => {
   const options = {
     url: s.url + path,
     aws: {
@@ -57,7 +57,7 @@ tape('aws-sign4 options', (t) => {
   })
 })
 
-tape('aws-sign4 options with session token', (t) => {
+tape('aws-sign4 options with session token', t => {
   const options = {
     url: s.url + path,
     aws: {
@@ -77,7 +77,7 @@ tape('aws-sign4 options with session token', (t) => {
   })
 })
 
-tape('aws-sign4 options with service', (t) => {
+tape('aws-sign4 options with service', t => {
   const serviceName = 'UNIQUE_SERVICE_NAME'
   const options = {
     url: s.url + path,
@@ -96,7 +96,7 @@ tape('aws-sign4 options with service', (t) => {
   })
 })
 
-tape('aws-sign4 with additional headers', (t) => {
+tape('aws-sign4 with additional headers', t => {
   const options = {
     url: s.url + path,
     headers: {
@@ -116,7 +116,7 @@ tape('aws-sign4 with additional headers', (t) => {
   })
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   s.close(() => {
     t.end()
   })

@@ -9,7 +9,7 @@ const s = server.createServer()
 
 destroyable(s)
 
-tape('setup', (t) => {
+tape('setup', t => {
   s.listen(0, () => {
     s.on('/options', (req, res) => {
       res.writeHead(200, {
@@ -24,7 +24,7 @@ tape('setup', (t) => {
   })
 })
 
-tape('options(string, function)', (t) => {
+tape('options(string, function)', t => {
   request.options(s.url + '/options', (err, res) => {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
@@ -33,19 +33,22 @@ tape('options(string, function)', (t) => {
   })
 })
 
-tape('options(object, function)', (t) => {
-  request.options({
-    url: s.url + '/options',
-    headers: { foo: 'bar' }
-  }, (err, res) => {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    t.equal(res.headers['x-original-method'], 'OPTIONS')
-    t.end()
-  })
+tape('options(object, function)', t => {
+  request.options(
+    {
+      url: s.url + '/options',
+      headers: { foo: 'bar' }
+    },
+    (err, res) => {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.equal(res.headers['x-original-method'], 'OPTIONS')
+      t.end()
+    }
+  )
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   s.destroy(() => {
     t.end()
   })

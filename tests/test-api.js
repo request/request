@@ -5,7 +5,7 @@ const request = require('../index')
 const tape = require('tape')
 let server
 
-tape('setup', (t) => {
+tape('setup', t => {
   server = http.createServer()
   server.on('request', (req, res) => {
     res.writeHead(202)
@@ -17,7 +17,7 @@ tape('setup', (t) => {
   })
 })
 
-tape('callback option', (t) => {
+tape('callback option', t => {
   request({
     url: server.url,
     callback: (err, res, body) => {
@@ -28,6 +28,6 @@ tape('callback option', (t) => {
   })
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   server.close(t.end)
 })

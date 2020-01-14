@@ -26,7 +26,7 @@ function bouncy (s, serverUrl) {
   }
 
   let perm = true
-  Object.keys(redirs).forEach((p) => {
+  Object.keys(redirs).forEach(p => {
     const t = redirs[p]
 
     // switch type each time
@@ -48,7 +48,7 @@ function bouncy (s, serverUrl) {
   })
 }
 
-tape('setup', (t) => {
+tape('setup', t => {
   s.listen(0, () => {
     ss.listen(0, () => {
       bouncy(s, ss.url)
@@ -58,23 +58,26 @@ tape('setup', (t) => {
   })
 })
 
-tape('lots of redirects', (t) => {
+tape('lots of redirects', t => {
   const n = 10
   t.plan(n * 4)
 
   function doRedirect (i) {
     const key = 'test_' + i
-    request({
-      url: (i % 2 ? s.url : ss.url) + '/a',
-      headers: { 'x-test-key': key },
-      rejectUnauthorized: false
-    }, (err, res, body) => {
-      t.equal(err, null)
-      t.equal(res.statusCode, 200)
-      t.equal(body, key)
-    })
+    request(
+      {
+        url: (i % 2 ? s.url : ss.url) + '/a',
+        headers: { 'x-test-key': key },
+        rejectUnauthorized: false
+      },
+      (err, res, body) => {
+        t.equal(err, null)
+        t.equal(res.statusCode, 200)
+        t.equal(body, key)
+      }
+    )
 
-    e.once('hit-' + key, (v) => {
+    e.once('hit-' + key, v => {
       t.equal(v, key)
     })
   }
@@ -84,7 +87,7 @@ tape('lots of redirects', (t) => {
   }
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   s.destroy(() => {
     ss.destroy(() => {
       t.end()

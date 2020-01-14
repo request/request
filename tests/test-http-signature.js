@@ -68,14 +68,14 @@ const server = http.createServer((req, res) => {
   res.end()
 })
 
-tape('setup', (t) => {
+tape('setup', t => {
   server.listen(0, function () {
     server.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('correct key', (t) => {
+tape('correct key', t => {
   const options = {
     httpSignature: {
       keyId: 'key-1',
@@ -89,7 +89,7 @@ tape('correct key', (t) => {
   })
 })
 
-tape('incorrect key', (t) => {
+tape('incorrect key', t => {
   const options = {
     httpSignature: {
       keyId: 'key-2',
@@ -103,7 +103,7 @@ tape('incorrect key', (t) => {
   })
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   server.close(() => {
     t.end()
   })

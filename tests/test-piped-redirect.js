@@ -28,7 +28,7 @@ const s2 = http.createServer((req, resp) => {
   x.pipe(resp)
 })
 
-tape('setup', (t) => {
+tape('setup', t => {
   s1.listen(0, function () {
     port1 = this.address().port
     s2.listen(0, function () {
@@ -38,7 +38,7 @@ tape('setup', (t) => {
   })
 })
 
-tape('piped redirect', (t) => {
+tape('piped redirect', t => {
   request('http://localhost:' + port2 + '/original', (err, res, body) => {
     t.equal(err, null)
     t.equal(body, 'OK')
@@ -46,7 +46,7 @@ tape('piped redirect', (t) => {
   })
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   s1.close(() => {
     s2.close(() => {
       t.end()

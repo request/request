@@ -7,7 +7,7 @@ const tape = require('tape')
 const s = server.createServer()
 
 function runTest (name, test) {
-  tape(name, (t) => {
+  tape(name, t => {
     s.on('/' + name, test.resp)
     request(s.url + '/' + name, test, (err, resp, body) => {
       t.equal(err, null)
@@ -23,7 +23,7 @@ function runTest (name, test) {
   })
 }
 
-tape('setup', (t) => {
+tape('setup', t => {
   s.listen(0, () => {
     t.end()
   })
@@ -35,16 +35,16 @@ runTest('testGet', {
 })
 
 runTest('testGetChunkBreak', {
-  resp: server.createChunkResponse(
-    [Buffer.from([239]),
-      Buffer.from([163]),
-      Buffer.from([191]),
-      Buffer.from([206]),
-      Buffer.from([169]),
-      Buffer.from([226]),
-      Buffer.from([152]),
-      Buffer.from([131])
-    ]),
+  resp: server.createChunkResponse([
+    Buffer.from([239]),
+    Buffer.from([163]),
+    Buffer.from([191]),
+    Buffer.from([206]),
+    Buffer.from([169]),
+    Buffer.from([226]),
+    Buffer.from([152]),
+    Buffer.from([131])
+  ]),
   expectBody: '\uf8ff\u03a9\u2603'
 })
 
@@ -81,20 +81,21 @@ runTest('testPutJSON', {
 runTest('testPutMultipart', {
   resp: server.createPostValidator(
     '--__BOUNDARY__\r\n' +
-    'content-type: text/html\r\n' +
-    '\r\n' +
-    '<html><body>Oh hi.</body></html>' +
-    '\r\n--__BOUNDARY__\r\n\r\n' +
-    'Oh hi.' +
-    '\r\n--__BOUNDARY__--'
+      'content-type: text/html\r\n' +
+      '\r\n' +
+      '<html><body>Oh hi.</body></html>' +
+      '\r\n--__BOUNDARY__\r\n\r\n' +
+      'Oh hi.' +
+      '\r\n--__BOUNDARY__--'
   ),
   method: 'PUT',
-  multipart: [{ 'content-type': 'text/html', body: '<html><body>Oh hi.</body></html>' },
+  multipart: [
+    { 'content-type': 'text/html', body: '<html><body>Oh hi.</body></html>' },
     { body: 'Oh hi.' }
   ]
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   s.close(() => {
     t.end()
   })

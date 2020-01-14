@@ -7,14 +7,14 @@ let called = false
 const proxiedHost = 'google.com'
 let data = ''
 
-const s = require('net').createServer((sock) => {
+const s = require('net').createServer(sock => {
   called = true
-  sock.once('data', (c) => {
+  sock.once('data', c => {
     data += c
 
     sock.write('HTTP/1.1 200 OK\r\n\r\n')
 
-    sock.once('data', (c) => {
+    sock.once('data', c => {
       data += c
 
       sock.write('HTTP/1.1 200 OK\r\n')
@@ -26,54 +26,59 @@ const s = require('net').createServer((sock) => {
   })
 })
 
-tape('setup', (t) => {
+tape('setup', t => {
   s.listen(0, function () {
     s.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('proxy', (t) => {
-  request({
-    tunnel: true,
-    url: 'http://' + proxiedHost,
-    proxy: s.url,
-    headers: {
-      'Proxy-Authorization': 'Basic dXNlcjpwYXNz',
-      authorization: 'Token deadbeef',
-      'dont-send-to-proxy': 'ok',
-      'dont-send-to-dest': 'ok',
-      accept: 'yo',
-      'user-agent': 'just another foobar'
+tape('proxy', t => {
+  request(
+    {
+      tunnel: true,
+      url: 'http://' + proxiedHost,
+      proxy: s.url,
+      headers: {
+        'Proxy-Authorization': 'Basic dXNlcjpwYXNz',
+        authorization: 'Token deadbeef',
+        'dont-send-to-proxy': 'ok',
+        'dont-send-to-dest': 'ok',
+        accept: 'yo',
+        'user-agent': 'just another foobar'
+      },
+      proxyHeaderExclusiveList: ['Dont-send-to-dest']
     },
-    proxyHeaderExclusiveList: ['Dont-send-to-dest']
-  }, (err, res, body) => {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    t.equal(body, 'derp\n')
-    const re = new RegExp([
-      'CONNECT google.com:80 HTTP/1.1',
-      'Proxy-Authorization: Basic dXNlcjpwYXNz',
-      'dont-send-to-dest: ok',
-      'accept: yo',
-      'user-agent: just another foobar',
-      'host: google.com:80',
-      'Connection: close',
-      '',
-      'GET / HTTP/1.1',
-      'authorization: Token deadbeef',
-      'dont-send-to-proxy: ok',
-      'accept: yo',
-      'user-agent: just another foobar',
-      'host: google.com'
-    ].join('\r\n'))
-    t.equal(true, re.test(data))
-    t.equal(called, true, 'the request must be made to the proxy server')
-    t.end()
-  })
+    (err, res, body) => {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.equal(body, 'derp\n')
+      const re = new RegExp(
+        [
+          'CONNECT google.com:80 HTTP/1.1',
+          'Proxy-Authorization: Basic dXNlcjpwYXNz',
+          'dont-send-to-dest: ok',
+          'accept: yo',
+          'user-agent: just another foobar',
+          'host: google.com:80',
+          'Connection: close',
+          '',
+          'GET / HTTP/1.1',
+          'authorization: Token deadbeef',
+          'dont-send-to-proxy: ok',
+          'accept: yo',
+          'user-agent: just another foobar',
+          'host: google.com'
+        ].join('\r\n')
+      )
+      t.equal(true, re.test(data))
+      t.equal(called, true, 'the request must be made to the proxy server')
+      t.end()
+    }
+  )
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   s.close(() => {
     t.end()
   })

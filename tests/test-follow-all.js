@@ -25,32 +25,37 @@ const server = http.createServer((req, res) => {
   res.end('try again')
 })
 
-tape('setup', (t) => {
+tape('setup', t => {
   server.listen(0, function () {
     server.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('followAllRedirects', (t) => {
+tape('followAllRedirects', t => {
   let redirects = 0
 
-  request.post({
-    url: server.url + '/foo',
-    followAllRedirects: true,
-    jar: true,
-    form: { foo: 'bar' }
-  }, (err, res, body) => {
-    t.equal(err, null)
-    t.equal(body, 'ok')
-    t.equal(redirects, 4)
-    t.end()
-  }).on('redirect', () => {
-    redirects++
-  })
+  request
+    .post(
+      {
+        url: server.url + '/foo',
+        followAllRedirects: true,
+        jar: true,
+        form: { foo: 'bar' }
+      },
+      (err, res, body) => {
+        t.equal(err, null)
+        t.equal(body, 'ok')
+        t.equal(redirects, 4)
+        t.end()
+      }
+    )
+    .on('redirect', () => {
+      redirects++
+    })
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   server.close(() => {
     t.end()
   })

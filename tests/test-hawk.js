@@ -13,7 +13,7 @@ const server = http.createServer((req, res) => {
   res.end(authenticate(req))
 })
 
-tape('setup', (t) => {
+tape('setup', t => {
   server.listen(0, function () {
     server.url = 'http://localhost:' + this.address().port
     t.end()
@@ -26,123 +26,166 @@ const creds = {
   id: 'dh37fgj492je'
 }
 
-tape('hawk-get', (t) => {
-  request(server.url, {
-    hawk: { credentials: creds }
-  }, (err, res, body) => {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    t.equal(body, 'OK')
-    t.end()
-  })
-})
-
-tape('hawk-post', (t) => {
-  request.post({ url: server.url, body: 'hello', hawk: { credentials: creds, payload: 'hello' } }, (err, res, body) => {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    t.equal(body, 'OK')
-    t.end()
-  })
-})
-
-tape('hawk-ext', (t) => {
-  request(server.url, {
-    hawk: { credentials: creds, ext: 'test' }
-  }, (err, res, body) => {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    t.equal(body, 'OK')
-    t.end()
-  })
-})
-
-tape('hawk-app', (t) => {
-  request(server.url, {
-    hawk: { credentials: creds, app: 'test' }
-  }, (err, res, body) => {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    t.equal(body, 'OK')
-    t.end()
-  })
-})
-
-tape('hawk-app+dlg', (t) => {
-  request(server.url, {
-    hawk: { credentials: creds, app: 'test', dlg: 'asd' }
-  }, (err, res, body) => {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    t.equal(body, 'OK')
-    t.end()
-  })
-})
-
-tape('hawk-missing-creds', (t) => {
-  request(server.url, {
-    hawk: {}
-  }, (err, res, body) => {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    t.equal(body, 'FAIL')
-    t.end()
-  })
-})
-
-tape('hawk-missing-creds-id', (t) => {
-  request(server.url, {
-    hawk: {
-      credentials: {}
+tape('hawk-get', t => {
+  request(
+    server.url,
+    {
+      hawk: { credentials: creds }
+    },
+    (err, res, body) => {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.equal(body, 'OK')
+      t.end()
     }
-  }, (err, res, body) => {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    t.equal(body, 'FAIL')
-    t.end()
-  })
+  )
 })
 
-tape('hawk-missing-creds-key', (t) => {
-  request(server.url, {
-    hawk: {
-      credentials: { id: 'asd' }
+tape('hawk-post', t => {
+  request.post(
+    {
+      url: server.url,
+      body: 'hello',
+      hawk: { credentials: creds, payload: 'hello' }
+    },
+    (err, res, body) => {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.equal(body, 'OK')
+      t.end()
     }
-  }, (err, res, body) => {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    t.equal(body, 'FAIL')
-    t.end()
-  })
+  )
 })
 
-tape('hawk-missing-creds-algo', (t) => {
-  request(server.url, {
-    hawk: {
-      credentials: { key: '123', id: '123' }
+tape('hawk-ext', t => {
+  request(
+    server.url,
+    {
+      hawk: { credentials: creds, ext: 'test' }
+    },
+    (err, res, body) => {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.equal(body, 'OK')
+      t.end()
     }
-  }, (err, res, body) => {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    t.equal(body, 'FAIL')
-    t.end()
-  })
+  )
 })
 
-tape('hawk-invalid-creds-algo', (t) => {
-  request(server.url, {
-    hawk: {
-      credentials: { key: '123', id: '123', algorithm: 'xx' }
+tape('hawk-app', t => {
+  request(
+    server.url,
+    {
+      hawk: { credentials: creds, app: 'test' }
+    },
+    (err, res, body) => {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.equal(body, 'OK')
+      t.end()
     }
-  }, (err, res, body) => {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    t.equal(body, 'FAIL')
-    t.end()
-  })
+  )
 })
 
-tape('cleanup', (t) => {
+tape('hawk-app+dlg', t => {
+  request(
+    server.url,
+    {
+      hawk: { credentials: creds, app: 'test', dlg: 'asd' }
+    },
+    (err, res, body) => {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.equal(body, 'OK')
+      t.end()
+    }
+  )
+})
+
+tape('hawk-missing-creds', t => {
+  request(
+    server.url,
+    {
+      hawk: {}
+    },
+    (err, res, body) => {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.equal(body, 'FAIL')
+      t.end()
+    }
+  )
+})
+
+tape('hawk-missing-creds-id', t => {
+  request(
+    server.url,
+    {
+      hawk: {
+        credentials: {}
+      }
+    },
+    (err, res, body) => {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.equal(body, 'FAIL')
+      t.end()
+    }
+  )
+})
+
+tape('hawk-missing-creds-key', t => {
+  request(
+    server.url,
+    {
+      hawk: {
+        credentials: { id: 'asd' }
+      }
+    },
+    (err, res, body) => {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.equal(body, 'FAIL')
+      t.end()
+    }
+  )
+})
+
+tape('hawk-missing-creds-algo', t => {
+  request(
+    server.url,
+    {
+      hawk: {
+        credentials: { key: '123', id: '123' }
+      }
+    },
+    (err, res, body) => {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.equal(body, 'FAIL')
+      t.end()
+    }
+  )
+})
+
+tape('hawk-invalid-creds-algo', t => {
+  request(
+    server.url,
+    {
+      hawk: {
+        credentials: { key: '123', id: '123', algorithm: 'xx' }
+      }
+    },
+    (err, res, body) => {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.equal(body, 'FAIL')
+      t.end()
+    }
+  )
+})
+
+tape('cleanup', t => {
   server.close(() => {
     t.end()
   })
@@ -156,13 +199,19 @@ function authenticate (req) {
   const headerParts = req.headers.authorization.match(/^(\w+)(?:\s+(.*))?$/)
   assert.strictEqual(headerParts[1], 'Hawk')
   const attributes = {}
-  headerParts[2].replace(/(\w+)="([^"\\]*)"\s*(?:,\s*|$)/g, ($0, $1, $2) => { attributes[$1] = $2 })
+  headerParts[2].replace(/(\w+)="([^"\\]*)"\s*(?:,\s*|$)/g, ($0, $1, $2) => {
+    attributes[$1] = $2
+  })
   const hostParts = req.headers.host.split(':')
 
   const artifacts = {
     method: req.method,
     host: hostParts[0],
-    port: (hostParts[1] ? hostParts[1] : (req.connection && req.connection.encrypted ? 443 : 80)),
+    port: hostParts[1]
+      ? hostParts[1]
+      : req.connection && req.connection.encrypted
+        ? 443
+        : 80,
     resource: req.url,
     ts: attributes.ts,
     nonce: attributes.nonce,

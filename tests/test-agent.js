@@ -11,7 +11,7 @@ const s = http.createServer((req, res) => {
   res.end()
 })
 
-tape('setup', (t) => {
+tape('setup', t => {
   s.listen(0, function () {
     s.port = this.address().port
     s.url = 'http://localhost:' + s.port
@@ -25,9 +25,10 @@ function httpAgent (t, options, req) {
     t.equal(r.agent.options.keepAlive, true, 'is keepAlive')
     t.equal(Object.keys(r.agent.sockets).length, 1, '1 socket name')
 
-    const name = (typeof r.agent.getName === 'function')
-      ? r.agent.getName({ port: s.port })
-      : 'localhost:' + s.port // node 0.10-
+    const name =
+      typeof r.agent.getName === 'function'
+        ? r.agent.getName({ port: s.port })
+        : 'localhost:' + s.port // node 0.10-
     t.equal(r.agent.sockets[name].length, 1, '1 open socket')
 
     const socket = r.agent.sockets[name][0]
@@ -58,14 +59,14 @@ function foreverAgent (t, options, req) {
 
 // http.Agent
 
-tape('options.agent', (t) => {
+tape('options.agent', t => {
   httpAgent(t, {
     uri: s.url,
     agent: new http.Agent({ keepAlive: true })
   })
 })
 
-tape('options.agentClass + options.agentOptions', (t) => {
+tape('options.agentClass + options.agentOptions', t => {
   httpAgent(t, {
     uri: s.url,
     agentClass: http.Agent,
@@ -75,27 +76,35 @@ tape('options.agentClass + options.agentOptions', (t) => {
 
 // forever-agent
 
-tape('options.forever = true', (t) => {
+tape('options.forever = true', t => {
   const v = version()
   const options = {
     uri: s.url,
     forever: true
   }
 
-  if (v.major === 0 && v.minor <= 10) { foreverAgent(t, options) } else { httpAgent(t, options) }
+  if (v.major === 0 && v.minor <= 10) {
+    foreverAgent(t, options)
+  } else {
+    httpAgent(t, options)
+  }
 })
 
-tape('forever() method', (t) => {
+tape('forever() method', t => {
   const v = version()
   const options = {
     uri: s.url
   }
   const r = request.forever({ maxSockets: 1 })
 
-  if (v.major === 0 && v.minor <= 10) { foreverAgent(t, options, r) } else { httpAgent(t, options, r) }
+  if (v.major === 0 && v.minor <= 10) {
+    foreverAgent(t, options, r)
+  } else {
+    httpAgent(t, options, r)
+  }
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   s.close(() => {
     t.end()
   })

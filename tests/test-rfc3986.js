@@ -9,7 +9,7 @@ function runTest (t, options) {
     let data = ''
     req.setEncoding('utf8')
 
-    req.on('data', (d) => {
+    req.on('data', d => {
       data += d
     })
 
@@ -76,7 +76,9 @@ const cases = [
   },
   {
     _name: 'body + header + json',
-    headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+    headers: {
+      'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
+    },
     body: "rfc3986=!*()'",
     json: true,
     _expectBody: bodyEscaped
@@ -96,10 +98,10 @@ const cases = [
 
 const libs = ['qs', 'querystring']
 
-libs.forEach((lib) => {
-  cases.forEach((options) => {
-    options.useQuerystring = (lib === 'querystring')
-    tape(lib + ' rfc3986 ' + options._name, (t) => {
+libs.forEach(lib => {
+  cases.forEach(options => {
+    options.useQuerystring = lib === 'querystring'
+    tape(lib + ' rfc3986 ' + options._name, t => {
       runTest(t, options)
     })
   })

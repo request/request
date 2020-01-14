@@ -20,16 +20,16 @@ const opts = {
 const sStrict = server.createSSLServer(opts)
 
 function runAllTests (strict, s) {
-  const strictMsg = (strict ? 'strict ' : 'relaxed ')
+  const strictMsg = strict ? 'strict ' : 'relaxed '
 
-  tape(strictMsg + 'setup', (t) => {
+  tape(strictMsg + 'setup', t => {
     s.listen(0, () => {
       t.end()
     })
   })
 
   function runTest (name, test) {
-    tape(strictMsg + name, (t) => {
+    tape(strictMsg + name, t => {
       s.on('/' + name, test.resp)
       test.uri = s.url + '/' + name
       if (strict) {
@@ -50,56 +50,66 @@ function runAllTests (strict, s) {
   }
 
   runTest('testGet', {
-    resp: server.createGetResponse('TESTING!'), expectBody: 'TESTING!'
+    resp: server.createGetResponse('TESTING!'),
+    expectBody: 'TESTING!'
   })
 
   runTest('testGetChunkBreak', {
-    resp: server.createChunkResponse(
-      [Buffer.from([239]),
-        Buffer.from([163]),
-        Buffer.from([191]),
-        Buffer.from([206]),
-        Buffer.from([169]),
-        Buffer.from([226]),
-        Buffer.from([152]),
-        Buffer.from([131])
-      ]),
+    resp: server.createChunkResponse([
+      Buffer.from([239]),
+      Buffer.from([163]),
+      Buffer.from([191]),
+      Buffer.from([206]),
+      Buffer.from([169]),
+      Buffer.from([226]),
+      Buffer.from([152]),
+      Buffer.from([131])
+    ]),
     expectBody: '\uf8ff\u03a9\u2603'
   })
 
   runTest('testGetJSON', {
-    resp: server.createGetResponse('{"test":true}', 'application/json'), json: true, expectBody: { test: true }
+    resp: server.createGetResponse('{"test":true}', 'application/json'),
+    json: true,
+    expectBody: { test: true }
   })
 
   runTest('testPutString', {
-    resp: server.createPostValidator('PUTTINGDATA'), method: 'PUT', body: 'PUTTINGDATA'
+    resp: server.createPostValidator('PUTTINGDATA'),
+    method: 'PUT',
+    body: 'PUTTINGDATA'
   })
 
   runTest('testPutBuffer', {
-    resp: server.createPostValidator('PUTTINGDATA'), method: 'PUT', body: Buffer.from('PUTTINGDATA')
+    resp: server.createPostValidator('PUTTINGDATA'),
+    method: 'PUT',
+    body: Buffer.from('PUTTINGDATA')
   })
 
   runTest('testPutJSON', {
-    resp: server.createPostValidator(JSON.stringify({ foo: 'bar' })), method: 'PUT', json: { foo: 'bar' }
+    resp: server.createPostValidator(JSON.stringify({ foo: 'bar' })),
+    method: 'PUT',
+    json: { foo: 'bar' }
   })
 
   runTest('testPutMultipart', {
     resp: server.createPostValidator(
       '--__BOUNDARY__\r\n' +
-      'content-type: text/html\r\n' +
-      '\r\n' +
-      '<html><body>Oh hi.</body></html>' +
-      '\r\n--__BOUNDARY__\r\n\r\n' +
-      'Oh hi.' +
-      '\r\n--__BOUNDARY__--'
+        'content-type: text/html\r\n' +
+        '\r\n' +
+        '<html><body>Oh hi.</body></html>' +
+        '\r\n--__BOUNDARY__\r\n\r\n' +
+        'Oh hi.' +
+        '\r\n--__BOUNDARY__--'
     ),
     method: 'PUT',
-    multipart: [{ 'content-type': 'text/html', body: '<html><body>Oh hi.</body></html>' },
+    multipart: [
+      { 'content-type': 'text/html', body: '<html><body>Oh hi.</body></html>' },
       { body: 'Oh hi.' }
     ]
   })
 
-  tape(strictMsg + 'cleanup', (t) => {
+  tape(strictMsg + 'cleanup', t => {
     s.close(() => {
       t.end()
     })

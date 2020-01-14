@@ -6,7 +6,7 @@ const tape = require('tape')
 
 const s = server.createServer()
 
-tape('setup', (t) => {
+tape('setup', t => {
   s.listen(0, () => {
     s.on('/', (req, res) => {
       res.writeHead(200, { 'content-type': 'text/plain' })
@@ -17,7 +17,7 @@ tape('setup', (t) => {
   })
 })
 
-tape('should emit socket event', (t) => {
+tape('should emit socket event', t => {
   t.plan(4)
 
   const req = request(s.url, (err, res, body) => {
@@ -26,13 +26,13 @@ tape('should emit socket event', (t) => {
     t.equal(body, 'waited')
   })
 
-  req.on('socket', (socket) => {
+  req.on('socket', socket => {
     const requestSocket = req.req.socket
     t.equal(requestSocket, socket)
   })
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   s.close(() => {
     t.end()
   })

@@ -5,14 +5,14 @@ const tape = require('tape')
 
 const local = 'http://localhost:0/asdf'
 
-tape('without uri', (t) => {
+tape('without uri', t => {
   t.throws(() => {
     request({})
   }, /^Error: options\.uri is a required argument$/)
   t.end()
 })
 
-tape('invalid uri 1', (t) => {
+tape('invalid uri 1', t => {
   t.throws(() => {
     request({
       uri: 'this-is-not-a-valid-uri'
@@ -21,7 +21,7 @@ tape('invalid uri 1', (t) => {
   t.end()
 })
 
-tape('invalid uri 2', (t) => {
+tape('invalid uri 2', t => {
   t.throws(() => {
     request({
       uri: 'github.com/uri-is-not-valid-without-protocol'
@@ -30,7 +30,7 @@ tape('invalid uri 2', (t) => {
   t.end()
 })
 
-tape('invalid uri + NO_PROXY', (t) => {
+tape('invalid uri + NO_PROXY', t => {
   process.env.NO_PROXY = 'google.com'
   t.throws(() => {
     request({
@@ -41,7 +41,7 @@ tape('invalid uri + NO_PROXY', (t) => {
   t.end()
 })
 
-tape('deprecated unix URL', (t) => {
+tape('deprecated unix URL', t => {
   t.throws(() => {
     request({
       uri: 'unix://path/to/socket/and/then/request/path'
@@ -50,16 +50,17 @@ tape('deprecated unix URL', (t) => {
   t.end()
 })
 
-tape('invalid body', (t) => {
+tape('invalid body', t => {
   t.throws(() => {
     request({
-      uri: local, body: {}
+      uri: local,
+      body: {}
     })
   }, /^Error: Argument error, options\.body\.$/)
   t.end()
 })
 
-tape('invalid multipart', (t) => {
+tape('invalid multipart', t => {
   t.throws(() => {
     request({
       uri: local,
@@ -69,7 +70,7 @@ tape('invalid multipart', (t) => {
   t.end()
 })
 
-tape('multipart without body 1', (t) => {
+tape('multipart without body 1', t => {
   t.throws(() => {
     request({
       uri: local,
@@ -79,7 +80,7 @@ tape('multipart without body 1', (t) => {
   t.end()
 })
 
-tape('multipart without body 2', (t) => {
+tape('multipart without body 2', t => {
   t.throws(() => {
     request(local, {
       multipart: [{}]
@@ -88,7 +89,7 @@ tape('multipart without body 2', (t) => {
   t.end()
 })
 
-tape('head method with a body', (t) => {
+tape('head method with a body', t => {
   t.throws(() => {
     request(local, {
       method: 'HEAD',
@@ -98,7 +99,7 @@ tape('head method with a body', (t) => {
   t.end()
 })
 
-tape('head method with a body 2', (t) => {
+tape('head method with a body 2', t => {
   t.throws(() => {
     request.head(local, {
       body: 'foo'

@@ -16,7 +16,14 @@ const FormData = require('form-data')
 const extend = require('extend')
 const isstream = require('isstream')
 const isTypedArray = require('is-typedarray').strict
-const { safeStringify, isReadStream, toBase64, defer, copy, version } = require('./lib/helpers')
+const {
+  safeStringify,
+  isReadStream,
+  toBase64,
+  defer,
+  copy,
+  version
+} = require('./lib/helpers')
 const cookies = require('./lib/cookies')
 const getProxyFromURI = require('./lib/getProxyFromURI')
 const { Querystring } = require('./lib/querystring')
@@ -40,7 +47,7 @@ function filterForNonReserved (reserved, options) {
 
   const object = {}
   for (const i in options) {
-    const notReserved = (reserved.indexOf(i) === -1)
+    const notReserved = reserved.indexOf(i) === -1
     if (notReserved) {
       object[i] = options[i]
     }
@@ -55,7 +62,7 @@ function filterOutReservedFunctions (reserved, options) {
   const object = {}
   for (const i in options) {
     const isReserved = !(reserved.indexOf(i) === -1)
-    const isFunction = (typeof options[i] === 'function')
+    const isFunction = typeof options[i] === 'function'
     if (!(isReserved && isFunction)) {
       object[i] = options[i]
     }
@@ -152,7 +159,8 @@ class Request extends Stream {
       this.proxy = new URL(this.proxy)
     }
     const isHttps =
-      (this.proxy && this.proxy.protocol === 'https:') || this.uri.protocol === 'https:'
+      (this.proxy && this.proxy.protocol === 'https:') ||
+      this.uri.protocol === 'https:'
 
     if (isHttps) {
       if (options.ca) {
@@ -604,20 +612,30 @@ class Request extends Stream {
     // specified as a relative path and is appended to baseUrl).
     if (this.baseUrl) {
       if (typeof this.baseUrl !== 'string') {
-        return this.emit('error', new Error('options.baseUrl must be a string'))
+        return this.emit(
+          'error',
+          new Error('options.baseUrl must be a string')
+        )
       }
 
       if (typeof this.uri !== 'string') {
-        return this.emit('error', new Error('options.uri must be a string when using options.baseUrl'))
+        return this.emit(
+          'error',
+          new Error('options.uri must be a string when using options.baseUrl')
+        )
       }
 
       if (this.uri.indexOf('//') === 0 || this.uri.indexOf('://') !== -1) {
-        return this.emit('error', new Error('options.uri must be a path when using options.baseUrl'))
+        return this.emit(
+          'error',
+          new Error('options.uri must be a path when using options.baseUrl')
+        )
       }
 
       // Handle all cases to make sure that there's only one slash between
       // baseUrl and uri.
-      const baseUrlEndsWithSlash = this.baseUrl.lastIndexOf('/') === this.baseUrl.length - 1
+      const baseUrlEndsWithSlash =
+        this.baseUrl.lastIndexOf('/') === this.baseUrl.length - 1
       const uriStartsWithSlash = this.uri.indexOf('/') === 0
 
       if (baseUrlEndsWithSlash && uriStartsWithSlash) {
@@ -634,7 +652,10 @@ class Request extends Stream {
 
     // A URI is needed by this point, emit error if we haven't been able to get one
     if (!this.uri) {
-      return this.emit('error', new Error('options.uri is a required argument'))
+      return this.emit(
+        'error',
+        new Error('options.uri is a required argument')
+      )
     }
 
     // If a string URI/URL was given, parse it into a URL object
@@ -653,7 +674,12 @@ class Request extends Stream {
 
     // DEPRECATED: Warning for users of the old Unix Sockets URL Scheme
     if (this.uri.protocol === 'unix:') {
-      return this.emit('error', new Error('`unix://` URL scheme is no longer supported. Please use the format `http://unix:SOCKET:PATH`'))
+      return this.emit(
+        'error',
+        new Error(
+          '`unix://` URL scheme is no longer supported. Please use the format `http://unix:SOCKET:PATH`'
+        )
+      )
     }
 
     // Support Unix Sockets
@@ -665,9 +691,14 @@ class Request extends Stream {
       this.rejectUnauthorized = false
     }
 
-    if (!this.uri.pathname) { this.uri.pathname = '/' }
+    if (!this.uri.pathname) {
+      this.uri.pathname = '/'
+    }
 
-    if (!(this.uri.host || (this.uri.hostname && this.uri.port)) && !this.uri.isUnix) {
+    if (
+      !(this.uri.host || (this.uri.hostname && this.uri.port)) &&
+      !this.uri.isUnix
+    ) {
       // Invalid URI: it may generate lot of bad errors, like 'TypeError: Cannot call method `indexOf` of undefined' in CookieJar
       // Detect and reject it as soon as possible
       const faultyUri = format(this.uri)
@@ -700,8 +731,10 @@ class Request extends Stream {
       this.setHeader(hostHeaderName, this.uri.host)
       // Drop :port suffix from Host header if known protocol.
       if (this.uri.port) {
-        if ((this.uri.port === '80' && this.uri.protocol === 'http:') ||
-            (this.uri.port === '443' && this.uri.protocol === 'https:')) {
+        if (
+          (this.uri.port === '80' && this.uri.protocol === 'http:') ||
+          (this.uri.port === '443' && this.uri.protocol === 'https:')
+        ) {
           this.setHeader(hostHeaderName, this.uri.hostname)
         }
       }
@@ -711,7 +744,11 @@ class Request extends Stream {
     this.jar(this._jar || options.jar)
 
     if (!this.uri.port) {
-      if (this.uri.protocol === 'http:') { this.uri.port = 80 } else if (this.uri.protocol === 'https:') { this.uri.port = 443 }
+      if (this.uri.protocol === 'http:') {
+        this.uri.port = 80
+      } else if (this.uri.protocol === 'https:') {
+        this.uri.port = 443
+      }
     }
 
     if (this.proxy && !this.tunnel) {
@@ -730,7 +767,11 @@ class Request extends Stream {
       const formData = options.formData
       const requestForm = this.form()
       const appendFormValue = (key, value) => {
-        if (value && Object.prototype.hasOwnProperty.call(value, 'value') && Object.prototype.hasOwnProperty.call(value, 'options')) {
+        if (
+          value &&
+          Object.prototype.hasOwnProperty.call(value, 'value') &&
+          Object.prototype.hasOwnProperty.call(value, 'options')
+        ) {
           requestForm.append(key, value.value, value.options)
         } else {
           requestForm.append(key, value)
@@ -801,13 +842,19 @@ class Request extends Stream {
       this.auth(this.uri.username, this.uri.password, true)
     }
 
-    if (!this.tunnel && this.proxy && this.proxy.username && !this.hasHeader('proxy-authorization')) {
-      const authHeader = 'Basic ' + toBase64(this.proxy.username + ':' + this.proxy.password)
+    if (
+      !this.tunnel &&
+      this.proxy &&
+      this.proxy.username &&
+      !this.hasHeader('proxy-authorization')
+    ) {
+      const authHeader =
+        'Basic ' + toBase64(this.proxy.username + ':' + this.proxy.password)
       this.setHeader('proxy-authorization', authHeader)
     }
 
     if (this.proxy && !this.tunnel) {
-      this.path = (this.uri.protocol + '//' + this.uri.host + this.path)
+      this.path = this.uri.protocol + '//' + this.uri.host + this.path
     }
 
     if (options.json) {
@@ -834,7 +881,9 @@ class Request extends Stream {
         if (typeof this.body === 'string') {
           length = Buffer.byteLength(this.body)
         } else if (Array.isArray(this.body)) {
-          length = this.body.reduce((a, b) => { return a + b.length }, 0)
+          length = this.body.reduce((a, b) => {
+            return a + b.length
+          }, 0)
         } else {
           length = this.body.length
         }
@@ -856,7 +905,8 @@ class Request extends Stream {
       this.oauth(this._oauth.params)
     }
 
-    const protocol = this.proxy && !this.tunnel ? this.proxy.protocol : this.uri.protocol
+    const protocol =
+      this.proxy && !this.tunnel ? this.proxy.protocol : this.uri.protocol
     const defaultModules = { 'http:': http, 'https:': https }
     const httpModules = this.httpModules || {}
 
@@ -881,7 +931,8 @@ class Request extends Stream {
         const v = version()
         // use ForeverAgent in node 0.10- only
         if (v.major === 0 && v.minor <= 10) {
-          this.agentClass = protocol === 'http:' ? ForeverAgent : ForeverAgent.SSL
+          this.agentClass =
+            protocol === 'http:' ? ForeverAgent : ForeverAgent.SSL
         } else {
           this.agentClass = this.httpModule.Agent
           this.agentOptions = this.agentOptions || {}
@@ -898,9 +949,14 @@ class Request extends Stream {
       this.agent = this.agent || this.getNewAgent()
     }
 
-    this.on('pipe', (src) => {
+    this.on('pipe', src => {
       if (this.ntick && this._started) {
-        this.emit('error', new Error('You cannot pipe to this stream after the outbound request has started.'))
+        this.emit(
+          'error',
+          new Error(
+            'You cannot pipe to this stream after the outbound request has started.'
+          )
+        )
       }
       this.src = src
       if (isReadStream(src)) {
@@ -923,9 +979,9 @@ class Request extends Stream {
         }
       }
 
-    // self.on('pipe', function () {
-    //   console.error('You have already piped to this stream. Pipeing twice is likely to break the request.')
-    // })
+      // self.on('pipe', function () {
+      //   console.error('You have already piped to this stream. Pipeing twice is likely to break the request.')
+      // })
     })
 
     defer(() => {
@@ -950,7 +1006,7 @@ class Request extends Stream {
           } else {
             setContentLength()
             if (Array.isArray(this.body)) {
-              this.body.forEach((part) => {
+              this.body.forEach(part => {
                 this.write(part)
               })
             } else {
@@ -959,7 +1015,9 @@ class Request extends Stream {
             this.end()
           }
         } else if (this.requestBodyStream) {
-          console.warn('options.requestBodyStream is deprecated, please pass the request object to stream.pipe.')
+          console.warn(
+            'options.requestBodyStream is deprecated, please pass the request object to stream.pipe.'
+          )
           this.requestBodyStream.pipe(this)
         } else if (!this.src) {
           if (this._auth.hasAuth && !this._auth.sentAuth) {
@@ -1209,7 +1267,7 @@ class Request extends Stream {
     if (!headers) {
       headers = this.headers
     }
-    Object.keys(headers).forEach((key) => {
+    Object.keys(headers).forEach(key => {
       if (key.length !== name.length) {
         return
       }
@@ -1233,23 +1291,39 @@ class Request extends Stream {
   pipe (dest, opts) {
     if (this.response) {
       if (this._destdata) {
-        this.emit('error', new Error('You cannot pipe after data has been emitted from the response.'))
+        this.emit(
+          'error',
+          new Error(
+            'You cannot pipe after data has been emitted from the response.'
+          )
+        )
       } else if (this._ended) {
-        this.emit('error', new Error('You cannot pipe after the response has been ended.'))
+        this.emit(
+          'error',
+          new Error('You cannot pipe after the response has been ended.')
+        )
       } else {
-        super.pipe(dest, opts)
+        super.pipe(
+          dest,
+          opts
+        )
         this.pipeDest(dest)
         return dest
       }
     } else {
       this.dests.push(dest)
-      super.pipe(dest, opts)
+      super.pipe(
+        dest,
+        opts
+      )
       return dest
     }
   }
 
   write () {
-    if (this._aborted) { return }
+    if (this._aborted) {
+      return
+    }
 
     if (!this._started) {
       this.start()
@@ -1260,7 +1334,9 @@ class Request extends Stream {
   }
 
   end (chunk) {
-    if (this._aborted) { return }
+    if (this._aborted) {
+      return
+    }
 
     if (chunk) {
       this.write(chunk)
@@ -1324,7 +1400,8 @@ class Request extends Stream {
 }
 
 // Debugging
-Request.debug = process.env.NODE_DEBUG && /\brequest\b/.test(process.env.NODE_DEBUG)
+Request.debug =
+  process.env.NODE_DEBUG && /\brequest\b/.test(process.env.NODE_DEBUG)
 function debug () {
   if (Request.debug) {
     console.error('REQUEST %s', util.format.apply(util, arguments))
@@ -1361,12 +1438,17 @@ Request.prototype.qs = function (q, clobber) {
 }
 Request.prototype.form = function (form) {
   if (form) {
-    if (!/^application\/x-www-form-urlencoded\b/.test(this.getHeader('content-type'))) {
+    if (
+      !/^application\/x-www-form-urlencoded\b/.test(
+        this.getHeader('content-type')
+      )
+    ) {
       this.setHeader('content-type', 'application/x-www-form-urlencoded')
     }
-    this.body = (typeof form === 'string')
-      ? this._qs.rfc3986(form.toString('utf8'))
-      : this._qs.stringify(form).toString('utf8')
+    this.body =
+      typeof form === 'string'
+        ? this._qs.rfc3986(form.toString('utf8'))
+        : this._qs.stringify(form).toString('utf8')
     return this
   }
   // create form-data object
@@ -1399,7 +1481,11 @@ Request.prototype.json = function (val) {
   this._json = true
   if (typeof val === 'boolean') {
     if (this.body !== undefined) {
-      if (!/^application\/x-www-form-urlencoded\b/.test(this.getHeader('content-type'))) {
+      if (
+        !/^application\/x-www-form-urlencoded\b/.test(
+          this.getHeader('content-type')
+        )
+      ) {
         this.body = safeStringify(this.body, this._jsonReplacer)
       } else {
         this.body = this._qs.rfc3986(this.body)
@@ -1453,7 +1539,10 @@ Request.prototype.aws = function (opts, now) {
     this.setHeader('authorization', signRes.headers.Authorization)
     this.setHeader('x-amz-date', signRes.headers['X-Amz-Date'])
     if (signRes.headers['X-Amz-Security-Token']) {
-      this.setHeader('x-amz-security-token', signRes.headers['X-Amz-Security-Token'])
+      this.setHeader(
+        'x-amz-security-token',
+        signRes.headers['X-Amz-Security-Token']
+      )
     }
   } else {
     // default: use aws-sign2
@@ -1485,12 +1574,17 @@ Request.prototype.aws = function (opts, now) {
   return this
 }
 Request.prototype.httpSignature = function (opts) {
-  httpSignature.signRequest({
-    getHeader: header => this.getHeader(header, this.headers),
-    setHeader: (header, value) => { this.setHeader(header, value) },
-    method: this.method,
-    path: this.path
-  }, opts)
+  httpSignature.signRequest(
+    {
+      getHeader: header => this.getHeader(header, this.headers),
+      setHeader: (header, value) => {
+        this.setHeader(header, value)
+      },
+      method: this.method,
+      path: this.path
+    },
+    opts
+  )
   debug('httpSignature authorization', this.getHeader('authorization'))
 
   return this
@@ -1537,11 +1631,9 @@ Request.prototype.jar = function (jar) {
   return this
 }
 
-Request.defaultProxyHeaderWhiteList =
-  Tunnel.defaultProxyHeaderWhiteList.slice()
+Request.defaultProxyHeaderWhiteList = Tunnel.defaultProxyHeaderWhiteList.slice()
 
-Request.defaultProxyHeaderExclusiveList =
-  Tunnel.defaultProxyHeaderExclusiveList.slice()
+Request.defaultProxyHeaderExclusiveList = Tunnel.defaultProxyHeaderExclusiveList.slice()
 
 // Exports
 module.exports = Request

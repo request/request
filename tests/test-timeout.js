@@ -2,8 +2,10 @@
 
 function checkErrCode (t, err) {
   t.notEqual(err, null)
-  t.ok(err.code === 'ETIMEDOUT' || err.code === 'ESOCKETTIMEDOUT',
-    'Error ETIMEDOUT or ESOCKETTIMEDOUT')
+  t.ok(
+    err.code === 'ETIMEDOUT' || err.code === 'ESOCKETTIMEDOUT',
+    'Error ETIMEDOUT or ESOCKETTIMEDOUT'
+  )
 }
 
 function checkEventHandlers (t, socket) {
@@ -34,13 +36,13 @@ s.on('/timeout', (req, res) => {
   }, 200)
 })
 
-tape('setup', (t) => {
+tape('setup', t => {
   s.listen(0, () => {
     t.end()
   })
 })
 
-tape('should timeout', (t) => {
+tape('should timeout', t => {
   const shouldTimeout = {
     url: s.url + '/timeout',
     timeout: 100
@@ -52,7 +54,7 @@ tape('should timeout', (t) => {
   })
 })
 
-tape('should set connect to false', (t) => {
+tape('should set connect to false', t => {
   const shouldTimeout = {
     url: s.url + '/timeout',
     timeout: 100
@@ -60,12 +62,15 @@ tape('should set connect to false', (t) => {
 
   request(shouldTimeout, (err, res, body) => {
     checkErrCode(t, err)
-    t.ok(err.connect === false, 'Read Timeout Error should set \'connect\' property to false')
+    t.ok(
+      err.connect === false,
+      "Read Timeout Error should set 'connect' property to false"
+    )
     t.end()
   })
 })
 
-tape('should timeout with events', (t) => {
+tape('should timeout with events', t => {
   t.plan(3)
 
   const shouldTimeoutWithEvents = {
@@ -74,15 +79,14 @@ tape('should timeout with events', (t) => {
   }
 
   let eventsEmitted = 0
-  request(shouldTimeoutWithEvents)
-    .on('error', (err) => {
-      eventsEmitted++
-      t.equal(1, eventsEmitted)
-      checkErrCode(t, err)
-    })
+  request(shouldTimeoutWithEvents).on('error', err => {
+    eventsEmitted++
+    t.equal(1, eventsEmitted)
+    checkErrCode(t, err)
+  })
 })
 
-tape('should not timeout', (t) => {
+tape('should not timeout', t => {
   const shouldntTimeout = {
     url: s.url + '/timeout',
     timeout: 1200
@@ -94,12 +98,12 @@ tape('should not timeout', (t) => {
     t.equal(body, 'waited')
     checkEventHandlers(t, socket)
     t.end()
-  }).on('socket', (socket_) => {
+  }).on('socket', socket_ => {
     socket = socket_
   })
 })
 
-tape('no timeout', (t) => {
+tape('no timeout', t => {
   const noTimeout = {
     url: s.url + '/timeout'
   }
@@ -111,7 +115,8 @@ tape('no timeout', (t) => {
   })
 })
 
-tape('negative timeout', (t) => { // should be treated a zero or the minimum delay
+tape('negative timeout', t => {
+  // should be treated a zero or the minimum delay
   const negativeTimeout = {
     url: s.url + '/timeout',
     timeout: -1000
@@ -127,7 +132,8 @@ tape('negative timeout', (t) => { // should be treated a zero or the minimum del
   })
 })
 
-tape('float timeout', (t) => { // should be rounded by setTimeout anyway
+tape('float timeout', t => {
+  // should be rounded by setTimeout anyway
   const floatTimeout = {
     url: s.url + '/timeout',
     timeout: 100.76
@@ -166,7 +172,7 @@ tape('connect timeout', function tryConnect (t) {
     timeout: 100
   }
   let socket
-  request(shouldConnectTimeout, (err) => {
+  request(shouldConnectTimeout, err => {
     t.notEqual(err, null)
     if (err.code === 'ENETUNREACH' && nrIndex < nonRoutable.length) {
       // With some network configurations, some addresses will be reported as
@@ -175,11 +181,14 @@ tape('connect timeout', function tryConnect (t) {
       return tryConnect(t)
     }
     checkErrCode(t, err)
-    t.ok(err.connect === true, 'Connect Timeout Error should set \'connect\' property to true')
+    t.ok(
+      err.connect === true,
+      "Connect Timeout Error should set 'connect' property to true"
+    )
     checkEventHandlers(t, socket)
     nrIndex = 0
     t.end()
-  }).on('socket', (socket_) => {
+  }).on('socket', socket_ => {
     socket = socket_
   })
 })
@@ -191,7 +200,7 @@ tape('connect timeout with non-timeout error', function tryConnect (t) {
     timeout: 1000
   }
   let socket
-  request(shouldConnectTimeout, (err) => {
+  request(shouldConnectTimeout, err => {
     t.notEqual(err, null)
     if (err.code === 'ENETUNREACH' && nrIndex < nonRoutable.length) {
       // With some network configurations, some addresses will be reported as
@@ -206,7 +215,7 @@ tape('connect timeout with non-timeout error', function tryConnect (t) {
       nrIndex = 0
       t.end()
     })
-  }).on('socket', (socket_) => {
+  }).on('socket', socket_ => {
     socket = socket_
     setImmediate(() => {
       socket.emit('error', new Error('Fake Error'))
@@ -214,14 +223,14 @@ tape('connect timeout with non-timeout error', function tryConnect (t) {
   })
 })
 
-tape('request timeout with keep-alive connection', (t) => {
+tape('request timeout with keep-alive connection', t => {
   const Agent = require('http').Agent
   const agent = new Agent({ keepAlive: true })
   const firstReq = {
     url: s.url + '/timeout',
     agent: agent
   }
-  request(firstReq, (err) => {
+  request(firstReq, err => {
     // We should now still have a socket open. For the second request we should
     // see a request timeout on the active socket ...
     t.equal(err, null)
@@ -230,21 +239,24 @@ tape('request timeout with keep-alive connection', (t) => {
       timeout: 100,
       agent: agent
     }
-    request(shouldReqTimeout, (err) => {
+    request(shouldReqTimeout, err => {
       checkErrCode(t, err)
-      t.ok(err.connect === false, 'Error should have been a request timeout error')
+      t.ok(
+        err.connect === false,
+        'Error should have been a request timeout error'
+      )
       t.end()
-    }).on('socket', (socket) => {
+    }).on('socket', socket => {
       const isConnecting = socket._connecting || socket.connecting
       t.ok(isConnecting !== true, 'Socket should already be connected')
     })
-  }).on('socket', (socket) => {
+  }).on('socket', socket => {
     const isConnecting = socket._connecting || socket.connecting
     t.ok(isConnecting === true, 'Socket should be new')
   })
 })
 
-tape('calling abort clears the timeout', (t) => {
+tape('calling abort clears the timeout', t => {
   const req = request({ url: s.url + '/timeout', timeout: 2500 })
   setTimeout(() => {
     req.abort()
@@ -253,7 +265,7 @@ tape('calling abort clears the timeout', (t) => {
   }, 5)
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   s.close(() => {
     t.end()
   })

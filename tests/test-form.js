@@ -7,7 +7,7 @@ const request = require('../index')
 const fs = require('fs')
 const tape = require('tape')
 
-tape('multipart form append', (t) => {
+tape('multipart form append', t => {
   const remoteFile = path.join(__dirname, 'googledoodle.jpg')
   const localFile = path.join(__dirname, 'unicycle.jpg')
   let totalLength = null
@@ -15,19 +15,25 @@ tape('multipart form append', (t) => {
 
   const server = http.createServer((req, res) => {
     if (req.url === '/file') {
-      res.writeHead(200, { 'content-type': 'image/jpg', 'content-length': 7187 })
+      res.writeHead(200, {
+        'content-type': 'image/jpg',
+        'content-length': 7187
+      })
       res.end(fs.readFileSync(remoteFile), 'binary')
       return
     }
 
-    t.ok(/multipart\/form-data; boundary=--------------------------\d+/
-      .test(req.headers['content-type']))
+    t.ok(
+      /multipart\/form-data; boundary=--------------------------\d+/.test(
+        req.headers['content-type']
+      )
+    )
 
     // temp workaround
     let data = ''
     req.setEncoding('utf8')
 
-    req.on('data', (d) => {
+    req.on('data', d => {
       data += d
     })
 
@@ -48,15 +54,23 @@ tape('multipart form append', (t) => {
       // 3rd field : my_file
       field = FIELDS.shift()
       t.ok(data.indexOf('form-data; name="' + field.name + '"') !== -1)
-      t.ok(data.indexOf('; filename="' + path.basename(field.value.path) + '"') !== -1)
+      t.ok(
+        data.indexOf('; filename="' + path.basename(field.value.path) + '"') !==
+          -1
+      )
       // check for unicycle.jpg traces
       t.ok(data.indexOf('2005:06:21 01:44:12') !== -1)
-      t.ok(data.indexOf('Content-Type: ' + mime.lookup(field.value.path)) !== -1)
+      t.ok(
+        data.indexOf('Content-Type: ' + mime.lookup(field.value.path)) !== -1
+      )
 
       // 4th field : remote_file
       field = FIELDS.shift()
       t.ok(data.indexOf('form-data; name="' + field.name + '"') !== -1)
-      t.ok(data.indexOf('; filename="' + path.basename(field.value.path) + '"') !== -1)
+      t.ok(
+        data.indexOf('; filename="' + path.basename(field.value.path) + '"') !==
+          -1
+      )
       // check for http://localhost:nnnn/file traces
       t.ok(data.indexOf('Photoshop ICC') !== -1)
       t.ok(data.indexOf('Content-Type: ' + mime.lookup(remoteFile)) !== -1)
@@ -89,7 +103,7 @@ tape('multipart form append', (t) => {
     })
     const form = req.form()
 
-    FIELDS.forEach((field) => {
+    FIELDS.forEach(field => {
       form.append(field.name, field.value)
     })
 

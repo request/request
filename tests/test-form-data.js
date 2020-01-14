@@ -14,7 +14,10 @@ function runTest (t, options) {
 
   const server = http.createServer((req, res) => {
     if (req.url === '/file') {
-      res.writeHead(200, { 'content-type': 'image/jpg', 'content-length': 7187 })
+      res.writeHead(200, {
+        'content-type': 'image/jpg',
+        'content-length': 7187
+      })
       res.end(fs.readFileSync(remoteFile), 'binary')
       return
     }
@@ -25,18 +28,24 @@ function runTest (t, options) {
         res.end()
         return
       } else {
-        t.ok(req.headers.authorization === 'Basic ' + Buffer.from('user:pass').toString('base64'))
+        t.ok(
+          req.headers.authorization ===
+            'Basic ' + Buffer.from('user:pass').toString('base64')
+        )
       }
     }
 
-    t.ok(/multipart\/form-data; boundary=--------------------------\d+/
-      .test(req.headers['content-type']))
+    t.ok(
+      /multipart\/form-data; boundary=--------------------------\d+/.test(
+        req.headers['content-type']
+      )
+    )
 
     // temp workaround
     let data = ''
     req.setEncoding('utf8')
 
-    req.on('data', (d) => {
+    req.on('data', d => {
       data += d
     })
 
@@ -53,18 +62,36 @@ function runTest (t, options) {
 
       // 3rd field : my_file
       t.ok(data.indexOf('form-data; name="my_file"') !== -1)
-      t.ok(data.indexOf('; filename="' + path.basename(multipartFormData.my_file.path) + '"') !== -1)
+      t.ok(
+        data.indexOf(
+          '; filename="' + path.basename(multipartFormData.my_file.path) + '"'
+        ) !== -1
+      )
       // check for unicycle.jpg traces
       t.ok(data.indexOf('2005:06:21 01:44:12') !== -1)
-      t.ok(data.indexOf('Content-Type: ' + mime.lookup(multipartFormData.my_file.path)) !== -1)
+      t.ok(
+        data.indexOf(
+          'Content-Type: ' + mime.lookup(multipartFormData.my_file.path)
+        ) !== -1
+      )
 
       // 4th field : remote_file
       t.ok(data.indexOf('form-data; name="remote_file"') !== -1)
-      t.ok(data.indexOf('; filename="' + path.basename(multipartFormData.remote_file.path) + '"') !== -1)
+      t.ok(
+        data.indexOf(
+          '; filename="' +
+            path.basename(multipartFormData.remote_file.path) +
+            '"'
+        ) !== -1
+      )
 
       // 5th field : file with metadata
       t.ok(data.indexOf('form-data; name="secret_file"') !== -1)
-      t.ok(data.indexOf('Content-Disposition: form-data; name="secret_file"; filename="topsecret.jpg"') !== -1)
+      t.ok(
+        data.indexOf(
+          'Content-Disposition: form-data; name="secret_file"; filename="topsecret.jpg"'
+        ) !== -1
+      )
       t.ok(data.indexOf('Content-Type: image/custom') !== -1)
 
       // 6th field : batch of files
@@ -120,14 +147,14 @@ function runTest (t, options) {
   })
 }
 
-tape('multipart formData', (t) => {
+tape('multipart formData', t => {
   runTest(t, { json: false })
 })
 
-tape('multipart formData + JSON', (t) => {
+tape('multipart formData + JSON', t => {
   runTest(t, { json: true })
 })
 
-tape('multipart formData + basic auth', (t) => {
+tape('multipart formData + basic auth', t => {
   runTest(t, { json: false, auth: true })
 })

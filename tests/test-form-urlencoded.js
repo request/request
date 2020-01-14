@@ -9,7 +9,10 @@ function runTest (t, options, index) {
     if (index === 0 || index === 3) {
       t.equal(req.headers['content-type'], 'application/x-www-form-urlencoded')
     } else {
-      t.equal(req.headers['content-type'], 'application/x-www-form-urlencoded; charset=UTF-8')
+      t.equal(
+        req.headers['content-type'],
+        'application/x-www-form-urlencoded; charset=UTF-8'
+      )
     }
     t.equal(req.headers['content-length'], '21')
     t.equal(req.headers.accept, 'application/json')
@@ -17,7 +20,7 @@ function runTest (t, options, index) {
     let data = ''
     req.setEncoding('utf8')
 
-    req.on('data', (d) => {
+    req.on('data', d => {
       data += d
     })
 
@@ -51,12 +54,16 @@ const cases = [
     json: true
   },
   {
-    headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+    headers: {
+      'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
+    },
     form: { some: 'url', encoded: 'data' },
     json: true
   },
   {
-    headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+    headers: {
+      'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
+    },
     body: 'some=url&encoded=data',
     json: true
   },
@@ -67,7 +74,7 @@ const cases = [
 ]
 
 cases.forEach((options, index) => {
-  tape('application/x-www-form-urlencoded ' + index, (t) => {
+  tape('application/x-www-form-urlencoded ' + index, t => {
     runTest(t, options, index)
   })
 })

@@ -16,7 +16,7 @@ function clearFauxRequests () {
 function wrapRequest (name, module) {
   // Just like the http or https module, but note when a request is made.
   const wrapped = {}
-  Object.keys(module).forEach((key) => {
+  Object.keys(module).forEach(key => {
     const value = module[key]
 
     if (key === 'request') {
@@ -40,14 +40,16 @@ const httpsServer = server.createSSLServer()
 destroyable(plainServer)
 destroyable(httpsServer)
 
-tape('setup', (t) => {
+tape('setup', t => {
   plainServer.listen(0, () => {
     plainServer.on('/plain', (req, res) => {
       res.writeHead(200)
       res.end('plain')
     })
     plainServer.on('/to_https', (req, res) => {
-      res.writeHead(301, { location: 'https://localhost:' + httpsServer.port + '/https' })
+      res.writeHead(301, {
+        location: 'https://localhost:' + httpsServer.port + '/https'
+      })
       res.end()
     })
 
@@ -57,7 +59,9 @@ tape('setup', (t) => {
         res.end('https')
       })
       httpsServer.on('/to_plain', (req, res) => {
-        res.writeHead(302, { location: 'http://localhost:' + plainServer.port + '/plain' })
+        res.writeHead(302, {
+          location: 'http://localhost:' + plainServer.port + '/plain'
+        })
         res.end()
       })
 
@@ -67,7 +71,7 @@ tape('setup', (t) => {
 })
 
 function runTests (name, httpModules) {
-  tape(name, (t) => {
+  tape(name, t => {
     const toHttps = 'http://localhost:' + plainServer.port + '/to_https'
     const toPlain = 'https://localhost:' + httpsServer.port + '/to_plain'
     const options = { httpModules: httpModules, strictSSL: false }
@@ -103,7 +107,7 @@ runTests('http only', { 'http:': fauxHTTP })
 runTests('https only', { 'https:': fauxHTTPS })
 runTests('http and https', { 'http:': fauxHTTP, 'https:': fauxHTTPS })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   plainServer.destroy(() => {
     httpsServer.destroy(() => {
       t.end()

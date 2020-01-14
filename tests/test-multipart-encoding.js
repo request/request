@@ -84,7 +84,11 @@ const cases = {
 
 function runTest (t, test) {
   const server = http.createServer((req, res) => {
-    t.ok(req.headers['content-type'].match(/^multipart\/related; boundary=[^\s;]+$/))
+    t.ok(
+      req.headers['content-type'].match(
+        /^multipart\/related; boundary=[^\s;]+$/
+      )
+    )
 
     if (test.expected.chunked) {
       t.ok(req.headers['transfer-encoding'] === 'chunked')
@@ -98,7 +102,7 @@ function runTest (t, test) {
     let data = ''
     req.setEncoding('utf8')
 
-    req.on('data', (d) => {
+    req.on('data', d => {
       data += d
     })
 
@@ -140,8 +144,8 @@ function runTest (t, test) {
   })
 }
 
-Object.keys(cases).forEach((name) => {
-  tape('multipart-encoding ' + name, (t) => {
+Object.keys(cases).forEach(name => {
+  tape('multipart-encoding ' + name, t => {
     runTest(t, cases[name])
   })
 })

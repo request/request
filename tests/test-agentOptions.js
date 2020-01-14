@@ -15,13 +15,13 @@ if (!process.env.running_under_istanbul) {
     resp.end('')
   })
 
-  tape('setup', (t) => {
+  tape('setup', t => {
     s.listen(0, () => {
       t.end()
     })
   })
 
-  tape('without agentOptions should use global agent', (t) => {
+  tape('without agentOptions should use global agent', t => {
     const r = request(s.url, (err, res, body) => {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
@@ -31,19 +31,23 @@ if (!process.env.running_under_istanbul) {
     })
   })
 
-  tape('with agentOptions should apply to new agent in pool', (t) => {
-    const r = request(s.url, {
-      agentOptions: { foo: 'bar' }
-    }, (err, res, body) => {
-      t.equal(err, null)
-      t.equal(res.statusCode, 200)
-      t.equal(r.agent.options.foo, 'bar')
-      t.equal(Object.keys(r.pool).length, 1)
-      t.end()
-    })
+  tape('with agentOptions should apply to new agent in pool', t => {
+    const r = request(
+      s.url,
+      {
+        agentOptions: { foo: 'bar' }
+      },
+      (err, res, body) => {
+        t.equal(err, null)
+        t.equal(res.statusCode, 200)
+        t.equal(r.agent.options.foo, 'bar')
+        t.equal(Object.keys(r.pool).length, 1)
+        t.end()
+      }
+    )
   })
 
-  tape('cleanup', (t) => {
+  tape('cleanup', t => {
     s.close(() => {
       t.end()
     })

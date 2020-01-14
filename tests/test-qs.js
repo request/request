@@ -23,7 +23,7 @@ function runTest (name, options) {
     opts.qs = options.qs
   }
 
-  tape(name + ' - using qs', (t) => {
+  tape(name + ' - using qs', t => {
     const r = request.get(opts)
     if (typeof options.afterRequest === 'function') {
       options.afterRequest(r)
@@ -35,7 +35,7 @@ function runTest (name, options) {
     })
   })
 
-  tape(name + ' - using querystring', (t) => {
+  tape(name + ' - using querystring', t => {
     opts.useQuerystring = true
     const r = request.get(opts)
     if (typeof options.afterRequest === 'function') {
@@ -50,9 +50,7 @@ function runTest (name, options) {
 }
 
 function esc (str) {
-  return str
-    .replace(/\[/g, '%5B')
-    .replace(/\]/g, '%5D')
+  return str.replace(/\[/g, '%5B').replace(/\]/g, '%5D')
 }
 
 runTest('adding a querystring', {
@@ -84,7 +82,7 @@ runTest('giving empty qs property', {
 
 runTest('modifying the qs after creating the request', {
   qs: {},
-  afterRequest: (r) => {
+  afterRequest: r => {
     r.qs({ q: 'test' })
   },
   expected: '/?q=test'
@@ -127,9 +125,12 @@ runTest('pass options to the querystring module via the qsParseOptions key', {
   expectedQuerystring: '/?a=1;b=2'
 })
 
-runTest('pass options to the querystring module via the qsStringifyOptions key', {
-  qs: { order: ['bar', 'desc'] },
-  qsStringifyOptions: { sep: ';' },
-  expected: esc('/?order[0]=bar&order[1]=desc'),
-  expectedQuerystring: '/?order=bar;order=desc'
-})
+runTest(
+  'pass options to the querystring module via the qsStringifyOptions key',
+  {
+    qs: { order: ['bar', 'desc'] },
+    qsStringifyOptions: { sep: ';' },
+    expected: esc('/?order[0]=bar&order[1]=desc'),
+    expectedQuerystring: '/?order=bar;order=desc'
+  }
+)

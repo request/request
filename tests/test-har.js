@@ -8,13 +8,13 @@ const server = require('./server')
 
 const s = server.createEchoServer()
 
-tape('setup', (t) => {
+tape('setup', t => {
   s.listen(0, () => {
     t.end()
   })
 })
 
-tape('application-form-encoded', (t) => {
+tape('application-form-encoded', t => {
   const options = {
     url: s.url,
     har: fixture['application-form-encoded']
@@ -29,7 +29,7 @@ tape('application-form-encoded', (t) => {
   })
 })
 
-tape('application-json', (t) => {
+tape('application-json', t => {
   const options = {
     url: s.url,
     har: fixture['application-json']
@@ -42,7 +42,7 @@ tape('application-json', (t) => {
   })
 })
 
-tape('cookies', (t) => {
+tape('cookies', t => {
   const options = {
     url: s.url,
     har: fixture.cookies
@@ -57,7 +57,7 @@ tape('cookies', (t) => {
   })
 })
 
-tape('custom-method', (t) => {
+tape('custom-method', t => {
   const options = {
     url: s.url,
     har: fixture['custom-method']
@@ -72,7 +72,7 @@ tape('custom-method', (t) => {
   })
 })
 
-tape('headers', (t) => {
+tape('headers', t => {
   const options = {
     url: s.url,
     har: fixture.headers
@@ -87,7 +87,7 @@ tape('headers', (t) => {
   })
 })
 
-tape('multipart-data', (t) => {
+tape('multipart-data', t => {
   const options = {
     url: s.url,
     har: fixture['multipart-data']
@@ -98,17 +98,24 @@ tape('multipart-data', (t) => {
 
     t.equal(err, null)
     t.ok(~json.headers['content-type'].indexOf('multipart/form-data'))
-    t.ok(~json.body.indexOf('Content-Disposition: form-data; name="foo"; filename="hello.txt"\r\nContent-Type: text/plain\r\n\r\nHello World'))
+    t.ok(
+      ~json.body.indexOf(
+        'Content-Disposition: form-data; name="foo"; filename="hello.txt"\r\nContent-Type: text/plain\r\n\r\nHello World'
+      )
+    )
     t.end()
   })
 })
 
-tape('multipart-file', (t) => {
+tape('multipart-file', t => {
   const options = {
     url: s.url,
     har: fixture['multipart-file']
   }
-  const absolutePath = path.resolve(__dirname, options.har.postData.params[0].fileName)
+  const absolutePath = path.resolve(
+    __dirname,
+    options.har.postData.params[0].fileName
+  )
   options.har.postData.params[0].fileName = absolutePath
 
   request(options, (err, res, body) => {
@@ -116,12 +123,16 @@ tape('multipart-file', (t) => {
 
     t.equal(err, null)
     t.ok(~json.headers['content-type'].indexOf('multipart/form-data'))
-    t.ok(~json.body.indexOf('Content-Disposition: form-data; name="foo"; filename="unicycle.jpg"\r\nContent-Type: image/jpeg'))
+    t.ok(
+      ~json.body.indexOf(
+        'Content-Disposition: form-data; name="foo"; filename="unicycle.jpg"\r\nContent-Type: image/jpeg'
+      )
+    )
     t.end()
   })
 })
 
-tape('multipart-form-data', (t) => {
+tape('multipart-form-data', t => {
   const options = {
     url: s.url,
     har: fixture['multipart-form-data']
@@ -137,7 +148,7 @@ tape('multipart-form-data', (t) => {
   })
 })
 
-tape('query', (t) => {
+tape('query', t => {
   const options = {
     url: s.url + '/?fff=sss',
     har: fixture.query
@@ -152,7 +163,7 @@ tape('query', (t) => {
   })
 })
 
-tape('text/plain', (t) => {
+tape('text/plain', t => {
   const options = {
     url: s.url,
     har: fixture['text-plain']
@@ -168,7 +179,7 @@ tape('text/plain', (t) => {
   })
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   s.close(() => {
     t.end()
   })

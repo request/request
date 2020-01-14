@@ -20,20 +20,31 @@ function runTest (t, a) {
 
     if (a.header) {
       if (a.header.indexOf('mixed') !== -1) {
-        t.ok(req.headers['content-type'].match(/^multipart\/mixed; boundary=[^\s;]+$/))
+        t.ok(
+          req.headers['content-type'].match(
+            /^multipart\/mixed; boundary=[^\s;]+$/
+          )
+        )
       } else {
-        t.ok(req.headers['content-type']
-          .match(/^multipart\/related; boundary=XXX; type=text\/xml; start="<root>"$/))
+        t.ok(
+          req.headers['content-type'].match(
+            /^multipart\/related; boundary=XXX; type=text\/xml; start="<root>"$/
+          )
+        )
       }
     } else {
-      t.ok(req.headers['content-type'].match(/^multipart\/related; boundary=[^\s;]+$/))
+      t.ok(
+        req.headers['content-type'].match(
+          /^multipart\/related; boundary=[^\s;]+$/
+        )
+      )
     }
 
     // temp workaround
     let data = ''
     req.setEncoding('utf8')
 
-    req.on('data', (d) => {
+    req.on('data', d => {
       data += d
     })
 
@@ -112,16 +123,17 @@ const testHeaders = [
 ]
 
 const methods = ['post', 'get']
-methods.forEach((method) => {
-  testHeaders.forEach((header) => {
-    [true, false].forEach((json) => {
+methods.forEach(method => {
+  testHeaders.forEach(header => {
+    [true, false].forEach(json => {
       const name = [
-        'multipart-related', method.toUpperCase(),
-        (header || 'default'),
+        'multipart-related',
+        method.toUpperCase(),
+        header || 'default',
         (json ? '+' : '-') + 'json'
       ].join(' ')
 
-      tape(name, (t) => {
+      tape(name, t => {
         runTest(t, { method: method, header: header, json: json })
       })
     })

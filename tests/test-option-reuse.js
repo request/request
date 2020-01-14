@@ -16,14 +16,14 @@ const s = http.createServer((req, res) => {
   methodsSeen[req.method.toLowerCase()]++
 })
 
-tape('setup', (t) => {
+tape('setup', t => {
   s.listen(0, function () {
     s.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('options object is not mutated', (t) => {
+tape('options object is not mutated', t => {
   const url = s.url
   const options = { url: url }
 
@@ -47,7 +47,7 @@ tape('options object is not mutated', (t) => {
   })
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   s.close(() => {
     t.end()
   })

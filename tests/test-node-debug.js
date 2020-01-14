@@ -12,7 +12,7 @@ const s = http.createServer((req, res) => {
 let stderr = []
 let prevStderrLen = 0
 
-tape('setup', (t) => {
+tape('setup', t => {
   process.stderr._oldWrite = process.stderr.write
   process.stderr.write = (string, encoding, fd) => {
     stderr.push(string)
@@ -24,9 +24,13 @@ tape('setup', (t) => {
   })
 })
 
-tape('a simple request should not fail with debugging enabled', (t) => {
+tape('a simple request should not fail with debugging enabled', t => {
   request.debug = true
-  t.equal(request.Request.debug, true, 'request.debug sets request.Request.debug')
+  t.equal(
+    request.Request.debug,
+    true,
+    'request.debug sets request.Request.debug'
+  )
   t.equal(request.debug, true, 'request.debug gets request.Request.debug')
   stderr = []
 
@@ -45,9 +49,9 @@ tape('a simple request should not fail with debugging enabled', (t) => {
       /^REQUEST end event /,
       /^REQUEST emitting complete /
     ]
-    patterns.forEach((pattern) => {
+    patterns.forEach(pattern => {
       let found = false
-      stderr.forEach((msg) => {
+      stderr.forEach(msg => {
         if (pattern.test(msg)) {
           found = true
         }
@@ -59,7 +63,7 @@ tape('a simple request should not fail with debugging enabled', (t) => {
   })
 })
 
-tape('there should be no further lookups on process.env', (t) => {
+tape('there should be no further lookups on process.env', t => {
   process.env.NODE_DEBUG = ''
   stderr = []
 
@@ -71,9 +75,13 @@ tape('there should be no further lookups on process.env', (t) => {
   })
 })
 
-tape('it should be possible to disable debugging at runtime', (t) => {
+tape('it should be possible to disable debugging at runtime', t => {
   request.debug = false
-  t.equal(request.Request.debug, false, 'request.debug sets request.Request.debug')
+  t.equal(
+    request.Request.debug,
+    false,
+    'request.debug sets request.Request.debug'
+  )
   t.equal(request.debug, false, 'request.debug gets request.Request.debug')
   stderr = []
 
@@ -85,7 +93,7 @@ tape('it should be possible to disable debugging at runtime', (t) => {
   })
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   process.stderr.write = process.stderr._oldWrite
   delete process.stderr._oldWrite
 

@@ -18,13 +18,15 @@ s.on('/cat', (req, res) => {
     res.end('asdf')
   } else if (req.method === 'PUT') {
     let body = ''
-    req.on('data', (chunk) => {
-      body += chunk
-    }).on('end', () => {
-      res.writeHead(201)
-      res.end()
-      s.emit('catDone', req, res, body)
-    })
+    req
+      .on('data', chunk => {
+        body += chunk
+      })
+      .on('end', () => {
+        res.writeHead(201)
+        res.end()
+        s.emit('catDone', req, res, body)
+      })
   }
 })
 
@@ -41,7 +43,7 @@ class ValidationStream extends stream.Stream {
     super()
     this.str = str
     this.buf = ''
-    this.on('data', (data) => {
+    this.on('data', data => {
       this.buf += data
     })
     this.on('end', () => {
@@ -62,73 +64,82 @@ class ValidationStream extends stream.Stream {
   }
 }
 
-tape('setup', (t) => {
+tape('setup', t => {
   s.listen(0, () => {
     t.end()
   })
 })
 
-tape('piping to a request object', (t) => {
+tape('piping to a request object', t => {
   s.once('/push', server.createPostValidator('mydata'))
 
   const mydata = new stream.Stream()
   mydata.readable = true
 
-  const r1 = request.put({
-    url: s.url + '/push'
-  }, (err, res, body) => {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    t.equal(body, 'mydata')
-    t.end()
-  })
+  const r1 = request.put(
+    {
+      url: s.url + '/push'
+    },
+    (err, res, body) => {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.equal(body, 'mydata')
+      t.end()
+    }
+  )
   mydata.pipe(r1)
 
   mydata.emit('data', 'mydata')
   mydata.emit('end')
 })
 
-tape('piping to a request object with invalid uri', (t) => {
+tape('piping to a request object with invalid uri', t => {
   const mybodydata = new stream.Stream()
   mybodydata.readable = true
 
-  const r2 = request.put({
-    url: '/bad-uri',
-    json: true
-  }, (err, res, body) => {
-    t.ok(err instanceof Error)
-    t.equal(err.message, 'Invalid URL: /bad-uri')
-    t.end()
-  })
+  const r2 = request.put(
+    {
+      url: '/bad-uri',
+      json: true
+    },
+    (err, res, body) => {
+      t.ok(err instanceof Error)
+      t.equal(err.message, 'Invalid URL: /bad-uri')
+      t.end()
+    }
+  )
   mybodydata.pipe(r2)
 
   mybodydata.emit('data', JSON.stringify({ foo: 'bar' }))
   mybodydata.emit('end')
 })
 
-tape('piping to a request object with a json body', (t) => {
+tape('piping to a request object with a json body', t => {
   const obj = { foo: 'bar' }
   const json = JSON.stringify(obj)
   s.once('/push-json', server.createPostValidator(json, 'application/json'))
   const mybodydata = new stream.Stream()
   mybodydata.readable = true
 
-  const r2 = request.put({
-    url: s.url + '/push-json',
-    json: true
-  }, (err, res, body) => {
-    t.equal(err, null)
-    t.equal(res.statusCode, 200)
-    t.deepEqual(body, obj)
-    t.end()
-  })
+  const r2 = request.put(
+    {
+      url: s.url + '/push-json',
+      json: true
+    },
+    (err, res, body) => {
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.deepEqual(body, obj)
+      t.end()
+    }
+  )
   mybodydata.pipe(r2)
 
   mybodydata.emit('data', JSON.stringify({ foo: 'bar' }))
   mybodydata.emit('end')
 })
 
-tape('piping from a request object', (t) => {
+tape('piping from a request object', t => {
   s.once('/pull', server.createGetResponse('mypulldata'))
 
   const mypulldata = new stream.Stream()
@@ -140,7 +151,7 @@ tape('piping from a request object', (t) => {
 
   let d = ''
 
-  mypulldata.write = (chunk) => {
+  mypulldata.write = chunk => {
     d += chunk
   }
   mypulldata.end = () => {
@@ -149,13 +160,15 @@ tape('piping from a request object', (t) => {
   }
 })
 
-tape('pause when piping from a request object', (t) => {
+tape('pause when piping from a request object', t => {
   s.once('/chunks', (req, res) => {
     res.writeHead(200, {
       'content-type': 'text/plain'
     })
     res.write('Chunk 1')
-    setTimeout(() => { res.end('Chunk 2') }, 10)
+    setTimeout(() => {
+      res.end('Chunk 2')
+    }, 10)
   })
 
   let chunkNum = 0
@@ -184,7 +197,7 @@ tape('pause when piping from a request object', (t) => {
     .on('end', t.end.bind(t))
 })
 
-tape('pause before piping from a request object', (t) => {
+tape('pause before piping from a request object', t => {
   s.once('/pause-before', (req, res) => {
     res.writeHead(200, {
       'content-type': 'text/plain'
@@ -197,7 +210,7 @@ tape('pause before piping from a request object', (t) => {
     url: s.url + '/pause-before'
   })
   r.pause()
-  r.on('data', (data) => {
+  r.on('data', data => {
     t.notOk(paused, 'Only receive data when not paused')
     t.equal(data.toString(), 'Data')
   })
@@ -211,16 +224,17 @@ tape('pause before piping from a request object', (t) => {
 
 const fileContents = fs.readFileSync(__filename)
 function testPipeFromFile (testName, hasContentLength) {
-  tape(testName, (t) => {
+  tape(testName, t => {
     s.once('/pushjs', (req, res) => {
       if (req.method === 'PUT') {
         t.equal(req.headers['content-type'], 'application/javascript')
         t.equal(
           req.headers['content-length'],
-          (hasContentLength ? '' + fileContents.length : undefined))
+          hasContentLength ? '' + fileContents.length : undefined
+        )
         let body = ''
         req.setEncoding('utf8')
-        req.on('data', (data) => {
+        req.on('data', data => {
           body += data
         })
         req.on('end', () => {
@@ -244,18 +258,17 @@ function testPipeFromFile (testName, hasContentLength) {
 testPipeFromFile('piping from a file', false)
 testPipeFromFile('piping from a file with content-length', true)
 
-tape('piping to and from same URL', (t) => {
+tape('piping to and from same URL', t => {
   s.once('catDone', (req, res, body) => {
     t.equal(req.headers['content-type'], 'text/plain-test')
     t.equal(req.headers['content-length'], '4')
     t.equal(body, 'asdf')
     t.end()
   })
-  request.get(s.url + '/cat')
-    .pipe(request.put(s.url + '/cat'))
+  request.get(s.url + '/cat').pipe(request.put(s.url + '/cat'))
 })
 
-tape('piping between urls', (t) => {
+tape('piping between urls', t => {
   s.once('/catresp', (req, res) => {
     request.get(s.url + '/cat').pipe(res)
   })
@@ -268,7 +281,7 @@ tape('piping between urls', (t) => {
   })
 })
 
-tape('writing to file', (t) => {
+tape('writing to file', t => {
   const doodleWrite = fs.createWriteStream(path.join(__dirname, 'test.jpg'))
 
   request.get(s.url + '/doodle').pipe(doodleWrite)
@@ -276,31 +289,38 @@ tape('writing to file', (t) => {
   doodleWrite.on('close', () => {
     t.deepEqual(
       fs.readFileSync(path.join(__dirname, 'googledoodle.jpg')),
-      fs.readFileSync(path.join(__dirname, 'test.jpg')))
+      fs.readFileSync(path.join(__dirname, 'test.jpg'))
+    )
     fs.unlinkSync(path.join(__dirname, 'test.jpg'))
     t.end()
   })
 })
 
-tape('one-line proxy', (t) => {
+tape('one-line proxy', t => {
   s.once('/onelineproxy', (req, res) => {
     const x = request(s.url + '/doodle')
     req.pipe(x)
     x.pipe(res)
   })
 
-  request.get({
-    uri: s.url + '/onelineproxy',
-    headers: { 'x-oneline-proxy': 'nope' }
-  }, (err, res, body) => {
-    t.equal(err, null)
-    t.equal(res.headers['x-oneline-proxy'], 'yup')
-    t.equal(body, fs.readFileSync(path.join(__dirname, 'googledoodle.jpg')).toString())
-    t.end()
-  })
+  request.get(
+    {
+      uri: s.url + '/onelineproxy',
+      headers: { 'x-oneline-proxy': 'nope' }
+    },
+    (err, res, body) => {
+      t.equal(err, null)
+      t.equal(res.headers['x-oneline-proxy'], 'yup')
+      t.equal(
+        body,
+        fs.readFileSync(path.join(__dirname, 'googledoodle.jpg')).toString()
+      )
+      t.end()
+    }
+  )
 })
 
-tape('piping after response', (t) => {
+tape('piping after response', t => {
   s.once('/afterresponse', (req, res) => {
     res.write('d')
     res.end()
@@ -317,7 +337,7 @@ tape('piping after response', (t) => {
   })
 })
 
-tape('piping through a redirect', (t) => {
+tape('piping through a redirect', t => {
   s.once('/forward1', (req, res) => {
     res.writeHead(302, { location: '/forward2' })
     res.end()
@@ -337,14 +357,14 @@ tape('piping through a redirect', (t) => {
   })
 })
 
-tape('pipe options', (t) => {
+tape('pipe options', t => {
   s.once('/opts', server.createGetResponse('opts response'))
 
   const optsStream = new stream.Stream()
   let optsData = ''
 
   optsStream.writable = true
-  optsStream.write = (buf) => {
+  optsStream.write = buf => {
     optsData += buf
     if (optsData === 'opts response') {
       setTimeout(() => {
@@ -358,10 +378,13 @@ tape('pipe options', (t) => {
 
   request({
     url: s.url + '/opts'
-  }).pipe(optsStream, { end: false })
+  }).pipe(
+    optsStream,
+    { end: false }
+  )
 })
 
-tape('request.pipefilter is called correctly', (t) => {
+tape('request.pipefilter is called correctly', t => {
   s.once('/pipefilter', (req, res) => {
     res.end('d')
   })
@@ -376,7 +399,7 @@ tape('request.pipefilter is called correctly', (t) => {
   }
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   s.close(() => {
     t.end()
   })

@@ -16,7 +16,7 @@ const server = http.createServer((req, resp) => {
   if (req.url === '/put') {
     let x = ''
     assert.strictEqual(req.method, 'PUT')
-    req.on('data', (chunk) => {
+    req.on('data', chunk => {
       x += chunk
     })
     req.on('end', () => {
@@ -32,20 +32,22 @@ const server = http.createServer((req, resp) => {
     return
   }
   if (req.url === '/test') {
-    request(server.url + '/get').pipe(request.put(server.url + '/proxy')).pipe(resp)
+    request(server.url + '/get')
+      .pipe(request.put(server.url + '/proxy'))
+      .pipe(resp)
     return
   }
   throw new Error('Unknown url', req.url)
 })
 
-tape('setup', (t) => {
+tape('setup', t => {
   server.listen(0, function () {
     server.url = 'http://localhost:' + this.address().port
     t.end()
   })
 })
 
-tape('chained one-line proxying', (t) => {
+tape('chained one-line proxying', t => {
   request(server.url + '/test', (err, res, body) => {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
@@ -54,7 +56,7 @@ tape('chained one-line proxying', (t) => {
   })
 })
 
-tape('cleanup', (t) => {
+tape('cleanup', t => {
   server.close(() => {
     t.end()
   })
