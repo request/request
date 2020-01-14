@@ -6,26 +6,27 @@ const fs = require('fs')
 const rimraf = require('rimraf')
 const assert = require('assert')
 const tape = require('tape')
-const url = require('url')
 
 const rawPath = [null, 'raw', 'path'].join('/')
 const queryPath = [null, 'query', 'path'].join('/')
 const searchString = '?foo=bar'
 const socket = [__dirname, 'tmp-socket'].join('/')
+const rawPathname = socket + ':' + rawPath
+const queryPathname = socket + ':' + queryPath
 const expectedBody = 'connected'
 const statusCode = 200
 
 rimraf.sync(socket)
 
 const s = http.createServer((req, res) => {
-  const incomingUrl = url.parse(req.url)
+  const incomingUrl = new URL(req.url, 'http://unix/')
   switch (incomingUrl.pathname) {
-    case rawPath:
-      assert.strictEqual(incomingUrl.pathname, rawPath, 'requested path is sent to server')
+    case rawPathname:
+      assert.strictEqual(incomingUrl.pathname, rawPathname, 'requested path is sent to server')
       break
 
-    case queryPath:
-      assert.strictEqual(incomingUrl.pathname, queryPath, 'requested path is sent to server')
+    case queryPathname:
+      assert.strictEqual(incomingUrl.pathname, queryPathname, 'requested path is sent to server')
       assert.strictEqual(incomingUrl.search, searchString, 'query string is sent to server')
       break
 

@@ -2,9 +2,9 @@
 
 const http = require('http')
 const https = require('https')
-const url = require('url')
+const { format } = require('url')
 const util = require('util')
-const stream = require('stream')
+const { Stream } = require('stream')
 const zlib = require('zlib')
 const aws2 = require('aws-sign2')
 const aws4 = require('aws4')
@@ -63,7 +63,7 @@ function filterOutReservedFunctions (reserved, options) {
   return object
 }
 
-class Request extends stream.Stream {
+class Request extends Stream {
   constructor (options) {
     super()
     // if given the method property in options, set property explicitMethod to true
@@ -149,7 +149,7 @@ class Request extends stream.Stream {
 
     // ca option is only relevant if proxy or destination are https
     if (typeof this.proxy === 'string') {
-      this.proxy = url.parse(this.proxy)
+      this.proxy = new URL(this.proxy)
     }
     const isHttps =
       (this.proxy && this.proxy.protocol === 'https:') || this.uri.protocol === 'https:'
@@ -639,12 +639,16 @@ class Request extends stream.Stream {
 
     // If a string URI/URL was given, parse it into a URL object
     if (typeof this.uri === 'string') {
-      this.uri = url.parse(this.uri)
+      try {
+        this.uri = new URL(this.uri)
+      } catch (error) {
+        return this.emit('error', error)
+      }
     }
 
     // Some URL objects are not from a URL parsed string and need href added
     if (!this.uri.href) {
-      this.uri.href = url.format(this.uri)
+      this.uri.href = format(this.uri)
     }
 
     // DEPRECATED: Warning for users of the old Unix Sockets URL Scheme
@@ -666,7 +670,7 @@ class Request extends stream.Stream {
     if (!(this.uri.host || (this.uri.hostname && this.uri.port)) && !this.uri.isUnix) {
       // Invalid URI: it may generate lot of bad errors, like 'TypeError: Cannot call method `indexOf` of undefined' in CookieJar
       // Detect and reject it as soon as possible
-      const faultyUri = url.format(this.uri)
+      const faultyUri = format(this.uri)
       let message = 'Invalid URI "' + faultyUri + '"'
       if (Object.keys(options).length === 0) {
         // No option ? This can be the sign of a redirect
@@ -793,14 +797,12 @@ class Request extends stream.Stream {
       this.setHeader('accept-encoding', 'gzip, deflate')
     }
 
-    if (this.uri.auth && !this.hasHeader('authorization')) {
-      const uriAuthPieces = this.uri.auth.split(':').map((item) => { return this._qs.unescape(item) })
-      this.auth(uriAuthPieces[0], uriAuthPieces.slice(1).join(':'), true)
+    if (this.uri.username && !this.hasHeader('authorization')) {
+      this.auth(this.uri.username, this.uri.password, true)
     }
 
-    if (!this.tunnel && this.proxy && this.proxy.auth && !this.hasHeader('proxy-authorization')) {
-      const proxyAuthPieces = this.proxy.auth.split(':').map((item) => { return this._qs.unescape(item) })
-      const authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
+    if (!this.tunnel && this.proxy && this.proxy.username && !this.hasHeader('proxy-authorization')) {
+      const authHeader = 'Basic ' + toBase64(this.proxy.username + ':' + this.proxy.password)
       this.setHeader('proxy-authorization', authHeader)
     }
 
@@ -1029,6 +1031,10 @@ class Request extends stream.Stream {
     // auth option.  If we don't remove it, we're gonna have a bad time.
     const reqOptions = copy(this)
     delete reqOptions.auth
+    // Delete host, so the hostname will be used (for ipv6 addresses e.g. [::1])
+    if (reqOptions.host && reqOptions.host.search(new RegExp(/\[|\]/)) >= 0) {
+      delete reqOptions.host
+    }
 
     debug('make request', this.uri.href)
 
@@ -1217,14 +1223,10 @@ class Request extends stream.Stream {
   }
 
   enableUnixSocket () {
-    // Get the socket & request paths from the URL
-    const [host, path] = this.uri.path.split(':')
+    // Get the socketPath from the URL
+    const [socketPath] = this.uri.pathname.split(':')
     // Apply unix properties to request
-    this.socketPath = host
-    this.uri.pathname = path
-    this.uri.path = path
-    this.uri.host = host
-    this.uri.hostname = host
+    this.socketPath = socketPath
     this.uri.isUnix = true
   }
 
@@ -1331,8 +1333,8 @@ function debug () {
 
 Request.prototype.qs = function (q, clobber) {
   let base
-  if (!clobber && this.uri.query) {
-    base = this._qs.parse(this.uri.query)
+  if (!clobber && this.uri.search) {
+    base = this._qs.parse(this.uri.search.substring(1))
   } else {
     base = {}
   }
@@ -1347,9 +1349,9 @@ Request.prototype.qs = function (q, clobber) {
     return this
   }
 
-  this.uri = url.parse(this.uri.href.split('?')[0] + '?' + qs)
+  this.uri = new URL(this.uri.href.split('?')[0] + '?' + qs)
   this.url = this.uri
-  this.path = this.uri.path
+  this.path = this.uri.pathname + this.uri.search
 
   if (this.uri.host === 'unix') {
     this.enableUnixSocket()

@@ -8,7 +8,6 @@ const net = require('net')
 const fs = require('fs')
 const path = require('path')
 const util = require('util')
-const url = require('url')
 const destroyable = require('server-destroy')
 
 let events = []
@@ -87,8 +86,8 @@ function setListeners (server, type) {
   })
 
   server.on('connect', (req, client, head) => {
-    const u = url.parse(req.url)
-    const server = net.connect(u.host, u.port, () => {
+    const [, port] = req.url.split(':')
+    const server = net.connect(port, () => {
       event('%s connect to %s', type, req.url)
       client.write('HTTP/1.1 200 Connection established\r\n\r\n')
       client.pipe(server)

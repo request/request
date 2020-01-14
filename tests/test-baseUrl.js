@@ -3,7 +3,6 @@
 const http = require('http')
 const request = require('../index')
 const tape = require('tape')
-const url = require('url')
 
 const s = http.createServer((req, res) => {
   if (req.url === '/redirect/') {
@@ -94,7 +93,7 @@ tape('baseUrl and redirects', (t) => {
 
 tape('error when baseUrl is not a String', (t) => {
   request('resource', {
-    baseUrl: url.parse(s.url + '/path')
+    baseUrl: new URL('/path', s.url)
   }, (err, resp, body) => {
     t.notEqual(err, null)
     t.equal(err.message, 'options.baseUrl must be a string')
@@ -103,7 +102,7 @@ tape('error when baseUrl is not a String', (t) => {
 })
 
 tape('error when uri is not a String', (t) => {
-  request(url.parse('resource'), {
+  request(new URL('resource', s.url), {
     baseUrl: s.url + '/path'
   }, (err, resp, body) => {
     t.notEqual(err, null)

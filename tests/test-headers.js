@@ -4,7 +4,6 @@ const server = require('./server')
 const request = require('../index')
 const util = require('util')
 const tape = require('tape')
-const url = require('url')
 const os = require('os')
 
 const interfaces = os.networkInterfaces()
@@ -296,8 +295,10 @@ if (hasIPv6interface) {
       rawData = ''
     }
 
+    const url = new URL(s.url)
+    url.hostname = '[::1]'
     request({
-      url: s.url.replace(url.parse(s.url).hostname, '[::1]') + '/headers.json'
+      url: url.href + 'headers.json'
     }, (err, res, body) => {
       t.equal(err, null)
       t.equal(res.statusCode, 200)

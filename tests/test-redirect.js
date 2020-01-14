@@ -344,7 +344,7 @@ tape('triple bounce terminated after second redirect', (t) => {
 tape('http to https redirect', (t) => {
   hits = {}
   request.get({
-    uri: require('url').parse(s.url + '/ssl'),
+    uri: new URL(s.url + '/ssl'),
     rejectUnauthorized: false
   }, (err, res, body) => {
     t.equal(err, null)

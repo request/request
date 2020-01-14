@@ -17,7 +17,7 @@ tape('invalid uri 1', (t) => {
     request({
       uri: 'this-is-not-a-valid-uri'
     })
-  }, /^Error: Invalid URI/)
+  }, /^TypeError \[ERR_INVALID_URL\]: Invalid URL/)
   t.end()
 })
 
@@ -26,7 +26,7 @@ tape('invalid uri 2', (t) => {
     request({
       uri: 'github.com/uri-is-not-valid-without-protocol'
     })
-  }, /^Error: Invalid URI/)
+  }, /^TypeError \[ERR_INVALID_URL\]: Invalid URL/)
   t.end()
 })
 
@@ -36,7 +36,7 @@ tape('invalid uri + NO_PROXY', (t) => {
     request({
       uri: 'invalid'
     })
-  }, /^Error: Invalid URI/)
+  }, /^TypeError \[ERR_INVALID_URL\]: Invalid URL/)
   delete process.env.NO_PROXY
   t.end()
 })

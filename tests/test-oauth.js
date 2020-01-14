@@ -444,10 +444,9 @@ tape('query transport_method', (t) => {
 
   process.nextTick(() => {
     t.notOk(r.headers.Authorization, "oauth Authorization header should not be present with transport_method 'query'")
-    t.equal(r.uri.path, r.path, 'r.uri.path should equal r.path')
-    // console.log(r)
+    t.equal(r.uri.pathname + r.uri.search, r.path, 'r.uri.pathname + r.uri.search should equal r.path')
     t.ok(r.path.match(/^\/oauth\/access_token\?/), 'path should contain path + query')
-    t.deepEqual(qs.parse(r.uri.query),
+    t.deepEqual(qs.parse(r.uri.searchParams.toString()),
       {
         oauth_consumer_key: 'GDdmIQH6jhtmLUypg82g',
         oauth_nonce: '9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8',
@@ -486,9 +485,9 @@ tape('query transport_method + form option + url params', (t) => {
 
   process.nextTick(() => {
     t.notOk(r.headers.Authorization, "oauth Authorization header should not be present with transport_method 'query'")
-    t.equal(r.uri.path, r.path, 'r.uri.path should equal r.path')
+    t.equal(r.uri.pathname + r.uri.search, r.path, 'r.uri.pathname + r.uri.search should equal r.path')
     t.ok(r.path.match(/^\/request\?/), 'path should contain path + query')
-    t.deepEqual(qs.parse(r.uri.query),
+    t.deepEqual(qs.parse(r.uri.searchParams.toString()),
       {
         b5: '=%3D',
         a3: 'a',
@@ -533,9 +532,9 @@ tape('query transport_method + qs option + url params', (t) => {
 
   process.nextTick(() => {
     t.notOk(r.headers.Authorization, "oauth Authorization header should not be present with transport_method 'query'")
-    t.equal(r.uri.path, r.path, 'r.uri.path should equal r.path')
+    t.equal(r.uri.pathname + r.uri.search, r.path, 'r.uri.pathname + r.uri.search should equal r.path')
     t.ok(r.path.match(/^\/request\?/), 'path should contain path + query')
-    t.deepEqual(qs.parse(r.uri.query),
+    t.deepEqual(qs.parse(r.uri.searchParams.toString()),
       {
         a2: 'r b',
         b5: '=%3D',

@@ -26,7 +26,7 @@ tape('request().toJSON()', (t) => {
 
     t.equal(err, null)
 
-    t.equal(jsonR.uri.href, r.uri.href)
+    t.equal(jsonR.uri, r.uri.toString())
     t.equal(jsonR.method, r.method)
     t.equal(jsonR.headers.foo, r.headers.foo)
 

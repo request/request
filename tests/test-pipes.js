@@ -97,7 +97,7 @@ tape('piping to a request object with invalid uri', (t) => {
     json: true
   }, (err, res, body) => {
     t.ok(err instanceof Error)
-    t.equal(err.message, 'Invalid URI "/bad-uri"')
+    t.equal(err.message, 'Invalid URL: /bad-uri')
     t.end()
   })
   mybodydata.pipe(r2)
