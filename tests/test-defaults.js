@@ -44,7 +44,6 @@ tape('get(string, function)', function (t) {
   request.defaults({
     headers: { foo: 'bar' }
   })(s.url + '/', function (e, r, b) {
-    b = JSON.parse(b)
     t.equal(b.method, 'GET')
     t.equal(b.headers.foo, 'bar')
     t.end()
@@ -248,7 +247,6 @@ tape('test custom request handler function', function (t) {
   }, /HTTP HEAD requests MUST NOT include a request body/)
 
   requestWithCustomHandler.get(s.url + '/', function (e, r, b) {
-    b = JSON.parse(b)
     t.equal(b.headers.foo, 'bar')
     t.equal(b.headers.x, 'y')
   })
@@ -267,7 +265,6 @@ tape('test custom request handler function without options', function (t) {
   })
 
   customHandlerWithoutOptions.get(s.url + '/', function (e, r, b) {
-    b = JSON.parse(b)
     t.equal(b.headers.foo, 'bar')
     t.equal(b.headers.x, 'y')
   })
