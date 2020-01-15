@@ -1140,7 +1140,7 @@ Request.prototype.readResponseBody = function (response) {
       response.body = strings.join('')
     }
 
-    if (self._json) {
+    if (/^application/json/.test(response.headers['content-type'])) {
       try {
         response.body = JSON.parse(response.body, self._jsonReviver)
       } catch (e) {
