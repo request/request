@@ -65,6 +65,7 @@
     "function-bind": "^1.0.2",
     "karma": "^3.0.0",
     "karma-browserify": "^5.0.1",
+    "karma-chrome-launcher": "^3.1.0",
     "karma-cli": "^1.0.0",
     "karma-coverage": "^1.0.0",
     "karma-tap": "^3.0.1",
