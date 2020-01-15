@@ -66,7 +66,7 @@
     "karma-browserify": "^6.1.0",
     "karma-chrome-launcher": "^3.1.0",
     "karma-cli": "^2.0.0",
-    "karma-coverage": "^1.0.0",
+    "karma-coverage": "^2.0.1",
     "karma-tap": "^3.0.1",
     "nyc": "^14.1.1",
     "rimraf": "^3.0.0",
