@@ -63,7 +63,7 @@
     "codecov": "^3.0.4",
     "coveralls": "^3.0.2",
     "function-bind": "^1.0.2",
-    "karma": "^3.0.0",
+    "karma": "^4.4.1",
     "karma-browserify": "^5.0.1",
     "karma-chrome-launcher": "^3.1.0",
     "karma-cli": "^1.0.0",
