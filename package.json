@@ -67,7 +67,7 @@
     "karma-chrome-launcher": "^3.1.0",
     "karma-cli": "^2.0.0",
     "karma-coverage": "^2.0.1",
-    "karma-tap": "^3.0.1",
+    "karma-tap": "^4.1.4",
     "nyc": "^14.1.1",
     "rimraf": "^3.0.0",
     "server-destroy": "^1.0.1",
