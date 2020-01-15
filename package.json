@@ -18,7 +18,7 @@
   },
   "license": "Apache-2.0",
   "engines": {
-    "node": ">= 6"
+    "node": ">=10"
   },
   "main": "index.js",
   "files": [
