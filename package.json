@@ -60,7 +60,7 @@
     "browserify": "^16.5.0",
     "browserify-istanbul": "^3.0.1",
     "buffer-equal": "^1.0.0",
-    "codecov": "^3.0.4",
+    "codecov": "^3.6.1",
     "coveralls": "^3.0.2",
     "function-bind": "^1.0.2",
     "karma": "^4.4.1",
