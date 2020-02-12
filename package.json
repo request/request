@@ -53,7 +53,8 @@
     "test-ci": "taper tests/test-*.js",
     "test-cov": "nyc --reporter=lcov tape tests/test-*.js",
     "test-browser": "node tests/browser/start.js",
-    "lint": "standard"
+    "lint": "standard",
+    "doctoc": "doctoc --title='## Table of Contents' --github README.md"
   },
   "devDependencies": {
     "bluebird": "^3.2.1",
@@ -62,6 +63,7 @@
     "buffer-equal": "^1.0.0",
     "codecov": "^3.0.4",
     "coveralls": "^3.0.2",
+    "doctoc": "^1.4.0",
     "function-bind": "^1.0.2",
     "karma": "^3.0.0",
     "karma-browserify": "^5.0.1",
