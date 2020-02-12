@@ -651,7 +651,7 @@ const options = {
         // Or use `pfx` property replacing `cert` and `key` when using private key, certificate and CA certs in PFX or PKCS12 format:
         // pfx: fs.readFileSync(pfxFilePath),
         passphrase: 'password',
-        securityOptions: 'SSL_OP_NO_SSLv3'
+        secureOptions: 'SSL_OP_NO_SSLv3'
     }
 };
 
