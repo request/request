@@ -101,6 +101,20 @@ function addTests () {
     function (t, req, res) {
       t.equal(req.headers.cookie, undefined)
     })
+
+  runTest(
+    '#920: allow content-length of 0',
+    'headers.json',
+    {
+      json: false,
+      method: 'POST',
+      headers: { 'content-type': 'text/plain; charset=UTF-8' },
+      body: Buffer.alloc(0)
+    },
+    function (t, req, res) {
+      t.equal(req.headers['content-length'], '0')
+    }
+  )
 }
 
 tape('setup', function (t) {
