@@ -582,6 +582,7 @@ tape('body transport_method + form option + url params', function (t) {
         oauth_token: 'kkk9d7dh3k39sjv7',
         oauth_version: '1.0',
         oauth_signature: 'OB33pYjWAnf+xtOHN4Gmbdil168=' })
+    t.equal(parseInt(r.headers['content-length'], 10), r.body.length)
     r.abort()
     t.end()
   })
