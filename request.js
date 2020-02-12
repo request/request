@@ -115,6 +115,9 @@ function Request (options) {
 
   self.readable = true
   self.writable = true
+  if (self.hasOwnProperty('proxy')) {
+    self.explicitProxy = true
+  }
   if (options.method) {
     self.explicitMethod = true
   }
@@ -273,7 +276,7 @@ Request.prototype.init = function (options) {
     return self.emit('error', new Error(message))
   }
 
-  if (!self.hasOwnProperty('proxy')) {
+  if (!self.explicitProxy) {
     self.proxy = getProxyFromURI(self.uri)
   }
 
