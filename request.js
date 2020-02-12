@@ -1125,7 +1125,11 @@ Request.prototype.readResponseBody = function (response) {
       debug('has body', self.uri.href, bufferLength)
       response.body = Buffer.concat(buffers, bufferLength)
       if (self.encoding !== null) {
-        response.body = response.body.toString(self.encoding)
+        try {
+          response.body = response.body.toString(self.encoding)
+        } catch (err) {
+          self.emit('error', err)
+        }
       }
       // `buffer` is defined in the parent scope and used in a closure it exists for the life of the Request.
       // This can lead to leaky behavior if the user retains a reference to the request object.
