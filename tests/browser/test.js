@@ -32,3 +32,15 @@ tape('succeeds on valid URLs (with https and CORS)', function (t) {
     t.end()
   })
 })
+
+tape('supports runImmediate', function (t) {
+  t.plan(1)
+  request({
+    uri: __karma__.config.requestTestUrl, // eslint-disable-line no-undef
+    withCredentials: false,
+    runImmediate: true
+  }, function (_, response) {
+    t.equal(response.statusCode, 200)
+    t.end()
+  })
+})
