@@ -19,6 +19,7 @@ var isTypedArray = require('is-typedarray').strict
 var helpers = require('./lib/helpers')
 var cookies = require('./lib/cookies')
 var getProxyFromURI = require('./lib/getProxyFromURI')
+var uriInNoProxy = require('./lib/uriInNoProxy')
 var Querystring = require('./lib/querystring').Querystring
 var Har = require('./lib/har').Har
 var Auth = require('./lib/auth').Auth
@@ -275,6 +276,9 @@ Request.prototype.init = function (options) {
 
   if (!self.hasOwnProperty('proxy')) {
     self.proxy = getProxyFromURI(self.uri)
+  } else if (uriInNoProxy(self.uri, self.noProxy)) {
+    // noProxy option only operate over the proxy option, not over env vars
+    self.proxy = null
   }
 
   self.tunnel = self._tunnel.isEnabled()

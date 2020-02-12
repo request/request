@@ -839,6 +839,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 
 - `localAddress` - local interface to bind for network connections.
 - `proxy` - an HTTP proxy to be used. Supports proxy Auth with Basic Auth, identical to support for the `url` parameter (by embedding the auth info in the `uri`)
+- `noProxy` - no_proxy option
 - `strictSSL` - if `true`, requires SSL certificates be valid. **Note:** to use your own certificate authority, you need to specify an agent that was created with that CA as an option.
 - `tunnel` - controls the behavior of
   [HTTP `CONNECT` tunneling](https://en.wikipedia.org/wiki/HTTP_tunnel#HTTP_CONNECT_tunneling)
