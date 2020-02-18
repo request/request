@@ -40,7 +40,7 @@
     "mime-types": "~2.1.19",
     "oauth-sign": "~0.9.0",
     "performance-now": "^2.1.0",
-    "postman-url-encoder": "1.0.1",
+    "postman-url-encoder": "2.1.0-beta.2",
     "qs": "~6.5.2",
     "safe-buffer": "^5.1.2",
     "stream-length": "^1.0.2",
