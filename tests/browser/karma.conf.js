@@ -1,8 +1,10 @@
 'use strict'
 var istanbul = require('browserify-istanbul')
 
+process.env.CHROME_BIN = require('puppeteer').executablePath()
+
 module.exports = function (config) {
-  config.set({
+  var configuration = {
     client: { requestTestUrl: process.argv[4] },
     basePath: '../..',
     frameworks: ['tap', 'browserify'],
@@ -23,12 +25,12 @@ module.exports = function (config) {
 
     autoWatch: false,
 
-    browsers: ['PhantomJS_without_security'],
+    browsers: ['HeadlessChrome_without_security'],
 
     singleRun: true,
 
     plugins: [
-      'karma-phantomjs-launcher',
+      'karma-chrome-launcher',
       'karma-coverage',
       'karma-browserify',
       'karma-tap'
@@ -46,12 +48,27 @@ module.exports = function (config) {
 
     // Custom launcher to allowe self signed certs.
     customLaunchers: {
-      PhantomJS_without_security: {
-        base: 'PhantomJS',
+      HeadlessChrome_without_security: {
+        base: 'ChromeHeadless',
         flags: [
-          '--ignore-ssl-errors=true'
+          '--ignore-certificate-errors'
         ]
       }
     }
-  })
+  }
+
+  if (process.env.TRAVIS) {
+    configuration.customLaunchers = {
+      chromeTravis: {
+        base: 'ChromeHeadless',
+        flags: [
+          '--no-sandbox',
+          '--ignore-certificate-errors'
+        ]
+      }
+    }
+    configuration.browsers = ['chromeTravis']
+  }
+
+  config.set(configuration)
 }
