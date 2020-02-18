@@ -149,6 +149,11 @@ function Request (options) {
     options.formData = transformFormData(options.formData)
   }
 
+  // use custom URL parser if provided, fallback to url.parse
+  if (typeof options.urlParse !== 'function') {
+    options.urlParse = url.parse
+  }
+
   stream.Stream.call(self)
   var reserved = Object.keys(Request.prototype)
   var nonReserved = filterForNonReserved(reserved, options)
@@ -304,7 +309,7 @@ Request.prototype.init = function (options) {
 
   // If a string URI/URL was given, parse it into a URL object
   if (typeof self.uri === 'string') {
-    self.uri = url.parse(self.uri)
+    self.uri = self.urlParse(self.uri)
   }
 
   // Some URL objects are not from a URL parsed string and need href added
@@ -725,7 +730,7 @@ Request.prototype.getNewAgent = function () {
   // ca option is only relevant if proxy or destination are https
   var proxy = self.proxy
   if (typeof proxy === 'string') {
-    proxy = url.parse(proxy)
+    proxy = self.urlParse(proxy)
   }
   var isHttps = (proxy && proxy.protocol === 'https:') || this.uri.protocol === 'https:'
 
@@ -1524,7 +1529,7 @@ Request.prototype.qs = function (q, clobber) {
     return self
   }
 
-  self.uri = url.parse(self.uri.href.split('?')[0] + '?' + qs)
+  self.uri = self.urlParse(self.uri.href.split('?')[0] + '?' + qs)
   self.url = self.uri
   self.path = self.uri.path
 
