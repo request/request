@@ -1372,7 +1372,7 @@ Request.prototype.onRequestResponse = function (response) {
   var targetCookieJar = (self._jar && self._jar.setCookie) ? self._jar : globalCookieJar
   var addCookie = function (cookie, cb) {
     // set the cookie if it's domain in the href's domain.
-    targetCookieJar.setCookie(cookie, self.uri.href, {ignoreError: true}, function () {
+    targetCookieJar.setCookie(cookie, self.uri, {ignoreError: true}, function () {
       // swallow the error, don't fail the request because of cookie jar failure
       cb()
     })
@@ -1757,9 +1757,8 @@ Request.prototype.jar = function (jar, cb) {
   }
 
   var targetCookieJar = jar.getCookieString ? jar : globalCookieJar
-  var urihref = self.uri.href
   // fetch cookie in the Specified host
-  targetCookieJar.getCookieString(urihref, function (err, cookies) {
+  targetCookieJar.getCookieString(self.uri, function (err, cookies) {
     if (err) { return cb() }
 
     // if need cookie and cookie is not empty
