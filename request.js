@@ -149,9 +149,16 @@ function Request (options) {
     options.formData = transformFormData(options.formData)
   }
 
-  // use custom URL parser if provided, fallback to url.parse
-  if (typeof options.urlParse !== 'function') {
-    options.urlParse = url.parse
+  // use custom URL parser if provided, fallback to url.parse and url.resolve
+  if (!(
+    options.urlParser &&
+    typeof options.urlParser.parse === 'function' &&
+    typeof options.urlParser.resolve === 'function'
+  )) {
+    options.urlParser = {
+      parse: url.parse,
+      resolve: url.resolve
+    }
   }
 
   stream.Stream.call(self)
@@ -309,7 +316,7 @@ Request.prototype.init = function (options) {
 
   // If a string URI/URL was given, parse it into a URL object
   if (typeof self.uri === 'string') {
-    self.uri = self.urlParse(self.uri)
+    self.uri = self.urlParser.parse(self.uri)
   }
 
   // Some URL objects are not from a URL parsed string and need href added
@@ -730,7 +737,7 @@ Request.prototype.getNewAgent = function () {
   // ca option is only relevant if proxy or destination are https
   var proxy = self.proxy
   if (typeof proxy === 'string') {
-    proxy = self.urlParse(proxy)
+    proxy = self.urlParser.parse(proxy)
   }
   var isHttps = (proxy && proxy.protocol === 'https:') || this.uri.protocol === 'https:'
 
@@ -1371,7 +1378,7 @@ Request.prototype.onRequestResponse = function (response) {
 
   var targetCookieJar = (self._jar && self._jar.setCookie) ? self._jar : globalCookieJar
   var addCookie = function (cookie, cb) {
-    // set the cookie if it's domain in the href's domain.
+    // set the cookie if it's domain in the URI's domain.
     targetCookieJar.setCookie(cookie, self.uri, {ignoreError: true}, function () {
       // swallow the error, don't fail the request because of cookie jar failure
       cb()
@@ -1529,7 +1536,7 @@ Request.prototype.qs = function (q, clobber) {
     return self
   }
 
-  self.uri = self.urlParse(self.uri.href.split('?')[0] + '?' + qs)
+  self.uri = self.urlParser.parse(self.uri.href.split('?')[0] + '?' + qs)
   self.url = self.uri
   self.path = self.uri.path
 
