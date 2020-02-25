@@ -2,7 +2,7 @@ var tape = require('tape')
 var server = require('./server')
 var request = require('../index')
 var destroyable = require('server-destroy')
-var customUrlParser = require('postman-url-encoder').toNodeUrl
+var urlEncoder = require('postman-url-encoder')
 
 var httpServer = server.createServer()
 
@@ -22,6 +22,13 @@ tape('setup', function (t) {
       res.end()
     })
 
+    httpServer.on('/relative_redirect', function (req, res) {
+      res.writeHead(301, {
+        'Location': '/query?q={(`*`)}'
+      })
+      res.end()
+    })
+
     t.end()
   })
 })
@@ -29,7 +36,7 @@ tape('setup', function (t) {
 // @note: all these tests have `disableUrlEncoding` option set to true
 // so that it don't do extra encoding on top of given `urlParse` option
 
-tape('without urlParse option', function (t) {
+tape('without urlParser option', function (t) {
   var requestUrl = httpServer.url + '/query?q={(`*`)}'
   var options = { disableUrlEncoding: true }
 
@@ -42,7 +49,7 @@ tape('without urlParse option', function (t) {
   })
 })
 
-tape('without urlParse option with redirect', function (t) {
+tape('without urlParser option with redirect', function (t) {
   var requestUrl = httpServer.url + '/redirect'
   var options = { disableUrlEncoding: true }
 
@@ -55,11 +62,27 @@ tape('without urlParse option with redirect', function (t) {
   })
 })
 
-tape('with urlParse option', function (t) {
+tape('without urlParser option and redirect with relative URL', function (t) {
+  var requestUrl = httpServer.url + '/relative_redirect'
+  var options = { disableUrlEncoding: true }
+
+  request(requestUrl, options, function (err, res, body) {
+    t.equal(err, null)
+
+    // it should be encoded according to url.parse()
+    t.equal(body, '/query?q=%7B(%60*%60)%7D')
+    t.end()
+  })
+})
+
+tape('with urlParser option', function (t) {
   var requestUrl = httpServer.url + '/query?q={(`*`)}'
   var options = {
     disableUrlEncoding: true,
-    urlParse: customUrlParser
+    urlParser: {
+      parse: urlEncoder.toNodeUrl,
+      resolve: urlEncoder.resolveNodeUrl
+    }
   }
 
   request(requestUrl, options, function (err, res, body) {
@@ -71,11 +94,14 @@ tape('with urlParse option', function (t) {
   })
 })
 
-tape('with urlParse option and redirect', function (t) {
+tape('with urlParser option and redirect', function (t) {
   var requestUrl = httpServer.url + '/redirect'
   var options = {
     disableUrlEncoding: true,
-    urlParse: customUrlParser
+    urlParser: {
+      parse: urlEncoder.toNodeUrl,
+      resolve: urlEncoder.resolveNodeUrl
+    }
   }
 
   request(requestUrl, options, function (err, res, body) {
@@ -87,11 +113,49 @@ tape('with urlParse option and redirect', function (t) {
   })
 })
 
-tape('with invalid urlParse option', function (t) {
+tape('with urlParser option and redirect with relative URL', function (t) {
+  var requestUrl = httpServer.url + '/relative_redirect'
+  var options = {
+    disableUrlEncoding: true,
+    urlParser: {
+      parse: urlEncoder.toNodeUrl,
+      resolve: urlEncoder.resolveNodeUrl
+    }
+  }
+
+  request(requestUrl, options, function (err, res, body) {
+    t.equal(err, null)
+
+    // it should be encoded according to customUrlParser()
+    t.equal(body, '/query?q={(`*`)}')
+    t.end()
+  })
+})
+
+tape('with invalid urlParser option', function (t) {
   var requestUrl = httpServer.url + '/query?q={(`*`)}'
   var options = {
     disableUrlEncoding: true,
-    urlParse: 'invalid option. this should be a function'
+    urlParser: 'invalid option. this should be an object'
+  }
+
+  request(requestUrl, options, function (err, res, body) {
+    t.equal(err, null)
+
+    // it should be encoded according to url.parse()
+    t.equal(body, '/query?q=%7B(%60*%60)%7D')
+    t.end()
+  })
+})
+
+tape('with urlParser option but missing required methods', function (t) {
+  var requestUrl = httpServer.url + '/query?q={(`*`)}'
+  var options = {
+    disableUrlEncoding: true,
+    urlParser: {
+      parse: urlEncoder.toNodeUrl
+      // resolve method is missing in this option
+    }
   }
 
   request(requestUrl, options, function (err, res, body) {
