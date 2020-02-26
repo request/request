@@ -117,6 +117,20 @@ tape('parse - "a=b&&c=d"', function (t) {
 })
 
 // Stringification
+tape('stringify empty params array', function (t) {
+  var parsed = []
+  t.equal(url.stringify(parsed), '')
+  t.end()
+})
+
+tape('stringify param without key', function (t) {
+  var parsed = [
+    { value: 'b' }
+  ]
+  t.equal(url.stringify(parsed), '=b')
+  t.end()
+})
+
 tape('stringify - "a=b&c=d"', function (t) {
   var parsed = [
         { key: 'a', value: 'b' },
@@ -288,6 +302,22 @@ tape('stringify encodes ( and )- "a=foo(a)"', function (t) {
         { key: 'a', value: 'foo(a)' }
   ]
   t.equal(url.stringify(parsed), 'a=foo%28a%29')
+  t.end()
+})
+
+tape('stringify encodes < and >- "a=foo<a>"', function (t) {
+  var parsed = [
+        { key: 'a', value: 'foo<a>' }
+  ]
+  t.equal(url.stringify(parsed), 'a=foo%3Ca%3E')
+  t.end()
+})
+
+tape('stringify encodes * and \' "a=\'foo*bar\'"', function (t) {
+  var parsed = [
+        { key: 'a', value: '\'foo*bar\'' }
+  ]
+  t.equal(url.stringify(parsed), 'a=%27foo%2Abar%27')
   t.end()
 })
 

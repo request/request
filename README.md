@@ -972,6 +972,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 ---
 
 - `disableUrlEncoding` - if `true`, it will not use postman-url-encoder to encode URL. It means that if URL is given as object, it will be used as it is without doing any encoding. But if URL is given as string, it will be encoded by Node while converting it to object.
+- `urlParser` - it takes an object with two functions `parse` and `resolve` in it. The `parse` function is used to parse the URL string into URL object and the `resolve` function is used to resolve relative URLs with respect to base URL. If this option is not provided or it is provided but does not contain both (`parse` and `resolve`) methods, it will default to Node's `url.parse()` and `url.resolve()` methods.
 - `time` - if `true`, the request-response cycle (including all redirects) is timed at millisecond resolution. When set, the following properties are added to the response object:
   - `elapsedTime` Duration of the entire request/response in milliseconds (*deprecated*).
   - `responseStartTime` Timestamp when the response began (in Unix Epoch milliseconds) (*deprecated*).
