@@ -143,7 +143,7 @@ tape('Blacklist custom headers', function (t) {
   })
 })
 
-tape('Blacklist custom headers', function (t) {
+tape('Blacklist Content-Type header', function (t) {
   request({
     method: 'POST',
     url: server.url,
@@ -166,6 +166,36 @@ tape('Blacklist Referer header on redirect', function (t) {
     t.equal(err, null)
     t.equal(body.toString(),
       'GET /redirected HTTP/1.1\r\n' +
+      `Host: localhost:${server.port}\r\n` +
+      'Connection: close\r\n\r\n'
+    )
+    t.end()
+  })
+})
+
+tape('Invalid blacklistHeaders type', function (t) {
+  request({
+    url: server.url,
+    blacklistHeaders: 'Connection'
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(body.toString(),
+      'GET / HTTP/1.1\r\n' +
+      `Host: localhost:${server.port}\r\n` +
+      'Connection: close\r\n\r\n'
+    )
+    t.end()
+  })
+})
+
+tape('Empty blacklistHeaders', function (t) {
+  request({
+    url: server.url,
+    blacklistHeaders: []
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(body.toString(),
+      'GET / HTTP/1.1\r\n' +
       `Host: localhost:${server.port}\r\n` +
       'Connection: close\r\n\r\n'
     )
