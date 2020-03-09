@@ -377,6 +377,21 @@ function callback(error, response, body) {
 request(options, callback);
 ```
 
+### Blacklisting headers
+
+Use `options.blacklistHeaders` option to blacklist the list of headers from requests and redirects.
+
+```js
+var options = {
+  setHost: false, // set false to disable addition of `Host` header
+  blacklistHeaders: ['connection', 'content-length', 'transfer-encoding']
+}
+
+request.post('http://localhost:3000', options, function(err, res, body) {
+    // "POST / HTTP/1.1\r\n\r\n"
+});
+```
+
 [back to top](#table-of-contents)
 
 

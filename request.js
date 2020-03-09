@@ -367,8 +367,9 @@ Request.prototype.init = function (options) {
 
   self._redirect.onRequest(options)
 
-  self.setHost = false
-  if (!self.hasHeader('host')) {
+  // Add `Host` header if not defined already
+  self.setHost = (self.setHost === undefined || Boolean(self.setHost))
+  if (!self.hasHeader('host') && self.setHost) {
     var hostHeaderName = self.originalHostHeaderName || 'Host'
     self.setHeader(hostHeaderName, self.uri.host)
     // Drop :port suffix from Host header if known protocol.
@@ -378,7 +379,6 @@ Request.prototype.init = function (options) {
         self.setHeader(hostHeaderName, self.uri.hostname)
       }
     }
-    self.setHost = true
   }
 
   if (!self.uri.port) {
@@ -888,6 +888,17 @@ Request.prototype.start = function () {
 
   try {
     self.req = self.httpModule.request(reqOptions)
+
+    // Remove blacklisted headers from the request instance.
+    // @note don't check for `hasHeader` because headers like `connection`,
+    // 'content-length', 'transfer-encoding' etc. are added at the very end
+    // and `removeHeader` updates the Node.js internal state which makes sure
+    // these headers are not added.
+    if (Array.isArray(self.blacklistHeaders) && self.blacklistHeaders.length) {
+      self.blacklistHeaders.forEach(function (header) {
+        self.req.removeHeader(header)
+      })
+    }
   } catch (err) {
     self.emit('error', err)
     return
