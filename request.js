@@ -1560,8 +1560,9 @@ Request.prototype.qs = function (q, clobber) {
 Request.prototype.form = function (form) {
   var self = this
   var contentType = self.getHeader('content-type')
+  var overrideInvalidContentType = contentType ? !self.allowContentTypeOverride : true
   if (form) {
-    if (!/^application\/x-www-form-urlencoded\b/.test(contentType)) {
+    if (overrideInvalidContentType && !/^application\/x-www-form-urlencoded\b/.test(contentType)) {
       self.setHeader('Content-Type', 'application/x-www-form-urlencoded')
     }
     self.body = (typeof form === 'string')
@@ -1581,7 +1582,7 @@ Request.prototype.form = function (form) {
     self.emit('error', err)
     self.abort()
   })
-  if (!contentTypeMatch) {
+  if (overrideInvalidContentType && !contentTypeMatch) {
     // overrides invalid or missing content-type
     self.setHeader('Content-Type', 'multipart/form-data; boundary=' + self._form.getBoundary())
   }
