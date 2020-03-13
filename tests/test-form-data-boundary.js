@@ -226,6 +226,85 @@ tape('custom boundary with multipart/mixed', function (t) {
   })
 })
 
+tape('invalid content-type', function (t) {
+  request.post({
+    url: server.url,
+    headers: {
+      'content-type': 'something/else'
+    },
+    formData: {
+      formKey: 'formValue'
+    }
+  }, function (err, res, body) {
+    var req = JSON.parse(body)
+    var boundary
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+
+    // overridden content-type
+    t.ok(/multipart\/form-data; boundary=--------------------------\d+/
+      .test(req.headers['content-type']))
+
+    boundary = req.headers['content-type'].split('boundary=')[1]
+    t.ok(/--------------------------\d+/.test(boundary))
+    t.ok(req.body.startsWith('--' + boundary))
+    t.ok(req.body.indexOf('name="formKey"') !== -1)
+    t.ok(req.body.indexOf('formValue') !== -1)
+    t.ok(req.body.endsWith(boundary + '--\r\n'))
+    t.end()
+  })
+})
+
+tape('invalid content-type with allowContentTypeOverride', function (t) {
+  request.post({
+    url: server.url,
+    headers: {
+      'content-type': 'something/else'
+    },
+    formData: {
+      formKey: 'formValue'
+    },
+    allowContentTypeOverride: true
+  }, function (err, res, body) {
+    var req = JSON.parse(body)
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(req.headers['content-type'], 'something/else')
+    t.ok(req.body.startsWith('--'))
+    t.ok(req.body.indexOf('name="formKey"') !== -1)
+    t.ok(req.body.indexOf('formValue') !== -1)
+    t.ok(req.body.endsWith('--\r\n'))
+    t.end()
+  })
+})
+
+tape('allowContentTypeOverride with no content-type', function (t) {
+  request.post({
+    url: server.url,
+    formData: {
+      formKey: 'formValue'
+    },
+    allowContentTypeOverride: true
+  }, function (err, res, body) {
+    var req = JSON.parse(body)
+    var boundary
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+
+    // overridden content-type
+    t.ok(/multipart\/form-data; boundary=--------------------------\d+/
+      .test(req.headers['content-type']))
+
+    boundary = req.headers['content-type'].split('boundary=')[1]
+    t.ok(/--------------------------\d+/.test(boundary))
+    t.ok(req.body.startsWith('--' + boundary))
+    t.ok(req.body.indexOf('name="formKey"') !== -1)
+    t.ok(req.body.indexOf('formValue') !== -1)
+    t.ok(req.body.endsWith(boundary + '--\r\n'))
+    t.end()
+  })
+})
+
 tape('cleanup', function (t) {
   server.destroy(function () {
     t.end()
