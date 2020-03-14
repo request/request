@@ -658,12 +658,23 @@ Request.prototype.init = function (options) {
         console.warn('options.requestBodyStream is deprecated, please pass the request object to stream.pipe.')
         self.requestBodyStream.pipe(self)
       } else if (!self.src) {
-        if (self._auth.hasAuth && !self._auth.sentAuth) {
+        if ((self._auth.hasAuth && !self._auth.sentAuth) || self.hasHeader('content-length')) {
           self.end()
           return
         }
-        if (self.method !== 'GET' && typeof self.method !== 'undefined') {
-          self.setHeader('Content-Length', 0)
+        switch (self.method) {
+          case 'GET':
+          case 'HEAD':
+          case 'TRACE':
+          case 'DELETE':
+          case 'CONNECT':
+          case 'OPTIONS':
+          case undefined:
+            // @note this behavior is same as Node.js
+            break
+          default:
+            self.setHeader('Content-Length', 0)
+            break
         }
         self.end()
       }
