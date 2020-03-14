@@ -4,6 +4,8 @@ var server = require('./server')
 var request = require('../index')
 var tape = require('tape')
 var http = require('http')
+var path = require('path')
+var fs = require('fs')
 
 var s = server.createServer()
 
@@ -125,6 +127,25 @@ addTest('testPutMultipartPostambleCRLF', {
   multipart: [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'},
     {'body': 'Oh hi.'}
   ]
+})
+
+tape('testBinaryFile', function (t) {
+  var server = http.createServer()
+  server.on('request', function (req, res) {
+    req.pipe(res)
+  })
+  server.listen(0, function () {
+    request({
+      uri: 'http://localhost:' + this.address().port,
+      method: 'POST',
+      body: fs.createReadStream(path.join(__dirname, 'raw.file'))
+    }, function (err, res, body) {
+      t.error(err)
+      // defaults to 'application/octet-stream' content-type
+      t.equal(res.request.headers['Content-Type'], 'application/octet-stream')
+      server.close(t.end)
+    })
+  })
 })
 
 tape('typed array', function (t) {

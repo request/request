@@ -587,7 +587,8 @@ Request.prototype.init = function (options) {
     self.src = src
     if (isReadStream(src)) {
       if (!self.hasHeader('content-type')) {
-        self.setHeader('Content-Type', mime.lookup(src.path))
+        // @note fallback to 'application/octet-stream' if mime.lookup returns `false`
+        self.setHeader('Content-Type', mime.lookup(src.path) || 'application/octet-stream')
       }
     } else {
       if (src.headers) {
@@ -897,6 +898,8 @@ Request.prototype.start = function () {
     if (Array.isArray(self.blacklistHeaders) && self.blacklistHeaders.length) {
       self.blacklistHeaders.forEach(function (header) {
         self.req.removeHeader(header)
+        // also remove from the `self` for the consistency
+        self.removeHeader(header)
       })
     }
   } catch (err) {
