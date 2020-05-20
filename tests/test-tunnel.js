@@ -14,6 +14,8 @@ var destroyable = require('server-destroy')
 var events = []
 var caFile = path.resolve(__dirname, 'ssl/ca/ca.crt')
 var ca = fs.readFileSync(caFile)
+var caExtraFile = path.resolve(__dirname, 'ssl/ca/ca2.crt')
+var caExtra = fs.readFileSync(caExtraFile)
 var clientCert = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.crt'))
 var clientKey = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client-enc.key'))
 var invalidClientKey = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/localhost.key'))
@@ -21,6 +23,11 @@ var clientPassword = 'password'
 var sslOpts = {
   key: path.resolve(__dirname, 'ssl/ca/localhost.key'),
   cert: path.resolve(__dirname, 'ssl/ca/localhost.crt')
+}
+
+var sslExtraOpts = {
+  key: path.resolve(__dirname, 'ssl/ca/localhost-2.key'),
+  cert: path.resolve(__dirname, 'ssl/ca/localhost-2.crt')
 }
 
 var mutualSSLOpts = {
@@ -40,12 +47,14 @@ httpsOpts.ca.push(ca)
 var s = server.createServer()
 var ss = server.createSSLServer(sslOpts)
 var ss2 = server.createSSLServer(mutualSSLOpts)
+var ss3 = server.createSSLServer(sslExtraOpts)
 
 // XXX when tunneling https over https, connections get left open so the server
 // doesn't want to close normally (and same issue with http server on v0.8.x)
 destroyable(s)
 destroyable(ss)
 destroyable(ss2)
+destroyable(ss3)
 
 function event () {
   events.push(util.format.apply(null, arguments))
@@ -102,6 +111,7 @@ function setListeners (server, type) {
 setListeners(s, 'http')
 setListeners(ss, 'https')
 setListeners(ss2, 'https')
+setListeners(ss3, 'https')
 
 // monkey-patch since you can't set a custom certificate authority for the
 // proxy in tunnel-agent (this is necessary for "* over https" tests)
@@ -201,6 +211,26 @@ function addTests () {
     tunnel: true
   }, [
     'http connect to localhost:' + ss.port,
+    'https response',
+    '200 https ok'
+  ])
+
+  runTest('https over http, extraCA not set', {
+    url: ss3.url,
+    proxy: s.url,
+    tunnel: true
+  }, [
+    'http connect to localhost:' + ss3.port,
+    'err unable to verify the first certificate'
+  ])
+
+  runTest('https over http, extraCA', {
+    url: ss3.url,
+    proxy: s.url,
+    tunnel: true,
+    extraCA: caExtra
+  }, [
+    'http connect to localhost:' + ss3.port,
     'https response',
     '200 https ok'
   ])
@@ -463,17 +493,23 @@ tape('setup', function (t) {
   s.listen(0, function () {
     ss.listen(0, function () {
       ss2.listen(0, 'localhost', function () {
-        addTests()
-        tape('cleanup', function (t) {
-          s.destroy(function () {
-            ss.destroy(function () {
-              ss2.destroy(function () {
-                t.end()
+        ss3.listen(0, 'localhost', function () {
+          request.enableNodeExtraCACerts()
+          addTests()
+          tape('cleanup', function (t) {
+            s.destroy(function () {
+              ss.destroy(function () {
+                ss2.destroy(function () {
+                  ss3.destroy(function () {
+                    t.end()
+                    request.disableNodeExtraCACerts()
+                  })
+                })
               })
             })
           })
+          t.end()
         })
-        t.end()
       })
     })
   })
