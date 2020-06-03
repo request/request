@@ -552,6 +552,19 @@ Request.prototype.init = function (options) {
     self.ca = options.ca
   }
 
+  // prefer common self.agent if exists
+  if (self.agents && !self.agent) {
+    var agent = protocol === 'http:' ? self.agents.http : self.agents.https
+    if (agent) {
+      if (agent.agentClass || agent.agentOptions) {
+        options.agentClass = agent.agentClass || options.agentClass
+        options.agentOptions = agent.agentOptions || options.agentOptions
+      } else {
+        self.agent = agent
+      }
+    }
+  }
+
   if (!self.agent) {
     if (options.agentOptions) {
       self.agentOptions = options.agentOptions

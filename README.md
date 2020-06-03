@@ -949,6 +949,18 @@ The first argument can be either a `url` or an `options` object. The only requir
 - `agent` - `http(s).Agent` instance to use
 - `agentClass` - alternatively specify your agent's class name
 - `agentOptions` - and pass its options. **Note:** for HTTPS see [tls API doc for TLS/SSL options](http://nodejs.org/api/tls.html#tls_tls_connect_options_callback) and the [documentation above](#using-optionsagentoptions).
+- `agents` - Specify separate agent instances for HTTP and HTTPS requests. Required in case of HTTP to HTTPS redirects and vice versa. For example:
+```js
+request.defaults({
+  agents: {
+    http: new http.Agent(),
+    https: {
+      agentClass: https.Agent,
+      agentOptions: { keepAlive: true }
+    }
+  }
+})
+```
 - `forever` - set to `true` to use the [forever-agent](https://github.com/request/forever-agent) **Note:** Defaults to `http(s).Agent({keepAlive:true})` in node 0.12+
 - `pool` - an object describing which agents to use for the request. If this option is omitted the request will use the global agent (as long as your options allow for it). Otherwise, request will search the pool for your custom agent. If no custom agent is found, a new agent will be created and added to the pool. **Note:** `pool` is used only when the `agent` option is not specified.
   - A `maxSockets` property can also be provided on the `pool` object to set the max number of sockets for all agents created (ex: `pool: {maxSockets: Infinity}`).
@@ -1086,7 +1098,7 @@ Function that returns the specified response header field using a [case-insensit
 ```js
 request('http://www.google.com', function (error, response, body) {
   // print the Content-Type header even if the server returned it as 'content-type' (lowercase)
-  console.log('Content-Type is:', response.caseless.get('Content-Type')); 
+  console.log('Content-Type is:', response.caseless.get('Content-Type'));
 });
 ```
 
