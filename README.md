@@ -645,12 +645,12 @@ const fs = require('fs')
 
 const options = {
     url: 'https://api.some-server.com/',
+    cert: fs.readFileSync(certFile),
+    key: fs.readFileSync(keyFile),
+    // Or use `pfx` property replacing `cert` and `key` when using private key, certificate and CA certs in PFX or PKCS12 format:
+    // pfx: fs.readFileSync(pfxFilePath),
+    passphrase: 'password',
     agentOptions: {
-        cert: fs.readFileSync(certFile),
-        key: fs.readFileSync(keyFile),
-        // Or use `pfx` property replacing `cert` and `key` when using private key, certificate and CA certs in PFX or PKCS12 format:
-        // pfx: fs.readFileSync(pfxFilePath),
-        passphrase: 'password',
         securityOptions: 'SSL_OP_NO_SSLv3'
     }
 };
@@ -671,15 +671,13 @@ request.get({
 
 It is possible to accept other certificates than those signed by generally allowed Certificate Authorities (CAs).
 This can be useful, for example,  when using self-signed certificates.
-To require a different root certificate, you can specify the signing CA by adding the contents of the CA's certificate file to the `agentOptions`.
+To require a different root certificate, you can specify the signing CA by adding the contents of the CA's certificate file to the `options`.
 The certificate the domain presents must be signed by the root certificate specified:
 
 ```js
 request.get({
     url: 'https://api.some-server.com/',
-    agentOptions: {
-        ca: fs.readFileSync('ca.cert.pem')
-    }
+    ca: fs.readFileSync('ca.cert.pem')
 });
 ```
 
@@ -693,12 +691,10 @@ you can configure your request as follows:
 ```js
 request.get({
     url: 'https://api.some-server.com/',
-    agentOptions: {
-        ca: [
+    ca: [
           fs.readFileSync('Corp Issuing Server.pem'),
           fs.readFileSync('Corp Root CA.pem')
         ]
-    }
 });
 ```
 
