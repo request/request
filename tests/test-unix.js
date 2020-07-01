@@ -2,7 +2,7 @@
 
 var request = require('../index')
 var http = require('http')
-var fs = require('fs')
+var fs = require('graceful-fs')
 var rimraf = require('rimraf')
 var assert = require('assert')
 var tape = require('tape')
