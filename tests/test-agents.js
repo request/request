@@ -76,7 +76,8 @@ tape('https.agentClass + https.agentOptions', function (t) {
   })
 })
 
-tape('http & https', function (t) {
+// @todo un-skip: https://github.com/postmanlabs/httpbin/issues/617
+tape.skip('http & https', function (t) {
   var r = request({
     uri: 'http://postman-echo.com/redirect-to?url=https://httpbin.org/get',
     agents: {
@@ -94,7 +95,8 @@ tape('http & https', function (t) {
   })
 })
 
-tape('https & http', function (t) {
+// @todo un-skip: https://github.com/postmanlabs/httpbin/issues/617
+tape.skip('https & http', function (t) {
   var r = request({
     uri: 'https://httpbin.org/redirect-to?url=http://postman-echo.com/get',
     agents: {
