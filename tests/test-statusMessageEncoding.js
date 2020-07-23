@@ -7,10 +7,7 @@ var tape = require('tape')
 // Refer: https://github.com/nodejs/node/blob/v12.0.0/lib/_http_server.js#L256
 var rawEchoServer = net.createServer(function (socket) {
   socket.on('data', function (chunk) {
-    socket.write('HTTP/1.1 200 Работает нормально\r\n')
-    socket.write('\r\n')
-    socket.write(chunk.toString())
-    socket.end()
+    socket.end('HTTP/1.1 200 Работает нормально\r\n\r\n')
   })
 })
 
@@ -23,25 +20,21 @@ tape('setup', function (t) {
 })
 
 tape('with no statusMessageEncoding option', function (t) {
-  var options = {
-    uri: rawEchoServer.url
-  }
-
-  request(options, function (err, res, body) {
+  request({ uri: rawEchoServer.url }, function (err, res, body) {
     t.equal(err, null)
     t.ok(res.statusMessage, 'Should receive status message')
+
+    // By default, the status message string would be in `latin1` encoding
     t.equal(res.statusMessage, 'Ð Ð°Ð±Ð¾ÑÐ°ÐµÑ Ð½Ð¾ÑÐ¼Ð°Ð»ÑÐ½Ð¾')
     t.end()
   })
 })
 
 tape('with statusMessageEncoding=latin1', function (t) {
-  var options = {
+  request({
     uri: rawEchoServer.url,
     statusMessageEncoding: 'latin1'
-  }
-
-  request(options, function (err, res, body) {
+  }, function (err, res, body) {
     t.equal(err, null)
     t.ok(res.statusMessage, 'Should receive status message')
     t.equal(res.statusMessage, 'Ð Ð°Ð±Ð¾ÑÐ°ÐµÑ Ð½Ð¾ÑÐ¼Ð°Ð»ÑÐ½Ð¾')
@@ -49,13 +42,11 @@ tape('with statusMessageEncoding=latin1', function (t) {
   })
 })
 
-tape('with statusMessageEncoding=utf-8', function (t) {
-  var options = {
+tape('with statusMessageEncoding=utf8', function (t) {
+  request({
     uri: rawEchoServer.url,
     statusMessageEncoding: 'utf8'
-  }
-
-  request(options, function (err, res, body) {
+  }, function (err, res, body) {
     t.equal(err, null)
     t.ok(res.statusMessage, 'Should receive status message')
     t.equal(res.statusMessage, 'Работает нормально')
