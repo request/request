@@ -1328,6 +1328,23 @@ Request.prototype.onRequestResponse = function (response) {
       }
     }
 
+    // Node by default decodes the status message using `latin1` encoding type,
+    // which results in characters lying outside the range of `U+0000 to U+00FF` getting truncated
+    // so that they can be mapped in the given range.
+    // Refer: https://nodejs.org/docs/latest-v12.x/api/buffer.html#buffer_buffers_and_character_encodings
+    //
+    // Exposing `statusMessageEncoding` option to make encoding type configurable.
+    // This would help in correctly representing status messages belonging to range outside of `latin1`
+    //
+    // @note: The Regex `[^\w\s-']` is tested to prevent unnecessary computation of creating a Buffer and
+    // then decoding it when the status message consists of common characters,
+    // specifically belonging to the following set: [a-z, A-Z, 0-9, -, _ ', whitespace]
+    // As in that case, no matter what the encoding type is used for decoding the buffer, the result would remain same.
+    var statusMessage = String(responseContent.statusMessage)
+    if (self.statusMessageEncoding && /[^\w\s-']/.test(statusMessage)) {
+      responseContent.statusMessage = Buffer.from(statusMessage, 'latin1').toString(self.statusMessageEncoding)
+    }
+
     if (self._paused) {
       responseContent.pause()
     }
