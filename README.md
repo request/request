@@ -778,8 +778,8 @@ request({url: 'https://www.google.com', verbose: true}, function (error, respons
                 "organization": "Google Trust Services",
                 "commonName": "Google Internet Authority G3"
               },
-              "validFrom": "2019-03-01T09:46:35.000Z",
-              "validTo": "2019-05-24T09:25:00.000Z",
+              "validFrom": "Nov 11 09:52:22 2009 GMT",
+              "validTo": "Nov 6 09:52:22 2029 GMT",
               "fingerprint": "DF:6B:95:81:C6:03:EB:ED:48:EB:6C:CF:EE:FE:E6:1F:AD:01:78:34",
               "serialNumber": "3A15F4C87FB4D33993D3EEB3BF4AE5E4"
             }
