@@ -1056,8 +1056,8 @@ Request.prototype.start = function () {
                 organizationalUnit: peerCert.issuer.OU,
                 commonName: peerCert.issuer.CN
               },
-              validFrom: peerCert.valid_from && new Date(peerCert.valid_from),
-              validTo: peerCert.valid_to && new Date(peerCert.valid_to),
+              validFrom: peerCert.valid_from,
+              validTo: peerCert.valid_to,
               fingerprint: peerCert.fingerprint,
               serialNumber: peerCert.serialNumber
             }
