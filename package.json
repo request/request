@@ -23,7 +23,7 @@
     "request.js"
   ],
   "dependencies": {
-    "@postman/form-data": "~3.1.0",
+    "@postman/form-data": "~3.1.1",
     "@postman/tunnel-agent": "^0.6.3",
     "aws-sign2": "~0.7.0",
     "aws4": "^1.8.0",
