@@ -40,7 +40,7 @@ var globalCookieJar = cookies.jar()
 
 var globalPool = {}
 
-function filterForNonReserved (reserved, options) {
+function filterForNonReserved(reserved, options) {
   // Filter out properties that are not reserved.
   // Reserved values are passed in at call site.
 
@@ -54,7 +54,7 @@ function filterForNonReserved (reserved, options) {
   return object
 }
 
-function filterOutReservedFunctions (reserved, options) {
+function filterOutReservedFunctions(reserved, options) {
   // Filter out properties that are functions and are reserved.
   // Reserved values are passed in at call site.
 
@@ -70,7 +70,7 @@ function filterOutReservedFunctions (reserved, options) {
 }
 
 // Return a simpler request object to allow serialization
-function requestToJSON () {
+function requestToJSON() {
   var self = this
   return {
     uri: self.uri,
@@ -80,7 +80,7 @@ function requestToJSON () {
 }
 
 // Return a simpler response object to allow serialization
-function responseToJSON () {
+function responseToJSON() {
   var self = this
   return {
     statusCode: self.statusCode,
@@ -90,7 +90,7 @@ function responseToJSON () {
   }
 }
 
-function Request (options) {
+function Request(options) {
   // if given the method property in options, set property explicitMethod to true
 
   // extend the Request instance with any non-reserved properties
@@ -131,7 +131,7 @@ util.inherits(Request, stream.Stream)
 
 // Debugging
 Request.debug = process.env.NODE_DEBUG && /\brequest\b/.test(process.env.NODE_DEBUG)
-function debug () {
+function debug() {
   if (Request.debug) {
     console.error('REQUEST %s', util.format.apply(util, arguments))
   }
@@ -291,7 +291,7 @@ Request.prototype.init = function (options) {
     // Drop :port suffix from Host header if known protocol.
     if (self.uri.port) {
       if ((self.uri.port === '80' && self.uri.protocol === 'http:') ||
-          (self.uri.port === '443' && self.uri.protocol === 'https:')) {
+        (self.uri.port === '443' && self.uri.protocol === 'https:')) {
         self.setHeader(hostHeaderName, self.uri.hostname)
       }
     }
@@ -384,7 +384,7 @@ Request.prototype.init = function (options) {
   }
 
   if (self.gzip && !self.hasHeader('accept-encoding')) {
-    self.setHeader('accept-encoding', 'gzip, deflate')
+    self.setHeader('accept-encoding', 'gzip, deflate, br')
   }
 
   if (self.uri.auth && !self.hasHeader('authorization')) {
@@ -416,7 +416,7 @@ Request.prototype.init = function (options) {
     self.elapsedTime = self.elapsedTime || 0
   }
 
-  function setContentLength () {
+  function setContentLength() {
     if (isTypedArray(self.body)) {
       self.body = Buffer.from(self.body)
     }
@@ -449,7 +449,7 @@ Request.prototype.init = function (options) {
   }
 
   var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
-  var defaultModules = {'http:': http, 'https:': https}
+  var defaultModules = { 'http:': http, 'https:': https }
   var httpModules = self.httpModules || {}
 
   self.httpModule = httpModules[protocol] || defaultModules[protocol]
@@ -515,9 +515,9 @@ Request.prototype.init = function (options) {
       }
     }
 
-  // self.on('pipe', function () {
-  //   console.error('You have already piped to this stream. Pipeing twice is likely to break the request.')
-  // })
+    // self.on('pipe', function () {
+    //   console.error('You have already piped to this stream. Pipeing twice is likely to break the request.')
+    // })
   })
 
   defer(function () {
@@ -828,7 +828,8 @@ Request.prototype.start = function () {
       if (isConnecting) {
         var onReqSockConnect = function () {
           socket.removeListener('connect', onReqSockConnect)
-          self.clearTimeout()
+          clearTimeout(self.timeoutTimer)
+          self.timeoutTimer = null
           setReqTimeout()
         }
 
@@ -873,7 +874,10 @@ Request.prototype.onRequestError = function (error) {
     self.req.end()
     return
   }
-  self.clearTimeout()
+  if (self.timeout && self.timeoutTimer) {
+    clearTimeout(self.timeoutTimer)
+    self.timeoutTimer = null
+  }
   self.emit('error', error)
 }
 
@@ -942,7 +946,7 @@ Request.prototype.onRequestResponse = function (response) {
   // XXX This is different on 0.10, because SSL is strict by default
   if (self.httpModule === https &&
     self.strictSSL && (!response.hasOwnProperty('socket') ||
-    !response.socket.authorized)) {
+      !response.socket.authorized)) {
     debug('strict ssl error', self.uri.href)
     var sslErr = response.hasOwnProperty('socket') ? response.socket.authorizationError : self.uri.href + ' does not support SSL'
     self.emit('error', new Error('SSL Error: ' + sslErr))
@@ -960,13 +964,16 @@ Request.prototype.onRequestResponse = function (response) {
   if (self.setHost) {
     self.removeHeader('host')
   }
-  self.clearTimeout()
+  if (self.timeout && self.timeoutTimer) {
+    clearTimeout(self.timeoutTimer)
+    self.timeoutTimer = null
+  }
 
   var targetCookieJar = (self._jar && self._jar.setCookie) ? self._jar : globalCookieJar
   var addCookie = function (cookie) {
     // set the cookie if it's domain in the href's domain.
     try {
-      targetCookieJar.setCookie(cookie, self.uri.href, {ignoreError: true})
+      targetCookieJar.setCookie(cookie, self.uri.href, { ignoreError: true })
     } catch (e) {
       self.emit('error', e)
     }
@@ -1031,9 +1038,12 @@ Request.prototype.onRequestResponse = function (response) {
         responseContent = zlib.createInflate(zlibOptions)
         response.pipe(responseContent)
       } else if (contentEncoding === 'br') {
-        responseContent = zlib.createBrotliDecompress(zlibOptions)
+        responseContent = zlib.createBrotliDecompress({
+          flush: zlib.constants.BROTLI_OPERATION_FLUSH,
+          finishFlush: zlib.constants.BROTLI_OPERATION_FLUSH
+        });
         response.pipe(responseContent)
-      }else {
+      } else {
         // Since previous versions didn't check for Content-Encoding header,
         // ignore any invalid values to preserve backwards-compatibility
         if (contentEncoding !== 'identity') {
@@ -1168,7 +1178,6 @@ Request.prototype.abort = function () {
     self.response.destroy()
   }
 
-  self.clearTimeout()
   self.emit('abort')
 }
 
@@ -1445,7 +1454,7 @@ Request.prototype.jar = function (jar) {
     cookies = false
     self._disableCookies = true
   } else {
-    var targetCookieJar = jar.getCookieString ? jar : globalCookieJar
+    var targetCookieJar = (jar && jar.getCookieString) ? jar : globalCookieJar
     var urihref = self.uri.href
     // fetch cookie in the Specified host
     if (targetCookieJar) {
@@ -1529,18 +1538,10 @@ Request.prototype.resume = function () {
 }
 Request.prototype.destroy = function () {
   var self = this
-  this.clearTimeout()
   if (!self._ended) {
     self.end()
   } else if (self.response) {
     self.response.destroy()
-  }
-}
-
-Request.prototype.clearTimeout = function () {
-  if (this.timeoutTimer) {
-    clearTimeout(this.timeoutTimer)
-    this.timeoutTimer = null
   }
 }
 
