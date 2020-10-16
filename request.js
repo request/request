@@ -1030,7 +1030,10 @@ Request.prototype.onRequestResponse = function (response) {
       } else if (contentEncoding === 'deflate') {
         responseContent = zlib.createInflate(zlibOptions)
         response.pipe(responseContent)
-      } else {
+      } else if (contentEncoding === 'br') {
+        responseContent = zlib.createBrotliDecompress(zlibOptions)
+        response.pipe(responseContent)
+      }else {
         // Since previous versions didn't check for Content-Encoding header,
         // ignore any invalid values to preserve backwards-compatibility
         if (contentEncoding !== 'identity') {
