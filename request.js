@@ -360,6 +360,14 @@ Request.prototype.init = function (options) {
     self.proxy = getProxyFromURI(self.uri)
   }
 
+  if (typeof self.proxy === 'string') {
+    self.proxy = self.urlParser.parse(self.proxy)
+
+    if (self.proxy.auth) {
+      self.proxy.auth = self._qs.unescape(self.proxy.auth)
+    }
+  }
+
   self.tunnel = self._tunnel.isEnabled()
   if (self.proxy) {
     self._tunnel.setup(options)
@@ -473,9 +481,7 @@ Request.prototype.init = function (options) {
   }
 
   if (!self.tunnel && self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization')) {
-    var proxyAuthPieces = self.proxy.auth.split(':').map(function (item) { return self._qs.unescape(item) })
-    var authHeader = 'Basic ' + toBase64(proxyAuthPieces.join(':'))
-    self.setHeader('Proxy-Authorization', authHeader)
+    self.setHeader('Proxy-Authorization', 'Basic ' + toBase64(self.proxy.auth))
   }
 
   if (self.proxy && !self.tunnel) {
