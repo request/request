@@ -488,7 +488,7 @@ Host: proxy-server.com
 User-Agent: whatever user agent you specify
 ```
 
-and then the proxy server make a TCP connection to `endpoint-server`
+and then the proxy server makes a TCP connection to `endpoint-server`
 on port `80`, and return a response that looks like:
 
 ```
