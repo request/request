@@ -894,6 +894,7 @@ Request.prototype.start = function () {
   self._reqResInfo.request = {
     method: self.method,
     href: self.uri.href,
+    headers: this.headers,
     proxy: (self.proxy && { href: self.proxy.href }) || undefined,
     httpVersion: '1.1'
   }
@@ -1226,6 +1227,7 @@ Request.prototype.onRequestResponse = function (response) {
 
   self._reqResInfo.response = {
     statusCode: response.statusCode,
+    headers: response.headers,
     httpVersion: response.httpVersion
   }
 
