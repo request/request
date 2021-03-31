@@ -894,7 +894,7 @@ Request.prototype.start = function () {
   self._reqResInfo.request = {
     method: self.method,
     href: self.uri.href,
-    headers: this.headers,
+    headers: Object.assign({}, self.headers),
     proxy: (self.proxy && { href: self.proxy.href }) || undefined,
     httpVersion: '1.1'
   }

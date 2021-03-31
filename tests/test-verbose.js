@@ -94,6 +94,7 @@ tape('HTTP: redirect(HTTPS) + verbose=true', function (t) {
 
     t.deepEqual(Object.keys(debug[0]), ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
     t.deepEqual(Object.keys(debug[0].request), ['method', 'href', 'headers', 'proxy', 'httpVersion'])
+    t.ok(debug[0].request.headers.Host)
     t.deepEqual(Object.keys(debug[0].session), ['id', 'reused', 'data'])
     t.deepEqual(Object.keys(debug[0].session.data), ['addresses'])
     t.equal(debug[0].session.reused, false)
@@ -101,6 +102,8 @@ tape('HTTP: redirect(HTTPS) + verbose=true', function (t) {
 
     t.deepEqual(Object.keys(debug[1]), ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
     t.deepEqual(Object.keys(debug[1].request), ['method', 'href', 'headers', 'proxy', 'httpVersion'])
+    t.ok(debug[1].request.headers.Host)
+    t.ok(debug[1].request.headers.Referer)
     t.deepEqual(Object.keys(debug[1].session), ['id', 'reused', 'data'])
     t.deepEqual(Object.keys(debug[1].session.data), ['addresses', 'tls'])
     t.deepEqual(Object.keys(debug[1].session.data.tls), ['reused', 'authorized', 'authorizationError', 'cipher', 'protocol', 'ephemeralKeyInfo', 'peerCertificate'])
