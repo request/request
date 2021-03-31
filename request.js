@@ -129,6 +129,9 @@ function responseToJSON () {
 
 // Return request headers in {key: value} form
 function parseRequestHeaders (headerString) {
+  if (!headerString) {
+    return
+  }
   var arr = headerString.split('\r\n')
   var acc = []
   for (var i = 1; i < arr.length - 2; i++) {
