@@ -145,7 +145,7 @@ function parseRequestHeaders (headerString) {
   return acc
 }
 
-// Return request headers in {key: value} form
+// Return response headers in {key: value} form
 function parseResponseHeaders (rawHeaders) {
   var acc = []
   for (var i = 0; i < rawHeaders.length; i = i + 2) {
