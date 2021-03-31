@@ -127,14 +127,30 @@ function responseToJSON () {
   }
 }
 
-// Return headers in {key: value} form
-function headersStringToObject (headerString) {
-  var arr = headerString.split('\r\n'), acc = {}, splitIndex, i;
-  for(i = 1; i < arr.length - 2; i++) {
-    splitIndex = arr[i].indexOf(':');
-    acc[arr[i].slice(0, splitIndex)] = arr[i].slice(splitIndex + 2);
+// Return request headers in {key: value} form
+function parseRequestHeaders (headerString) {
+  var arr = headerString.split('\r\n')
+  var acc = []
+  for (var i = 1; i < arr.length - 2; i++) {
+    var splitIndex = arr[i].indexOf(':')
+    var header = {}
+    var key = arr[i].slice(0, splitIndex)
+    var value = arr[i].slice(splitIndex + 2)
+    header[key] = value
+    acc.push(header)
   }
-  return acc;
+  return acc
+}
+
+// Return request headers in {key: value} form
+function parseResponseHeaders (rawHeaders) {
+  var acc = []
+  for (var i = 0; i < rawHeaders.length; i = i + 2) {
+    var header = {}
+    header[rawHeaders[i]] = rawHeaders[i + 1]
+    acc.push(header)
+  }
+  return acc
 }
 
 function Request (options) {
@@ -1236,7 +1252,7 @@ Request.prototype.onRequestResponse = function (response) {
 
   self._reqResInfo.response = {
     statusCode: response.statusCode,
-    headers: response.headers,
+    headers: parseResponseHeaders(response.rawHeaders),
     httpVersion: response.httpVersion
   }
 
@@ -1908,8 +1924,8 @@ Request.prototype.end = function (chunk) {
   }
   if (self.req) {
     self.req.end()
+    self._reqResInfo.request.headers = parseRequestHeaders(self.req._header)
   }
-  self._reqResInfo.request.headers = headersStringToObject(self.req._header);
 }
 Request.prototype.pause = function () {
   var self = this
