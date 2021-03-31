@@ -127,6 +127,16 @@ function responseToJSON () {
   }
 }
 
+// Return headers in {key: value} form
+function headersStringToObject (headerString) {
+  var arr = headerString.split('\r\n'), acc = {}, splitIndex, i;
+  for(i = 1; i < arr.length - 2; i++) {
+    splitIndex = arr[i].indexOf(':');
+    acc[arr[i].slice(0, splitIndex)] = arr[i].slice(splitIndex + 2);
+  }
+  return acc;
+}
+
 function Request (options) {
   // if given the method property in options, set property explicitMethod to true
 
@@ -894,7 +904,6 @@ Request.prototype.start = function () {
   self._reqResInfo.request = {
     method: self.method,
     href: self.uri.href,
-    headers: Object.assign({}, self.headers),
     proxy: (self.proxy && { href: self.proxy.href }) || undefined,
     httpVersion: '1.1'
   }
@@ -1900,6 +1909,7 @@ Request.prototype.end = function (chunk) {
   if (self.req) {
     self.req.end()
   }
+  self._reqResInfo.request.headers = headersStringToObject(self.req._header);
 }
 Request.prototype.pause = function () {
   var self = this
