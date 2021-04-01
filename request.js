@@ -127,32 +127,46 @@ function responseToJSON () {
   }
 }
 
-// Return request headers in {key: value} form
+/**
+ * Return request headers in [{key: headerName, value: headerValue}] form
+ * @param {String} [headerString] - headers string created by Node stored in ClientRequest._header
+ *
+ * */
 function parseRequestHeaders (headerString) {
-  if (!headerString) {
-    return
-  }
   var arr = headerString.split('\r\n')
   var acc = []
+
+  // first element of accumulator is not a header
+  // last two elements are empty strings
   for (var i = 1; i < arr.length - 2; i++) {
+    // header name cannot have a ':' but header value allows it
+    // therefore we split on the index of the first ':'
     var splitIndex = arr[i].indexOf(':')
-    var header = {}
-    var key = arr[i].slice(0, splitIndex)
-    var value = arr[i].slice(splitIndex + 2)
-    header[key] = value
-    acc.push(header)
+
+    acc.push({
+      key: arr[i].slice(0, splitIndex),
+      value: arr[i].slice(splitIndex + 2)
+    })
   }
+
   return acc
 }
 
-// Return response headers in {key: value} form
+/**
+ * Return response headers in [{key: headerName, value: headerValue}] form
+ * @param {Array} [rawHeaders] - https://nodejs.org/api/http.html#http_message_rawheaders
+ *
+ * */
 function parseResponseHeaders (rawHeaders) {
   var acc = []
+
   for (var i = 0; i < rawHeaders.length; i = i + 2) {
-    var header = {}
-    header[rawHeaders[i]] = rawHeaders[i + 1]
-    acc.push(header)
+    acc.push({
+      key: rawHeaders[i],
+      value: rawHeaders[i + 1]
+    })
   }
+
   return acc
 }
 
@@ -923,6 +937,7 @@ Request.prototype.start = function () {
   self._reqResInfo.request = {
     method: self.method,
     href: self.uri.href,
+    headers: [],
     proxy: (self.proxy && { href: self.proxy.href }) || undefined,
     httpVersion: '1.1'
   }
@@ -1927,7 +1942,8 @@ Request.prototype.end = function (chunk) {
   }
   if (self.req) {
     self.req.end()
-    self._reqResInfo.request.headers = parseRequestHeaders(self.req._header)
+
+    self.req._header && (self._reqResInfo.request.headers = parseRequestHeaders(self.req._header))
   }
 }
 Request.prototype.pause = function () {
