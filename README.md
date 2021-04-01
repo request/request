@@ -2,8 +2,7 @@
 
 As of Feb 11th 2020, request is fully deprecated. No new changes are expected to land. In fact, none have landed for some time.
 
-For more information about why request is deprecated and possible alternatives refer to
-[this issue](https://github.com/request/request/issues/3142).
+For more information about why request is deprecated see [this issue](https://github.com/request/request/issues/3142) and possible alternatives refer to [this issue](https://github.com/request/request/issues/3143).
 
 # Request - Simplified HTTP client
 
