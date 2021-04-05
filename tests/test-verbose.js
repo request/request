@@ -68,10 +68,18 @@ tape('HTTP: verbose=true', function (t) {
     t.equal(typeof res.socket.__SESSION_DATA, 'object')
     t.deepEqual(Object.keys(debug[0]), ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
     t.deepEqual(Object.keys(debug[0].request), ['method', 'href', 'headers', 'proxy', 'httpVersion'])
+
+    t.notEqual(debug[0].request.headers.length, 0)
+    t.deepEqual(debug[0].request.headers[0], {key: 'Host', value: 'localhost:' + plainServer.port})
+
     t.deepEqual(Object.keys(debug[0].session), ['id', 'reused', 'data'])
     t.deepEqual(Object.keys(debug[0].session.data), ['addresses'])
     t.equal(debug[0].session.reused, false)
     t.deepEqual(Object.keys(debug[0].response), ['statusCode', 'headers', 'httpVersion'])
+
+    t.notEqual(debug[0].response.headers.length, 0)
+    t.equal(debug[0].response.headers[0].key, 'Date')
+    t.ok(debug[0].response.headers[0].value)
 
     t.end()
   })
