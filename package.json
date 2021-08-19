@@ -51,7 +51,7 @@
     "test": "npm run lint && npm run test-ci && npm run test-browser",
     "test-ci": "taper tests/test-*.js",
     "test-cov": "nyc --reporter=lcov tape tests/test-*.js",
-    "test-browser": "node tests/browser/start.js",
+    "test-browser": "echo 'Skipping browser tests.' || node tests/browser/start.js",
     "lint": "standard"
   },
   "devDependencies": {
