@@ -2,7 +2,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:12
     working_directory: ~/repo
     steps:
       - checkout
@@ -20,12 +20,12 @@ jobs:
 
   release:
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:12
     steps:
       - checkout
       - restore_cache:
           keys:
-            - v1-dependencies-npm{{ checksum "package.json" }}
+            - v1-dependencies-npm-{{ checksum "package.json" }}
             - v1-dependencies-npm
       - run: npm install
       - run: npx semantic-release
