@@ -22,7 +22,6 @@ var getProxyFromURI = require('./lib/getProxyFromURI')
 var Querystring = require('./lib/querystring').Querystring
 var Har = require('./lib/har').Har
 var Auth = require('./lib/auth').Auth
-var OAuth = require('./lib/oauth').OAuth
 var hawk = require('./lib/hawk')
 var Multipart = require('./lib/multipart').Multipart
 var Redirect = require('./lib/redirect').Redirect
@@ -120,7 +119,6 @@ function Request (options) {
   }
   self._qs = new Querystring(self)
   self._auth = new Auth(self)
-  self._oauth = new OAuth(self)
   self._multipart = new Multipart(self)
   self._redirect = new Redirect(self)
   self._tunnel = new Tunnel(self)
@@ -440,12 +438,6 @@ Request.prototype.init = function (options) {
   }
   if (self.body && !isstream(self.body)) {
     setContentLength()
-  }
-
-  if (options.oauth) {
-    self.oauth(options.oauth)
-  } else if (self._oauth.params && self.hasHeader('authorization')) {
-    self.oauth(self._oauth.params)
   }
 
   var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
@@ -1422,13 +1414,6 @@ Request.prototype.httpSignature = function (opts) {
 Request.prototype.hawk = function (opts) {
   var self = this
   self.setHeader('Authorization', hawk.header(self.uri, self.method, opts))
-}
-Request.prototype.oauth = function (_oauth) {
-  var self = this
-
-  self._oauth.onRequest(_oauth)
-
-  return self
 }
 
 Request.prototype.jar = function (jar) {
