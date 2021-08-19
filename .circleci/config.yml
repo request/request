@@ -9,14 +9,14 @@ jobs:
 
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "package.json" }}
-            - v1-dependencies-
-      - run: yarn install
+            - v1-dependencies-npm-{{ checksum "package.json" }}
+            - v1-dependencies-npm
+      - run: npm install
       - save_cache:
           paths:
             - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
-      - run: yarn test
+          key: v1-dependencies-npm-{{ checksum "package.json" }}
+      - run: npm test
 
   release:
     docker:
@@ -25,9 +25,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "package.json" }}
-            - v1-dependencies-
-      - run: yarn install
+            - v1-dependencies-npm{{ checksum "package.json" }}
+            - v1-dependencies-npm
+      - run: npm install
       - run: npx semantic-release
 
 workflows:
