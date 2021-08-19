@@ -45,7 +45,7 @@
     "safe-buffer": "^5.1.2",
     "tough-cookie": "~2.5.0",
     "tunnel-agent": "^0.6.0",
-    "uuid": "^3.3.2"
+    "uuid": "^8.3.2"
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
