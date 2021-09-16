@@ -2,7 +2,7 @@
 
 var oauth = require('oauth-sign')
 var qs = require('querystring')
-var fs = require('fs')
+var fs = require('graceful-fs')
 var path = require('path')
 var request = require('../index')
 var tape = require('tape')

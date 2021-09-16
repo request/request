@@ -2,7 +2,7 @@
 
 var server = require('./server')
 var stream = require('stream')
-var fs = require('fs')
+var fs = require('graceful-fs')
 var request = require('../index')
 var path = require('path')
 var util = require('util')
