@@ -1,0 +1,14 @@
+name: Check with yarn
+on: [push, pull_request ]
+jobs:
+  build:
+    name: Install and test with yarn
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: install
+      - uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: test
