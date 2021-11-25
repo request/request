@@ -14,11 +14,6 @@ var destroyable = require('server-destroy')
 var events = []
 var caFile = path.resolve(__dirname, 'ssl/ca/ca.crt')
 var ca = fs.readFileSync(caFile)
-var clientCert = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.crt'))
-var clientKey = fs.readFileSync(
-  path.resolve(__dirname, 'ssl/ca/client-enc.key')
-)
-var clientPassword = 'password'
 var sslOpts = {
   key: path.resolve(__dirname, 'ssl/ca/localhost.key'),
   cert: path.resolve(__dirname, 'ssl/ca/localhost.crt')
