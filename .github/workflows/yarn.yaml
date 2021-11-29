@@ -1,0 +1,11 @@
+name: Check with yarn
+on: [push, pull_request ]
+jobs:
+  build:
+    name: Install and test with yarn
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+      - run: yarn install
+      - run: yarn test
