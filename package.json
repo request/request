@@ -48,12 +48,13 @@
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
-    "test-ci": "taper tests/test-*.js",
+    "test-ci": "aqa tests/test-*.js",
     "test-cov": "nyc --reporter=lcov tape tests/test-*.js",
     "test-browser": "echo 'Skipping browser tests.' || node tests/browser/start.js",
     "lint": "standard"
   },
   "devDependencies": {
+    "aqa": "^1.2.9",
     "bluebird": "^3.2.1",
     "browserify": "^13.0.1",
     "browserify-istanbul": "^2.0.0",
@@ -72,8 +73,7 @@
     "rimraf": "^2.2.8",
     "server-destroy": "^1.0.1",
     "standard": "^9.0.0",
-    "tape": "^4.6.0",
-    "taper": "^0.5.0"
+    "tape": "^4.6.0"
   },
   "greenkeeper": {
     "ignore": [
