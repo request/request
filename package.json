@@ -27,6 +27,7 @@
     "request.js"
   ],
   "dependencies": {
+    "ava": "^3.15.0",
     "aws-sign2": "~0.7.0",
     "aws4": "^1.8.0",
     "caseless": "~0.12.0",
@@ -48,13 +49,12 @@
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
-    "test-ci": "aqa tests/test-*.js",
+    "test-ci": "ava tests/test-*.js",
     "test-cov": "nyc --reporter=lcov tape tests/test-*.js",
     "test-browser": "echo 'Skipping browser tests.' || node tests/browser/start.js",
     "lint": "standard"
   },
   "devDependencies": {
-    "aqa": "^1.2.9",
     "bluebird": "^3.2.1",
     "browserify": "^13.0.1",
     "browserify-istanbul": "^2.0.0",
