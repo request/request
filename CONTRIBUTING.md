@@ -46,17 +46,17 @@ more like an open wiki than a standard guarded open source project.
 There are a few basic ground-rules for contributors:
 
 1. **No `--force` pushes** or modifying the Git history in any way.
-1. **Non-master branches** ought to be used for ongoing work.
-1. **Any** change should be added through Pull Request.
-1. **External API changes and significant modifications** ought to be subject
+2. **Non-master branches** ought to be used for ongoing work.
+3. **Any** change should be added through Pull Request.
+4. **External API changes and significant modifications** ought to be subject
    to an **internal pull-request** to solicit feedback from other contributors.
-1. Internal pull-requests to solicit feedback are _encouraged_ for any other
+5. Internal pull-requests to solicit feedback are _encouraged_ for any other
    non-trivial contribution but left to the discretion of the contributor.
-1. For significant changes wait a full 24 hours before merging so that active
+6. For significant changes wait a full 24 hours before merging so that active
    contributors who are distributed throughout the world have a chance to weigh
    in.
-1. Contributors should attempt to adhere to the prevailing code-style.
-1. Run `npm test` locally before submitting your PR, to catch any easy to miss
+7. Contributors should attempt to adhere to the prevailing code-style.
+8. Run `npm test` locally before submitting your PR, to catch any easy to miss
    style & testing issues. To diagnose test failures, there are two ways to
    run a single test file:
    - `npx aqa tests/test-file.js` - run using the default
