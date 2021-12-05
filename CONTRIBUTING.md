@@ -59,8 +59,8 @@ There are a few basic ground-rules for contributors:
 8. Run `npm test` locally before submitting your PR, to catch any easy to miss
    style & testing issues. To diagnose test failures, there are two ways to
    run a single test file:
-   - `npx ava tests/test-file.js` - run using the default
-     [`ava`](https://www.npmjs.com/package/ava) test runner.
+   - `npx tap tests/test-file.js` - run using the default
+     [`tap`](https://www.npmjs.com/package/tap) test runner.
    - `node tests/test-file.js` - view the raw
      [tap](https://testanything.org/) output.
 
