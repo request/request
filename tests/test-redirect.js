@@ -44,7 +44,10 @@ function createLandingEndpoint (landing) {
     // Make sure cookies are set properly after redirect
     assert.equal(req.headers.cookie, 'foo=bar; quux=baz; ham=eggs')
     hits[landing] = true
-    res.writeHead(200, {'x-response': req.method.toUpperCase() + ' ' + landing})
+    res.writeHead(200, {
+      'x-response': req.method.toUpperCase() + ' ' + landing,
+      'x-content-length': String(req.headers['content-length'] || 0)
+    })
     res.end(req.method.toUpperCase() + ' ' + landing)
   })
 }
@@ -199,6 +202,28 @@ tape('should follow post redirects when followallredirects true and followOrigin
     t.equal(res.statusCode, 200)
     t.ok(hits.temp, 'Original request is to /temp')
     t.ok(hits.temp_landing, 'Forward to temporary landing URL')
+    t.equal(body, 'POST temp_landing', 'Got temporary landing content')
+    t.end()
+  })
+})
+
+// @todo: probably introduce a new configuration to retain request body on
+// redirects instead of mixing this with followOriginalHttpMethod
+tape('should follow post redirects along with request body when followOriginalHttpMethod is enabled', function (t) {
+  hits = {}
+  request.post({
+    uri: s.url + '/temp',
+    followAllRedirects: true,
+    followOriginalHttpMethod: true,
+    jar: jar,
+    headers: { cookie: 'foo=bar' },
+    body: 'fooBar'
+  }, function (err, res, body) {
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.ok(hits.temp, 'Original request is to /temp')
+    t.ok(hits.temp_landing, 'Forward to temporary landing URL')
+    t.equal(res.headers['x-content-length'], '6')
     t.equal(body, 'POST temp_landing', 'Got temporary landing content')
     t.end()
   })
