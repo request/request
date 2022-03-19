@@ -1162,7 +1162,7 @@ Request.prototype.readResponseBody = function (response) {
   })
 }
 
-Request.prototype.abort = function () {
+Request.prototype.abort = function (#abort) {
   var self = this
   self._aborted = true
 
