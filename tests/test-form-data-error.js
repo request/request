@@ -1,10 +1,10 @@
 'use strict'
 
-var request = require('../index')
-var server = require('./server')
-var tape = require('tape')
+const request = require('../index')
+const server = require('./server')
+const tape = require('tape')
 
-var s = server.createServer()
+const s = server.createServer()
 
 tape('setup', function (t) {
   s.listen(0, function () {
@@ -45,7 +45,7 @@ tape('omit content-length header if the value is set to NaN', function (t) {
     })
   })
 
-  var sendStreamRequest = function (stream) {
+  const sendStreamRequest = function (stream) {
     request.post({
       uri: s.url + '/stream',
       formData: {

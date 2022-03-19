@@ -1,13 +1,13 @@
 'use strict'
 
-var request = require('../index')
-var tape = require('tape')
+const request = require('../index')
+const tape = require('tape')
 
-var called = false
-var proxiedHost = 'google.com'
-var data = ''
+let called = false
+const proxiedHost = 'google.com'
+let data = ''
 
-var s = require('net').createServer(function (sock) {
+const s = require('net').createServer(function (sock) {
   called = true
   sock.once('data', function (c) {
     data += c
@@ -40,10 +40,10 @@ tape('proxy', function (t) {
     proxy: s.url,
     headers: {
       'Proxy-Authorization': 'Basic dXNlcjpwYXNz',
-      'authorization': 'Token deadbeef',
+      authorization: 'Token deadbeef',
       'dont-send-to-proxy': 'ok',
       'dont-send-to-dest': 'ok',
-      'accept': 'yo',
+      accept: 'yo',
       'user-agent': 'just another foobar'
     },
     proxyHeaderExclusiveList: ['Dont-send-to-dest']
@@ -51,7 +51,7 @@ tape('proxy', function (t) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, 'derp\n')
-    var re = new RegExp([
+    const re = new RegExp([
       'CONNECT google.com:80 HTTP/1.1',
       'Proxy-Authorization: Basic dXNlcjpwYXNz',
       'dont-send-to-dest: ok',

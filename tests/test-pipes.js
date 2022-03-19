@@ -1,14 +1,14 @@
 'use strict'
 
-var server = require('./server')
-var stream = require('stream')
-var fs = require('fs')
-var request = require('../index')
-var path = require('path')
-var util = require('util')
-var tape = require('tape')
+const server = require('./server')
+const stream = require('stream')
+const fs = require('fs')
+const request = require('../index')
+const path = require('path')
+const util = require('util')
+const tape = require('tape')
 
-var s = server.createServer()
+const s = server.createServer()
 
 s.on('/cat', function (req, res) {
   if (req.method === 'GET') {
@@ -18,7 +18,7 @@ s.on('/cat', function (req, res) {
     })
     res.end('asdf')
   } else if (req.method === 'PUT') {
-    var body = ''
+    let body = ''
     req.on('data', function (chunk) {
       body += chunk
     }).on('end', function () {
@@ -71,10 +71,10 @@ tape('setup', function (t) {
 tape('piping to a request object', function (t) {
   s.once('/push', server.createPostValidator('mydata'))
 
-  var mydata = new stream.Stream()
+  const mydata = new stream.Stream()
   mydata.readable = true
 
-  var r1 = request.put({
+  const r1 = request.put({
     url: s.url + '/push'
   }, function (err, res, body) {
     t.equal(err, null)
@@ -89,10 +89,10 @@ tape('piping to a request object', function (t) {
 })
 
 tape('piping to a request object with invalid uri', function (t) {
-  var mybodydata = new stream.Stream()
+  const mybodydata = new stream.Stream()
   mybodydata.readable = true
 
-  var r2 = request.put({
+  const r2 = request.put({
     url: '/bad-uri',
     json: true
   }, function (err, res, body) {
@@ -107,13 +107,13 @@ tape('piping to a request object with invalid uri', function (t) {
 })
 
 tape('piping to a request object with a json body', function (t) {
-  var obj = {foo: 'bar'}
-  var json = JSON.stringify(obj)
+  const obj = { foo: 'bar' }
+  const json = JSON.stringify(obj)
   s.once('/push-json', server.createPostValidator(json, 'application/json'))
-  var mybodydata = new stream.Stream()
+  const mybodydata = new stream.Stream()
   mybodydata.readable = true
 
-  var r2 = request.put({
+  const r2 = request.put({
     url: s.url + '/push-json',
     json: true
   }, function (err, res, body) {
@@ -131,14 +131,14 @@ tape('piping to a request object with a json body', function (t) {
 tape('piping from a request object', function (t) {
   s.once('/pull', server.createGetResponse('mypulldata'))
 
-  var mypulldata = new stream.Stream()
+  const mypulldata = new stream.Stream()
   mypulldata.writable = true
 
   request({
     url: s.url + '/pull'
   }).pipe(mypulldata)
 
-  var d = ''
+  let d = ''
 
   mypulldata.write = function (chunk) {
     d += chunk
@@ -158,13 +158,13 @@ tape('pause when piping from a request object', function (t) {
     setTimeout(function () { res.end('Chunk 2') }, 10)
   })
 
-  var chunkNum = 0
-  var paused = false
+  let chunkNum = 0
+  let paused = false
   request({
     url: s.url + '/chunks'
   })
     .on('data', function (chunk) {
-      var self = this
+      const self = this
 
       t.notOk(paused, 'Only receive data when not paused')
 
@@ -192,8 +192,8 @@ tape('pause before piping from a request object', function (t) {
     res.end('Data')
   })
 
-  var paused = true
-  var r = request({
+  let paused = true
+  const r = request({
     url: s.url + '/pause-before'
   })
   r.pause()
@@ -209,7 +209,7 @@ tape('pause before piping from a request object', function (t) {
   }, 100)
 })
 
-var fileContents = fs.readFileSync(__filename)
+const fileContents = fs.readFileSync(__filename)
 function testPipeFromFile (testName, hasContentLength) {
   tape(testName, function (t) {
     s.once('/pushjs', function (req, res) {
@@ -218,7 +218,7 @@ function testPipeFromFile (testName, hasContentLength) {
         t.equal(
           req.headers['content-length'],
           (hasContentLength ? '' + fileContents.length : undefined))
-        var body = ''
+        let body = ''
         req.setEncoding('utf8')
         req.on('data', function (data) {
           body += data
@@ -232,7 +232,7 @@ function testPipeFromFile (testName, hasContentLength) {
         res.end()
       }
     })
-    var r = request.put(s.url + '/pushjs')
+    const r = request.put(s.url + '/pushjs')
     fs.createReadStream(__filename).pipe(r)
     if (hasContentLength) {
       r.setHeader('content-length', fileContents.length)
@@ -269,7 +269,7 @@ tape('piping between urls', function (t) {
 })
 
 tape('writing to file', function (t) {
-  var doodleWrite = fs.createWriteStream(path.join(__dirname, 'test.jpg'))
+  const doodleWrite = fs.createWriteStream(path.join(__dirname, 'test.jpg'))
 
   request.get(s.url + '/doodle').pipe(doodleWrite)
 
@@ -284,7 +284,7 @@ tape('writing to file', function (t) {
 
 tape('one-line proxy', function (t) {
   s.once('/onelineproxy', function (req, res) {
-    var x = request(s.url + '/doodle')
+    const x = request(s.url + '/doodle')
     req.pipe(x)
     x.pipe(res)
   })
@@ -306,10 +306,10 @@ tape('piping after response', function (t) {
     res.end()
   })
 
-  var rAfterRes = request.post(s.url + '/afterresponse')
+  const rAfterRes = request.post(s.url + '/afterresponse')
 
   rAfterRes.on('response', function () {
-    var v = new ValidationStream(t, 'd')
+    const v = new ValidationStream(t, 'd')
     rAfterRes.pipe(v)
     v.on('end', function () {
       t.end()
@@ -328,7 +328,7 @@ tape('piping through a redirect', function (t) {
     res.end()
   })
 
-  var validateForward = new ValidationStream(t, 'd')
+  const validateForward = new ValidationStream(t, 'd')
 
   request.get(s.url + '/forward1').pipe(validateForward)
 
@@ -340,8 +340,8 @@ tape('piping through a redirect', function (t) {
 tape('pipe options', function (t) {
   s.once('/opts', server.createGetResponse('opts response'))
 
-  var optsStream = new stream.Stream()
-  var optsData = ''
+  const optsStream = new stream.Stream()
+  let optsData = ''
 
   optsStream.writable = true
   optsStream.write = function (buf) {
@@ -365,9 +365,9 @@ tape('request.pipefilter is called correctly', function (t) {
   s.once('/pipefilter', function (req, res) {
     res.end('d')
   })
-  var validatePipeFilter = new ValidationStream(t, 'd')
+  const validatePipeFilter = new ValidationStream(t, 'd')
 
-  var r3 = request.get(s.url + '/pipefilter')
+  const r3 = request.get(s.url + '/pipefilter')
   r3.pipe(validatePipeFilter)
   r3.pipefilter = function (res, dest) {
     t.equal(res, r3.response)

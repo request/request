@@ -1,9 +1,9 @@
 'use strict'
 
-var request = require('../index')
-var tape = require('tape')
+const request = require('../index')
+const tape = require('tape')
 
-var local = 'http://localhost:0/asdf'
+const local = 'http://localhost:0/asdf'
 
 tape('without uri', function (t) {
   t.throws(function () {
@@ -73,7 +73,7 @@ tape('multipart without body 1', function (t) {
   t.throws(function () {
     request({
       uri: local,
-      multipart: [ {} ]
+      multipart: [{}]
     })
   }, /^Error: Body attribute missing in multipart\.$/)
   t.end()
@@ -82,7 +82,7 @@ tape('multipart without body 1', function (t) {
 tape('multipart without body 2', function (t) {
   t.throws(function () {
     request(local, {
-      multipart: [ {} ]
+      multipart: [{}]
     })
   }, /^Error: Body attribute missing in multipart\.$/)
   t.end()

@@ -1,16 +1,16 @@
 'use strict'
 
-var http = require('http')
-var request = require('../index')
-var tape = require('tape')
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
 
-var port1
-var port2
+let port1
+let port2
 
-var s1 = http.createServer(function (req, resp) {
+const s1 = http.createServer(function (req, resp) {
   if (req.url === '/original') {
     resp.writeHeader(302, {
-      'location': '/redirected'
+      location: '/redirected'
     })
     resp.end()
   } else if (req.url === '/redirected') {
@@ -22,8 +22,8 @@ var s1 = http.createServer(function (req, resp) {
   }
 })
 
-var s2 = http.createServer(function (req, resp) {
-  var x = request('http://localhost:' + port1 + '/original')
+const s2 = http.createServer(function (req, resp) {
+  const x = request('http://localhost:' + port1 + '/original')
   req.pipe(x)
   x.pipe(resp)
 })

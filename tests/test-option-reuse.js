@@ -1,15 +1,15 @@
 'use strict'
 
-var request = require('../index')
-var http = require('http')
-var tape = require('tape')
+const request = require('../index')
+const http = require('http')
+const tape = require('tape')
 
-var methodsSeen = {
+const methodsSeen = {
   head: 0,
   get: 0
 }
 
-var s = http.createServer(function (req, res) {
+const s = http.createServer(function (req, res) {
   res.statusCode = 200
   res.end('ok')
 
@@ -24,8 +24,8 @@ tape('setup', function (t) {
 })
 
 tape('options object is not mutated', function (t) {
-  var url = s.url
-  var options = { url: url }
+  const url = s.url
+  const options = { url: url }
 
   request.head(options, function (err, resp, body) {
     t.equal(err, null)

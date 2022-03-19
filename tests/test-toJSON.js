@@ -1,10 +1,10 @@
 'use strict'
 
-var request = require('../index')
-var http = require('http')
-var tape = require('tape')
+const request = require('../index')
+const http = require('http')
+const tape = require('tape')
 
-var s = http.createServer(function (req, resp) {
+const s = http.createServer(function (req, resp) {
   resp.statusCode = 200
   resp.end('asdf')
 })
@@ -17,12 +17,12 @@ tape('setup', function (t) {
 })
 
 tape('request().toJSON()', function (t) {
-  var r = request({
+  const r = request({
     url: s.url,
     headers: { foo: 'bar' }
   }, function (err, res) {
-    var jsonR = JSON.parse(JSON.stringify(r))
-    var jsonRes = JSON.parse(JSON.stringify(res))
+    const jsonR = JSON.parse(JSON.stringify(r))
+    const jsonRes = JSON.parse(JSON.stringify(res))
 
     t.equal(err, null)
 

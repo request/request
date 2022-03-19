@@ -1,6 +1,6 @@
 'use strict'
-var request = require('../index')
-var tape = require('tape')
+const request = require('../index')
+const tape = require('tape')
 
 tape('bind to invalid address', function (t) {
   request.get({
@@ -26,9 +26,9 @@ tape('bind to local address', function (t) {
 })
 
 tape('bind to local address on redirect', function (t) {
-  var os = require('os')
-  var localInterfaces = os.networkInterfaces()
-  var localIPS = []
+  const os = require('os')
+  const localInterfaces = os.networkInterfaces()
+  const localIPS = []
   Object.keys(localInterfaces).forEach(function (ifname) {
     localInterfaces[ifname].forEach(function (iface) {
       if (iface.family !== 'IPv4' || iface.internal !== false) {

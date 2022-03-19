@@ -1,20 +1,20 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var events = require('events')
-var tape = require('tape')
-var destroyable = require('server-destroy')
+const server = require('./server')
+const request = require('../index')
+const events = require('events')
+const tape = require('tape')
+const destroyable = require('server-destroy')
 
-var s = server.createServer()
-var ss = server.createSSLServer()
-var e = new events.EventEmitter()
+const s = server.createServer()
+const ss = server.createSSLServer()
+const e = new events.EventEmitter()
 
 destroyable(s)
 destroyable(ss)
 
 function bouncy (s, serverUrl) {
-  var redirs = {
+  const redirs = {
     a: 'b',
     b: 'c',
     c: 'd',
@@ -25,12 +25,12 @@ function bouncy (s, serverUrl) {
     h: 'end'
   }
 
-  var perm = true
+  let perm = true
   Object.keys(redirs).forEach(function (p) {
-    var t = redirs[p]
+    const t = redirs[p]
 
     // switch type each time
-    var type = perm ? 301 : 302
+    const type = perm ? 301 : 302
     perm = !perm
     s.on('/' + p, function (req, res) {
       setTimeout(function () {
@@ -41,7 +41,7 @@ function bouncy (s, serverUrl) {
   })
 
   s.on('/end', function (req, res) {
-    var key = req.headers['x-test-key']
+    const key = req.headers['x-test-key']
     e.emit('hit-' + key, key)
     res.writeHead(200)
     res.end(key)
@@ -59,11 +59,11 @@ tape('setup', function (t) {
 })
 
 tape('lots of redirects', function (t) {
-  var n = 10
+  const n = 10
   t.plan(n * 4)
 
   function doRedirect (i) {
-    var key = 'test_' + i
+    const key = 'test_' + i
     request({
       url: (i % 2 ? s.url : ss.url) + '/a',
       headers: { 'x-test-key': key },
@@ -79,7 +79,7 @@ tape('lots of redirects', function (t) {
     })
   }
 
-  for (var i = 0; i < n; i++) {
+  for (let i = 0; i < n; i++) {
     doRedirect(i)
   }
 })

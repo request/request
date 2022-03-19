@@ -1,11 +1,11 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
-var destroyable = require('server-destroy')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
+const destroyable = require('server-destroy')
 
-var s = server.createServer()
+const s = server.createServer()
 
 destroyable(s)
 
@@ -14,7 +14,7 @@ tape('setup', function (t) {
     s.on('/options', function (req, res) {
       res.writeHead(200, {
         'x-original-method': req.method,
-        'allow': 'OPTIONS, GET, HEAD'
+        allow: 'OPTIONS, GET, HEAD'
       })
 
       res.end()

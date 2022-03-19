@@ -1,27 +1,27 @@
 'use strict'
 
-var http = require('http')
-var path = require('path')
-var mime = require('mime-types')
-var request = require('../index')
-var fs = require('fs')
-var tape = require('tape')
+const http = require('http')
+const path = require('path')
+const mime = require('mime-types')
+const request = require('../index')
+const fs = require('fs')
+const tape = require('tape')
 
 function runTest (t, options) {
-  var remoteFile = path.join(__dirname, 'googledoodle.jpg')
-  var localFile = path.join(__dirname, 'unicycle.jpg')
-  var multipartFormData = {}
+  const remoteFile = path.join(__dirname, 'googledoodle.jpg')
+  const localFile = path.join(__dirname, 'unicycle.jpg')
+  const multipartFormData = {}
 
-  var server = http.createServer(function (req, res) {
+  const server = http.createServer(function (req, res) {
     if (req.url === '/file') {
-      res.writeHead(200, {'content-type': 'image/jpg', 'content-length': 7187})
+      res.writeHead(200, { 'content-type': 'image/jpg', 'content-length': 7187 })
       res.end(fs.readFileSync(remoteFile), 'binary')
       return
     }
 
     if (options.auth) {
       if (!req.headers.authorization) {
-        res.writeHead(401, {'www-authenticate': 'Basic realm="Private"'})
+        res.writeHead(401, { 'www-authenticate': 'Basic realm="Private"' })
         res.end()
         return
       } else {
@@ -33,7 +33,7 @@ function runTest (t, options) {
       .test(req.headers['content-type']))
 
     // temp workaround
-    var data = ''
+    let data = ''
     req.setEncoding('utf8')
 
     req.on('data', function (d) {
@@ -76,12 +76,12 @@ function runTest (t, options) {
       t.ok(data.indexOf('Content-Type: ' + mime.lookup(remoteFile)) !== -1)
 
       res.writeHead(200)
-      res.end(options.json ? JSON.stringify({status: 'done'}) : 'done')
+      res.end(options.json ? JSON.stringify({ status: 'done' }) : 'done')
     })
   })
 
   server.listen(0, function () {
-    var url = 'http://localhost:' + this.address().port
+    const url = 'http://localhost:' + this.address().port
     // @NOTE: multipartFormData properties must be set here so that my_file read stream does not leak in node v0.8
     multipartFormData.my_field = 'my_value'
     multipartFormData.my_buffer = Buffer.from([1, 2, 3])
@@ -99,7 +99,7 @@ function runTest (t, options) {
       fs.createReadStream(localFile)
     ]
 
-    var reqOptions = {
+    const reqOptions = {
       url: url + '/upload',
       formData: multipartFormData
     }
@@ -107,12 +107,12 @@ function runTest (t, options) {
       reqOptions.json = true
     }
     if (options.auth) {
-      reqOptions.auth = {user: 'user', pass: 'pass', sendImmediately: false}
+      reqOptions.auth = { user: 'user', pass: 'pass', sendImmediately: false }
     }
     request.post(reqOptions, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
-      t.deepEqual(body, options.json ? {status: 'done'} : 'done')
+      t.deepEqual(body, options.json ? { status: 'done' } : 'done')
       server.close(function () {
         t.end()
       })
@@ -121,13 +121,13 @@ function runTest (t, options) {
 }
 
 tape('multipart formData', function (t) {
-  runTest(t, {json: false})
+  runTest(t, { json: false })
 })
 
 tape('multipart formData + JSON', function (t) {
-  runTest(t, {json: true})
+  runTest(t, { json: true })
 })
 
 tape('multipart formData + basic auth', function (t) {
-  runTest(t, {json: false, auth: true})
+  runTest(t, { json: false, auth: true })
 })

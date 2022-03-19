@@ -1,9 +1,9 @@
 'use strict'
 
-var http = require('http')
-var request = require('../index')
-var tape = require('tape')
-var crypto = require('crypto')
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
+const crypto = require('crypto')
 
 function makeHeader () {
   return [].join.call(arguments, ', ')
@@ -17,8 +17,8 @@ function md5 (str) {
   return crypto.createHash('md5').update(str).digest('hex')
 }
 
-var digestServer = http.createServer(function (req, res) {
-  var ok,
+const digestServer = http.createServer(function (req, res) {
+  let ok,
     testHeader
 
   if (req.url === '/test/') {
@@ -53,22 +53,22 @@ var digestServer = http.createServer(function (req, res) {
       ))
     }
   } else if (req.url === '/test/md5-sess') { // RFC 2716 MD5-sess w/ qop=auth
-    var user = 'test'
-    var realm = 'Private'
-    var pass = 'testing'
-    var nonce = 'WpcHS2/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93'
-    var nonceCount = '00000001'
-    var qop = 'auth'
-    var algorithm = 'MD5-sess'
+    const user = 'test'
+    const realm = 'Private'
+    const pass = 'testing'
+    const nonce = 'WpcHS2/TBAA=dffcc0dbd5f96d49a5477166649b7c0ae3866a93'
+    const nonceCount = '00000001'
+    const qop = 'auth'
+    const algorithm = 'MD5-sess'
     if (req.headers.authorization) {
       // HA1=MD5(MD5(username:realm:password):nonce:cnonce)
       // HA2=MD5(method:digestURI)
       // response=MD5(HA1:nonce:nonceCount:clientNonce:qop:HA2)
 
-      var cnonce = /cnonce="(.*)"/.exec(req.headers.authorization)[1]
-      var ha1 = md5(md5(user + ':' + realm + ':' + pass) + ':' + nonce + ':' + cnonce)
-      var ha2 = md5('GET:/test/md5-sess')
-      var response = md5(ha1 + ':' + nonce + ':' + nonceCount + ':' + cnonce + ':' + qop + ':' + ha2)
+      const cnonce = /cnonce="(.*)"/.exec(req.headers.authorization)[1]
+      const ha1 = md5(md5(user + ':' + realm + ':' + pass) + ':' + nonce + ':' + cnonce)
+      const ha2 = md5('GET:/test/md5-sess')
+      const response = md5(ha1 + ':' + nonce + ':' + nonceCount + ':' + cnonce + ':' + qop + ':' + ha2)
 
       testHeader = makeHeaderRegex(
         'Digest username="' + user + '"',
@@ -138,7 +138,7 @@ tape('setup', function (t) {
 })
 
 tape('with sendImmediately = false', function (t) {
-  var numRedirects = 0
+  let numRedirects = 0
 
   request({
     method: 'GET',
@@ -160,7 +160,7 @@ tape('with sendImmediately = false', function (t) {
 })
 
 tape('with MD5-sess algorithm', function (t) {
-  var numRedirects = 0
+  let numRedirects = 0
 
   request({
     method: 'GET',
@@ -182,7 +182,7 @@ tape('with MD5-sess algorithm', function (t) {
 })
 
 tape('without sendImmediately = false', function (t) {
-  var numRedirects = 0
+  let numRedirects = 0
 
   // If we don't set sendImmediately = false, request will send basic auth
   request({
@@ -204,7 +204,7 @@ tape('without sendImmediately = false', function (t) {
 })
 
 tape('with different credentials', function (t) {
-  var numRedirects = 0
+  let numRedirects = 0
 
   request({
     method: 'GET',

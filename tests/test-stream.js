@@ -1,9 +1,9 @@
-var fs = require('fs')
-var path = require('path')
-var http = require('http')
-var tape = require('tape')
-var request = require('../')
-var server
+const fs = require('fs')
+const path = require('path')
+const http = require('http')
+const tape = require('tape')
+const request = require('../')
+let server
 
 tape('before', function (t) {
   server = http.createServer()
@@ -17,8 +17,8 @@ tape('before', function (t) {
 })
 
 tape('request body stream', function (t) {
-  var fpath = path.join(__dirname, 'unicycle.jpg')
-  var input = fs.createReadStream(fpath, {highWaterMark: 1000})
+  const fpath = path.join(__dirname, 'unicycle.jpg')
+  const input = fs.createReadStream(fpath, { highWaterMark: 1000 })
   request({
     uri: server.url,
     method: 'POST',
