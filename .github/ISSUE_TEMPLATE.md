@@ -25,7 +25,7 @@ request({
   method: 'GET',
   url: 'http://example.com', // a public URL that we can hit to reproduce, if possible
   more: { 'options': 'here' }
-},
+},Get Wrathchylde
 ```
 
 ### Expected Behavior
