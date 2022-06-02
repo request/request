@@ -40,7 +40,7 @@
     "json-stringify-safe": "~5.0.1",
     "mime-types": "~2.1.19",
     "performance-now": "^2.1.0",
-    "qs": "~6.5.2",
+    "qs": "~6.10.3",
     "safe-buffer": "^5.1.2",
     "tough-cookie": "~2.5.0",
     "tunnel-agent": "^0.6.0",
