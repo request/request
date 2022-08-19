@@ -27,7 +27,7 @@ request('http://www.google.com', function (error, response, body) {
 
 ## Table of contents
 
-- [Simple JSON with oAuth](#simple-json-with-oauth)
+- [Simple JSON with OAuth](#simple-json-with-oauth)
 - [Streaming](#streaming)
 - [Forms](#forms)
 - [HTTP Authentication](#http-authentication)
@@ -65,11 +65,11 @@ request(
       }
     }, 
     function (error, response, body) {
-      if (!error && response.statusCode == 200) {
+      if (!error && response.statusCode === 200) {
         console.log(body); //handle success
       }
       else {
-        console.log("Error "+response.statusCode);  //handle error
+        console.log("Error " + response.statusCode);  //handle error
       }
     }
   );
