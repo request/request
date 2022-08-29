@@ -1,16 +1,16 @@
 'use strict'
 
-var server = require('./server')
-var assert = require('assert')
-var request = require('../index')
-var tape = require('tape')
-var http = require('http')
-var destroyable = require('server-destroy')
+const server = require('./server')
+const assert = require('assert')
+const request = require('../index')
+const tape = require('tape')
+const http = require('http')
+const destroyable = require('server-destroy')
 
-var s = server.createServer()
-var ss = server.createSSLServer()
-var hits = {}
-var jar = request.jar()
+const s = server.createServer()
+const ss = server.createSSLServer()
+let hits = {}
+const jar = request.jar()
 
 destroyable(s)
 destroyable(ss)
@@ -31,7 +31,7 @@ function createRedirectEndpoint (code, label, landing) {
   s.on('/' + label, function (req, res) {
     hits[label] = true
     res.writeHead(code, {
-      'location': s.url + '/' + landing,
+      location: s.url + '/' + landing,
       'set-cookie': 'ham=eggs'
     })
     res.end()
@@ -44,16 +44,16 @@ function createLandingEndpoint (landing) {
     // Make sure cookies are set properly after redirect
     assert.equal(req.headers.cookie, 'foo=bar; quux=baz; ham=eggs')
     hits[landing] = true
-    res.writeHead(200, {'x-response': req.method.toUpperCase() + ' ' + landing})
+    res.writeHead(200, { 'x-response': req.method.toUpperCase() + ' ' + landing })
     res.end(req.method.toUpperCase() + ' ' + landing)
   })
 }
 
 function bouncer (code, label, hops) {
-  var hop
-  var landing = label + '_landing'
-  var currentLabel
-  var currentLanding
+  let hop
+  const landing = label + '_landing'
+  let currentLabel
+  let currentLanding
 
   hops = hops || 1
 
@@ -344,7 +344,7 @@ tape('triple bounce terminated after second redirect', function (t) {
 tape('http to https redirect', function (t) {
   hits = {}
   request.get({
-    uri: require('url').parse(s.url + '/ssl'),
+    uri: new (require('url')).URL(s.url + '/ssl'),
     rejectUnauthorized: false
   }, function (err, res, body) {
     t.equal(err, null)
@@ -365,9 +365,9 @@ tape('should have referer header by default when following redirect', function (
     t.equal(res.statusCode, 200)
     t.end()
   })
-  .on('redirect', function () {
-    t.equal(this.headers.referer, s.url + '/temp')
-  })
+    .on('redirect', function () {
+      t.equal(this.headers.referer, s.url + '/temp')
+    })
 })
 
 tape('should not have referer header when removeRefererHeader is true', function (t) {
@@ -382,9 +382,9 @@ tape('should not have referer header when removeRefererHeader is true', function
     t.equal(res.statusCode, 200)
     t.end()
   })
-  .on('redirect', function () {
-    t.equal(this.headers.referer, undefined)
-  })
+    .on('redirect', function () {
+      t.equal(this.headers.referer, undefined)
+    })
 })
 
 tape('should preserve referer header set in the initial request when removeRefererHeader is true', function (t) {
@@ -399,21 +399,19 @@ tape('should preserve referer header set in the initial request when removeRefer
     t.equal(res.statusCode, 200)
     t.end()
   })
-  .on('redirect', function () {
-    t.equal(this.headers.referer, 'http://awesome.com')
-  })
+    .on('redirect', function () {
+      t.equal(this.headers.referer, 'http://awesome.com')
+    })
 })
 
 tape('should use same agent class on redirect', function (t) {
-  var agent
-  var calls = 0
-  var agentOptions = {}
+  let agent
+  let calls = 0
+  const agentOptions = {}
 
   function FakeAgent (agentOptions) {
-    var createConnection
-
     agent = new http.Agent(agentOptions)
-    createConnection = agent.createConnection
+    const createConnection = agent.createConnection
     agent.createConnection = function () {
       calls++
       return createConnection.apply(agent, arguments)

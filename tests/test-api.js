@@ -1,9 +1,9 @@
 'use strict'
 
-var http = require('http')
-var request = require('../index')
-var tape = require('tape')
-var server
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
+let server
 
 tape('setup', function (t) {
   server = http.createServer()

@@ -1,10 +1,10 @@
 'use strict'
 
-var http = require('http')
-var request = require('../index')
-var tape = require('tape')
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
 
-var s = http.createServer(function (req, res) {
+const s = http.createServer(function (req, res) {
   res.statusCode = 200
   res.end('ok')
 })

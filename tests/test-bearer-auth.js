@@ -1,18 +1,18 @@
 'use strict'
 
-var assert = require('assert')
-var http = require('http')
-var request = require('../index')
-var tape = require('tape')
+const assert = require('assert')
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
 
-var numBearerRequests = 0
-var bearerServer
+let numBearerRequests = 0
+let bearerServer
 
 tape('setup', function (t) {
   bearerServer = http.createServer(function (req, res) {
     numBearerRequests++
 
-    var ok
+    let ok
 
     if (req.headers.authorization) {
       if (req.headers.authorization === 'Bearer theToken') {
@@ -28,7 +28,7 @@ tape('setup', function (t) {
     }
 
     if (req.url === '/post/') {
-      var expectedContent = 'data_key=data_value'
+      const expectedContent = 'data_key=data_value'
       req.on('data', function (data) {
         assert.equal(data, expectedContent)
       })
@@ -51,11 +51,11 @@ tape('setup', function (t) {
 
 tape('bearer auth', function (t) {
   request({
-    'method': 'GET',
-    'uri': bearerServer.url + '/test/',
-    'auth': {
-      'bearer': 'theToken',
-      'sendImmediately': false
+    method: 'GET',
+    uri: bearerServer.url + '/test/',
+    auth: {
+      bearer: 'theToken',
+      sendImmediately: false
     }
   }, function (error, res, body) {
     t.error(error)
@@ -68,10 +68,10 @@ tape('bearer auth', function (t) {
 tape('bearer auth with default sendImmediately', function (t) {
   // If we don't set sendImmediately = false, request will send bearer auth
   request({
-    'method': 'GET',
-    'uri': bearerServer.url + '/test2/',
-    'auth': {
-      'bearer': 'theToken'
+    method: 'GET',
+    uri: bearerServer.url + '/test2/',
+    auth: {
+      bearer: 'theToken'
     }
   }, function (error, res, body) {
     t.error(error)
@@ -83,12 +83,12 @@ tape('bearer auth with default sendImmediately', function (t) {
 
 tape('', function (t) {
   request({
-    'method': 'POST',
-    'form': { 'data_key': 'data_value' },
-    'uri': bearerServer.url + '/post/',
-    'auth': {
-      'bearer': 'theToken',
-      'sendImmediately': false
+    method: 'POST',
+    form: { data_key: 'data_value' },
+    uri: bearerServer.url + '/post/',
+    auth: {
+      bearer: 'theToken',
+      sendImmediately: false
     }
   }, function (error, res, body) {
     t.error(error)
@@ -122,11 +122,11 @@ tape('using .auth, sendImmediately = true', function (t) {
 
 tape('bearer is a function', function (t) {
   request({
-    'method': 'GET',
-    'uri': bearerServer.url + '/test/',
-    'auth': {
-      'bearer': function () { return 'theToken' },
-      'sendImmediately': false
+    method: 'GET',
+    uri: bearerServer.url + '/test/',
+    auth: {
+      bearer: function () { return 'theToken' },
+      sendImmediately: false
     }
   }, function (error, res, body) {
     t.error(error)
@@ -139,10 +139,10 @@ tape('bearer is a function', function (t) {
 tape('bearer is a function, path = test2', function (t) {
   // If we don't set sendImmediately = false, request will send bearer auth
   request({
-    'method': 'GET',
-    'uri': bearerServer.url + '/test2/',
-    'auth': {
-      'bearer': function () { return 'theToken' }
+    method: 'GET',
+    uri: bearerServer.url + '/test2/',
+    auth: {
+      bearer: function () { return 'theToken' }
     }
   }, function (error, res, body) {
     t.error(error)
@@ -154,10 +154,10 @@ tape('bearer is a function, path = test2', function (t) {
 
 tape('no auth method', function (t) {
   request({
-    'method': 'GET',
-    'uri': bearerServer.url + '/test2/',
-    'auth': {
-      'bearer': undefined
+    method: 'GET',
+    uri: bearerServer.url + '/test2/',
+    auth: {
+      bearer: undefined
     }
   }, function (error, res, body) {
     t.equal(error.message, 'no auth mechanism defined')
@@ -167,10 +167,10 @@ tape('no auth method', function (t) {
 
 tape('null bearer', function (t) {
   request({
-    'method': 'GET',
-    'uri': bearerServer.url + '/test2/',
-    'auth': {
-      'bearer': null
+    method: 'GET',
+    uri: bearerServer.url + '/test2/',
+    auth: {
+      bearer: null
     }
   }, function (error, res, body) {
     t.error(error)

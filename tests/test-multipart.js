@@ -1,19 +1,19 @@
 'use strict'
 
-var http = require('http')
-var path = require('path')
-var request = require('../index')
-var fs = require('fs')
-var tape = require('tape')
+const http = require('http')
+const path = require('path')
+const request = require('../index')
+const fs = require('fs')
+const tape = require('tape')
 
 function runTest (t, a) {
-  var remoteFile = path.join(__dirname, 'googledoodle.jpg')
-  var localFile = path.join(__dirname, 'unicycle.jpg')
-  var multipartData = []
+  const remoteFile = path.join(__dirname, 'googledoodle.jpg')
+  const localFile = path.join(__dirname, 'unicycle.jpg')
+  let multipartData = []
 
-  var server = http.createServer(function (req, res) {
+  const server = http.createServer(function (req, res) {
     if (req.url === '/file') {
-      res.writeHead(200, {'content-type': 'image/jpg'})
+      res.writeHead(200, { 'content-type': 'image/jpg' })
       res.end(fs.readFileSync(remoteFile), 'binary')
       return
     }
@@ -30,7 +30,7 @@ function runTest (t, a) {
     }
 
     // temp workaround
-    var data = ''
+    let data = ''
     req.setEncoding('utf8')
 
     req.on('data', function (d) {
@@ -67,22 +67,22 @@ function runTest (t, a) {
       }
 
       res.writeHead(200)
-      res.end(a.json ? JSON.stringify({status: 'done'}) : 'done')
+      res.end(a.json ? JSON.stringify({ status: 'done' }) : 'done')
     })
   })
 
   server.listen(0, function () {
-    var url = 'http://localhost:' + this.address().port
+    const url = 'http://localhost:' + this.address().port
     // @NOTE: multipartData properties must be set here so that my_file read stream does not leak in node v0.8
     multipartData = [
-      {name: 'my_field', body: 'my_value'},
-      {name: 'my_number', body: 1000},
-      {name: 'my_buffer', body: Buffer.from([1, 2, 3])},
-      {name: 'my_file', body: fs.createReadStream(localFile)},
-      {name: 'remote_file', body: request(url + '/file')}
+      { name: 'my_field', body: 'my_value' },
+      { name: 'my_number', body: 1000 },
+      { name: 'my_buffer', body: Buffer.from([1, 2, 3]) },
+      { name: 'my_file', body: fs.createReadStream(localFile) },
+      { name: 'remote_file', body: request(url + '/file') }
     ]
 
-    var reqOptions = {
+    const reqOptions = {
       url: url + '/upload',
       multipart: multipartData
     }
@@ -97,7 +97,7 @@ function runTest (t, a) {
     request[a.method](reqOptions, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)
-      t.deepEqual(body, a.json ? {status: 'done'} : 'done')
+      t.deepEqual(body, a.json ? { status: 'done' } : 'done')
       server.close(function () {
         t.end()
       })
@@ -105,24 +105,24 @@ function runTest (t, a) {
   })
 }
 
-var testHeaders = [
+const testHeaders = [
   null,
   'multipart/mixed',
   'multipart/related; boundary=XXX; type=text/xml; start="<root>"'
 ]
 
-var methods = ['post', 'get']
+const methods = ['post', 'get']
 methods.forEach(function (method) {
   testHeaders.forEach(function (header) {
     [true, false].forEach(function (json) {
-      var name = [
+      const name = [
         'multipart-related', method.toUpperCase(),
         (header || 'default'),
         (json ? '+' : '-') + 'json'
       ].join(' ')
 
       tape(name, function (t) {
-        runTest(t, {method: method, header: header, json: json})
+        runTest(t, { method: method, header: header, json: json })
       })
     })
   })

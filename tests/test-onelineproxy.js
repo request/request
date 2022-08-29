@@ -1,11 +1,11 @@
 'use strict'
 
-var http = require('http')
-var assert = require('assert')
-var request = require('../index')
-var tape = require('tape')
+const http = require('http')
+const assert = require('assert')
+const request = require('../index')
+const tape = require('tape')
 
-var server = http.createServer(function (req, resp) {
+const server = http.createServer(function (req, resp) {
   resp.statusCode = 200
   if (req.url === '/get') {
     assert.equal(req.method, 'GET')
@@ -14,7 +14,7 @@ var server = http.createServer(function (req, resp) {
     return
   }
   if (req.url === '/put') {
-    var x = ''
+    let x = ''
     assert.equal(req.method, 'PUT')
     req.on('data', function (chunk) {
       x += chunk

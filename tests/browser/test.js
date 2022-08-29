@@ -8,8 +8,8 @@ if (!Function.prototype.bind) {
   Function.prototype.bind = require('function-bind')
 }
 
-var tape = require('tape')
-var request = require('../../index')
+const tape = require('tape')
+const request = require('../../index')
 
 tape('returns on error', function (t) {
   t.plan(1)

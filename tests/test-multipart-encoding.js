@@ -1,89 +1,89 @@
 'use strict'
 
-var http = require('http')
-var path = require('path')
-var request = require('../index')
-var fs = require('fs')
-var tape = require('tape')
+const http = require('http')
+const path = require('path')
+const request = require('../index')
+const fs = require('fs')
+const tape = require('tape')
 
-var localFile = path.join(__dirname, 'unicycle.jpg')
-var cases = {
+const localFile = path.join(__dirname, 'unicycle.jpg')
+const cases = {
   // based on body type
   '+array -stream': {
     options: {
-      multipart: [{name: 'field', body: 'value'}]
+      multipart: [{ name: 'field', body: 'value' }]
     },
-    expected: {chunked: false}
+    expected: { chunked: false }
   },
   '+array +stream': {
     options: {
-      multipart: [{name: 'file', body: null}]
+      multipart: [{ name: 'file', body: null }]
     },
-    expected: {chunked: true}
+    expected: { chunked: true }
   },
   // encoding overrides body value
   '+array +encoding': {
     options: {
-      headers: {'transfer-encoding': 'chunked'},
-      multipart: [{name: 'field', body: 'value'}]
+      headers: { 'transfer-encoding': 'chunked' },
+      multipart: [{ name: 'field', body: 'value' }]
     },
-    expected: {chunked: true}
+    expected: { chunked: true }
   },
 
   // based on body type
   '+object -stream': {
     options: {
-      multipart: {data: [{name: 'field', body: 'value'}]}
+      multipart: { data: [{ name: 'field', body: 'value' }] }
     },
-    expected: {chunked: false}
+    expected: { chunked: false }
   },
   '+object +stream': {
     options: {
-      multipart: {data: [{name: 'file', body: null}]}
+      multipart: { data: [{ name: 'file', body: null }] }
     },
-    expected: {chunked: true}
+    expected: { chunked: true }
   },
   // encoding overrides body value
   '+object +encoding': {
     options: {
-      headers: {'transfer-encoding': 'chunked'},
-      multipart: {data: [{name: 'field', body: 'value'}]}
+      headers: { 'transfer-encoding': 'chunked' },
+      multipart: { data: [{ name: 'field', body: 'value' }] }
     },
-    expected: {chunked: true}
+    expected: { chunked: true }
   },
 
   // based on body type
   '+object -chunked -stream': {
     options: {
-      multipart: {chunked: false, data: [{name: 'field', body: 'value'}]}
+      multipart: { chunked: false, data: [{ name: 'field', body: 'value' }] }
     },
-    expected: {chunked: false}
+    expected: { chunked: false }
   },
   '+object -chunked +stream': {
     options: {
-      multipart: {chunked: false, data: [{name: 'file', body: null}]}
+      multipart: { chunked: false, data: [{ name: 'file', body: null }] }
     },
-    expected: {chunked: true}
+    expected: { chunked: true }
   },
   // chunked overrides body value
   '+object +chunked -stream': {
     options: {
-      multipart: {chunked: true, data: [{name: 'field', body: 'value'}]}
+      multipart: { chunked: true, data: [{ name: 'field', body: 'value' }] }
     },
-    expected: {chunked: true}
+    expected: { chunked: true }
   },
   // encoding overrides chunked
   '+object +encoding -chunked': {
     options: {
-      headers: {'transfer-encoding': 'chunked'},
-      multipart: {chunked: false, data: [{name: 'field', body: 'value'}]}
+      headers: { 'transfer-encoding': 'chunked' },
+      multipart: { chunked: false, data: [{ name: 'field', body: 'value' }] }
     },
-    expected: {chunked: true}
+    expected: { chunked: true }
   }
 }
 
 function runTest (t, test) {
-  var server = http.createServer(function (req, res) {
+  const server = http.createServer(function (req, res) {
     t.ok(req.headers['content-type'].match(/^multipart\/related; boundary=[^\s;]+$/))
 
     if (test.expected.chunked) {
@@ -95,7 +95,7 @@ function runTest (t, test) {
     }
 
     // temp workaround
-    var data = ''
+    let data = ''
     req.setEncoding('utf8')
 
     req.on('data', function (d) {
@@ -112,7 +112,7 @@ function runTest (t, test) {
       } else {
         // field
         t.ok(data.indexOf('name: field') !== -1)
-        var parts = test.options.multipart.data || test.options.multipart
+        const parts = test.options.multipart.data || test.options.multipart
         t.ok(data.indexOf(parts[0].body) !== -1)
       }
 
@@ -122,10 +122,10 @@ function runTest (t, test) {
   })
 
   server.listen(0, function () {
-    var url = 'http://localhost:' + this.address().port
+    const url = 'http://localhost:' + this.address().port
     // @NOTE: multipartData properties must be set here
     // so that file read stream does not leak in node v0.8
-    var parts = test.options.multipart.data || test.options.multipart
+    const parts = test.options.multipart.data || test.options.multipart
     if (parts[0].name === 'file') {
       parts[0].body = fs.createReadStream(localFile)
     }

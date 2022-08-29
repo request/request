@@ -1,11 +1,11 @@
 'use strict'
 
-var http = require('http')
-var request = require('../index')
-var tape = require('tape')
-var Promise = require('bluebird')
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
+const Promise = require('bluebird')
 
-var s = http.createServer(function (req, res) {
+const s = http.createServer(function (req, res) {
   res.writeHead(200, {})
   res.end('ok')
 })
@@ -18,18 +18,18 @@ tape('setup', function (t) {
 })
 
 tape('promisify convenience method', function (t) {
-  var get = request.get
-  var p = Promise.promisify(get, {multiArgs: true})
+  const get = request.get
+  const p = Promise.promisify(get, { multiArgs: true })
   p(s.url)
     .then(function (results) {
-      var res = results[0]
+      const res = results[0]
       t.equal(res.statusCode, 200)
       t.end()
     })
 })
 
 tape('promisify request function', function (t) {
-  var p = Promise.promisify(request, {multiArgs: true})
+  const p = Promise.promisify(request, { multiArgs: true })
   p(s.url)
     .spread(function (res, body) {
       t.equal(res.statusCode, 200)
@@ -38,7 +38,7 @@ tape('promisify request function', function (t) {
 })
 
 tape('promisify all methods', function (t) {
-  Promise.promisifyAll(request, {multiArgs: true})
+  Promise.promisifyAll(request, { multiArgs: true })
   request.getAsync(s.url)
     .spread(function (res, body) {
       t.equal(res.statusCode, 200)

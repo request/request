@@ -1,10 +1,10 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
 
-var s = server.createServer()
+const s = server.createServer()
 
 tape('setup', function (t) {
   s.listen(0, function () {
@@ -20,14 +20,14 @@ tape('setup', function (t) {
 tape('should emit socket event', function (t) {
   t.plan(4)
 
-  var req = request(s.url, function (err, res, body) {
+  const req = request(s.url, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, 'waited')
   })
 
   req.on('socket', function (socket) {
-    var requestSocket = req.req.socket
+    const requestSocket = req.req.socket
     t.equal(requestSocket, socket)
   })
 })

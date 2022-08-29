@@ -1,24 +1,24 @@
 'use strict'
 
-var request = require('../index')
-var http = require('http')
-var fs = require('fs')
-var rimraf = require('rimraf')
-var assert = require('assert')
-var tape = require('tape')
-var url = require('url')
+const request = require('../index')
+const http = require('http')
+const fs = require('fs')
+const rimraf = require('rimraf')
+const assert = require('assert')
+const tape = require('tape')
+const url = require('url')
 
-var rawPath = [null, 'raw', 'path'].join('/')
-var queryPath = [null, 'query', 'path'].join('/')
-var searchString = '?foo=bar'
-var socket = [__dirname, 'tmp-socket'].join('/')
-var expectedBody = 'connected'
-var statusCode = 200
+const rawPath = [null, 'raw', 'path'].join('/')
+const queryPath = [null, 'query', 'path'].join('/')
+const searchString = '?foo=bar'
+const socket = [__dirname, 'tmp-socket'].join('/')
+const expectedBody = 'connected'
+const statusCode = 200
 
 rimraf.sync(socket)
 
-var s = http.createServer(function (req, res) {
-  var incomingUrl = url.parse(req.url)
+const s = http.createServer(function (req, res) {
+  const incomingUrl = new url.URL(req.url)
   switch (incomingUrl.pathname) {
     case rawPath:
       assert.equal(incomingUrl.pathname, rawPath, 'requested path is sent to server')

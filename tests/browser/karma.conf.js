@@ -1,5 +1,5 @@
 'use strict'
-var istanbul = require('browserify-istanbul')
+const istanbul = require('browserify-istanbul')
 
 module.exports = function (config) {
   config.set({

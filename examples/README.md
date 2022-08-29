@@ -18,7 +18,7 @@ request.post('https://api.login.yahoo.com/oauth/v2/get_token', {
     session_handle: '...'
   }
 }, function (err, res, body) {
-  var result = require('querystring').parse(body)
+  const result = require('querystring').parse(body)
   // assert.equal(typeof result, 'object')
 })
 ```
@@ -91,7 +91,7 @@ READABLE.pipe(request.post(URL));
 A more detailed example:
 
 ```js
-var fs = require('fs')
+const fs = require('fs')
   , path = require('path')
   , http = require('http')
   , request = require('request')
@@ -119,8 +119,8 @@ fs.createReadStream(TMP_FILE_PATH)
 Run tor on the terminal and try the following. (Needs `socks5-http-client` to connect to tor)
 
 ```js
-var request = require('../index.js');
-var Agent = require('socks5-http-client/lib/Agent');
+const request = require('../index.js');
+const Agent = require('socks5-http-client/lib/Agent');
 
 request.get({
     url: 'http://www.tenreads.io',

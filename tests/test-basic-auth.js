@@ -1,18 +1,18 @@
 'use strict'
 
-var assert = require('assert')
-var http = require('http')
-var request = require('../index')
-var tape = require('tape')
+const assert = require('assert')
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
 
-var numBasicRequests = 0
-var basicServer
+let numBasicRequests = 0
+let basicServer
 
 tape('setup', function (t) {
   basicServer = http.createServer(function (req, res) {
     numBasicRequests++
 
-    var ok
+    let ok
 
     if (req.headers.authorization) {
       if (req.headers.authorization === 'Basic ' + Buffer.from('user:pass').toString('base64')) {
@@ -34,7 +34,7 @@ tape('setup', function (t) {
     }
 
     if (req.url === '/post/') {
-      var expectedContent = 'key=value'
+      const expectedContent = 'key=value'
       req.on('data', function (data) {
         assert.equal(data, expectedContent)
       })
@@ -57,13 +57,13 @@ tape('setup', function (t) {
 })
 
 tape('sendImmediately - false', function (t) {
-  var r = request({
-    'method': 'GET',
-    'uri': basicServer.url + '/test/',
-    'auth': {
-      'user': 'user',
-      'pass': 'pass',
-      'sendImmediately': false
+  const r = request({
+    method: 'GET',
+    uri: basicServer.url + '/test/',
+    auth: {
+      user: 'user',
+      pass: 'pass',
+      sendImmediately: false
     }
   }, function (error, res, body) {
     t.error(error)
@@ -76,12 +76,12 @@ tape('sendImmediately - false', function (t) {
 
 tape('sendImmediately - true', function (t) {
   // If we don't set sendImmediately = false, request will send basic auth
-  var r = request({
-    'method': 'GET',
-    'uri': basicServer.url + '/test2/',
-    'auth': {
-      'user': 'user',
-      'pass': 'pass'
+  const r = request({
+    method: 'GET',
+    uri: basicServer.url + '/test2/',
+    auth: {
+      user: 'user',
+      pass: 'pass'
     }
   }, function (error, res, body) {
     t.error(error)
@@ -93,9 +93,9 @@ tape('sendImmediately - true', function (t) {
 })
 
 tape('credentials in url', function (t) {
-  var r = request({
-    'method': 'GET',
-    'uri': basicServer.url.replace(/:\/\//, '$&user:pass@') + '/test2/'
+  const r = request({
+    method: 'GET',
+    uri: basicServer.url.replace(/:\/\//, '$&user:pass@') + '/test2/'
   }, function (error, res, body) {
     t.error(error)
     t.equal(r._auth.user, 'user')
@@ -106,14 +106,14 @@ tape('credentials in url', function (t) {
 })
 
 tape('POST request', function (t) {
-  var r = request({
-    'method': 'POST',
-    'form': { 'key': 'value' },
-    'uri': basicServer.url + '/post/',
-    'auth': {
-      'user': 'user',
-      'pass': 'pass',
-      'sendImmediately': false
+  const r = request({
+    method: 'POST',
+    form: { key: 'value' },
+    uri: basicServer.url + '/post/',
+    auth: {
+      user: 'user',
+      pass: 'pass',
+      sendImmediately: false
     }
   }, function (error, res, body) {
     t.error(error)
@@ -126,13 +126,13 @@ tape('POST request', function (t) {
 
 tape('user - empty string', function (t) {
   t.doesNotThrow(function () {
-    var r = request({
-      'method': 'GET',
-      'uri': basicServer.url + '/allow_empty_user/',
-      'auth': {
-        'user': '',
-        'pass': 'pass',
-        'sendImmediately': false
+    const r = request({
+      method: 'GET',
+      uri: basicServer.url + '/allow_empty_user/',
+      auth: {
+        user: '',
+        pass: 'pass',
+        sendImmediately: false
       }
     }, function (error, res, body) {
       t.error(error)
@@ -146,13 +146,13 @@ tape('user - empty string', function (t) {
 
 tape('pass - undefined', function (t) {
   t.doesNotThrow(function () {
-    var r = request({
-      'method': 'GET',
-      'uri': basicServer.url + '/allow_undefined_password/',
-      'auth': {
-        'user': 'user',
-        'pass': undefined,
-        'sendImmediately': false
+    const r = request({
+      method: 'GET',
+      uri: basicServer.url + '/allow_undefined_password/',
+      auth: {
+        user: 'user',
+        pass: undefined,
+        sendImmediately: false
       }
     }, function (error, res, body) {
       t.error(error)
@@ -166,13 +166,13 @@ tape('pass - undefined', function (t) {
 
 tape('pass - utf8', function (t) {
   t.doesNotThrow(function () {
-    var r = request({
-      'method': 'GET',
-      'uri': basicServer.url + '/allow_undefined_password/',
-      'auth': {
-        'user': 'user',
-        'pass': 'pâss',
-        'sendImmediately': false
+    const r = request({
+      method: 'GET',
+      uri: basicServer.url + '/allow_undefined_password/',
+      auth: {
+        user: 'user',
+        pass: 'pâss',
+        sendImmediately: false
       }
     }, function (error, res, body) {
       t.error(error)
@@ -186,7 +186,7 @@ tape('pass - utf8', function (t) {
 })
 
 tape('auth method', function (t) {
-  var r = request
+  const r = request
     .get(basicServer.url + '/test/')
     .auth('user', '', false)
     .on('response', function (res) {
@@ -198,7 +198,7 @@ tape('auth method', function (t) {
 })
 
 tape('get method', function (t) {
-  var r = request.get(basicServer.url + '/test/',
+  const r = request.get(basicServer.url + '/test/',
     {
       auth: {
         user: 'user',

@@ -1,11 +1,11 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
 
-var s = server.createServer()
-var currResponseHandler
+const s = server.createServer()
+let currResponseHandler
 
 ['http://google.com/', 'https://google.com/'].forEach(function (url) {
   s.on(url, function (req, res) {
@@ -15,7 +15,7 @@ var currResponseHandler
   })
 })
 
-var proxyEnvVars = [
+const proxyEnvVars = [
   'http_proxy',
   'HTTP_PROXY',
   'https_proxy',
@@ -24,8 +24,8 @@ var proxyEnvVars = [
   'NO_PROXY'
 ]
 
-// Set up and run a proxy test.  All environment variables pertaining to
-// proxies will be deleted before each test.  Specify environment variables as
+// Set up and run a proxy test.  All environment letiables pertaining to
+// proxies will be deleted before each test.  Specify environment letiables as
 // `options.env`; all other keys on `options` will be passed as additional
 // options to `request`.
 //
@@ -40,13 +40,13 @@ function runTest (name, options, responseHandler) {
       delete process.env[v]
     })
     if (options.env) {
-      for (var v in options.env) {
+      for (const v in options.env) {
         process.env[v] = options.env[v]
       }
       delete options.env
     }
 
-    var called = false
+    let called = false
     currResponseHandler = function (req, res) {
       if (responseHandler) {
         called = true
@@ -113,50 +113,50 @@ function addTests () {
 
     // http: urls and basic proxy settings
 
-    runTest('HTTP_PROXY environment variable and http: url', {
+    runTest('HTTP_PROXY environment letiable and http: url', {
       env: { HTTP_PROXY: s.url }
     }, true)
 
-    runTest('http_proxy environment variable and http: url', {
+    runTest('http_proxy environment letiable and http: url', {
       env: { http_proxy: s.url }
     }, true)
 
-    runTest('HTTPS_PROXY environment variable and http: url', {
+    runTest('HTTPS_PROXY environment letiable and http: url', {
       env: { HTTPS_PROXY: s.url }
     }, false)
 
-    runTest('https_proxy environment variable and http: url', {
+    runTest('https_proxy environment letiable and http: url', {
       env: { https_proxy: s.url }
     }, false)
 
     // https: urls and basic proxy settings
 
-    runTest('HTTP_PROXY environment variable and https: url', {
+    runTest('HTTP_PROXY environment letiable and https: url', {
       env: { HTTP_PROXY: s.url },
       url: 'https://google.com',
       tunnel: false,
       pool: false
     }, true)
 
-    runTest('http_proxy environment variable and https: url', {
+    runTest('http_proxy environment letiable and https: url', {
       env: { http_proxy: s.url },
       url: 'https://google.com',
       tunnel: false
     }, true)
 
-    runTest('HTTPS_PROXY environment variable and https: url', {
+    runTest('HTTPS_PROXY environment letiable and https: url', {
       env: { HTTPS_PROXY: s.url },
       url: 'https://google.com',
       tunnel: false
     }, true)
 
-    runTest('https_proxy environment variable and https: url', {
+    runTest('https_proxy environment letiable and https: url', {
       env: { https_proxy: s.url },
       url: 'https://google.com',
       tunnel: false
     }, true)
 
-    runTest('multiple environment variables and https: url', {
+    runTest('multiple environment letiables and https: url', {
       env: {
         HTTPS_PROXY: s.url,
         HTTP_PROXY: 'http://localhost:0/'

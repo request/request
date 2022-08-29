@@ -1,11 +1,11 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
-var http = require('http')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
+const http = require('http')
 
-var s = server.createServer()
+const s = server.createServer()
 
 tape('setup', function (t) {
   s.listen(0, function () {
@@ -35,7 +35,7 @@ addTest('testGet', {
 
 addTest('testGetChunkBreak', {
   resp: server.createChunkResponse(
-    [ Buffer.from([239]),
+    [Buffer.from([239]),
       Buffer.from([163]),
       Buffer.from([191]),
       Buffer.from([206]),
@@ -52,7 +52,9 @@ addTest('testGetBuffer', {
 })
 
 addTest('testGetEncoding', {
-  resp: server.createGetResponse(Buffer.from('efa3bfcea9e29883', 'hex')), encoding: 'hex', expectBody: 'efa3bfcea9e29883'
+  resp: server.createGetResponse(Buffer.from('efa3bfcea9e29883', 'hex')),
+  encoding: 'hex',
+  expectBody: 'efa3bfcea9e29883'
 })
 
 addTest('testGetUTF', {
@@ -60,7 +62,7 @@ addTest('testGetUTF', {
 })
 
 addTest('testGetJSON', {
-  resp: server.createGetResponse('{"test":true}', 'application/json'), json: true, expectBody: {'test': true}
+  resp: server.createGetResponse('{"test":true}', 'application/json'), json: true, expectBody: { test: true }
 })
 
 addTest('testPutString', {
@@ -72,7 +74,7 @@ addTest('testPutBuffer', {
 })
 
 addTest('testPutJSON', {
-  resp: server.createPostValidator(JSON.stringify({foo: 'bar'})), method: 'PUT', json: {foo: 'bar'}
+  resp: server.createPostValidator(JSON.stringify({ foo: 'bar' })), method: 'PUT', json: { foo: 'bar' }
 })
 
 addTest('testPutMultipart', {
@@ -86,8 +88,8 @@ addTest('testPutMultipart', {
     '\r\n--__BOUNDARY__--'
   ),
   method: 'PUT',
-  multipart: [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'},
-    {'body': 'Oh hi.'}
+  multipart: [{ 'content-type': 'text/html', body: '<html><body>Oh hi.</body></html>' },
+    { body: 'Oh hi.' }
   ]
 })
 
@@ -103,8 +105,8 @@ addTest('testPutMultipartPreambleCRLF', {
   ),
   method: 'PUT',
   preambleCRLF: true,
-  multipart: [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'},
-    {'body': 'Oh hi.'}
+  multipart: [{ 'content-type': 'text/html', body: '<html><body>Oh hi.</body></html>' },
+    { body: 'Oh hi.' }
   ]
 })
 
@@ -122,18 +124,18 @@ addTest('testPutMultipartPostambleCRLF', {
   method: 'PUT',
   preambleCRLF: true,
   postambleCRLF: true,
-  multipart: [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'},
-    {'body': 'Oh hi.'}
+  multipart: [{ 'content-type': 'text/html', body: '<html><body>Oh hi.</body></html>' },
+    { body: 'Oh hi.' }
   ]
 })
 
 tape('typed array', function (t) {
-  var server = http.createServer()
+  const server = http.createServer()
   server.on('request', function (req, res) {
     req.pipe(res)
   })
   server.listen(0, function () {
-    var data = new Uint8Array([1, 2, 3])
+    const data = new Uint8Array([1, 2, 3])
     request({
       uri: 'http://localhost:' + this.address().port,
       method: 'POST',

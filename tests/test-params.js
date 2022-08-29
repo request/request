@@ -1,10 +1,10 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
 
-var s = server.createServer()
+const s = server.createServer()
 
 function runTest (name, test) {
   tape(name, function (t) {
@@ -36,7 +36,7 @@ runTest('testGet', {
 
 runTest('testGetChunkBreak', {
   resp: server.createChunkResponse(
-    [ Buffer.from([239]),
+    [Buffer.from([239]),
       Buffer.from([163]),
       Buffer.from([191]),
       Buffer.from([206]),
@@ -57,7 +57,7 @@ runTest('testGetBuffer', {
 runTest('testGetJSON', {
   resp: server.createGetResponse('{"test":true}', 'application/json'),
   json: true,
-  expectBody: {'test': true}
+  expectBody: { test: true }
 })
 
 runTest('testPutString', {
@@ -73,9 +73,9 @@ runTest('testPutBuffer', {
 })
 
 runTest('testPutJSON', {
-  resp: server.createPostValidator(JSON.stringify({foo: 'bar'})),
+  resp: server.createPostValidator(JSON.stringify({ foo: 'bar' })),
   method: 'PUT',
-  json: {foo: 'bar'}
+  json: { foo: 'bar' }
 })
 
 runTest('testPutMultipart', {
@@ -89,8 +89,8 @@ runTest('testPutMultipart', {
     '\r\n--__BOUNDARY__--'
   ),
   method: 'PUT',
-  multipart: [ {'content-type': 'text/html', 'body': '<html><body>Oh hi.</body></html>'},
-    {'body': 'Oh hi.'}
+  multipart: [{ 'content-type': 'text/html', body: '<html><body>Oh hi.</body></html>' },
+    { body: 'Oh hi.' }
   ]
 })
 

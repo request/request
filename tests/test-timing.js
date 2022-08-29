@@ -1,12 +1,12 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
-var http = require('http')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
+const http = require('http')
 
-var plainServer = server.createServer()
-var redirectMockTime = 10
+const plainServer = server.createServer()
+const redirectMockTime = 10
 
 tape('setup', function (t) {
   plainServer.listen(0, function () {
@@ -17,7 +17,7 @@ tape('setup', function (t) {
     plainServer.on('/redir', function (req, res) {
       // fake redirect delay to ensure strong signal for rollup check
       setTimeout(function () {
-        res.writeHead(301, { 'location': 'http://localhost:' + plainServer.port + '/' })
+        res.writeHead(301, { location: 'http://localhost:' + plainServer.port + '/' })
         res.end()
       }, redirectMockTime)
     })
@@ -27,11 +27,11 @@ tape('setup', function (t) {
 })
 
 tape('non-redirected request is timed', function (t) {
-  var options = {time: true}
+  const options = { time: true }
 
-  var start = new Date().getTime()
-  var r = request('http://localhost:' + plainServer.port + '/', options, function (err, res, body) {
-    var end = new Date().getTime()
+  const start = new Date().getTime()
+  const r = request('http://localhost:' + plainServer.port + '/', options, function (err, res, body) {
+    const end = new Date().getTime()
 
     t.equal(err, null)
     t.equal(typeof res.elapsedTime, 'number')
@@ -57,17 +57,17 @@ tape('non-redirected request is timed', function (t) {
     t.equal((res.timingPhases.total <= (end - start)), true)
 
     // validate there are no unexpected properties
-    var propNames = []
-    for (var propName in res.timings) {
-      if (res.timings.hasOwnProperty(propName)) {
+    let propNames = []
+    for (const propName in res.timings) {
+      if (propName in res.timings) {
         propNames.push(propName)
       }
     }
     t.deepEqual(propNames, ['socket', 'lookup', 'connect', 'response', 'end'])
 
     propNames = []
-    for (propName in res.timingPhases) {
-      if (res.timingPhases.hasOwnProperty(propName)) {
+    for (const propName in res.timingPhases) {
+      if (propName in res.timingPhases) {
         propNames.push(propName)
       }
     }
@@ -78,8 +78,8 @@ tape('non-redirected request is timed', function (t) {
 })
 
 tape('redirected request is timed with rollup', function (t) {
-  var options = {time: true}
-  var r = request('http://localhost:' + plainServer.port + '/redir', options, function (err, res, body) {
+  const options = { time: true }
+  const r = request('http://localhost:' + plainServer.port + '/redir', options, function (err, res, body) {
     t.equal(err, null)
     t.equal(typeof res.elapsedTime, 'number')
     t.equal(typeof res.responseStartTime, 'number')
@@ -92,12 +92,12 @@ tape('redirected request is timed with rollup', function (t) {
 })
 
 tape('keepAlive is timed', function (t) {
-  var agent = new http.Agent({ keepAlive: true })
-  var options = { time: true, agent: agent }
-  var start1 = new Date().getTime()
+  const agent = new http.Agent({ keepAlive: true })
+  const options = { time: true, agent: agent }
+  const start1 = new Date().getTime()
 
   request('http://localhost:' + plainServer.port + '/', options, function (err1, res1, body1) {
-    var end1 = new Date().getTime()
+    const end1 = new Date().getTime()
 
     // ensure the first request's timestamps look ok
     t.equal((res1.timingStart >= start1), true)
@@ -109,9 +109,9 @@ tape('keepAlive is timed', function (t) {
     t.equal((res1.timings.response >= res1.timings.connect), true)
 
     // open a second request with the same agent so we re-use the same connection
-    var start2 = new Date().getTime()
+    const start2 = new Date().getTime()
     request('http://localhost:' + plainServer.port + '/', options, function (err2, res2, body2) {
-      var end2 = new Date().getTime()
+      const end2 = new Date().getTime()
 
       // ensure the second request's timestamps look ok
       t.equal((res2.timingStart >= start2), true)
