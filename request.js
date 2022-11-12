@@ -28,7 +28,6 @@ var Multipart = require('./lib/multipart').Multipart
 var Redirect = require('./lib/redirect').Redirect
 var Tunnel = require('./lib/tunnel').Tunnel
 var now = require('performance-now')
-var Buffer = require('safe-buffer').Buffer
 
 var safeStringify = helpers.safeStringify
 var isReadStream = helpers.isReadStream
