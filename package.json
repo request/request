@@ -48,7 +48,7 @@
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
-    "test-ci": "taper tests/test-*.js",
+    "test-ci": "tap --no-check-coverage tests/test-*.js",
     "test-cov": "nyc --reporter=lcov tape tests/test-*.js",
     "test-browser": "echo 'Skipping browser tests.' || node tests/browser/start.js",
     "lint": "standard"
@@ -72,8 +72,8 @@
     "rimraf": "^2.2.8",
     "server-destroy": "^1.0.1",
     "standard": "^9.0.0",
-    "tape": "^4.6.0",
-    "taper": "^0.5.0"
+    "tap": "^15.1.5",
+    "tape": "^4.6.0"
   },
   "greenkeeper": {
     "ignore": [
