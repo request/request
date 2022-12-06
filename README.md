@@ -3,13 +3,6 @@
 
 [![npm package](https://nodei.co/npm/@cypress/request.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/@cypress/request/)
 
-[![Build status](https://img.shields.io/travis/cypress-io/request/master.svg?style=flat-square)](https://travis-ci.org/cypress-io/request)
-[![Coverage](https://img.shields.io/codecov/c/github/cypress-io/request.svg?style=flat-square)](https://codecov.io/github/cypress-io/request?branch=master)
-[![Coverage](https://img.shields.io/coveralls/cypress-io/request.svg?style=flat-square)](https://coveralls.io/r/cypress-io/request)
-[![Dependency Status](https://img.shields.io/david/cypress-io/request.svg?style=flat-square)](https://david-dm.org/cypress-io/request)
-[![Known Vulnerabilities](https://snyk.io/test/npm/request/badge.svg?style=flat-square)](https://snyk.io/test/npm/request)
-[![Gitter](https://img.shields.io/badge/gitter-join_chat-blue.svg?style=flat-square)](https://gitter.im/cypress-io/request?utm_source=badge)
-
 **This is a fork of [`request`](https://github.com/request/request) for use in [Cypress](https://github.com/cypress-io/cypress).**
 
 ## Super simple to use
