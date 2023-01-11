@@ -19,8 +19,6 @@ jobs:
       - run: npm test
 
   release:
-    context:
-      - test-runner:npm-release
     docker:
       - image: cimg/node:18.12.1
     steps:
@@ -38,6 +36,8 @@ workflows:
     jobs:
       - test
       - release:
+          context:
+            - test-runner:npm-release
           requires:
             - test
           filters:
