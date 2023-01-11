@@ -20,7 +20,7 @@ jobs:
 
   release:
     docker:
-      - image: circleci/node:18
+      - image: cimg/node:18
     steps:
       - checkout
       - restore_cache:
