@@ -28,7 +28,7 @@ jobs:
             - v1-dependencies-npm-{{ checksum "package.json" }}
             - v1-dependencies-npm
       - run: npm install
-      - run: npx semantic-release -d
+      - run: npx semantic-release
 
 workflows:
   version: 2
@@ -38,7 +38,7 @@ workflows:
       - release:
           requires:
             - test
-          # filters:
-          #   branches:
-          #     only:
-          #       - master
+          filters:
+            branches:
+              only:
+                - master
