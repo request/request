@@ -19,10 +19,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
+      - name: Use Node.js 10.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 10.x
 
       - name: Install
         run: npm install
@@ -38,10 +38,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
+      - name: Use Node.js 10.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 10.x
 
       - name: Install
         run: npm install
@@ -55,11 +55,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [6, 8, 10]
+        node-version: [6, 8]
         os: [ubuntu-latest, windows-latest]
         include:
           - coverage: true
-            node-version: 16
+            node-version: 10
             os: ubuntu-latest
 
     steps:
