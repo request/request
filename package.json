@@ -43,7 +43,7 @@
     "qs": "~6.5.2",
     "safe-buffer": "^5.1.2",
     "stream-length": "^1.0.2",
-    "tough-cookie": "~4.1.2",
+    "@postman/tough-cookie": "~4.1.2-postman.1",
     "uuid": "^3.3.2"
   },
   "scripts": {
