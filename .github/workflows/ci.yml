@@ -23,10 +23,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-          cache: 'npm'
 
       - name: Install
-        run: npm ci
+        run: npm install
 
       - name: Run lint tests
         run: npm run test-lint
@@ -43,10 +42,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-          cache: 'npm'
 
       - name: Install
-        run: npm ci
+        run: npm install
 
       - name: Run browser tests
         run: npm run test-browser
@@ -72,10 +70,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
 
       - name: Install
-        run: npm ci
+        run: npm install
 
       - if: ${{ ! matrix.coverage }}
         name: Run tests
