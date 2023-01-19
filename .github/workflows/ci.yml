@@ -77,7 +77,7 @@ jobs:
       - name: Install
         run: npm ci
 
-      - if: ! ${{ matrix.coverage }}
+      - if: ${{ ! matrix.coverage }}
         name: Run tests
         run: npm run test-ci
 
