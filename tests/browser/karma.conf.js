@@ -57,9 +57,9 @@ module.exports = function (config) {
     }
   }
 
-  if (process.env.TRAVIS) {
+  if (process.env.GITHUB_ACTIONS) {
     configuration.customLaunchers = {
-      chromeTravis: {
+      chromeGA: {
         base: 'ChromeHeadless',
         flags: [
           '--no-sandbox',
@@ -67,7 +67,7 @@ module.exports = function (config) {
         ]
       }
     }
-    configuration.browsers = ['chromeTravis']
+    configuration.browsers = ['chromeGA']
   }
 
   config.set(configuration)

@@ -32,7 +32,7 @@ If the problem is not related to request the issue will be marked as `Help (plea
 
 1. In almost all of the cases your PR **needs tests**. Make sure you have any.
 2. Run `npm test` locally. Fix any errors before pushing to GitHub.
-3. After submitting the PR a build will be triggered on TravisCI. Wait for it to ends and make sure all jobs are passing.
+3. After submitting the PR a build will be triggered on GitHub Actions. Wait for it to ends and make sure all jobs are passing.
 
 
 -----------------------------------------
