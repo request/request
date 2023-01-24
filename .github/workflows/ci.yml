@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+  pull_request:
+    branches: [$default-branch]
+  schedule:
+    - cron: '0 12 * * 0'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 10.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 10.x
+
+      - name: Install
+        run: npm install
+
+      - name: Run lint tests
+        run: npm run lint
+
+  browser-tests:
+    name: Browser Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 10.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 10.x
+
+      - name: Install
+        run: npm install
+
+      - name: Run browser tests
+        run: npm run test-browser
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [6, 8]
+        include:
+          - node-version: 10
+            # todo: enable coverage after figuring out why test-cov step is failing
+            coverage: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install
+        run: npm install
+
+      - if: ${{ ! matrix.coverage }}
+        name: Run tests
+        run: npm run test-ci
+
+      - if: ${{ matrix.coverage }}
+        name: Run tests and upload coverage
+        run: npm run test-cov && npx codecov && cat ./coverage/lcov.info | npx coveralls
