@@ -70,7 +70,8 @@ function runTests (name, httpModules) {
   tape(name, function (t) {
     var toHttps = 'http://localhost:' + plainServer.port + '/to_https'
     var toPlain = 'https://localhost:' + httpsServer.port + '/to_plain'
-    var options = { httpModules: httpModules, strictSSL: false }
+    var options = { httpModules: httpModules, strictSSL: false, allowInsecureRedirect: true }
+    var optionsSecure = { httpModules: httpModules, strictSSL: false }
     var modulesTest = httpModules || {}
 
     clearFauxRequests()

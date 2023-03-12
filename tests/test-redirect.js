@@ -345,11 +345,24 @@ tape('http to https redirect', function (t) {
   hits = {}
   request.get({
     uri: require('url').parse(s.url + '/ssl'),
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
+    allowInsecureRedirect: true
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(body, 'SSL', 'Got SSL redirect')
+    t.end()
+  })
+})
+
+tape('http to https redirect should fail without the explicit "allowInsecureRedirect" option', function (t) {
+  hits = {}
+  request.get({
+    uri: require('url').parse(s.url + '/ssl'),
+    rejectUnauthorized: false
+  }, function (err, res, body) {
+    t.notEqual(err, null)
+    t.equal(err.code, "ERR_INVALID_PROTOCOL","Failed to cross-protocol redirect")
     t.end()
   })
 })
