@@ -809,6 +809,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 - `followOriginalHttpMethod` - by default we redirect to HTTP method GET. you can enable this property to redirect to the original HTTP method (default: `false`)
 - `maxRedirects` - the maximum number of redirects to follow (default: `10`)
 - `removeRefererHeader` - removes the referer header when a redirect happens (default: `false`). **Note:** if true, referer header set in the initial request is preserved during redirect chain.
+- `allowInsecureRedirect` - allows cross-protocol redirects (HTTP to HTTPS and vice versa). **Warning:** may lead to bypassing anti SSRF filters
 
 ---
 
