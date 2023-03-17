@@ -362,7 +362,7 @@ tape('http to https redirect should fail without the explicit "allowInsecureRedi
     rejectUnauthorized: false
   }, function (err, res, body) {
     t.notEqual(err, null)
-    t.equal(err.code, "ERR_INVALID_PROTOCOL","Failed to cross-protocol redirect")
+    t.equal(err.code, 'ERR_INVALID_PROTOCOL', 'Failed to cross-protocol redirect')
     t.end()
   })
 })
