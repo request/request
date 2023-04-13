@@ -67,7 +67,8 @@ tape('lots of redirects', function (t) {
     request({
       url: (i % 2 ? s.url : ss.url) + '/a',
       headers: { 'x-test-key': key },
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
+	  allowInsecureRedirect: true
     }, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.statusCode, 200)

@@ -18,7 +18,8 @@ request = request.defaults({
     user: 'test',
     pass: 'testing'
   },
-  rejectUnauthorized: false
+  rejectUnauthorized: false,
+  allowInsecureRedirect: true
 })
 
 // redirect.from(proto, host).to(proto, host) returns an object with keys:
