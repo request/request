@@ -24,7 +24,7 @@
   ],
   "dependencies": {
     "@postman/form-data": "~3.1.1",
-    "@postman/tough-cookie": "~4.1.2-postman.1",
+    "@postman/tough-cookie": "~4.1.2-postman.2",
     "@postman/tunnel-agent": "^0.6.3",
     "aws-sign2": "~0.7.0",
     "aws4": "^1.12.0",
