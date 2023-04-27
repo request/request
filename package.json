@@ -48,7 +48,7 @@
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
-    "test-ci": "tape tests/test-*.js",
+    "test-ci": "tap-prettify tests/test-*.js",
     "test-cov": "istanbul cover tape tests/test-*.js",
     "test-browser": "node tests/browser/start.js",
     "lint": "standard"
@@ -74,7 +74,8 @@
     "server-destroy": "^1.0.1",
     "standard": "^9.0.0",
     "tape": "^4.6.0",
-    "taper": "^0.5.0"
+    "taper": "^0.5.0",
+    "tap-prettify": "^0.0.2"
   },
   "greenkeeper": {
     "ignore": [
