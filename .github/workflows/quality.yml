@@ -1,0 +1,52 @@
+name: Quality
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/quality.yml
+      - lib/**
+      - tests/**
+      - index.js
+      - package.json
+      - request.js
+  push:
+    paths:
+      - package.json
+
+jobs:
+  quality:
+    name: Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          cache: npm
+          node-version: 18
+
+      - name: Install dependencies
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm ci
+
+      - name: Run tests
+        if: github.event_name == 'pull_request'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+          CI: true
+          ENV: stage
+          NODE_ENV: stage
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm test
+
+      - name: Run audit
+        if: github.event_name == 'pull_request'
+        run: npx audit-ci
