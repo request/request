@@ -1211,7 +1211,7 @@ Request.prototype.readResponseBody = function (response) {
           buffers = [];
           bufferLength = 0;
 
-          return;
+          response.body = [];
         } else {
           response.body = response.body.toString(self.encoding);
         }
