@@ -1205,7 +1205,7 @@ Request.prototype.readResponseBody = function (response) {
       if (self.encoding !== null) {
         if (bufferLength > 536870888) {
           console.log(
-            `Buffer size exceeds the safe limit. at ${bufferLength} from ${self?.uri?.href} at ${response.body}`
+            `Buffer size exceeds the safe limit. at ${bufferLength} from ${self?.uri?.href}`
           );
 
           buffers = [];
