@@ -44,7 +44,7 @@
     "performance-now": "^2.1.0",
     "qs": "~6.5.2",
     "safe-buffer": "^5.1.2",
-    "tough-cookie": "~2.5.0",
+    "tough-cookie": "~4.1.3",
     "tunnel-agent": "^0.6.0",
     "uuid": "^3.3.2"
   },
@@ -63,7 +63,7 @@
     "codecov": "^3.0.4",
     "coveralls": "^3.0.2",
     "function-bind": "^1.0.2",
-    "karma": "^3.0.0",
+    "karma": "^6.4.2",
     "karma-browserify": "^5.0.1",
     "karma-cli": "^1.0.0",
     "karma-coverage": "^1.0.0",
