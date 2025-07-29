@@ -32,6 +32,7 @@ var hawk = require('./lib/hawk')
 var Multipart = require('./lib/multipart').Multipart
 var Redirect = require('./lib/redirect').Redirect
 var Tunnel = require('./lib/tunnel').Tunnel
+var SocksProxy = require('./lib/socks').SocksProxy
 var Buffer = require('safe-buffer').Buffer
 var inflate = require('./lib/inflate')
 var urlParse = require('./lib/url-parse')
@@ -224,6 +225,7 @@ function Request (options) {
   self._multipart = new Multipart(self)
   self._redirect = new Redirect(self)
   self._tunnel = new Tunnel(self)
+  self._socks = new SocksProxy(self)
   self.init(options)
 }
 
@@ -413,8 +415,14 @@ Request.prototype.init = function (options) {
   }
 
   self.tunnel = self._tunnel.isEnabled()
+  self.socks = self._socks.isEnabled()
+
   if (self.proxy) {
-    self._tunnel.setup(options)
+    if (self.socks) {
+      self._socks.setup()
+    } else {
+      self._tunnel.setup(options)
+    }
   }
 
   self._redirect.onRequest(options)
@@ -437,7 +445,7 @@ Request.prototype.init = function (options) {
     if (self.uri.protocol === 'http:') { self.uri.port = 80 } else if (self.uri.protocol === 'https:') { self.uri.port = 443 }
   }
 
-  if (self.proxy && !self.tunnel) {
+  if (self.proxy && !self.tunnel && !self.socks) {
     self.port = self.proxy.port
     self.host = self.proxy.hostname
   } else {
@@ -524,11 +532,11 @@ Request.prototype.init = function (options) {
     self.auth(uriAuthPieces[0], uriAuthPieces.slice(1).join(':'), true)
   }
 
-  if (!self.tunnel && self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization')) {
+  if (!self.tunnel && self.proxy && self.proxy.auth && !self.hasHeader('proxy-authorization') && !self.socks) {
     self.setHeader('Proxy-Authorization', 'Basic ' + toBase64(self.proxy.auth))
   }
 
-  if (self.proxy && !self.tunnel) {
+  if (self.proxy && !self.tunnel && !self.socks) {
     self.path = (self.uri.protocol + '//' + self.uri.host + self.path)
   }
 
@@ -588,7 +596,7 @@ Request.prototype.init = function (options) {
     self.oauth(self._oauth.params)
   }
 
-  var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
+  var protocol = (self.proxy && !self.tunnel && !self.socks) ? self.proxy.protocol : self.uri.protocol
   var defaultModules = {'http:': { http2: http, http1: http, auto: http }, 'https:': { http1: https, http2: http2, auto: autohttp2 }}
   var httpModules = self.httpModules || {}
 
