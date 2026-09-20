@@ -106,3 +106,80 @@ tape('head method with a body 2', function (t) {
   }, /HTTP HEAD requests MUST NOT include a request body/)
   t.end()
 })
+
+// #2109: when a callback is provided, sync validation errors must not throw.
+tape('head method with a body and a callback does not throw', function (t) {
+  var sync = true
+  var threw = false
+
+  try {
+    request(local, {
+      method: 'HEAD',
+      body: 'foo'
+    }, function (err) {
+      t.equal(threw, false)
+      t.equal(sync, false, 'error is delivered asynchronously')
+      t.ok(err instanceof Error)
+      t.equal(err.message, 'HTTP HEAD requests MUST NOT include a request body.')
+      t.end()
+    })
+  } catch (e) {
+    threw = true
+    t.fail('should not throw when a callback is provided: ' + e.message)
+    t.end()
+  }
+
+  sync = false
+})
+
+tape('request.head with a body and a callback does not throw', function (t) {
+  var sync = true
+
+  t.doesNotThrow(function () {
+    request.head(local, {
+      body: 'foo'
+    }, function (err) {
+      t.equal(sync, false, 'error is delivered asynchronously')
+      t.ok(err instanceof Error)
+      t.equal(err.message, 'HTTP HEAD requests MUST NOT include a request body.')
+      t.end()
+    })
+  })
+
+  sync = false
+})
+
+tape('HEAD body via options.callback does not throw', function (t) {
+  var sync = true
+
+  t.doesNotThrow(function () {
+    request({
+      uri: local,
+      method: 'HEAD',
+      body: 'foo',
+      callback: function (err) {
+        t.equal(sync, false, 'error is delivered asynchronously')
+        t.ok(err instanceof Error)
+        t.equal(err.message, 'HTTP HEAD requests MUST NOT include a request body.')
+        t.end()
+      }
+    })
+  })
+
+  sync = false
+})
+
+tape('undefined uri with a callback does not throw', function (t) {
+  var sync = true
+
+  t.doesNotThrow(function () {
+    request(undefined, function (err) {
+      t.equal(sync, false, 'error is delivered asynchronously')
+      t.ok(err instanceof Error)
+      t.equal(err.message, 'undefined is not a valid uri or options object.')
+      t.end()
+    })
+  })
+
+  sync = false
+})

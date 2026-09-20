@@ -40,17 +40,34 @@ function initParams (uri, options, callback) {
 }
 
 function request (uri, options, callback) {
-  if (typeof uri === 'undefined') {
-    throw new Error('undefined is not a valid uri or options object.')
+  var params
+
+  try {
+    if (typeof uri === 'undefined') {
+      throw new Error('undefined is not a valid uri or options object.')
+    }
+
+    params = initParams(uri, options, callback)
+
+    if (params.method === 'HEAD' && paramsHaveRequestBody(params)) {
+      throw new Error('HTTP HEAD requests MUST NOT include a request body.')
+    }
+
+    return new request.Request(params)
+  } catch (err) {
+    // When a callback is provided, never throw: deliver init/validation
+    // errors asynchronously. Without a callback, keep throw / EventEmitter
+    // error semantics (emit('error') with no listener still throws).
+    var cb = (params && params.callback) ||
+      (typeof options === 'function' ? options : callback)
+    if (typeof cb === 'function') {
+      helpers.defer(function () {
+        cb(err)
+      })
+      return
+    }
+    throw err
   }
-
-  var params = initParams(uri, options, callback)
-
-  if (params.method === 'HEAD' && paramsHaveRequestBody(params)) {
-    throw new Error('HTTP HEAD requests MUST NOT include a request body.')
-  }
-
-  return new request.Request(params)
 }
 
 function verbFunc (verb) {
